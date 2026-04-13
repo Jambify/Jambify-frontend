@@ -61,7 +61,7 @@ const OptionButton: React.FC<OptionButtonProps> = ({
     {/* Letter badge */}
       <span className={cn(
         'w-7 h-7 rounded-full flex items-center justify-center text-xs font-display font-bold',
-        'border flex-shrink-0 transition-all duration-150',
+        'border shrink-0 transition-all duration-150',
         LETTER_BG[state],
       )}>
         {state === 'correct' || state === 'wrong'
@@ -70,7 +70,7 @@ const OptionButton: React.FC<OptionButtonProps> = ({
       </span>
 
       
-      
+
       <span className="text-sm leading-relaxed pt-0.5 text-textMain">
         {text}
       </span>

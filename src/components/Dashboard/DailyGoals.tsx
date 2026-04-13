@@ -22,7 +22,7 @@ const DailyGoals: React.FC = () => {
             onClick={() => toggleGoal(goal.id)}
           >
             <div className={cn(
-              'w-[18px] h-[18px] rounded-full flex-shrink-0 flex items-center justify-center border transition-all',
+              'w-4.5 h-4.5 rounded-full shrink-0 flex items-center justify-center border transition-all',
               goal.done
                 ? 'bg-success border-success'
                 : 'border-borderMuted group-hover:border-white/30'

@@ -1,6 +1,16 @@
 export interface Question {
   id: string;
-  subject: 'English' | 'Mathematics' | 'Physics' | 'Chemistry' | 'Biology';
+  subject: 'English' | 'Mathematics' | 'Physics' | 'Chemistry' | 'Biology' | 'Literature in English' | 'History' | 'Geography' | 'Government' | 'Economics' | 'Christian Religious Studies (CRS)';
+  year: number;
+  difficulty: 'Easy' | 'Medium' | 'Hard';
+  text: string;
+  options: string[];
+  answer: number;        // index of correct option
+  explanation: string;
+  topic: string;
+}
+
+export interface QuizSession {
   year: number;
   difficulty: 'Easy' | 'Medium' | 'Hard';
   text: string;

@@ -62,14 +62,14 @@ const RecommendedSessions: React.FC = () => {
             onClick={() => navigate(s.route)}
             className="w-full flex items-center gap-3 p-3 bg-bgSurface border border-borderMuted rounded-brand hover:border-white/10 hover:translate-x-0.5 transition-all text-left"
           >
-            <div className={cn('w-9 h-9 rounded-brand flex items-center justify-center text-base flex-shrink-0', s.iconBg)}>
+            <div className={cn('w-9 h-9 rounded-brand flex items-center justify-center text-base shrink-0', s.iconBg)}>
               {s.icon}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium truncate">{s.name}</p>
               <p className="text-[11px] text-textDim mt-0.5">{s.meta}</p>
             </div>
-            <span className={cn('text-[10px] font-medium px-2 py-1 rounded-full flex-shrink-0', TAG_STYLES[s.tag])}>
+            <span className={cn('text-[10px] font-medium px-2 py-1 rounded-full shrink-0', TAG_STYLES[s.tag])}>
               {TAG_LABELS[s.tag]}
             </span>
           </button>

@@ -67,7 +67,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ onRetry, onHome }) => {
               className="flex items-start gap-3 px-4 py-3 border-b border-borderMuted last:border-b-0"
             >
               <span className={cn(
-                'w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5',
+                'w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5',
                 wasCorrect ? 'bg-success/15 text-success'
                   : skipped ? 'bg-textDim/10 text-textDim'
                   : 'bg-danger/15 text-danger',
@@ -82,7 +82,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ onRetry, onHome }) => {
                   </p>
                 )}
               </div>
-              <span className="text-[10px] text-textDim flex-shrink-0">{q.subject}</span>
+              <span className="text-[10px] text-textDim shrink-0">{q.subject}</span>
             </div>
           );
         })}

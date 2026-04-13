@@ -61,7 +61,7 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Countdown card */}
-        <div className="hidden md:block absolute right-8 top-1/2 -translate-y-1/2 bg-bgSurface border border-white/10 rounded-brand-lg p-5 text-center min-w-[110px]">
+        <div className="hidden md:block absolute right-8 top-1/2 -translate-y-1/2 bg-bgSurface border border-white/10 rounded-brand-lg p-5 text-center min-w-27.5">
           <div className="font-display text-5xl font-extrabold text-brand-light tracking-tighter">
             {daysToExam}
           </div>

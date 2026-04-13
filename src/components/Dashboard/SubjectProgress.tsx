@@ -23,8 +23,8 @@ const SubjectProgress: React.FC = () => {
       <div className="space-y-3">
         {subjects.map((subject) => (
           <div key={subject.id} className="flex items-center gap-3">
-            <span className="text-base w-7 flex-shrink-0">{subject.icon}</span>
-            <span className="text-sm font-medium w-24 flex-shrink-0 truncate">{subject.name}</span>
+            <span className="text-base w-7 shrink-0">{subject.icon}</span>
+            <span className="text-sm font-medium w-24 shrink-0 truncate">{subject.name}</span>
             <div className="flex-1 h-1.5 bg-bgSurface rounded-full overflow-hidden">
               <div
                 className="h-full rounded-full transition-all duration-1000"
@@ -33,7 +33,7 @@ const SubjectProgress: React.FC = () => {
             </div>
             <span
               className={cn(
-                'text-xs font-mono w-8 text-right flex-shrink-0',
+                'text-xs font-mono w-8 text-right shrink-0',
                 subject.accuracy < 55 ? 'text-danger font-semibold' : 'text-textMuted'
               )}
             >

@@ -1,6 +1,120 @@
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   Tailwind v4 — single @import replaces all @tailwind
+   directives. No tailwind.config.ts needed.
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 @import "tailwindcss";
-.line-clamp-2 {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+
+/* ── Theme tokens (replaces tailwind.config.ts) ───────── */
+
+@theme {
+  /* Fonts */
+  --font-display: "Syne", sans-serif;
+  --font-body:    "DM Sans", sans-serif;
+  --font-mono:    "DM Mono", monospace;
+
+  /* Brand */
+  --color-brand:       #5B3BFF;
+  --color-brand-light: #7B5FFF;
+  --color-brand-dim:   rgba(91,59,255,0.12);
+
+  /* Semantic */
+  --color-success:     #00C896;
+  --color-success-dim: rgba(0,200,150,0.12);
+  --color-danger:      #FF4D6D;
+  --color-danger-dim:  rgba(255,77,109,0.12);
+  --color-warn:        #FFB020;
+  --color-warn-dim:    rgba(255,176,32,0.12);
+
+  /* Backgrounds */
+  --color-bg:        #0A0A0F;
+  --color-bgDeep:    #070709;
+  --color-bgMain:    #0A0A0F;
+  --color-bgSurface: #111118;
+  --color-bgCard:    #18181F;
+
+  /* Borders */
+  --color-borderMuted: rgba(255,255,255,0.07);
+
+  /* Text */
+  --color-textMain:  #F0EFF8;
+  --color-textMuted: #9896B0;
+  --color-textDim:   #5C5A72;
+
+  /* Border radius */
+  --radius-brand:    12px;
+  --radius-brand-lg: 18px;
+  --radius-brand-xl: 24px;
+
+  /* Box shadows */
+  --shadow-brand:   0 4px 24px rgba(91,59,255,0.35);
+  --shadow-success: 0 4px 16px rgba(0,200,150,0.25);
+  --shadow-danger:  0 4px 16px rgba(255,77,109,0.25);
+  --shadow-card:    0 4px 32px rgba(0,0,0,0.4);
+
+  /* Animations */
+  --animate-fadeIn:    fadeIn 0.25s ease both;
+  --animate-slideDown: slideDown 0.2s ease both;
+  --animate-spin:      spin 0.75s linear infinite;
 }
+
+/* ── Keyframes ────────────────────────────────────────── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px);  }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Base resets ──────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  -webkit-font-smoothing:  antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering:          optimizeLegibility;
+}
+
+/* ── Scrollbar ────────────────────────────────────────── */
+::-webkit-scrollbar       { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background:    rgba(255,255,255,0.08);
+  border-radius: 99px;
+border: 2px solid var(--color-bgDeep);
+}
+
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.15);
+background: var(--color-brand);
+}
+
+/* ── Focus ────────────────────────────────────────────── */
+:focus         { outline: none; }
+:focus-visible {
+  outline:        2px solid rgba(91,59,255,0.6);
+  outline-offset: 2px;
+}
+
+/* ── Selection ────────────────────────────────────────── */
+::selection {
+  background: rgba(91,59,255,0.35);
+  color:      #F0EFF8;
+}
+
+/* ── Line clamp utilities ─────────────────────────────── */
+.line-clamp-1,
+.line-clamp-2,
+.line-clamp-3 {
+  display:            -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow:           hidden;
+  line-clamp:         var(--lines);   /* standard property */
+  -webkit-line-clamp: var(--lines);   /* vendor prefix     */
+}
+.line-clamp-1 { --lines: 1; }
+.line-clamp-2 { --lines: 2; }
+.line-clamp-3 { --lines: 3; }

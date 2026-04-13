@@ -101,7 +101,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       )}
 
       <aside className={cn(
-        'fixed left-0 top-0 bottom-0 z-50 w-[240px]',
+        'fixed left-0 top-0 bottom-0 z-50 h-4.5',
         'bg-bgDeep border-r border-borderMuted',
         'flex flex-col transition-transform duration-300 ease-in-out',
         'lg:translate-x-0',
@@ -110,11 +110,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
         {/* Logo */}
         <div className="flex items-center gap-2.5 px-5 py-5 border-b border-borderMuted">
-          <div className="w-8 h-8 bg-brand rounded-lg flex items-center justify-center font-display font-black text-white text-base shadow-lg shadow-brand/40 flex-shrink-0">
+          <div className="w-8 h-8 bg-brand rounded-lg flex items-center justify-center font-display font-black text-white text-base shadow-lg shadow-brand/40 shrink-0">
             J
           </div>
           <span className="font-display font-bold text-[17px] tracking-tight">
-            JAMB<span className="text-brand-light">Ready</span>
+            JAMB<span className="text-brand-light">ify</span>
           </span>
         </div>
 
@@ -130,7 +130,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             onClick={() => { navigate('/settings'); onClose(); }}
             className="w-full flex items-center gap-2.5 px-3 py-2 rounded-brand hover:bg-bgSurface transition-colors text-left"
           >
-            <div className="w-8 h-8 rounded-full bg-brand flex items-center justify-center font-display text-xs font-bold text-white flex-shrink-0">
+            <div className="w-8 h-8 rounded-full bg-brand flex items-center justify-center font-display text-xs font-bold text-white shrink-0">
               {initials}
             </div>
             <div className="flex-1 min-w-0">
@@ -138,7 +138,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               <p className="text-[11px] text-textDim">Pro · 🔥 {streak} day streak</p>
             </div>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-              stroke="currentColor" strokeWidth="1.8" className="text-textDim flex-shrink-0">
+              stroke="currentColor" strokeWidth="1.8" className="text-textDim shrink-0">
               <circle cx="12" cy="12" r="3"/>
               <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
             </svg>
@@ -172,11 +172,11 @@ const NavSection: React.FC<{
             : 'text-textMuted hover:bg-bgSurface hover:text-textMain',
         )}
       >
-        <span className="flex-shrink-0">{item.icon}</span>
+        <span className="shrink-0">{item.icon}</span>
         <span className="flex-1">{item.label}</span>
         {item.badge != null && (
-          <span className="bg-brand text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
-            {item.badge}
+          <span className="bg-brand text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-4.5 text-center">
+            {/* {item.badge} */}
           </span>
         )}
       </NavLink>

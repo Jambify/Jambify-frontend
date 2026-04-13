@@ -52,7 +52,7 @@ const NavItem = ({
       />
       <span className="flex-1">{label}</span>
       {badge && (
-        <span className="bg-brand text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+        <span className="bg-brand text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-4.5 text-center">
           {badge}
         </span>
       )}
@@ -65,13 +65,13 @@ const AppLayout: React.FC<LayoutProps> = ({ children, currentPage }) => {
   return (
     <div className="flex min-h-screen bg-bgMain text-textMain font-body">
       {/* SIDEBAR */}
-      <aside className="fixed left-0 top-0 bottom-0 w-60 bg-bgSurface border-r border-borderMuted flex flex-col z-[100] hidden lg:flex">
+      <aside className="fixed left-0 top-0 bottom-0 w-60 bg-bgSurface border-r border-borderMuted  flex-col z-100 hidden lg:flex">
         <div className="p-6 pb-4 flex items-center gap-3 border-b border-borderMuted">
           <div className="w-8 h-8 bg-brand rounded-lg flex items-center justify-center font-display font-extrabold shadow-[0_8px_40px_rgba(91,59,255,0.3)]">
             J
           </div>
           <div className="font-display font-bold text-[17px] tracking-tight">
-            JAMB<span className="text-brand-light">Ready</span>
+            JAMB<span className="text-brand-light">IFY</span>
           </div>
         </div>
 

@@ -86,4 +86,161 @@ export const SAMPLE_QUESTIONS: Question[] = [
     answer: 1,
     explanation: 'A Tt × Tt cross produces TT, Tt, Tt, tt — that is 3 tall : 1 short. The phenotypic ratio is 3:1 because T is dominant. The genotypic ratio is 1:2:1.',
   },
+  {
+    id: 'lit-01', subject: 'Literature in English', year: 2023,
+    difficulty: 'Medium', topic: 'Literary Devices',
+    text: '"The sun peeped over the mountain and smiled at the valley" is an example of:',
+    options: ['Metaphor', 'Personification', 'Hyperbole', 'Oxymoron'],
+    answer: 1,
+    explanation: 'Personification is a figure of speech where human qualities are given to non-human objects, such as the sun "peeping" or "smiling."',
+  },
+  {
+    id: 'hist-01', subject: 'History', year: 2022,
+    difficulty: 'Hard', topic: 'Pre-Colonial Nigeria',
+    text: 'Which of these empires was famous for its "Golden Age" under the rule of Mansa Musa?',
+    options: ['Songhai Empire', 'Kanem-Bornu Empire', 'Mali Empire', 'Ghana Empire'],
+    answer: 2,
+    explanation: 'Mansa Musa was the tenth Mansa of the Mali Empire, and his pilgrimage to Mecca made the empire world-famous for its incredible wealth in gold.',
+  },
+  {
+    id: 'geo-01', subject: 'Geography', year: 2023,
+    difficulty: 'Medium', topic: 'Map Reading',
+    text: 'If a map has a scale of 1:50,000, what distance on the ground is represented by 2cm on the map?',
+    options: ['100km', '10km', '1km', '5km'],
+    answer: 2,
+    explanation: '1:50,000 means 1cm = 50,000cm (0.5km). Therefore, 2cm = 100,000cm, which equals 1km.',
+  },
+  {
+    id: 'govt-01', subject: 'Government', year: 2021,
+    difficulty: 'Medium', topic: 'Organs of Government',
+    text: 'The primary function of the Judiciary is to:',
+    options: ['Make laws', 'Execute laws', 'Interpret laws', 'Enforce laws'],
+    answer: 2,
+    explanation: 'The Legislature makes laws, the Executive implements them, and the Judiciary interprets the laws to ensure justice.',
+  },
+  {
+    id: 'econ-01', subject: 'Economics', year: 2022,
+    difficulty: 'Medium', topic: 'Demand and Supply',
+    text: 'An increase in the price of a commodity will lead to a:',
+    options: ['Shift in the demand curve', 'Contraction of demand', 'Extension of demand', 'Increase in demand'],
+    answer: 1,
+    explanation: 'According to the law of demand, as price increases, quantity demanded decreases. This movement along the curve is known as a contraction of demand.',
+  },
+  {
+    id: 'crs-01', subject: 'Christian Religious Studies (CRS)', year: 2023,
+    difficulty: 'Easy', topic: 'Creation',
+    text: 'On which day did God create man according to the first account of creation?',
+    options: ['Third day', 'Fifth day', 'Sixth day', 'Seventh day'],
+    answer: 2,
+    explanation: 'In Genesis 1, God created animals and humans (man) on the sixth day before resting on the seventh.',
+  },
+  /* ── Literature in English ────────────────────────── */
+  {
+    id: 'lit-02', subject: 'Literature in English', year: 2022,
+    difficulty: 'Medium', topic: 'Drama',
+    text: 'A speech made by a character alone on stage to reveal their inner thoughts is a:',
+    options: ['Prologue', 'Monologue', 'Soliloquy', 'Aside'],
+    answer: 2,
+    explanation: 'A soliloquy is a dramatic device where a character speaks to themselves, relating thoughts and feelings, thereby sharing them with the audience.',
+  },
+  {
+    id: 'lit-03', subject: 'Literature in English', year: 2021,
+    difficulty: 'Easy', topic: 'Poetry',
+    text: 'A poem of fourteen lines with a specific rhyme scheme is called a:',
+    options: ['Lyric', 'Ode', 'Sonnet', 'Elegy'],
+    answer: 2,
+    explanation: 'A sonnet is a 14-line poem, typically written in iambic pentameter, popularized by poets like Shakespeare and Petrarch.',
+  },
+
+  /* ── History ─────────────────────────────────────── */
+  {
+    id: 'hist-02', subject: 'History', year: 2023,
+    difficulty: 'Medium', topic: 'Nationalism',
+    text: 'Who was the first titular President of Nigeria when it became a Republic in 1963?',
+    options: ['Obafemi Awolowo', 'Nnamdi Azikiwe', 'Tafawa Balewa', 'Herbert Macaulay'],
+    answer: 1,
+    explanation: 'Dr. Nnamdi Azikiwe became the first President of Nigeria when the country transitioned to a Federal Republic in 1963.',
+  },
+  {
+    id: 'hist-03', subject: 'History', year: 2022,
+    difficulty: 'Hard', topic: 'Ancient Kingdoms',
+    text: 'The Nok Culture is best known for its unique:',
+    options: ['Bronze Castings', 'Terracotta Sculptures', 'Iron Smelting', 'Ivory Carvings'],
+    answer: 1,
+    explanation: 'The Nok Culture (c. 1500 BC – 500 AD) of central Nigeria is famous for its distinctive terracotta heads and figures.',
+  },
+
+  /* ── Geography ───────────────────────────────────── */
+  {
+    id: 'geo-02', subject: 'Geography', year: 2021,
+    difficulty: 'Medium', topic: 'Rocks',
+    text: 'Rocks formed from the cooling and solidification of molten magma are:',
+    options: ['Sedimentary', 'Metamorphic', 'Igneous', 'Calcareous'],
+    answer: 2,
+    explanation: 'Igneous rocks (like basalt or granite) are formed when hot, molten rock crystallizes and solidifies.',
+  },
+  {
+    id: 'geo-03', subject: 'Geography', year: 2023,
+    difficulty: 'Easy', topic: 'The Solar System',
+    text: 'Which planet is known as the "Red Planet"?',
+    options: ['Venus', 'Jupiter', 'Mars', 'Saturn'],
+    answer: 2,
+    explanation: 'Mars is known as the Red Planet due to the iron oxide (rust) on its surface, which gives it a reddish appearance.',
+  },
+
+  /* ── Government ──────────────────────────────────── */
+  {
+    id: 'govt-02', subject: 'Government', year: 2022,
+    difficulty: 'Medium', topic: 'Political Ideologies',
+    text: 'A system of government where power is concentrated in a single central authority is:',
+    options: ['Federal', 'Unitary', 'Confederal', 'Democratic'],
+    answer: 1,
+    explanation: 'In a unitary system, the central government is supreme, and any administrative divisions exercise only powers that the central government chooses to delegate.',
+  },
+  {
+    id: 'govt-03', subject: 'Government', year: 2023,
+    difficulty: 'Medium', topic: 'Electoral Process',
+    text: 'The right of adult citizens to vote in an election is known as:',
+    options: ['Franchise', 'Plebiscite', 'Referendum', 'Immunization'],
+    answer: 0,
+    explanation: 'Franchise (or suffrage) is the right or privilege of voting in public, political elections.',
+  },
+
+  /* ── Economics ───────────────────────────────────── */
+  {
+    id: 'econ-02', subject: 'Economics', year: 2021,
+    difficulty: 'Hard', topic: 'Market Structures',
+    text: 'A market situation with only one seller and many buyers is a:',
+    options: ['Duopoly', 'Oligopoly', 'Monopsony', 'Monopoly'],
+    answer: 3,
+    explanation: 'A monopoly exists when a specific person or enterprise is the only supplier of a particular commodity.',
+  },
+  {
+    id: 'econ-03', subject: 'Economics', year: 2023,
+    difficulty: 'Medium', topic: 'Production',
+    text: 'Which of the following is NOT a factor of production?',
+    options: ['Land', 'Labour', 'Capital', 'Money'],
+    answer: 3,
+    explanation: 'The four factors of production are Land, Labour, Capital, and Entrepreneurship. Money is considered a medium of exchange, not a factor of production.',
+  },
+
+  /* ── CRS ─────────────────────────────────────────── */
+  {
+    id: 'crs-02', subject: 'Christian Religious Studies (CRS)', year: 2022,
+    difficulty: 'Medium', topic: 'The Covenant',
+    text: 'God changed the name of Abram to Abraham which means:',
+    options: ['Exalted Father', 'Father of Many', 'Friend of God', 'The Chosen One'],
+    answer: 1,
+    explanation: 'In Genesis 17:5, God changes Abram ("Exalted Father") to Abraham ("Father of a Multitude/Many").',
+  },
+  {
+    id: 'crs-03', subject: 'Christian Religious Studies (CRS)', year: 2021,
+    difficulty: 'Easy', topic: 'Leadership',
+    text: 'Who succeeded Moses as the leader of the Israelites?',
+    options: ['Aaron', 'Caleb', 'Joshua', 'Gideon'],
+    answer: 2,
+    explanation: 'Joshua was appointed by God to lead the Israelites into the Promised Land after the death of Moses.',
+  }
+
+
 ];
