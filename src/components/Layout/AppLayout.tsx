@@ -1,4 +1,5 @@
 import React, { type ReactNode } from "react";
+import { Link } from "react-router-dom";
 import {
   LayoutGrid,
   FileText,
@@ -30,16 +31,19 @@ const NavItem = ({
   active,
   badge,
   icon,
+  path,
 }: {
   label: string;
   active?: boolean;
   badge?: number;
   icon: string;
+  path: string;
 }) => {
   const IconComponent = IconMap[icon] || LayoutGrid;
 
   return (
-    <div
+    <Link
+      to={path}
       className={`flex items-center gap-3 p-2.5 rounded-brand cursor-pointer text-[13.5px] transition-all mb-0.5 group ${
         active
           ? "bg-brand-dim text-brand-light font-medium"
@@ -56,7 +60,7 @@ const NavItem = ({
           {badge}
         </span>
       )}
-    </div>
+    </Link>
   );
 };
 
@@ -84,18 +88,19 @@ const AppLayout: React.FC<LayoutProps> = ({ children, currentPage }) => {
               label="Dashboard"
               active={currentPage === "dashboard"}
               icon="grid"
+              path="/"
             />
-            <NavItem label="Practice Quiz" badge={3} icon="file" />
-            <NavItem label="Subjects" icon="book" />
-            <NavItem label="Performance" icon="activity" />
+            <NavItem label="Practice Quiz" badge={3} icon="file" path="/quiz" />
+            <NavItem label="Subjects" icon="book" path="/subjects" />
+            <NavItem label="Performance" icon="activity" path="/performance" />
           </section>
 
           <section>
             <p className="text-[10px] tracking-widest uppercase text-textDim px-2 mb-2 font-medium">
               Study
             </p>
-            <NavItem label="Mock Exams" icon="clock" />
-            <NavItem label="Study Groups" icon="users" />
+            <NavItem label="Mock Exams" icon="clock" path="/mock-exams" />
+            <NavItem label="Study Groups" icon="users" path="/study-groups" />
           </section>
         </nav>
 
