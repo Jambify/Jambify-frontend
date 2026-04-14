@@ -27,6 +27,7 @@ const SUBJECTS = [
 const Quiz: React.FC = () => {
   const navigate = useNavigate();
   const [showAllSubjects, setShowAllSubjects] = React.useState(false);
+  const [showExitModal, setShowExitModal] = React.useState(false); // Added State
   const visibleSubjects = showAllSubjects ? SUBJECTS : SUBJECTS.slice(0, 4);
   const {
     questions,
@@ -48,6 +49,7 @@ const Quiz: React.FC = () => {
   );
 
   const handleStart = () => {
+    setShowExitModal(false); // Ensure modal is closed on start
     const filtered =
       selectedSubject === "All"
         ? SAMPLE_QUESTIONS
@@ -71,7 +73,7 @@ const Quiz: React.FC = () => {
         {/* <Progress header */}
         <div className="flex items-center gap-4 mb-6">
           <button
-            onClick={reset}
+            onClick={() => setShowExitModal(true)} // Trigger Modal
             className="flex items-center gap-1.5 text-xs text-textMuted hover:text-textMain transition-colors shrink-0"
           >
             <svg
@@ -108,12 +110,38 @@ const Quiz: React.FC = () => {
           </div>
 
           <span className="text-xs font-mono text-textDim shrink-0">
-            {currentIndex + 1} / {questions.length}
+            {currentIndex + 1} / {questions.length}
           </span>
         </div>
 
         <TimerBar />
         <QuestionCard />
+
+        {/* ── Exit Modal Overlay ── */}
+        {showExitModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
+            <div className="bg-bgCard border border-white/10 p-6 rounded-brand-xl max-w-sm w-full shadow-2xl animate-slideDown">
+              <h3 className="font-display text-xl font-bold text-textMain mb-2">Quit Quiz?</h3>
+              <p className="text-textMuted text-sm mb-6">
+                Your progress will be lost. Are you sure you want to exit the current session?
+              </p>
+              <div className="flex gap-3">
+                <button 
+                  onClick={() => setShowExitModal(false)}
+                  className="flex-1 py-3 rounded-brand font-medium bg-white/5 hover:bg-white/10 text-textMain transition-colors"
+                >
+                  Stay
+                </button>
+                <button 
+                  onClick={reset}
+                  className="flex-1 py-3 rounded-brand font-medium bg-danger text-white hover:bg-danger/80 transition-colors"
+                >
+                  Exit
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </AppLayout>
     );
   }
@@ -135,7 +163,7 @@ const Quiz: React.FC = () => {
           </p>
         </div>
 
-        {/*  <{/* Subject filter */}
+        {/* <{/* Subject filter */}
         <div className="mb-6">
           <p className="text-[11px] uppercase tracking-widest text-textDim font-medium mb-3">
             Choose subject
@@ -202,7 +230,6 @@ const Quiz: React.FC = () => {
   text-textDim hover:text-textMain hover:border-white/20
   hover:bg-white/5 transition-all duration-200
   active:scale-95"
-
               >
                 {showAllSubjects ? "Show less" : `+${SUBJECTS.length - 4} more`}
               </button>
@@ -265,7 +292,7 @@ const Quiz: React.FC = () => {
             </svg>
           }
         >
-          <p className="text-black">start quiz</p>
+          <p className="text-black">Start Quiz</p>
         </Button>
       </div>
     </AppLayout>

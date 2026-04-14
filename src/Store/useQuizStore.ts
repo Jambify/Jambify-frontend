@@ -12,6 +12,8 @@ interface QuizState {
   hasAnswered:     boolean;               // true once current Q is answered
   // Filter
   selectedSubject: string;
+  isFinishedQuiz:   boolean;
+  finishQuiz:      () => void;           // Action to mark quiz as finished when time expires
   // Actions
   loadQuestions:     (qs: Question[]) => void;
   submitAnswer:      (qi: number, opt: number) => void;
@@ -19,6 +21,7 @@ interface QuizState {
   reset:             () => void;
   setSelectedSubject:(s: string) => void;
 }
+
 
 export const useQuizStore = create<QuizState>()((set, get) => ({
   questions:       [],
@@ -28,6 +31,13 @@ export const useQuizStore = create<QuizState>()((set, get) => ({
   isFinished:      false,
   hasAnswered:     false,
   selectedSubject: 'All',
+  isFinishedQuiz:   false,
+  // Inside useQuizStore create block:
+finishQuiz: () => set({ 
+  isFinished: true, 
+  isStarted: false, 
+  isFinishedQuiz: true 
+}),
 
   loadQuestions: (qs) =>
     set({
@@ -38,6 +48,8 @@ export const useQuizStore = create<QuizState>()((set, get) => ({
       isFinished:   false,
       hasAnswered:  false,
     }),
+    // Inside useQuizStore create block:
+
 
   submitAnswer: (qi, opt) =>
     set((s) => ({
@@ -54,6 +66,7 @@ export const useQuizStore = create<QuizState>()((set, get) => ({
       set({ currentIndex: nextIndex, hasAnswered: false });
     }
   },
+  
 
   reset: () =>
     set({
@@ -63,6 +76,8 @@ export const useQuizStore = create<QuizState>()((set, get) => ({
       isStarted:    false,
       isFinished:   false,
       hasAnswered:  false,
+      isFinishedQuiz:   false,
+
     }),
 
   setSelectedSubject: (s) => set({ selectedSubject: s }),

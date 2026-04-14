@@ -6,6 +6,8 @@ import {  Routes, Route } from "react-router-dom";
 import Dashboard from "./Pages/Dashboard";
 import Quiz from "./Pages/Quiz";
 import Performance from "./Pages/Performance";
+import Subjects from "./Pages/Subjects";
+import MockExams from "./Pages/MockExam";
 import NotFound from "./Pages/PageNotFound";
 
 const App: React.FC = () => (
@@ -14,6 +16,9 @@ const App: React.FC = () => (
       <Route path="/" element={<Dashboard />} />
       <Route path="/quiz" element={<Quiz />} />
       <Route path="/performance" element={<Performance />} />
+      <Route path="/subjects" element={<Subjects />} />
+      <Route path="/mock-exams" element={<MockExams />} />
+
       <Route path="*" element={<NotFound />} />
     </Routes>
 

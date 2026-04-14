@@ -3,91 +3,67 @@ import { useQuizStore } from '../../Store/useQuizStore';
 import { useTimer } from '../../hooks/useTimer';
 import { cn } from '../../lib/utils';
 
-const TOTAL_SECONDS = 1 * 60; // 1 minute
+// 30 minutes for the entire quiz (standard JAMB practice timing)
+const TOTAL_SECONDS = 30 * 60; 
 
 const TimerBar: React.FC = () => {
-  // Zustand slices
-  const currentIndex = useQuizStore((s) => s.currentIndex);
-  const hasAnswered  = useQuizStore((s) => s.hasAnswered);
-  const submitAnswer = useQuizStore((s) => s.submitAnswer);
-  const isStarted    = useQuizStore((s) => s.isStarted);
+  const isFinished = useQuizStore((s) => s.isFinished);
+  const finishQuiz = useQuizStore((s) => s.finishQuiz); // Ensure this action exists in your store
 
-  // 🔥 UI Warning State
-  const [showWarning, setShowWarning] = React.useState(false);
-
-  // Global timer
   const { timeLeft, formatted } = useTimer({
     initialSeconds: TOTAL_SECONDS,
-    isRunning: isStarted,
     onExpire: () => {
-      if (!hasAnswered) {
-        submitAnswer(currentIndex, -1);
-      }
+      // Force finish the quiz when total time runs out
+      finishQuiz();
     },
   });
 
   const pct = (timeLeft / TOTAL_SECONDS) * 100;
+  
+  // Adjusted warnings for a longer duration
+  // Warn at 5 minutes, Danger at 1 minute
+  const isWarn = timeLeft <= 5 * 60 && timeLeft > 60;
+  const isDanger = timeLeft <= 60 && timeLeft > 0;
 
-  // Time thresholds
-  const isWarn   = timeLeft <= 5 * 60; // last 5 mins
-  const isDanger = timeLeft <= 60;     // last 1 min
+  const barColor = isDanger ? 'bg-danger' : isWarn ? 'bg-warn' : 'bg-brand';
 
-  // 🔥 Trigger warning UI (ONLY ONCE)
-  React.useEffect(() => {
-    if (timeLeft === 60) {
-      setShowWarning(true);
-
-      // auto hide after 4s
-      setTimeout(() => setShowWarning(false), 4000);
-    }
-  }, [timeLeft]);
-
-  const barColor =
-    isDanger ? 'bg-danger' :
-    isWarn   ? 'bg-warn'   :
-               'bg-brand';
+  // If the quiz is already finished (user submitted manually), don't show the timer
+  if (isFinished) return null;
 
   return (
     <div className="mb-4 relative">
+      {/* ── Warning Reminder ── */}
+      {isWarn && (
+        <div className="absolute -top-8 left-1/2 -translate-x-1/2 animate-bounce bg-warn/10 border border-warn/30 text-warn text-[10px] px-3 py-1 rounded-full whitespace-nowrap z-10 font-bold uppercase tracking-tighter">
+          ⚠️ 5 Minutes Remaining!
+        </div>
+      )}
       
-      {/* 🔥 Warning Toast */}
-      {showWarning && (
-        <div className="absolute -top-12 right-0 bg-danger text-white text-xs px-4 py-2 rounded-lg shadow-lg animate-in slide-in-from-top fade-in duration-300">
-          ⏳ 1 minute left! Hurry up
+      {isDanger && (
+        <div className="absolute -top-8 left-1/2 -translate-x-1/2 animate-pulse bg-danger/10 border border-danger/30 text-danger text-[10px] px-3 py-1 rounded-full whitespace-nowrap z-10 font-bold uppercase tracking-tighter">
+          🚨 Final Minute - Submit Now!
         </div>
       )}
 
-      {/* Header */}
       <div className="flex items-center justify-between mb-1.5">
-        <span className="text-[11px] text-textDim uppercase tracking-wider">
-          Time remaining
+        <span className="text-[11px] text-textDim uppercase tracking-wider font-medium">
+          Total Exam Time
         </span>
-
-        <span
-          className={cn(
-            'font-mono text-sm font-semibold tabular-nums transition-colors',
-            isDanger
-              ? 'text-danger'
-              : isWarn
-              ? 'text-warn'
-              : 'text-textMain',
-          )}
-        >
+        <span className={cn(
+          'font-mono text-sm font-semibold tabular-nums transition-colors',
+          isDanger ? 'text-danger' : isWarn ? 'text-warn' : 'text-textMain',
+        )}>
           {formatted}
         </span>
       </div>
 
-      {/* Progress Bar */}
       <div className="h-1.5 bg-bgSurface rounded-full overflow-hidden">
         <div
           className={cn(
             'h-full rounded-full transition-all duration-1000 ease-linear',
             barColor,
-            isDanger && 'animate-pulse'
           )}
-          style={{
-            width: `${pct}%`,
-          }}
+          style={{ width: `${pct}%` }}
         />
       </div>
     </div>
