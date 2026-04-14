@@ -114,7 +114,7 @@ npm run dev
 ### Quiz Flow
 
 * Questions are loaded into global state
-* Each question is timed
+* Each Sections of Question is timed
 * User selects an answer or time expires
 * App moves to next question
 * Final state shows completion
