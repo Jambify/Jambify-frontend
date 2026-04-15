@@ -1,45 +1,32 @@
 import React from 'react';
-import type { Subject } from '../../Store/useSubjectStore';
 
-interface SubjectTopicsProps {
-  subjects: Subject[];
+interface TopicListProps {
+  topics: string[];
+  color:  string;
 }
 
-const SubjectTopics: React.FC<SubjectTopicsProps> = ({ subjects }) => {
+const TopicList: React.FC<TopicListProps> = ({ topics, color }) => {
+  if (topics.length === 0) return null;
+
   return (
-    <div className="bg-bgCard border border-borderMuted rounded-brand-xl overflow-hidden">
-      <div className="px-5 py-4 border-b border-borderMutedbg-white/2">
-        <h3 className="font-display font-bold text-textMain flex items-center gap-2">
-          <span className="text-danger">🎯</span> Weak Topics Focus
-        </h3>
-      </div>
-      <div className="divide-y divide-borderMuted">
-        {subjects.map((subject) => (
-          <div key={subject.id} className="p-5 flex flex-col sm:flex-row sm:items-center gap-4">
-            <div className="w-32 shrink-0">
-              <p className="text-sm font-bold text-textMain">{subject.name}</p>
-              <p className="text-[10px] text-textDim uppercase tracking-tighter">
-                {subject.weakTopics.length} Topics to revise
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {subject.weakTopics.map((topic) => (
-                <span 
-                  key={topic}
-                  className="px-3 py-1 rounded-md bg-danger/5 border border-danger/10 text-danger text-xs font-medium hover:bg-danger/10 transition-colors cursor-default"
-                >
-                  {topic}
-                </span>
-              ))}
-              {subject.weakTopics.length === 0 && (
-                <span className="text-xs text-success italic">Mastery achieved in this subject!</span>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
+    <div className="flex flex-col gap-1.5">
+      {topics.map((topic) => (
+        <div
+          key={topic}
+          className="flex items-center gap-2.5 px-3 py-2 bg-bgSurface rounded-brand border border-borderMuted"
+        >
+          {/* <Colour dot */}
+          <span
+            className="w-1.5 h-1.5 rounded-full shrink-0"
+            style={{ background: color }}
+          />
+          <span className="text-xs text-textMuted flex-1">{topic}</span>
+          {/* <Weak indicator */}
+          <span className="text-[10px] text-danger font-medium">Weak</span>
+        </div>
+      ))}
     </div>
   );
 };
 
-export default SubjectTopics;
+export default TopicList;

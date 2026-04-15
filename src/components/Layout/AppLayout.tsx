@@ -139,12 +139,12 @@ const AppLayout: React.FC<LayoutProps> = ({ children, currentPage }) => {
           {children}
         </div>
       </main>
-      
+
       {/* MOBILE BOTTOM NAV */}
       <nav className="fixed bottom-0 left-0 right-0 bg-bgSurface border-t border-borderMuted px-6 py-3 flex items-center justify-between lg:hidden z-100">
         <Link to="/" className="flex flex-col items-center gap-1">
           <LayoutGrid
-            size={20}
+            size={30}
             className={
               currentPage === "dashboard" ? "text-brand-light" : "text-textDim"
             }
@@ -154,7 +154,7 @@ const AppLayout: React.FC<LayoutProps> = ({ children, currentPage }) => {
 
         <Link to="/subjects" className="flex flex-col items-center gap-1">
           <BookOpen
-            size={20}
+            size={30}
             className={
               currentPage === "subjects" ? "text-brand-light" : "text-textDim"
             }
@@ -164,14 +164,14 @@ const AppLayout: React.FC<LayoutProps> = ({ children, currentPage }) => {
 
         <Link to="/quiz" className="flex flex-col items-center gap-1">
           <div className="bg-brand p-2 rounded-full -mt-8 shadow-lg">
-            <FileText size={20} className="text-white" />
+            <FileText size={30} className="text-white" />
           </div>
           <span className="text-[10px] font-medium">Quiz</span>
         </Link>
 
         <Link to="/performance" className="flex flex-col items-center gap-1">
           <Activity
-            size={20}
+            size={30}
             className={
               currentPage === "performance"
                 ? "text-brand-light"
@@ -183,7 +183,7 @@ const AppLayout: React.FC<LayoutProps> = ({ children, currentPage }) => {
 
         <Link to="/mock-exams" className="flex flex-col items-center gap-1">
           <Clock
-            size={20}
+            size={30}
             className={
               currentPage === "mock-exams" ? "text-brand-light" : "text-textDim"
             }
