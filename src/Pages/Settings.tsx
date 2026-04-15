@@ -15,6 +15,7 @@ const TABS: { id: Tab; label: string; icon: string }[] = [
 ];
 
 const Settings: React.FC = () => {
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { name } = useUserStore();
   const [activeTab, setActiveTab] = useState<Tab>('profile');
   const initials = name
@@ -25,7 +26,7 @@ const Settings: React.FC = () => {
     .slice(0, 2);
 
   return (
-    <AppLayout currentPage="settings">
+    <AppLayout currentPage="settings" isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen}>
       <div className="max-w-2xl mx-auto">
 
         {/* <── Page header ── */}

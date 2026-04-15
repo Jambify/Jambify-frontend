@@ -42,6 +42,7 @@ const formatTime = (s: number) => {
 
 const MockExam: React.FC = () => {
   const navigate = useNavigate();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const {
     isStarted, isFinished, questions, currentIndex,
     answers, timeLeft, // Removed 'attempts' from destructuring
@@ -106,7 +107,7 @@ const MockExam: React.FC = () => {
 
   if (isFinished) {
     return (
-      <AppLayout currentPage="mock">
+      <AppLayout currentPage="mock" isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen}>
         <MockResultsScreen
           onRetry={handleStart}
           onHome={() => { resetExam(); navigate('/'); }}
@@ -117,7 +118,7 @@ const MockExam: React.FC = () => {
 
   if (isStarted && q) {
     return (
-      <AppLayout currentPage="mock">
+      <AppLayout currentPage="mock" isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen}>
         <div className="flex items-center justify-between gap-3 mb-5 flex-wrap">
           <div className="flex items-center gap-3">
             <div className={cn(
@@ -214,7 +215,7 @@ const MockExam: React.FC = () => {
   }
 
   return (
-    <AppLayout currentPage="mock">
+    <AppLayout currentPage="mock" isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen}>
       <div className="max-w-2xl mx-auto">
         <div className="bg-bgCard border border-borderMuted rounded-brand-xl p-7 mb-6 text-center">
           <h2 className="font-display text-2xl font-bold mb-6">Setup Mock Exam</h2>

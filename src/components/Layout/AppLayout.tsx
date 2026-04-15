@@ -9,6 +9,7 @@ import {
   Activity,
   Clock,
   Users,
+  Menu,
   type LucideIcon,
   Settings,
 } from "lucide-react";
@@ -61,10 +62,15 @@ const NavItem = ({ label, active, badge, icon, path }: any) => {
   );
 };
 
-const AppLayout: React.FC<LayoutProps> = ({ children, currentPage, isSidebarOpen, setIsSidebarOpen }) => {
+const AppLayout: React.FC<LayoutProps> = ({
+  children,
+  currentPage,
+  isSidebarOpen,
+  setIsSidebarOpen,
+}) => {
   const name = useUserStore((state) => state.name);
   const targetScore = useUserStore((state) => state.targetScore);
-  
+
   const displayName = name || "Guest User";
   const initials = getInitials(displayName);
 
@@ -84,22 +90,33 @@ const AppLayout: React.FC<LayoutProps> = ({ children, currentPage, isSidebarOpen
 
         <nav className="flex-1 overflow-y-auto p-3 space-y-6">
           <section>
-            <p className="text-[10px] tracking-widest uppercase text-textDim px-2 mb-2 font-medium">Main</p>
-            <NavItem label="Dashboard" active={currentPage === "dashboard"} icon="grid" path="/" />
+            <p className="text-[10px] tracking-widest uppercase text-textDim px-2 mb-2 font-medium">
+              Main
+            </p>
+            <NavItem
+              label="Dashboard"
+              active={currentPage === "dashboard"}
+              icon="grid"
+              path="/"
+            />
             <NavItem label="Practice Quiz" badge={3} icon="file" path="/quiz" />
             <NavItem label="Subjects" icon="book" path="/subjects" />
             <NavItem label="Performance" icon="activity" path="/performance" />
             <NavItem label="Settings" icon="settings" path="/settings" />
-            
-
           </section>
 
           <section>
-            <p className="text-[10px] tracking-widest uppercase text-textDim px-2 mb-2 font-medium">Study</p>
-            
+            <p className="text-[10px] tracking-widest uppercase text-textDim px-2 mb-2 font-medium">
+              Study
+            </p>
+
             <NavItem label="Mock Exams" icon="clock" path="/mock-exams" />
             <NavItem label="Study Groups" icon="users" path="/study-groups" />
-            <NavItem label="Past Questions" icon="settings" path="/past-questions" />
+            <NavItem
+              label="Past Questions"
+              icon="settings"
+              path="/past-questions"
+            />
           </section>
         </nav>
 
@@ -111,7 +128,9 @@ const AppLayout: React.FC<LayoutProps> = ({ children, currentPage, isSidebarOpen
             <div className="overflow-hidden">
               <div className="text-sm font-medium truncate">{displayName}</div>
               <div className="text-[11px] text-textDim">
-                {targetScore ? `Target: ${targetScore}` : "Pro Plan · 🔥 14 days"}
+                {targetScore
+                  ? `Target: ${targetScore}`
+                  : "Pro Plan · 🔥 14 days"}
               </div>
             </div>
           </div>
@@ -121,11 +140,24 @@ const AppLayout: React.FC<LayoutProps> = ({ children, currentPage, isSidebarOpen
       {/* MAIN CONTENT AREA */}
       <main className="flex-1 lg:ml-60 pb-24 lg:pb-0">
         <header className="sticky top-0 z-50 h-14 bg-bgMain/85 backdrop-blur-md border-b border-borderMuted px-4 lg:px-7 flex items-center justify-between">
-          <h1 className="font-display font-semibold text-base">
-            {currentPage.charAt(0).toUpperCase() + currentPage.slice(1)}
-          </h1>
+          <div className="flex items-center gap-3">
+            {/* HAMBURGER (ONLY MOBILE) */}
+            <button
+              onClick={() => setIsSidebarOpen(true)}
+              className="lg:hidden p-2 rounded-md hover:bg-bgCard"
+            >
+              <Menu size={22} />
+            </button>
+
+            <h1 className="font-display font-semibold text-base">
+              {currentPage.charAt(0).toUpperCase() + currentPage.slice(1)}
+            </h1>
+          </div>
+
           <div className="flex items-center gap-2 lg:gap-3">
-             <span className="text-xs text-textDim hidden sm:inline">Hi, {displayName.split(' ')[0]}!</span>
+            <span className="text-xs text-textDim hidden sm:inline">
+              Hi, {displayName.split(" ")[0]}!
+            </span>
             <div className="bg-warn-dim text-warn border border-warn/20 px-2.5 lg:px-3 py-1 rounded-full text-[10px] lg:text-xs font-medium">
               🔥 14d
             </div>
@@ -138,21 +170,41 @@ const AppLayout: React.FC<LayoutProps> = ({ children, currentPage, isSidebarOpen
         <div className="p-4 lg:p-7 animate-in fade-in slide-in-from-bottom-2 duration-300">
           {children}
         </div>
-
       </main>
 
       {/* UNIQUE MOBILE FLOATING NAV */}
       <div className="fixed bottom-6 left-0 right-0 px-4 lg:hidden z-100">
         <nav className="bg-bgSurface/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] px-2 py-2 flex items-center justify-around relative">
-          
-          <Link to="/" className="relative flex flex-col items-center justify-center w-12 h-12 transition-transform active:scale-95">
-            <LayoutGrid size={22} className={currentPage === "dashboard" ? "text-brand-light" : "text-textDim"} />
-            {currentPage === "dashboard" && <div className="absolute -bottom-1 w-1 h-1 bg-brand-light rounded-full" />}
+          <Link
+            to="/"
+            className="relative flex flex-col items-center justify-center w-12 h-12 transition-transform active:scale-95"
+          >
+            <LayoutGrid
+              size={22}
+              className={
+                currentPage === "dashboard"
+                  ? "text-brand-light"
+                  : "text-textDim"
+              }
+            />
+            {currentPage === "dashboard" && (
+              <div className="absolute -bottom-1 w-1 h-1 bg-brand-light rounded-full" />
+            )}
           </Link>
 
-          <Link to="/subjects" className="relative flex flex-col items-center justify-center w-12 h-12 transition-transform active:scale-95">
-            <BookOpen size={22} className={currentPage === "subjects" ? "text-brand-light" : "text-textDim"} />
-            {currentPage === "subjects" && <div className="absolute -bottom-1 w-1 h-1 bg-brand-light rounded-full" />}
+          <Link
+            to="/subjects"
+            className="relative flex flex-col items-center justify-center w-12 h-12 transition-transform active:scale-95"
+          >
+            <BookOpen
+              size={22}
+              className={
+                currentPage === "subjects" ? "text-brand-light" : "text-textDim"
+              }
+            />
+            {currentPage === "subjects" && (
+              <div className="absolute -bottom-1 w-1 h-1 bg-brand-light rounded-full" />
+            )}
           </Link>
 
           {/* Center Action Button */}
@@ -162,16 +214,37 @@ const AppLayout: React.FC<LayoutProps> = ({ children, currentPage, isSidebarOpen
             </div>
           </Link>
 
-          <Link to="/performance" className="relative flex flex-col items-center justify-center w-12 h-12 transition-transform active:scale-95">
-            <Activity size={22} className={currentPage === "performance" ? "text-brand-light" : "text-textDim"} />
-            {currentPage === "performance" && <div className="absolute -bottom-1 w-1 h-1 bg-brand-light rounded-full" />}
+          <Link
+            to="/performance"
+            className="relative flex flex-col items-center justify-center w-12 h-12 transition-transform active:scale-95"
+          >
+            <Activity
+              size={22}
+              className={
+                currentPage === "performance"
+                  ? "text-brand-light"
+                  : "text-textDim"
+              }
+            />
+            {currentPage === "performance" && (
+              <div className="absolute -bottom-1 w-1 h-1 bg-brand-light rounded-full" />
+            )}
           </Link>
 
-          <Link to="/settings" className="relative flex flex-col items-center justify-center w-12 h-12 transition-transform active:scale-95">
-            <Settings size={22} className={currentPage === "settings" ? "text-brand-light" : "text-textDim"} />
-            {currentPage === "settings" && <div className="absolute -bottom-1 w-1 h-1 bg-brand-light rounded-full" />}
+          <Link
+            to="/settings"
+            className="relative flex flex-col items-center justify-center w-12 h-12 transition-transform active:scale-95"
+          >
+            <Settings
+              size={22}
+              className={
+                currentPage === "settings" ? "text-brand-light" : "text-textDim"
+              }
+            />
+            {currentPage === "settings" && (
+              <div className="absolute -bottom-1 w-1 h-1 bg-brand-light rounded-full" />
+            )}
           </Link>
-
         </nav>
       </div>
     </div>

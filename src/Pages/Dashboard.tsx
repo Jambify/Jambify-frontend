@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppLayout from '../components/Layout/AppLayout';
 import { useUserStore } from '../Store/UseUserStore';
@@ -9,7 +9,8 @@ import RecommendedSessions from '../components/Dashboard/RecommendedSessions';
 import DailyGoals from '../components/Dashboard/DailyGoals';
 
 const Dashboard: React.FC = () => {
-  const navigate = useNavigate();
+  const navigate = useNavigate(); 
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const {
     name,
     streak,
@@ -25,7 +26,8 @@ const Dashboard: React.FC = () => {
   } = useUserStore();
 
   return (
-    <AppLayout currentPage="dashboard">
+   
+    <AppLayout currentPage="dashboard" isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen}>
 
       {/* ── HERO ───────────────────────────────────────── */}
       <div className="relative bg-bgCard border border-borderMuted rounded-brand-xl p-8 mb-6 overflow-hidden">
