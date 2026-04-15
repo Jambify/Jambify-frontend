@@ -6,6 +6,7 @@ import SubjectCard from '../components/Subjects/SubjectCard';
 type SortKey = 'name' | 'accuracy' | 'progress';
 
 const Subjects: React.FC = () => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { subjects } = useSubjectStore();
   const [sort, setSort] = useState<SortKey>('accuracy');
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -25,7 +26,7 @@ const Subjects: React.FC = () => {
     setExpandedId(prev => prev === id ? null : id);
 
   return (
-    <AppLayout currentPage="subjects">
+    <AppLayout currentPage="subjects" isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen}>
 
       {/* <── Page header ── */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">

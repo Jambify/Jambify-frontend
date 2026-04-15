@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import AppLayout from "../components/Layout/AppLayout";
 import { usePerformanceStore } from "../Store/usePerformanceStore";
 import { useUserStore } from "../Store/UseUserStore";
@@ -7,6 +7,7 @@ import TopicStats from "../components/Performance/TopicStats";
 import MockScores from "../components/Performance/MockScores";
 
 const Performance: React.FC = () => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { accuracy, overallScore, questionsCompleted, streak } = useUserStore();
   const { topicStats } = usePerformanceStore();
 
@@ -14,7 +15,7 @@ const Performance: React.FC = () => {
   const strongCount = topicStats.filter((t) => t.accuracy >= 75).length;
 
   return (
-    <AppLayout currentPage="performance">
+    <AppLayout currentPage="performance" isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen}>
       {/* <── Page header ── */}
       <div className="mb-6">
         <h2 className="font-display text-2xl font-bold tracking-tight">

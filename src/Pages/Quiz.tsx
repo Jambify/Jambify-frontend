@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AppLayout from "../components/Layout/AppLayout";
 import { useQuizStore } from "../Store/useQuizStore";
@@ -26,6 +26,7 @@ const SUBJECTS = [
 
 const Quiz: React.FC = () => {
   const navigate = useNavigate();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showAllSubjects, setShowAllSubjects] = React.useState(false);
   const [showExitModal, setShowExitModal] = React.useState(false); // Added State
   const visibleSubjects = showAllSubjects ? SUBJECTS : SUBJECTS.slice(0, 4);
@@ -60,7 +61,7 @@ const Quiz: React.FC = () => {
   /* ── Results ───────────────────────────────────────── */
   if (isFinished) {
     return (
-      <AppLayout currentPage="quiz">
+      <AppLayout currentPage="quiz"  isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen}>
         <ResultsScreen onRetry={handleStart} onHome={() => navigate("/")} />
       </AppLayout>
     );
@@ -69,7 +70,7 @@ const Quiz: React.FC = () => {
   /* ── Active quiz ───────────────────────────────────── */
   if (isStarted && questions.length > 0) {
     return (
-      <AppLayout currentPage="quiz">
+      <AppLayout currentPage="quiz" isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen}>
         {/* <Progress header */}
         <div className="flex items-center gap-4 mb-6">
           <button
@@ -148,7 +149,7 @@ const Quiz: React.FC = () => {
 
   /* ── Start screen ──────────────────────────────────── */
   return (
-    <AppLayout currentPage="quiz">
+    <AppLayout currentPage="quiz" isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen}>
       <div className="max-w-2xl mx-auto">
         {/* <Hero */}
         <div className="text-center mb-10 pt-4">

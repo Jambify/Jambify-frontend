@@ -3,9 +3,8 @@ import { useUserStore } from '../../Store/UseUserStore';
 import Button from '../ui/Button';
 import { cn } from '../../lib/utils';
 import { Section, Field, inputCls } from './Shared';
-import { Search } from 'lucide-react';
+import { Search, Loader2 } from 'lucide-react'; // Added Loader2
 
-// Updated to match your onboarding data structure
 const SUBJECT_COMBOS = [
   {
     id: "medicine",
@@ -34,9 +33,9 @@ const SUBJECT_COMBOS = [
 ];
 
 const ProfileForm: React.FC = () => {
-  const { name, university, subjectCombo, targetScore, examYear, completeOnboarding } = useUserStore();
+  const { name, university, subjectCombo, targetScore, examYear, examDate, completeOnboarding } = useUserStore();
   
-  const [form, setForm] = useState({ name, university, subjectCombo, targetScore, examYear });
+  const [form, setForm] = useState({ name, university, subjectCombo, targetScore, examYear, examDate });
   const [universities, setUniversities] = useState<string[]>([]);
   const [isLoadingUnis, setIsLoadingUnis] = useState(false);
   const [searchTerm, setSearchTerm] = useState(university || "");
@@ -117,29 +116,44 @@ const ProfileForm: React.FC = () => {
                   setShowDropdown(true);
                 }}
                 onFocus={() => setShowDropdown(true)}
-                className={cn(inputCls(false), "pl-10")}
+                className={cn(inputCls(false), "pl-10 pr-10")}
                 placeholder="Search Nigerian universities..."
               />
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-textDim" size={16} />
+              
+              {/* Spinner logic */}
+              {isLoadingUnis && (
+                <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 text-brand animate-spin" size={16} />
+              )}
             </div>
           </Field>
 
-          {showDropdown && searchTerm && filteredUnis.length > 0 && (
+          {showDropdown && searchTerm && (
             <div className="absolute z-50 w-full mt-1 bg-bgSurface border border-borderMuted rounded-brand shadow-2xl overflow-hidden">
-              {filteredUnis.map((uni) => (
-                <button
-                  key={uni}
-                  type="button"
-                  onClick={() => {
-                    setSearchTerm(uni);
-                    setForm(p => ({ ...p, university: uni }));
-                    setShowDropdown(false);
-                  }}
-                  className="w-full text-left px-4 py-3 text-sm hover:bg-brand/10 hover:text-brand-light transition-colors border-b border-borderMuted/30 last:border-none"
-                >
-                  {uni}
-                </button>
-              ))}
+              {isLoadingUnis ? (
+                <div className="px-4 py-3 text-sm text-textDim italic text-center">
+                  Loading list...
+                </div>
+              ) : filteredUnis.length > 0 ? (
+                filteredUnis.map((uni) => (
+                  <button
+                    key={uni}
+                    type="button"
+                    onClick={() => {
+                      setSearchTerm(uni);
+                      setForm(p => ({ ...p, university: uni }));
+                      setShowDropdown(false);
+                    }}
+                    className="w-full text-left px-4 py-3 text-sm hover:bg-brand/10 hover:text-brand-light transition-colors border-b border-borderMuted/30 last:border-none"
+                  >
+                    {uni}
+                  </button>
+                ))
+              ) : (
+                <div className="px-4 py-3 text-sm text-textDim text-center">
+                  No results found
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -197,7 +211,7 @@ const ProfileForm: React.FC = () => {
                   </p>
                 </div>
                 {isSelected && (
-                  <div className="w-2 h-2 rounded-full bg-brand shadow-sm shadow-brand" />
+                  <div className="w-2 h-2 rounded-full bg-brand shadow-brand" />
                 )}
               </button>
             );
@@ -205,7 +219,7 @@ const ProfileForm: React.FC = () => {
         </div>
       </Section>
 
-      <div className="pt-2">
+      <div className="flex items-center gap-5">
         <Button
           variant={saved ? 'success' : 'primary'}
           className="w-full sm:w-auto"
@@ -214,6 +228,14 @@ const ProfileForm: React.FC = () => {
         >
           {saved ? '✓ Changes Saved' : 'Save Profile'}
         </Button>
+         {isDirty && (
+          <button
+            className="text-sm text-textDim hover:text-textMain transition-colors"
+            onClick={() => setForm({ name, university, subjectCombo, targetScore, examYear, examDate })}
+          >
+            Discard
+          </button>
+        )}
       </div>
     </div>
   );
