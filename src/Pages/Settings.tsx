@@ -46,7 +46,7 @@ const Settings: React.FC = () => {
             <p className="font-display text-lg font-semibold tracking-tight">
               {name || 'Your name'}
             </p>
-            <p className="text-sm text-textMuted mt-0.5">JAMBReady student</p>
+            <p className="text-sm text-textMuted mt-0.5">JAMBIFY student</p>
           </div>
         </div>
 
