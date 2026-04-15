@@ -8,16 +8,21 @@ import Quiz from "./Pages/Quiz";
 import Performance from "./Pages/Performance";
 import Subjects from "./Pages/Subjects";
 import MockExams from "./Pages/MockExam";
+import RouteGuard from "./components/Layout/RouteGuard";
+import Onboarding from "./Pages/OnBoarding";
 import NotFound from "./Pages/PageNotFound";
 
 const App: React.FC = () => (
 
     <Routes>
-      <Route path="/" element={<Dashboard />} />
-      <Route path="/quiz" element={<Quiz />} />
-      <Route path="/performance" element={<Performance />} />
-      <Route path="/subjects" element={<Subjects />} />
-      <Route path="/mock-exams" element={<MockExams />} />
+      <Route path="/onboarding" element={<Onboarding />} />
+
+      {/* Protected routes */}
+      <Route path="/" element={<RouteGuard><Dashboard /></RouteGuard>} />
+      <Route path="/quiz" element={<RouteGuard><Quiz /></RouteGuard>} />
+      <Route path="/performance" element={<RouteGuard><Performance /></RouteGuard>} />
+      <Route path="/subjects" element={<RouteGuard><Subjects /></RouteGuard>} />
+      <Route path="/mock-exams" element={<RouteGuard><MockExams /></RouteGuard>} />
 
       <Route path="*" element={<NotFound />} />
     </Routes>
