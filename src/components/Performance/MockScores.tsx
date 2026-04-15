@@ -22,7 +22,7 @@ const MockScores: React.FC = () => {
           Mock exam scores
         </h3>
         <button
-          onClick={() => navigate("/mock")}
+          onClick={() => navigate("/mock-exams")}
           className="text-xs text-brand-light hover:underline"
         >
           Take mock →

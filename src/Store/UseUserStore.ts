@@ -47,6 +47,9 @@ interface UserState {
   incrementScore:      (pts: number)  => void;
   incrementQuestions:  (n: number)    => void;
   updateAccuracy:      (acc: number)  => void;
+   isPro:       boolean;              // Pro plan status
+  upgradeToPro:() => void;           // Simulate upgrade (Phase 1 demo)
+  downgradeToPro:() => void;         // For testing — revert to free
 }
 
 const DEFAULTS = {
@@ -92,6 +95,10 @@ export const useUserStore = create<UserState>()(
       incrementScore:     (pts)   => set((s) => ({ overallScore:       s.overallScore + pts })),
       incrementQuestions: (n)     => set((s) => ({ questionsCompleted: s.questionsCompleted + n })),
       updateAccuracy:     (acc)   => set((s) => ({ previousAccuracy: s.accuracy, accuracy: acc })),
+      isPro: false, // Default to free plan
+      upgradeToPro: () => set({ isPro: true }),
+      downgradeToPro: () => set({ isPro: false }),
+      
     }),
     {
       name: 'jambready-user',
@@ -103,6 +110,7 @@ export const useUserStore = create<UserState>()(
         examYear:           s.examYear,
         examDate:           s.examDate,
         onboardingComplete: s.onboardingComplete,
+         isPro: s.isPro,
       }),
     },
   ),
