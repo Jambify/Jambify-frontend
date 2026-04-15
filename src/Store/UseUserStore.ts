@@ -9,14 +9,24 @@ interface OnboardingData {
   examYear:     string;
 }
 
+interface ProfileUpdate {
+  name:         string;
+  university:   string;
+  subjectCombo: string;
+}
+
+interface ExamUpdate {
+  targetScore: string;
+  examYear:    string;
+  examDate:    string;
+}
+
 interface UserState {
-  // Profile
   name:               string;
   university:         string;
   subjectCombo:       string;
   targetScore:        string;
   examYear:           string;
-  // Stats
   streak:             number;
   overallScore:       number;
   weeklyScoreChange:  number;
@@ -27,57 +37,71 @@ interface UserState {
   schoolRank:         number;
   examDate:           string;
   daysToExam:         number;
-  // Onboarding flag — persisted so it survives refresh
   onboardingComplete: boolean;
   // Actions
-  completeOnboarding: (data: OnboardingData) => void;
-  setName:            (name: string) => void;
-  incrementScore:     (pts: number) => void;
-  incrementQuestions: (count: number) => void;
-  updateAccuracy:     (acc: number) => void;
+  completeOnboarding:  (data: OnboardingData) => void;
+  updateProfile:       (data: ProfileUpdate)  => void;
+  updateExamSettings:  (data: ExamUpdate)     => void;
+  resetAccount:        () => void;
+  setName:             (name: string) => void;
+  incrementScore:      (pts: number)  => void;
+  incrementQuestions:  (n: number)    => void;
+  updateAccuracy:      (acc: number)  => void;
 }
+
+const DEFAULTS = {
+  name:               '',
+  university:         '',
+  subjectCombo:       '',
+  targetScore:        '',
+  examYear:           '2025',
+  streak:             14,
+  overallScore:       267,
+  weeklyScoreChange:  12,
+  accuracy:           74,
+  previousAccuracy:   68,
+  questionsCompleted: 1842,
+  totalQuestions:     3200,
+  schoolRank:         38,
+  examDate:           'Jun 14',
+  daysToExam:         47,
+  onboardingComplete: false,
+};
 
 export const useUserStore = create<UserState>()(
   persist(
     (set) => ({
-      // Profile — empty until onboarding completes
-      name:               '',
-      university:         '',
-      subjectCombo:       '',
-      targetScore:        '',
-      examYear:           '2025',
-      // Stats
-      streak:             14,
-      overallScore:       267,
-      weeklyScoreChange:  12,
-      accuracy:           74,
-      previousAccuracy:   68,
-      questionsCompleted: 1842,
-      totalQuestions:     3200,
-      schoolRank:         38,
-      examDate:           'Jun 14',
-      daysToExam:         47,
-      onboardingComplete: false,
+      ...DEFAULTS,
 
       completeOnboarding: (data) =>
-        set({
-          ...data,
-          onboardingComplete: true,
-        }),
+        set({ ...data, onboardingComplete: true }),
+
+      // ✅ Called by ProfileForm — updates name, university, subjectCombo
+      updateProfile: (data) =>
+        set({ ...data }),
+
+      // ✅ Called by ExamSettings — updates targetScore, examYear, examDate
+      updateExamSettings: (data) =>
+        set({ ...data }),
+
+      // ✅ Called by DangerZone — wipes everything back to defaults
+      resetAccount: () =>
+        set({ ...DEFAULTS }),
 
       setName:            (name)  => set({ name }),
       incrementScore:     (pts)   => set((s) => ({ overallScore:       s.overallScore + pts })),
-      incrementQuestions: (count) => set((s) => ({ questionsCompleted: s.questionsCompleted + count })),
+      incrementQuestions: (n)     => set((s) => ({ questionsCompleted: s.questionsCompleted + n })),
       updateAccuracy:     (acc)   => set((s) => ({ previousAccuracy: s.accuracy, accuracy: acc })),
     }),
     {
-      name:    'jambready-user',   // localStorage key
-      partialize: (s) => ({          // only persist what matters
+      name: 'jambready-user',
+      partialize: (s) => ({
         name:               s.name,
         university:         s.university,
         subjectCombo:       s.subjectCombo,
         targetScore:        s.targetScore,
         examYear:           s.examYear,
+        examDate:           s.examDate,
         onboardingComplete: s.onboardingComplete,
       }),
     },

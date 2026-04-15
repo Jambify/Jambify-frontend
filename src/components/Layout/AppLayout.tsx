@@ -1,6 +1,7 @@
 import React, { type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { useUserStore } from "../../Store/UseUserStore";
+import Sidebar from "./Sidebar";
 import {
   LayoutGrid,
   FileText,
@@ -9,11 +10,14 @@ import {
   Clock,
   Users,
   type LucideIcon,
+  Settings,
 } from "lucide-react";
 
 interface LayoutProps {
   children: ReactNode;
   currentPage: string;
+  isSidebarOpen: boolean;
+  setIsSidebarOpen: (open: boolean) => void;
 }
 
 const IconMap: Record<string, LucideIcon> = {
@@ -25,7 +29,6 @@ const IconMap: Record<string, LucideIcon> = {
   users: Users,
 };
 
-// Helper to get initials from name
 const getInitials = (name: string) => {
   if (!name) return "??";
   const parts = name.trim().split(" ");
@@ -58,8 +61,7 @@ const NavItem = ({ label, active, badge, icon, path }: any) => {
   );
 };
 
-const AppLayout: React.FC<LayoutProps> = ({ children, currentPage }) => {
-  // Accessing flat state properties directly from useUserStore
+const AppLayout: React.FC<LayoutProps> = ({ children, currentPage, isSidebarOpen, setIsSidebarOpen }) => {
   const name = useUserStore((state) => state.name);
   const targetScore = useUserStore((state) => state.targetScore);
   
@@ -68,7 +70,8 @@ const AppLayout: React.FC<LayoutProps> = ({ children, currentPage }) => {
 
   return (
     <div className="flex min-h-screen bg-bgMain text-textMain font-body">
-      {/* SIDEBAR */}
+      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+      {/* SIDEBAR - DESKTOP */}
       <aside className="fixed left-0 top-0 bottom-0 w-60 bg-bgSurface border-r border-borderMuted flex-col z-100 hidden lg:flex">
         <div className="p-6 pb-4 flex items-center gap-3 border-b border-borderMuted">
           <div className="w-8 h-8 bg-brand rounded-lg flex items-center justify-center font-display font-extrabold shadow-[0_8px_40px_rgba(91,59,255,0.3)]">
@@ -86,16 +89,20 @@ const AppLayout: React.FC<LayoutProps> = ({ children, currentPage }) => {
             <NavItem label="Practice Quiz" badge={3} icon="file" path="/quiz" />
             <NavItem label="Subjects" icon="book" path="/subjects" />
             <NavItem label="Performance" icon="activity" path="/performance" />
+            <NavItem label="Settings" icon="settings" path="/settings" />
+            
+
           </section>
 
           <section>
             <p className="text-[10px] tracking-widest uppercase text-textDim px-2 mb-2 font-medium">Study</p>
+            
             <NavItem label="Mock Exams" icon="clock" path="/mock-exams" />
             <NavItem label="Study Groups" icon="users" path="/study-groups" />
+            <NavItem label="Past Questions" icon="settings" path="/past-questions" />
           </section>
         </nav>
 
-        {/* Dynamic User Profile Section */}
         <div className="p-4 border-t border-borderMuted">
           <div className="flex items-center gap-3 p-2 hover:bg-bgCard rounded-brand cursor-pointer transition-colors">
             <div className="w-8 h-8 rounded-full bg-brand flex items-center justify-center font-display text-xs font-bold text-white shadow-sm">
@@ -112,68 +119,61 @@ const AppLayout: React.FC<LayoutProps> = ({ children, currentPage }) => {
       </aside>
 
       {/* MAIN CONTENT AREA */}
-      <main className="flex-1 lg:ml-60">
-        <header className="sticky top-0 z-50 h-14 bg-bgMain/85 backdrop-blur-md border-b border-borderMuted px-7 flex items-center justify-between">
+      <main className="flex-1 lg:ml-60 pb-24 lg:pb-0">
+        <header className="sticky top-0 z-50 h-14 bg-bgMain/85 backdrop-blur-md border-b border-borderMuted px-4 lg:px-7 flex items-center justify-between">
           <h1 className="font-display font-semibold text-base">
             {currentPage.charAt(0).toUpperCase() + currentPage.slice(1)}
           </h1>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 lg:gap-3">
              <span className="text-xs text-textDim hidden sm:inline">Hi, {displayName.split(' ')[0]}!</span>
-            <div className="bg-warn-dim text-warn border border-warn/20 px-3 py-1 rounded-full text-xs font-medium">
-              🔥 14-day streak
+            <div className="bg-warn-dim text-warn border border-warn/20 px-2.5 lg:px-3 py-1 rounded-full text-[10px] lg:text-xs font-medium">
+              🔥 14d
             </div>
-            <div className="bg-brand-dim text-brand-light border border-brand/20 px-3 py-1 rounded-full text-xs font-medium">
-              ⏳ 47 days to exam
+            <div className="bg-brand-dim text-brand-light border border-brand/20 px-2.5 lg:px-3 py-1 rounded-full text-[10px] lg:text-xs font-medium">
+              ⏳ 47d
             </div>
           </div>
         </header>
 
-        <div className="p-7 animate-in fade-in slide-in-from-bottom-2 duration-300">
+        <div className="p-4 lg:p-7 animate-in fade-in slide-in-from-bottom-2 duration-300">
           {children}
         </div>
+
       </main>
 
-      {/* MOBILE BOTTOM NAV */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-bgSurface border-t border-borderMuted px-6 py-3 flex items-center justify-between lg:hidden z-100">
-        <Link to="/" className="flex flex-col items-center gap-1">
-          <LayoutGrid
-            size={30}
-            className={currentPage === "dashboard" ? "text-brand-light" : "text-textDim"}
-          />
-          <span className="text-[10px] font-medium">Home</span>
-        </Link>
+      {/* UNIQUE MOBILE FLOATING NAV */}
+      <div className="fixed bottom-6 left-0 right-0 px-4 lg:hidden z-100">
+        <nav className="bg-bgSurface/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] px-2 py-2 flex items-center justify-around relative">
+          
+          <Link to="/" className="relative flex flex-col items-center justify-center w-12 h-12 transition-transform active:scale-95">
+            <LayoutGrid size={22} className={currentPage === "dashboard" ? "text-brand-light" : "text-textDim"} />
+            {currentPage === "dashboard" && <div className="absolute -bottom-1 w-1 h-1 bg-brand-light rounded-full" />}
+          </Link>
 
-        <Link to="/subjects" className="flex flex-col items-center gap-1">
-          <BookOpen
-            size={30}
-            className={currentPage === "subjects" ? "text-brand-light" : "text-textDim"}
-          />
-          <span className="text-[10px] font-medium">Subjects</span>
-        </Link>
+          <Link to="/subjects" className="relative flex flex-col items-center justify-center w-12 h-12 transition-transform active:scale-95">
+            <BookOpen size={22} className={currentPage === "subjects" ? "text-brand-light" : "text-textDim"} />
+            {currentPage === "subjects" && <div className="absolute -bottom-1 w-1 h-1 bg-brand-light rounded-full" />}
+          </Link>
 
-        <Link to="/quiz" className="flex flex-col items-center gap-1">
-          <div className="bg-brand p-2 rounded-full -mt-8 shadow-lg">
-            <FileText size={30} className="text-white" />
-          </div>
-          <span className="text-[10px] font-medium">Quiz</span>
-        </Link>
+          {/* Center Action Button */}
+          <Link to="/quiz" className="relative -top-6">
+            <div className="bg-brand w-14 h-14 rounded-2xl rotate-45 flex items-center justify-center shadow-[0_10px_25px_rgba(91,59,255,0.4)] transition-all hover:scale-105 active:scale-90">
+              <FileText size={24} className="text-white -rotate-45" />
+            </div>
+          </Link>
 
-        <Link to="/performance" className="flex flex-col items-center gap-1">
-          <Activity
-            size={30}
-            className={currentPage === "performance" ? "text-brand-light" : "text-textDim"}
-          />
-          <span className="text-[10px] font-medium">Stats</span>
-        </Link>
+          <Link to="/performance" className="relative flex flex-col items-center justify-center w-12 h-12 transition-transform active:scale-95">
+            <Activity size={22} className={currentPage === "performance" ? "text-brand-light" : "text-textDim"} />
+            {currentPage === "performance" && <div className="absolute -bottom-1 w-1 h-1 bg-brand-light rounded-full" />}
+          </Link>
 
-        <Link to="/mock-exams" className="flex flex-col items-center gap-1">
-          <Clock
-            size={30}
-            className={currentPage === "mock-exams" ? "text-brand-light" : "text-textDim"}
-          />
-          <span className="text-[10px] font-medium">Mocks</span>
-        </Link>
-      </nav>
+          <Link to="/settings" className="relative flex flex-col items-center justify-center w-12 h-12 transition-transform active:scale-95">
+            <Settings size={22} className={currentPage === "settings" ? "text-brand-light" : "text-textDim"} />
+            {currentPage === "settings" && <div className="absolute -bottom-1 w-1 h-1 bg-brand-light rounded-full" />}
+          </Link>
+
+        </nav>
+      </div>
     </div>
   );
 };

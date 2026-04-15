@@ -11,6 +11,7 @@ const PAGE_TITLES: Record<string, string> = {
   '/past-questions': 'Past Questions',
   '/groups':         'Study Groups',
   '/settings':       'Settings',
+  
 };
 
 interface TopbarProps {
