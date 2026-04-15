@@ -37,7 +37,7 @@ const SESSIONS: Session[] = [
     id: '2', icon: '📝', iconBg: 'bg-warn/10',
     name: 'Full Mock Exam',
     meta: '180 Qs · 2 hours · All subjects',
-    tag: 'mock', route: '/mock',
+    tag: 'mock', route: '/mock-exams',
   },
   {
     id: '3', icon: '🔁', iconBg: 'bg-success/10',
