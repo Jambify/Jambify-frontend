@@ -57,7 +57,7 @@ const Welcome: React.FC = () => {
                 repeat: Infinity,
                 repeatDelay: Math.random() * 5
               }}
-              className="absolute w-2 h-2 bg-gradient-to-r from-brand to-brand-light rounded-full opacity-70"
+              className="absolute w-2 h-2 bg-linear-to-r from-brand to-brand-light rounded-full opacity-70"
               style={{
                 left: `${Math.random() * 100}%`,
               }}
@@ -88,7 +88,7 @@ const Welcome: React.FC = () => {
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-            className="w-20 h-20 bg-gradient-to-r from-success to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-[0_0_30px_rgba(34,197,94,0.3)]"
+            className="w-20 h-20 bg-linear-to-r from-success to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-[0_0_30px_rgba(34,197,94,0.3)]"
           >
             <CheckCircle className="w-10 h-10 text-white" />
           </motion.div>
@@ -176,7 +176,7 @@ const Welcome: React.FC = () => {
             transition={{ duration: 8, ease: "linear" }}
             className="mt-4 h-1 bg-white/10 rounded-full overflow-hidden"
           >
-            <div className="h-full bg-gradient-to-r from-brand to-brand-light rounded-full" />
+            <div className="h-full bg-linear-to-r from-brand to-brand-light rounded-full" />
           </motion.div>
         </motion.div>
 
