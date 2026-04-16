@@ -3,21 +3,22 @@ import { useGroupStore } from '../../Store/useGroupStore';
 import { useUserStore } from '../../Store/UseUserStore';
 import type { StudyGroup } from '../../Store/useGroupStore';
 import { cn } from '../../lib/utils';
+import { ArrowLeft, Send, Users, Activity } from 'lucide-react';
 
 interface GroupChatProps {
-  group:  StudyGroup;
+  group: StudyGroup;
   onBack: () => void;
 }
 
 const GroupChat: React.FC<GroupChatProps> = ({ group, onBack }) => {
   const { name } = useUserStore();
   const { sendMessage, getMessages, myGroupIds, joinGroup } = useGroupStore();
-  const messages   = getMessages(group.id);
-  const isMember   = myGroupIds.includes(group.id);
+  const messages = getMessages(group.id);
+  const isMember = myGroupIds.includes(group.id);
   const [text, setText] = useState('');
-  const bottomRef  = useRef<HTMLDivElement>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
 
-  /* Auto-scroll to latest message */
+  // Auto-scroll to latest message
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages.length]);
@@ -31,16 +32,13 @@ const GroupChat: React.FC<GroupChatProps> = ({ group, onBack }) => {
   return (
     <div className="flex flex-col h-[calc(100vh-112px)]">
 
-      {/* <Chat header */}
+      {/* Chat header */}
       <div className="flex items-center gap-3 pb-4 mb-4 border-b border-borderMuted shrink-0">
         <button
           onClick={onBack}
           className="flex items-center gap-1.5 text-xs text-textMuted hover:text-textMain transition-colors"
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" strokeWidth="2">
-            <polyline points="15 18 9 12 15 6"/>
-          </svg>
+          <ArrowLeft className="w-4 h-4" />
           Back
         </button>
         <div className="text-xl">{group.icon}</div>
@@ -48,19 +46,22 @@ const GroupChat: React.FC<GroupChatProps> = ({ group, onBack }) => {
           <p className="font-display font-semibold text-sm tracking-tight truncate">
             {group.name}
           </p>
-          <p className="text-[11px] text-textDim">
-            {group.memberCount} members · {group.subject}
-          </p>
+          <div className="flex items-center gap-2 text-[11px] text-textDim">
+            <Users className="w-3 h-3" />
+            <span>{group.memberCount}</span>
+            <span>·</span>
+            <span>{group.subject}</span>
+          </div>
         </div>
         {group.isActive && (
           <span className="flex items-center gap-1.5 text-[11px] text-success">
-            <span className="w-1.5 h-1.5 bg-success rounded-full animate-pulse"></span>
-            Active
+            <Activity className="w-3 h-3" />
+            Active now
           </span>
         )}
       </div>
 
-      {/* <Messages */}
+      {/* Messages */}
       <div className="flex-1 overflow-y-auto flex flex-col gap-3 pb-4">
         {messages.length === 0 && (
           <div className="text-center py-10 text-textDim">
@@ -78,8 +79,8 @@ const GroupChat: React.FC<GroupChatProps> = ({ group, onBack }) => {
               <div
                 className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5"
                 style={{
-                  background: isMe ? '#5B3BFF' : '#1E1E27',
-                  color: isMe ? '#fff' : '#9896B0',
+                  background: isMe ? 'rgb(91, 59, 255)' : 'rgb(30, 30, 39)',
+                  color: isMe ? '#fff' : 'rgb(152, 150, 176)',
                   border: '1px solid rgba(255,255,255,0.07)'
                 }}
               >
@@ -108,7 +109,7 @@ const GroupChat: React.FC<GroupChatProps> = ({ group, onBack }) => {
         <div ref={bottomRef} />
       </div>
 
-      {/* <Input area */}
+      {/* Input area */}
       {isMember ? (
         <div className="flex gap-2 pt-3 border-t border-borderMuted shrink-0">
           <input
@@ -124,7 +125,7 @@ const GroupChat: React.FC<GroupChatProps> = ({ group, onBack }) => {
             disabled={!text.trim()}
             className="px-4 py-2.5 bg-brand hover:bg-brand-light disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-brand text-sm font-medium transition-all active:scale-[0.97]"
           >
-            Send
+            <Send className="w-4 h-4" />
           </button>
         </div>
       ) : (

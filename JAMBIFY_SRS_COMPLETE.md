@@ -183,11 +183,21 @@ interface ReminderState {
 ## **4. Social & Collaborative Features**
 
 ### **4.1 Study Groups**
-- **Dynamic Filtering**: Groups filtered by user's subject combination
-- **Group Discovery**: Browse all groups or filter by subject track
-- **Group Management**: Join/leave groups, member limits
-- **Meeting Scheduling**: Regular study sessions with reminders
-- **Subject-Specific Groups**: Medicine, Engineering, Social Sciences, Law focus
+- **Category-Based Filtering**: 
+  - **All Groups**: View all available study groups
+  - **Science**: Physics, Chemistry, Biology, Mathematics focused groups
+  - **Engineering**: Mathematics, Physics focused groups  
+  - **Arts & Social**: English, Literature, Economics, Government, CRS/IRS, History groups
+- **Smart Group Discovery**: 
+  - Tab-based navigation (Discover vs My Groups)
+  - Real-time filtering by subject category
+  - Visual category indicators with icons (Beaker, CPU, Palette)
+- **Enhanced Group Management**:
+  - **Confirmation Modal**: Prevents accidental group leaving with warning dialog
+  - **Leave Confirmation**: "Leave this Squad?" modal with consequences explanation
+  - **Smooth Animations**: Framer Motion transitions for modal appearance/disappearance
+- **Group Categories**: Mixed subject groups and specialized subject-focused groups
+- **Intelligent Empty States**: Contextual messages for no groups in category vs no joined groups
 
 #### **4.1.1 Real-time Collaboration**
 - **Live Study Rooms**: WebRTC-based video/audio collaboration
@@ -436,7 +446,52 @@ interface ReminderState {
 
 ---
 
-## **15. Conclusion**
+## **15. Technical Implementation Details**
+
+### **15.1 Frontend Architecture**
+- **React 18** with TypeScript for type safety
+- **Tailwind CSS** with custom design tokens for consistent styling
+- **Framer Motion** for smooth animations and micro-interactions
+- **Zustand** for lightweight state management
+- **Lucide React** for consistent iconography
+
+### **15.2 Study Groups Implementation**
+#### **15.2.1 Category Filtering System**
+```typescript
+const subjectCategories = [
+  { id: 'all', name: 'All Groups', icon: Filter },
+  { id: 'science', name: 'Science', icon: Beaker, subjects: ['Physics', 'Chemistry', 'Biology', 'Mathematics'] },
+  { id: 'engineering', name: 'Engineering', icon: Cpu, subjects: ['Mathematics', 'Physics'] },
+  { id: 'arts-social', name: 'Arts & Social', icon: Palette, subjects: ['English', 'Literature', 'Economics', 'Government', 'CRS/IRS', 'History'] }
+];
+```
+
+#### **15.2.2 Leave Confirmation Modal**
+- **State Management**: `isLeaveModalOpen`, `groupToLeave` states
+- **Animation**: Scale-in/fade-out with spring transitions
+- **UX Design**: Warning icon, clear messaging, dual-action buttons
+- **Accessibility**: Click-outside-to-close, proper focus management
+
+#### **15.2.3 Responsive Design**
+- **Mobile-First**: Horizontal scroll for category filters on small screens
+- **Grid Layout**: 1 column (mobile) -> 2 columns (tablet) -> 3 columns (desktop)
+- **Touch-Friendly**: Appropriate button sizes and spacing
+
+### **15.3 User Experience Enhancements**
+- **Smart Empty States**: Contextual messaging based on filter state
+- **Loading States**: Skeleton loaders during async operations
+- **Error Handling**: Graceful degradation and user feedback
+- **Performance**: Optimized re-renders and memoization
+
+### **15.4 Design System Compliance**
+- **Color Tokens**: Consistent use of `brand`, `success`, `danger`, `warn` colors
+- **Typography**: `font-display` for headings, `font-body` for content
+- **Spacing**: Standardized spacing scale with `gap-*` utilities
+- **Border Radius**: `rounded-brand` tokens for consistent corners
+
+---
+
+## **16. Conclusion**
 
 This SRS document outlines a comprehensive vision for JAMBify that addresses the specific needs of Nigerian JAMB candidates while incorporating modern educational technology best practices. The application combines proven learning methodologies with innovative features to create a unique and valuable study platform.
 

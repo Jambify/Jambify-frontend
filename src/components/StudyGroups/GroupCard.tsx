@@ -1,34 +1,39 @@
 import React from 'react';
 import type { StudyGroup } from '../../Store/useGroupStore';
 import Button from '../ui/Button';
+// import { cn } from '../../lib/utils';
+import { Users, MessageCircle, Activity } from 'lucide-react';
 
 interface GroupCardProps {
-  group:    StudyGroup;
+  group: StudyGroup;
   isMember: boolean;
-  onJoin?:  () => void;
+  onJoin?: () => void;
   onLeave?: () => void;
-  onOpen:   () => void;
+  onOpen: () => void;
 }
 
-const SUBJ_COLORS: Record<string, string> = {
-  English: '#7B5FFF', Mathematics: '#00C896',
-  Physics: '#FFB020', Chemistry: '#FF4D6D',
-  Biology: '#00C896', Mixed: '#7B5FFF',
+const SUBJECT_COLORS: Record<string, string> = {
+  English: 'rgb(123, 95, 255)',
+  Mathematics: 'rgb(0, 200, 150)',
+  Physics: 'rgb(255, 176, 32)',
+  Chemistry: 'rgb(255, 77, 109)',
+  Biology: 'rgb(0, 200, 150)',
+  Mixed: 'rgb(123, 95, 255)',
 };
 
 const GroupCard: React.FC<GroupCardProps> = ({
-  group, isMember, onJoin, onLeave, onOpen,
+  group, isMember, onJoin, onOpen, onLeave,
 }) => {
-  const color = SUBJ_COLORS[group.subject] ?? '#7B5FFF';
+  const color = SUBJECT_COLORS[group.subject] ?? 'rgb(123, 95, 255)';
 
   return (
     <div className="bg-bgCard border border-borderMuted rounded-brand-lg p-5 hover:border-white/10 transition-all flex flex-col gap-4">
 
-      {/* <Header */}
+      {/* Header */}
       <div className="flex items-start gap-3">
         <div
           className="w-11 h-11 rounded-brand flex items-center justify-center text-xl shrink-0"
-          style={{ background: color + '18' }}
+          style={{ background: `linear-gradient(135deg, ${color}22, ${color}18)` }}
         >
           {group.icon}
         </div>
@@ -43,18 +48,21 @@ const GroupCard: React.FC<GroupCardProps> = ({
               </span>
             )}
           </div>
-          <p className="text-[11px] text-textDim mt-0.5">
-            {group.subject} · {group.memberCount} members
-          </p>
+          <div className="flex items-center gap-2 text-[11px] text-textDim mt-0.5">
+            <Users className="w-3 h-3" />
+            <span>{group.memberCount}</span>
+            <span>·</span>
+            <span>{group.subject}</span>
+          </div>
         </div>
       </div>
 
-      {/* <Description */}
+      {/* Description */}
       <p className="text-xs text-textMuted leading-relaxed line-clamp-2">
         {group.description}
       </p>
 
-      {/* <Member avatars */}
+      {/* Member avatars */}
       <div className="flex items-center gap-1.5">
         <div className="flex -space-x-2">
           {group.recentMembers.slice(0, 4).map((m, i) => (
@@ -75,24 +83,32 @@ const GroupCard: React.FC<GroupCardProps> = ({
         <span className="ml-auto text-[10px] text-textDim">
           {group.isActive ? (
             <span className="flex items-center gap-1 text-success">
-              <span className="w-1.5 h-1.5 bg-success rounded-full"></span>
+              <Activity className="w-3 h-3" />
               Active now
             </span>
-          ) : 'Quiet'}
+          ) : (
+            <div className="flex items-center gap-1">
+              <MessageCircle className="w-3 h-3" />
+              Quiet
+            </div>
+          )}
         </span>
       </div>
 
-      {/* <Actions */}
+      {/* Actions */}
       <div className="flex gap-2">
         <Button
-          variant="primary" size="sm"
-          fullWidth onClick={onOpen}
+          variant="primary"
+          size="sm"
+          fullWidth
+          onClick={onOpen}
         >
           {isMember ? 'Open chat' : 'Preview'}
         </Button>
         {!isMember && (
           <Button
-            variant="secondary" size="sm"
+            variant="secondary"
+            size="sm"
             onClick={onJoin}
           >
             Join
@@ -100,7 +116,8 @@ const GroupCard: React.FC<GroupCardProps> = ({
         )}
         {isMember && (
           <Button
-            variant="ghost" size="sm"
+            variant="ghost"
+            size="sm"
             onClick={onLeave}
           >
             Leave

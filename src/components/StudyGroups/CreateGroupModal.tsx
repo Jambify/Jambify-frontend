@@ -2,10 +2,11 @@ import React, { useState } from "react";
 import { useGroupStore } from "../../Store/useGroupStore";
 import Button from "../ui/Button";
 import { cn } from "../../lib/utils";
+import { X, Users } from 'lucide-react';
 
 const SUBJECTS = [
   "Mixed",
-  "English",
+  "English", 
   "Mathematics",
   "Physics",
   "Chemistry",
@@ -16,15 +17,32 @@ const SUBJECTS = [
   "CRS/IRS",
   "History",
 ];
-const ICONS = ["📚", "⚡", "🧬", "⚗️", "🔢", "📖", "🏆", "🎯"];
 
-const CreateGroupModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+const SUBJECT_ICONS: Record<string, string> = {
+  "Mixed": "📚",
+  "English": "📖",
+  "Mathematics": "�",
+  "Physics": "⚡",
+  "Chemistry": "⚗️",
+  "Biology": "🔢",
+  "Literature": "�",
+  "Economics": "📊",
+  "Government": "�️",
+  "CRS/IRS": "⛪",
+  "History": "📜",
+};
+
+interface CreateGroupModalProps {
+  onClose: () => void;
+}
+
+const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ onClose }) => {
   const { createGroup } = useGroupStore();
   const [form, setForm] = useState({
     name: "",
     description: "",
     subject: "Mixed",
-    icon: "📚",
+    icon: SUBJECT_ICONS["Mixed"],
   });
   const [error, setError] = useState("");
 
@@ -50,28 +68,29 @@ const CreateGroupModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
           </h3>
           <button
             onClick={onClose}
-            className="text-textDim hover:text-textMain text-lg"
+            className="text-textDim hover:text-textMain text-lg transition-colors"
           >
-            ✕
+            <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* <Icon picker */}
+        {/* Icon picker */}
         <div className="mb-4">
           <label className="block text-[11px] text-textDim uppercase tracking-widest font-medium mb-2">
             Icon
           </label>
-          <div className="flex gap-2 flex-wrap">
-            {ICONS.map((icon) => (
+          <div className="flex gap-2 flex-wrap overflow-x-auto no-scrollbar">
+            {Object.entries(SUBJECT_ICONS).map(([subject, icon]) => (
               <button
-                key={icon}
-                onClick={() => setForm((f) => ({ ...f, icon }))}
+                key={subject}
+                onClick={() => setForm((f) => ({ ...f, subject, icon }))}
                 className={cn(
-                  "w-9 h-9 rounded-brand text-lg transition-all border",
-                  form.icon === icon
+                  "w-9 h-9 rounded-brand text-lg transition-all border shrink-0",
+                  form.subject === subject
                     ? "bg-brand/10 border-brand scale-110"
                     : "bg-bgSurface border-borderMuted hover:border-white/15",
                 )}
+                title={subject}
               >
                 {icon}
               </button>
@@ -79,7 +98,7 @@ const CreateGroupModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
           </div>
         </div>
 
-        {/* <Name */}
+        {/* Name */}
         <div className="mb-4">
           <label className="block text-[11px] text-textDim uppercase tracking-widest font-medium mb-2">
             Group name
@@ -97,7 +116,7 @@ const CreateGroupModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
           />
         </div>
 
-        {/* <Subject */}
+        {/* Subject */}
         <div className="mb-4">
           <label className="block text-[11px] text-textDim uppercase tracking-widest font-medium mb-2">
             Subject focus
@@ -106,9 +125,9 @@ const CreateGroupModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             {SUBJECTS.map((s) => (
               <button
                 key={s}
-                onClick={() => setForm((f) => ({ ...f, subject: s }))}
+                onClick={() => setForm((f) => ({ ...f, subject: s, icon: SUBJECT_ICONS[s] }))}
                 className={cn(
-                  "px-3 py-1.5 rounded-full text-xs font-medium border transition-all",
+                  "px-3 py-1.5 rounded-full text-xs font-medium border transition-all shrink-0",
                   form.subject === s
                     ? "bg-brand border-brand text-white"
                     : "bg-bgSurface border-borderMuted text-textMuted hover:border-white/15 hover:text-textMain",
@@ -144,7 +163,10 @@ const CreateGroupModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             Cancel
           </Button>
           <Button variant="primary" size="md" fullWidth onClick={handleCreate}>
-            Create group
+            <div className="flex items-center gap-2">
+              <Users className="w-4 h-4" />
+              Create group
+            </div>
           </Button>
         </div>
       </div>

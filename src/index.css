@@ -85,11 +85,22 @@ html {
 ::-webkit-scrollbar-thumb {
   background:    rgba(255,255,255,0.08);
   border-radius: 99px;
-border: 2px solid var(--color-bgDeep);
+  border: 2px solid var(--color-bgDeep);
+}
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.15);
+  background: var(--color-brand);
 }
 
-::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.15);
-background: var(--color-brand);
+/* ── No scrollbar utility ───────────────────────────── */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar::-moz-scrollbar {
+  display: none;
 }
 
 /* ── Focus ────────────────────────────────────────────── */
