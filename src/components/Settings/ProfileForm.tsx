@@ -33,9 +33,9 @@ const SUBJECT_COMBOS = [
 ];
 
 const ProfileForm: React.FC = () => {
-  const { name, university, subjectCombo, targetScore, examYear, examDate, completeOnboarding } = useUserStore();
+  const { name, email, university, subjectCombo, targetScore, examYear, examDate, completeOnboarding } = useUserStore();
   
-  const [form, setForm] = useState({ name, university, subjectCombo, targetScore, examYear, examDate });
+  const [form, setForm] = useState({ name, email, university, subjectCombo, targetScore, examYear, examDate });
   const [universities, setUniversities] = useState<string[]>([]);
   const [isLoadingUnis, setIsLoadingUnis] = useState(false);
   const [searchTerm, setSearchTerm] = useState(university || "");
@@ -88,6 +88,16 @@ const ProfileForm: React.FC = () => {
     <div className="flex flex-col gap-6">
       {/* Personal Info */}
       <Section title="Personal info">
+        <Field label="Email address">
+          <input
+            type="email"
+            value={email}
+            readOnly
+            className={cn(inputCls(false), "bg-bgDeep cursor-not-allowed opacity-75")}
+            placeholder="your.email@example.com"
+          />
+          <p className="text-xs text-textDim mt-1">Email cannot be changed - it's your account identifier</p>
+        </Field>
         <Field label="Full name" error={errors.name}>
           <input
             type="text"
@@ -163,13 +173,22 @@ const ProfileForm: React.FC = () => {
       <Section title="Exam settings">
         <div className="grid grid-cols-2 gap-4">
           <Field label="Target Score">
-            <input
-              type="number"
+            <select
               value={form.targetScore}
               onChange={(e) => setForm((p) => ({ ...p, targetScore: e.target.value }))}
               className={inputCls(false)}
-              placeholder="e.g. 300"
-            />
+            >
+              <option value="">Select target score</option>
+              <option value="180">180 - Minimum pass mark</option>
+              <option value="200">200 - Good score</option>
+              <option value="220">220 - Above average</option>
+              <option value="250">250 - Competitive score</option>
+              <option value="280">280 - Excellent score</option>
+              <option value="300">300 - Top tier score</option>
+              <option value="320">320 - Exceptional score</option>
+              <option value="350">350 - Near perfect score</option>
+              <option value="400">400 - Perfect score</option>
+            </select>
           </Field>
           <Field label="Exam Year">
             <select
@@ -222,7 +241,7 @@ const ProfileForm: React.FC = () => {
       <div className="flex items-center gap-5">
         <Button
           variant={saved ? 'success' : 'primary'}
-          className="w-full sm:w-auto"
+          className="md"
           disabled={!isDirty && !saved}
           onClick={handleSave}
         >
@@ -231,7 +250,7 @@ const ProfileForm: React.FC = () => {
          {isDirty && (
           <button
             className="text-sm text-textDim hover:text-textMain transition-colors"
-            onClick={() => setForm({ name, university, subjectCombo, targetScore, examYear, examDate })}
+            onClick={() => setForm({ name, email, university, subjectCombo, targetScore, examYear, examDate })}
           >
             Discard
           </button>

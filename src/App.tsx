@@ -10,6 +10,7 @@ import Subjects from "./Pages/Subjects";
 import MockExam from "./Pages/MockExam";
 import Onboarding from "./Pages/OnBoarding";
 import SignUp from "./Pages/SignUp";
+import SignIn from "./Pages/SignIn";
 import Welcome from "./Pages/Welcome";
 import Settings from "./Pages/Settings";
 import RouteGuard from "./components/Layout/RouteGuard";
@@ -20,7 +21,7 @@ import PastQuestions from "./Pages/PastQuestions";
 const App: React.FC = () => (
   <Routes>
     <Route path="/signup" element={<SignUp />} />
-    <Route path="/signin" element={<SignUp />} />
+    <Route path="/signin" element={<SignIn />} />
     <Route path="/onboarding" element={<Onboarding />} />
     <Route path="/welcome" element={<Welcome />} />
     <Route

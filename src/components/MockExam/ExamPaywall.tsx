@@ -43,19 +43,19 @@ const ExamPaywall: React.FC<ExamPaywallProps> = ({ onUpgrade, onBack }) => {
         {/* Pro Features */}
         <div className="space-y-3 mb-8">
           <div className="flex items-center gap-3 text-left bg-[#2A2D35] border border-white/10 rounded-2xl p-3">
-            <CheckCircle className="w-5 h-5 text-success flex-shrink-0" />
+            <CheckCircle className="w-5 h-5 text-success shrink-0" />
             <span className="text-white">Detailed exam breakdown</span>
           </div>
           <div className="flex items-center gap-3 text-left bg-[#2A2D35] border border-white/10 rounded-2xl p-3">
-            <CheckCircle className="w-5 h-5 text-success flex-shrink-0" />
+            <CheckCircle className="w-5 h-5 text-success shrink-0" />
             <span className="text-white">Subject-wise performance analysis</span>
           </div>
           <div className="flex items-center gap-3 text-left bg-[#2A2D35] border border-white/10 rounded-2xl p-3">
-            <CheckCircle className="w-5 h-5 text-success flex-shrink-0" />
+            <CheckCircle className="w-5 h-5 text-success shrink-0" />
             <span className="text-white">Time management insights</span>
           </div>
           <div className="flex items-center gap-3 text-left bg-[#2A2D35] border border-white/10 rounded-2xl p-3">
-            <CheckCircle className="w-5 h-5 text-success flex-shrink-0" />
+            <CheckCircle className="w-5 h-5 text-success shrink-0" />
             <span className="text-white">Download past questions offline</span>
           </div>
         </div>

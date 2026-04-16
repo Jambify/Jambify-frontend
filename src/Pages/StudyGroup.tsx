@@ -1,9 +1,10 @@
-import React, { useState, useMemo } from 'react';
-import AppLayout from '../components/Layout/AppLayout';
-import { useUserStore } from '../Store/UseUserStore';
-import Button from '../components/ui/Button';
-import { Users,  Calendar, Star,  } from 'lucide-react';
-import { cn } from '../lib/utils';
+import React, { useState, useMemo } from "react";
+import AppLayout from "../components/Layout/AppLayout";
+import { useUserStore } from "../Store/UseUserStore";
+import Button from "../components/ui/Button";
+import { Users, Calendar, Star, Search, CheckCircle2 } from "lucide-react";
+import { cn } from "../lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface StudyGroup {
   id: string;
@@ -13,270 +14,210 @@ interface StudyGroup {
   members: number;
   maxMembers: number;
   meetingTime: string;
-  difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
+  difficulty: "Beginner" | "Intermediate" | "Advanced";
   rating: number;
   tags: string[];
-  isJoined: boolean;
 }
 
 const SAMPLE_GROUPS: StudyGroup[] = [
   {
-    id: '1',
-    name: 'Medicine Masters 2025',
-    subjectCombo: 'medicine',
-    description: 'Focused group for medical school aspirants covering Biology, Chemistry, and Physics.',
+    id: "1",
+    name: "Medicine Masters 2025",
+    subjectCombo: "medicine",
+    description:
+      "Focused group for medical school aspirants covering Biology, Chemistry, and Physics.",
     members: 12,
     maxMembers: 15,
-    meetingTime: 'Mon, Wed, Fri - 4:00 PM',
-    difficulty: 'Advanced',
+    meetingTime: "Mon, Wed, Fri - 4:00 PM",
+    difficulty: "Advanced",
     rating: 4.8,
-    tags: ['Biology', 'Chemistry', 'Physics', 'Medical School'],
-    isJoined: false
+    tags: ["Biology", "Chemistry", "Physics"],
   },
   {
-    id: '2',
-    name: 'Engineering Elite',
-    subjectCombo: 'engineering',
-    description: 'Math and Physics intensive group for engineering candidates.',
+    id: "2",
+    name: "Engineering Elite",
+    subjectCombo: "engineering",
+    description: "Math and Physics intensive group for engineering candidates.",
     members: 8,
     maxMembers: 12,
-    meetingTime: 'Tue, Thu - 5:30 PM',
-    difficulty: 'Advanced',
+    meetingTime: "Tue, Thu - 5:30 PM",
+    difficulty: "Advanced",
     rating: 4.6,
-    tags: ['Mathematics', 'Physics', 'Engineering', 'Problem Solving'],
-    isJoined: false
+    tags: ["Mathematics", "Physics"],
   },
   {
-    id: '3',
-    name: 'Commerce Champions',
-    subjectCombo: 'social-sci',
-    description: 'Economics and Government focused study group for business students.',
+    id: "3",
+    name: "Commerce Champions",
+    subjectCombo: "social-sci",
+    description:
+      "Economics and Government focused study group for business students.",
     members: 15,
     maxMembers: 20,
-    meetingTime: 'Sat - 10:00 AM',
-    difficulty: 'Intermediate',
+    meetingTime: "Sat - 10:00 AM",
+    difficulty: "Intermediate",
     rating: 4.5,
-    tags: ['Economics', 'Government', 'Commerce', 'Business'],
-    isJoined: false
+    tags: ["Economics", "Government"],
   },
-  {
-    id: '4',
-    name: 'Law & Arts Collective',
-    subjectCombo: 'law',
-    description: 'Literature and Government preparation for law school candidates.',
-    members: 10,
-    maxMembers: 15,
-    meetingTime: 'Wed, Sun - 3:00 PM',
-    difficulty: 'Intermediate',
-    rating: 4.7,
-    tags: ['Literature', 'Government', 'Law', 'Arts'],
-    isJoined: false
-  },
-  {
-    id: '5',
-    name: 'Science Foundation',
-    subjectCombo: 'medicine',
-    description: 'Beginner-friendly group covering basic sciences for medical aspirants.',
-    members: 18,
-    maxMembers: 25,
-    meetingTime: 'Daily - 6:00 PM',
-    difficulty: 'Beginner',
-    rating: 4.4,
-    tags: ['Biology', 'Chemistry', 'Beginner', 'Foundation'],
-    isJoined: false
-  }
 ];
 
 const SUBJECT_COMBO_LABELS: Record<string, string> = {
-  'medicine': 'Medicine & Pharmacy',
-  'engineering': 'Engineering & Tech',
-  'social-sci': 'Social Sciences',
-  'law': 'Law & Arts'
+  medicine: "Medicine",
+  engineering: "Engineering",
+  "social-sci": "Social Sci",
 };
 
 const DIFFICULTY_COLORS: Record<string, string> = {
-  'Beginner': 'text-green-500 bg-green-500/10',
-  'Intermediate': 'text-yellow-500 bg-yellow-500/10',
-  'Advanced': 'text-red-500 bg-red-500/10'
+  Beginner: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
+  Intermediate: "text-amber-400 bg-amber-500/10 border-amber-500/20",
+  Advanced: "text-rose-400 bg-rose-500/10 border-rose-500/20",
 };
 
 const StudyGroups: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { subjectCombo: userSubjectCombo } = useUserStore();
-  const [selectedFilter, setSelectedFilter] = useState<string>('all');
+  const [selectedFilter, setSelectedFilter] = useState<string>("all");
   const [joinedGroups, setJoinedGroups] = useState<string[]>([]);
 
   const filteredGroups = useMemo(() => {
-    if (selectedFilter === 'all') {
-      return SAMPLE_GROUPS;
+    if (selectedFilter === "all") return SAMPLE_GROUPS;
+    if (selectedFilter === "my-combo" && userSubjectCombo) {
+      return SAMPLE_GROUPS.filter((g) => g.subjectCombo === userSubjectCombo);
     }
-    if (selectedFilter === 'my-combo' && userSubjectCombo) {
-      return SAMPLE_GROUPS.filter(group => group.subjectCombo === userSubjectCombo);
-    }
-    return SAMPLE_GROUPS.filter(group => group.subjectCombo === selectedFilter);
+    return SAMPLE_GROUPS.filter((g) => g.subjectCombo === selectedFilter);
   }, [selectedFilter, userSubjectCombo]);
 
-  const handleJoinGroup = (groupId: string) => {
-    setJoinedGroups(prev => 
-      prev.includes(groupId) 
-        ? prev.filter(id => id !== groupId)
-        : [...prev, groupId]
+  const handleJoinGroup = (id: string) => {
+    setJoinedGroups((prev) =>
+      prev.includes(id) ? prev.filter((g) => g !== id) : [...prev, id],
     );
   };
 
-  const isGroupJoined = (groupId: string) => joinedGroups.includes(groupId);
-
   return (
-    <AppLayout currentPage="study-groups" isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen}>
-      <div className="max-w-6xl mx-auto">
+    <AppLayout
+      currentPage="study-groups"
+      isSidebarOpen={isSidebarOpen}
+      setIsSidebarOpen={setIsSidebarOpen}
+    >
+      <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 py-6">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Study Groups</h1>
-          <p className="text-gray-400">
-            Connect with peers studying the same subjects as you
-            {userSubjectCombo && ` (${SUBJECT_COMBO_LABELS[userSubjectCombo] || userSubjectCombo})`}
+        <div className="mb-6">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white leading-tight">
+            Study Squads
+          </h1>
+          <p className="text-textDim text-xs sm:text-sm max-w-md">
+            Connect with students preparing for your exams.
           </p>
         </div>
 
-        {/* Filter Tabs */}
-        <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
-          <button
-            onClick={() => setSelectedFilter('all')}
-            className={cn(
-              'px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all',
-              selectedFilter === 'all'
-                ? 'bg-purple-600 text-white'
-                : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
-            )}
-          >
-            All Groups
-          </button>
-          {userSubjectCombo && (
-            <button
-              onClick={() => setSelectedFilter('my-combo')}
-              className={cn(
-                'px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all',
-                selectedFilter === 'my-combo'
-                  ? 'bg-purple-600 text-white'
-                  : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
-              )}
-            >
-              My Subject Combo
-            </button>
-          )}
-          {Object.entries(SUBJECT_COMBO_LABELS).map(([key, label]) => (
-            <button
-              key={key}
-              onClick={() => setSelectedFilter(key)}
-              className={cn(
-                'px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all',
-                selectedFilter === key
-                  ? 'bg-purple-600 text-white'
-                  : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
-              )}
-            >
-              {label}
-            </button>
-          ))}
+        {/* Filter (scrollable + mobile friendly) */}
+        <div className="sticky top-0 z-20 bg-bgMain/95 backdrop-blur px-2 py-3 mb-6 border-b border-borderMuted">
+          <div className="flex gap-2 overflow-x-auto no-scrollbar">
+            <FilterBtn
+              active={selectedFilter === "all"}
+              onClick={() => setSelectedFilter("all")}
+              label="All"
+            />
+            {Object.entries(SUBJECT_COMBO_LABELS).map(([key, label]) => (
+              <FilterBtn
+                key={key}
+                active={selectedFilter === key}
+                onClick={() => setSelectedFilter(key)}
+                label={label}
+              />
+            ))}
+          </div>
         </div>
 
-        {/* Groups Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredGroups.map((group) => (
-            <div
-              key={group.id}
-              className="bg-gray-800 border border-gray-700 rounded-xl p-6 hover:border-purple-500/50 transition-all"
-            >
-              {/* Group Header */}
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-white mb-1">{group.name}</h3>
-                  <span className="text-xs px-2 py-1 bg-purple-500/20 text-purple-400 rounded-full">
-                    {SUBJECT_COMBO_LABELS[group.subjectCombo]}
-                  </span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                  <span className="text-sm text-white">{group.rating}</span>
-                </div>
-              </div>
-
-              {/* Description */}
-              <p className="text-gray-400 text-sm mb-4 line-clamp-2">{group.description}</p>
-
-              {/* Tags */}
-              <div className="flex flex-wrap gap-1 mb-4">
-                {group.tags.slice(0, 3).map((tag, index) => (
-                  <span
-                    key={index}
-                    className="text-xs px-2 py-1 bg-gray-700 text-gray-300 rounded"
-                  >
-                    {tag}
-                  </span>
-                ))}
-                {group.tags.length > 3 && (
-                  <span className="text-xs px-2 py-1 bg-gray-700 text-gray-300 rounded">
-                    +{group.tags.length - 3}
-                  </span>
-                )}
-              </div>
-
-              {/* Group Info */}
-              <div className="space-y-2 mb-4">
-                <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2 text-gray-400">
-                    <Users className="w-4 h-4" />
-                    <span>{group.members}/{group.maxMembers} members</span>
-                  </div>
-                  <span className={cn(
-                    'px-2 py-1 rounded-full text-xs font-medium',
-                    DIFFICULTY_COLORS[group.difficulty]
-                  )}>
-                    {group.difficulty}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-gray-400">
-                  <Calendar className="w-4 h-4" />
-                  <span>{group.meetingTime}</span>
-                </div>
-              </div>
-
-              {/* Action Button */}
-              <Button
-                onClick={() => handleJoinGroup(group.id)}
-                className={cn(
-                  'w-full',
-                  isGroupJoined(group.id)
-                    ? 'bg-green-600 hover:bg-green-700 text-white'
-                    : 'bg-purple-600 hover:bg-purple-700 text-white'
-                )}
+        {/* Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <AnimatePresence>
+            {filteredGroups.map((group) => (
+              <motion.div
+                key={group.id}
+                layout
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                className="bg-bgCard border border-borderMuted rounded-xl p-4 sm:p-6 flex flex-col min-w-0"
               >
-                {isGroupJoined(group.id) ? 'Joined' : 'Join Group'}
-              </Button>
-            </div>
-          ))}
+                <div className="flex justify-between mb-3">
+                  <h3 className="text-sm sm:text-lg font-bold text-white truncate">
+                    {group.name}
+                  </h3>
+                  <div className="flex items-center text-xs">
+                    <Star className="w-3 h-3 text-yellow-500" />
+                    {group.rating}
+                  </div>
+                </div>
+
+                <p className="text-textDim text-xs sm:text-sm mb-4 line-clamp-2">
+                  {group.description}
+                </p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs mb-4">
+                  <div className="flex items-center gap-1">
+                    <Users size={14} /> {group.members}/{group.maxMembers}
+                  </div>
+                  <div>
+                    <span
+                      className={cn(
+                        "px-2 py-0.5 rounded text-[10px]",
+                        DIFFICULTY_COLORS[group.difficulty],
+                      )}
+                    >
+                      {group.difficulty}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1 col-span-2">
+                    <Calendar size={14} /> {group.meetingTime}
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => handleJoinGroup(group.id)}
+                  className={cn(
+                    "w-full py-3 rounded-lg text-sm font-bold flex justify-center items-center gap-2",
+                    joinedGroups.includes(group.id)
+                      ? "bg-emerald-500/10 text-emerald-400"
+                      : "bg-brand text-white",
+                  )}
+                >
+                  {joinedGroups.includes(group.id) ? (
+                    <>
+                      <CheckCircle2 size={16} /> Joined
+                    </>
+                  ) : (
+                    "Join"
+                  )}
+                </button>
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </div>
 
-        {/* Empty State */}
+        {/* Empty */}
         {filteredGroups.length === 0 && (
-          <div className="text-center py-12">
-            <Users className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-white mb-2">No groups found</h3>
-            <p className="text-gray-400 mb-6">
-              Try adjusting your filters or check back later for new groups.
-            </p>
-            <Button
-              onClick={() => setSelectedFilter('all')}
-              variant="secondary"
-              className="bg-gray-800 hover:bg-gray-700 text-white"
-            >
-              View All Groups
-            </Button>
+          <div className="text-center py-16">
+            <Search size={28} className="mx-auto mb-3" />
+            <p className="text-sm text-textDim">No groups found</p>
+            <Button onClick={() => setSelectedFilter("all")}>Reset</Button>
           </div>
         )}
       </div>
     </AppLayout>
   );
 };
+
+const FilterBtn = ({ active, onClick, label }: any) => (
+  <button
+    onClick={onClick}
+    className={cn(
+      "px-4 py-2 text-[11px] rounded-lg whitespace-nowrap border",
+      active ? "bg-brand text-white" : "bg-bgDeep text-textDim",
+    )}
+  >
+    {label}
+  </button>
+);
 
 export default StudyGroups;

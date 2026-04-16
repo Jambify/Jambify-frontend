@@ -1,12 +1,14 @@
 import { useNavigate } from "react-router-dom";
 import AppLayout from "../components/Layout/AppLayout";
 import Button from "../components/ui/Button";
+import { useState } from "react";
 
 const NotFound = () => {
   const navigate = useNavigate();
+   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
-    <AppLayout currentPage="not found">
+    <AppLayout currentPage="not found"  isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen}>
       <div className="flex flex-col items-center justify-center text-center py-20 px-4">
 
         {/* Icon / Illustration */}
