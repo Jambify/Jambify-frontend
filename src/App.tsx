@@ -14,7 +14,7 @@ import SignIn from "./Pages/SignIn";
 import Welcome from "./Pages/Welcome";
 import Settings from "./Pages/Settings";
 import RouteGuard from "./components/Layout/RouteGuard";
-import StudyGroups from "./Pages/StudyGroup";
+import StudyGroups from "./Pages/StudyGroups";
 import MentorChat from "./Pages/MentorChat";
 import PastQuestions from "./Pages/PastQuestions";
 
