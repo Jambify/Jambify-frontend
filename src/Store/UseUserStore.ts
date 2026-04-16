@@ -24,6 +24,18 @@ interface ExamUpdate {
 interface DownloadedData {
   [key: string]: any; // Store downloaded past questions by year/subject
 }
+// for price details
+// Inside your Store file
+export const APP_CONFIG = {
+  PRICING: {
+    PRO_LIFETIME: 3000,
+    CURRENCY: '₦',
+    DISPLAY_PRICE: '3,000', // For easy UI rendering
+    PRO_LIFETIME_YEARLY: 20000,
+      DISPLAY_PRICE_YEARLY: '20,000',
+  }
+};
+
 
 interface UserState {
   name:               string;

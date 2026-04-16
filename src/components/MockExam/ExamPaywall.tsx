@@ -1,7 +1,8 @@
-import React from 'react';
-import { useUserStore } from '../../Store/UseUserStore';
-import Button from '../ui/Button';
-import { Crown, Lock, CheckCircle } from 'lucide-react';
+import React from "react";
+import { useUserStore } from "../../Store/UseUserStore";
+import Button from "../ui/Button";
+import { Crown, Lock, CheckCircle } from "lucide-react";
+import { APP_CONFIG } from "../../Store/UseUserStore";
 
 interface ExamPaywallProps {
   onUpgrade: () => void;
@@ -10,6 +11,8 @@ interface ExamPaywallProps {
 
 const ExamPaywall: React.FC<ExamPaywallProps> = ({ onUpgrade, onBack }) => {
   const upgradeToPro = useUserStore((s) => s.upgradeToPro);
+  // destructuring the price
+  const { DISPLAY_PRICE_YEARLY, CURRENCY, DISPLAY_PRICE } = APP_CONFIG.PRICING;
 
   const handleUpgrade = () => {
     upgradeToPro();
@@ -35,9 +38,12 @@ const ExamPaywall: React.FC<ExamPaywallProps> = ({ onUpgrade, onBack }) => {
         </div>
 
         {/* Title */}
-        <h1 className="text-3xl font-display font-bold text-white mb-4">Unlock Pro Features</h1>
+        <h1 className="text-3xl font-display font-bold text-white mb-4">
+          Unlock Pro Features
+        </h1>
         <p className="text-white/60 mb-8">
-          Get detailed exam results and advanced analytics to ace your JAMB preparation.
+          Get detailed exam results and advanced analytics to ace your JAMB
+          preparation.
         </p>
 
         {/* Pro Features */}
@@ -48,7 +54,9 @@ const ExamPaywall: React.FC<ExamPaywallProps> = ({ onUpgrade, onBack }) => {
           </div>
           <div className="flex items-center gap-3 text-left bg-[#2A2D35] border border-white/10 rounded-2xl p-3">
             <CheckCircle className="w-5 h-5 text-success shrink-0" />
-            <span className="text-white">Subject-wise performance analysis</span>
+            <span className="text-white">
+              Subject-wise performance analysis
+            </span>
           </div>
           <div className="flex items-center gap-3 text-left bg-[#2A2D35] border border-white/10 rounded-2xl p-3">
             <CheckCircle className="w-5 h-5 text-success shrink-0" />
@@ -61,25 +69,28 @@ const ExamPaywall: React.FC<ExamPaywallProps> = ({ onUpgrade, onBack }) => {
         </div>
 
         {/* Pricing */}
-        <div className="bg-brand/10 border border-brand/20 rounded-2xl p-4 mb-6">
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <Crown className="w-5 h-5 text-brand-light" />
-            <span className="text-brand-light font-bold">Premium Access</span>
-          </div>
-          <div className="text-3xl font-display font-black text-brand-light mb-1">¥2,999</div>
-          <div className="text-sm text-white/60">One-time payment</div>
+        <div className="bg-brand/8 border border-brand/20 rounded-brand-lg p-4 mb-5 text-center">
+        <Crown className="w-5 h-5 text-brand-light" />
+        <p className="text-textDim text-xs mb-1">Upgrade to Pro</p>
+        <div className="flex items-baseline justify-center gap-1">
+          <span className="font-display text-4xl font-black text-brand-light tracking-tighter">{CURRENCY}{DISPLAY_PRICE}</span>
+          <span className="text-textDim text-sm">/ month</span>
         </div>
+        <p className="text-xs text-textDim mt-1">or {CURRENCY}{DISPLAY_PRICE_YEARLY} / year (save 33%)</p>
+      </div>
 
         {/* Action Buttons */}
         <div className="space-y-3">
           <Button
+            variant="primary"
+            size="lg"
+            fullWidth
             onClick={handleUpgrade}
-            className="w-full bg-brand hover:bg-brand/90 text-white py-3 rounded-2xl font-semibold transition-all duration-200 shadow-lg shadow-brand/20 flex items-center justify-center gap-2"
+            icon={<span>⭐</span>}
           >
-            <Crown className="w-5 h-5" />
             Upgrade to Pro
           </Button>
-          
+
           <Button
             variant="secondary"
             onClick={onBack}
@@ -88,6 +99,9 @@ const ExamPaywall: React.FC<ExamPaywallProps> = ({ onUpgrade, onBack }) => {
             Back to Dashboard
           </Button>
         </div>
+        <p className="text-center text-[11px] text-textDim mt-3">
+       secured by flutterwave --- cancel any time
+      </p>
 
         {/* Trust indicators */}
         <div className="mt-6 pt-6 border-t border-white/10">

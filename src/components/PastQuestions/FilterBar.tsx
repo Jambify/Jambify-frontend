@@ -40,6 +40,7 @@ const SelectFilter: React.FC<{
 );
 
 const FilterBar: React.FC<FilterBarProps> = ({ filters, subjects, years, topics, onChange }) => {
+    
   const hasActiveFilters =
     filters.subject !== 'All' ||
     filters.year    !== 'All' ||

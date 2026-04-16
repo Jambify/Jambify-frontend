@@ -1,7 +1,8 @@
 import React from 'react';
 import { useUserStore } from '../../Store/UseUserStore';
 import Button from '../ui/Button';
-
+import { APP_CONFIG } from '../../Store/UseUserStore'; // Importing the app config for pricing details
+import { Crown } from 'lucide-react';
 const PRO_FEATURES = [
   'Download all subject packs for offline use',
   'Access 4,180+ real JAMB questions (1990–2024)',
@@ -13,6 +14,9 @@ const PRO_FEATURES = [
 
 const ProGate: React.FC = () => {
   const upgradeToPro = useUserStore((s) => s.upgradeToPro);
+ // Destructure the "Standard" values here
+  const { DISPLAY_PRICE_YEARLY, CURRENCY, DISPLAY_PRICE } = APP_CONFIG.PRICING;
+
 
   return (
     <div className="max-w-md mx-auto py-6 animate-fadeIn">
@@ -54,12 +58,13 @@ const ProGate: React.FC = () => {
 
       {/* <Pricing */}
       <div className="bg-brand/8 border border-brand/20 rounded-brand-lg p-4 mb-5 text-center">
+       <Crown className="w-5 h-5 text-brand-light" />
         <p className="text-textDim text-xs mb-1">Upgrade to Pro</p>
         <div className="flex items-baseline justify-center gap-1">
-          <span className="font-display text-4xl font-black text-brand-light tracking-tighter">₦2,500</span>
+          <span className="font-display text-4xl font-black text-brand-light tracking-tighter">{CURRENCY}{DISPLAY_PRICE}</span>
           <span className="text-textDim text-sm">/ month</span>
         </div>
-        <p className="text-xs text-textDim mt-1">or ₦20,000 / year (save 33%)</p>
+        <p className="text-xs text-textDim mt-1">or {CURRENCY}{DISPLAY_PRICE_YEARLY} / year (save 33%)</p>
       </div>
 
       <Button
@@ -72,7 +77,7 @@ const ProGate: React.FC = () => {
         Upgrade to Pro
       </Button>
       <p className="text-center text-[11px] text-textDim mt-3">
-        Demo mode — click above to simulate Pro upgrade. Payment via Paystack in Phase 10.
+       secured by flutterwave --- cancel any time
       </p>
     </div>
   );
