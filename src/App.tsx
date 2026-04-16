@@ -9,6 +9,8 @@ import Performance from "./Pages/Performance";
 import Subjects from "./Pages/Subjects";
 import MockExam from "./Pages/MockExam";
 import Onboarding from "./Pages/OnBoarding";
+import SignUp from "./Pages/SignUp";
+import Welcome from "./Pages/Welcome";
 import Settings from "./Pages/Settings";
 import RouteGuard from "./components/Layout/RouteGuard";
 import StudyGroups from "./Pages/StudyGroup";
@@ -17,7 +19,10 @@ import PastQuestions from "./Pages/PastQuestions";
 
 const App: React.FC = () => (
   <Routes>
+    <Route path="/signup" element={<SignUp />} />
+    <Route path="/signin" element={<SignUp />} />
     <Route path="/onboarding" element={<Onboarding />} />
+    <Route path="/welcome" element={<Welcome />} />
     <Route
       path="/"
       element={
@@ -70,7 +75,7 @@ const App: React.FC = () => (
       path="/study-groups"
       element={
         <RouteGuard>
-          <StudyGroups featureName="Study Groups" />
+          <StudyGroups />
         </RouteGuard>
       }
     />

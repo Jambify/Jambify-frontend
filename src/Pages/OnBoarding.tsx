@@ -134,7 +134,7 @@ const Onboarding: React.FC = () => {
       return;
     }
     completeOnboarding(form);
-    navigate("/");
+    navigate("/welcome");
   };
 
   return (

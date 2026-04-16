@@ -4,6 +4,7 @@ import { useUserStore }        from '../../Store/UseUserStore';
 import { usePerformanceStore } from '../../Store/usePerformanceStore';
 import Button                  from '../ui/Button';
 import { cn }                  from '../../lib/utils';
+import ExamPaywall             from './ExamPaywall';
 
 interface MockResultsProps {
   onRetry: () => void;
@@ -20,7 +21,7 @@ const SUBJECT_COLORS: Record<string, string> = {
 
 const MockResultsScreen: React.FC<MockResultsProps> = ({ onRetry, onHome }) => {
   const { questions, answers, timeLeft } = useMockStore();
-  const { incrementQuestions, updateAccuracy } = useUserStore();
+  const { incrementQuestions, updateAccuracy, isPro } = useUserStore();
   const { addActivity, addMockScore }          = usePerformanceStore();
 
   const total     = questions.length;
@@ -61,6 +62,16 @@ const MockResultsScreen: React.FC<MockResultsProps> = ({ onRetry, onHome }) => {
       : pct >= 50
         ? { emoji: '📚', label: 'Keep pushing!', color: 'text-brand-light' }
         : { emoji: '💪', label: "Don't stop!",   color: 'text-danger'      };
+
+  // Show paywall for non-Pro users
+  if (!isPro) {
+    return (
+      <ExamPaywall 
+        onUpgrade={() => {}}
+        onBack={onHome}
+      />
+    );
+  }
 
   return (
     <div className="max-w-2xl mx-auto animate-fadeIn">
