@@ -169,39 +169,7 @@ const ProfileForm: React.FC = () => {
         </div>
       </Section>
 
-      {/* Exam Config */}
-      <Section title="Exam settings">
-        <div className="grid grid-cols-2 gap-4">
-          <Field label="Target Score">
-            <select
-              value={form.targetScore}
-              onChange={(e) => setForm((p) => ({ ...p, targetScore: e.target.value }))}
-              className={inputCls(false)}
-            >
-              <option value="">Select target score</option>
-              <option value="180">180 - Minimum pass mark</option>
-              <option value="200">200 - Good score</option>
-              <option value="220">220 - Above average</option>
-              <option value="250">250 - Competitive score</option>
-              <option value="280">280 - Excellent score</option>
-              <option value="300">300 - Top tier score</option>
-              <option value="320">320 - Exceptional score</option>
-              <option value="350">350 - Near perfect score</option>
-              <option value="400">400 - Perfect score</option>
-            </select>
-          </Field>
-          <Field label="Exam Year">
-            <select
-              value={form.examYear}
-              onChange={(e) => setForm((p) => ({ ...p, examYear: e.target.value }))}
-              className={inputCls(false)}
-            >
-              <option value="2025">2025</option>
-              <option value="2026">2026</option>
-            </select>
-          </Field>
-        </div>
-      </Section>
+     
 
       {/* Updated Subject Combinations */}
       <Section title="Subject combination">

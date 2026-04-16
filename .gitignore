@@ -1,25 +1,44 @@
-# Logs
+# Logs & Debugging
 logs
 *.log
-.env
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
+# Environment / Secrets (CRITICAL)
+.env
+.env.local
+.env.*.local
 *.local
 
-# Editor directories and files
+# Dependencies
+node_modules/
+/jspm_packages/
+
+# Build outputs
+dist/
+dist-ssr/
+*.tsbuildinfo
+
+# Project Specific
+Jambify_SRS_COMPLETE.md
+# Add any temp design files or SQL dumps here
+*.sql
+*.pdf
+
+# Editor & OS Junk
 .vscode/*
 !.vscode/extensions.json
-.idea
+.idea/
 .DS_Store
+Thumbs.db
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+
+# Testing
+/coverage
