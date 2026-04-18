@@ -7,17 +7,17 @@ import Dashboard from "./Pages/Dashboard";
 import Quiz from "./Pages/Quiz";
 import Performance from "./Pages/Performance";
 import Subjects from "./Pages/Subjects";
-import MockExam from "./Pages/MockExam";
+import MockExam from "./Pages/MockExam/MockExam";
 import Onboarding from "./Pages/OnBoarding";
-import SignUp from "./Pages/SignUp";
-import SignIn from "./Pages/SignIn";
+import SignUp from "./Pages/Authentication/SignUp";
+import SignIn from "./Pages/Authentication/SignIn";
 import Welcome from "./Pages/Welcome";
 import Settings from "./Pages/Settings";
 import RouteGuard from "./components/Layout/RouteGuard";
 import StudyGroups from "./Pages/StudyGroups";
 import MentorChat from "./Pages/MentorChat";
 import PastQuestions from "./Pages/PastQuestions";
-import ReviewScreen from "./Pages/ReviewExam";
+import ReviewScreen from "./Pages/MockExam/ReviewExam";
 
 const App: React.FC = () => (
   <Routes>
@@ -92,7 +92,7 @@ const App: React.FC = () => (
     />
     <Route
       path="/past-questions"
-      element={                       
+      element={
         <RouteGuard>
           <PastQuestions />
         </RouteGuard>

@@ -2,7 +2,7 @@ import type { Question } from '../Types';
 
 export const SAMPLE_QUESTIONS: Question[] = [
   {
-    id: 'q1', subject: 'Chemistry', year: 2022,
+    id: 'q1', subject: 'Chemistry', year: 2025,
     difficulty: 'Medium', topic: 'Atomic Structure',
     text: 'Which of the following is the correct electronic configuration of Sodium (Na) with atomic number 11?',
     options: ['2, 8, 1', '2, 8, 3', '2, 9, 0', '1, 8, 2'],
@@ -10,7 +10,7 @@ export const SAMPLE_QUESTIONS: Question[] = [
     explanation: 'Sodium has 11 electrons distributed as 2 in the first shell, 8 in the second, and 1 in the third — giving 2, 8, 1. This is why sodium is in Group I and is highly reactive.',
   },
   {
-    id: 'q2', subject: 'Physics', year: 2021,
+    id: 'q2', subject: 'Physics', year: 2025,
     difficulty: 'Hard', topic: 'Kinematics',
     text: 'A car accelerates uniformly from rest to 20 m/s in 4 seconds. What is the distance covered?',
     options: ['40 m', '80 m', '160 m', '20 m'],
@@ -18,7 +18,7 @@ export const SAMPLE_QUESTIONS: Question[] = [
     explanation: 'Using s = ½(u + v)t = ½(0 + 20) × 4 = 40 m. Alternatively, acceleration a = 20/4 = 5 m/s², so s = ut + ½at² = 0 + ½ × 5 × 16 = 40 m.',
   },
   {
-    id: 'q3', subject: 'Mathematics', year: 2023,
+    id: 'q3', subject: 'Mathematics', year: 2025,
     difficulty: 'Easy', topic: 'Logarithms',
     text: 'If log₂8 = x, find the value of x.',
     options: ['2', '3', '4', '6'],
@@ -26,7 +26,7 @@ export const SAMPLE_QUESTIONS: Question[] = [
     explanation: 'log₂8 = x means 2ˣ = 8. Since 8 = 2³, we get x = 3. Always convert to exponential form first when solving log equations.',
   },
   {
-    id: 'q4', subject: 'English', year: 2022,
+    id: 'q4', subject: 'English', year: 2025,
     difficulty: 'Easy', topic: 'Vocabulary',
     text: 'Choose the word closest in meaning to "VERBOSE".',
     options: ['Concise', 'Wordy', 'Aggressive', 'Passive'],
@@ -34,7 +34,7 @@ export const SAMPLE_QUESTIONS: Question[] = [
     explanation: '"Verbose" means using more words than necessary — in other words, wordy. It comes from Latin "verbosus" meaning full of words. Its antonym is "concise".',
   },
   {
-    id: 'q5', subject: 'Biology', year: 2020,
+    id: 'q5', subject: 'Biology', year: 2025,
     difficulty: 'Medium', topic: 'Cell Biology',
     text: 'Which organelle is primarily responsible for producing ATP through aerobic respiration?',
     options: ['Ribosome', 'Nucleus', 'Mitochondria', 'Golgi apparatus'],
@@ -42,7 +42,7 @@ export const SAMPLE_QUESTIONS: Question[] = [
     explanation: 'Mitochondria are the powerhouses of the cell. They produce most ATP via the Krebs cycle and electron transport chain — both stages of aerobic respiration.',
   },
   {
-    id: 'q6', subject: 'Chemistry', year: 2021,
+    id: 'q6', subject: 'Chemistry', year: 2025,
     difficulty: 'Hard', topic: 'Acid-Base Chemistry',
     text: 'What is the pH of a solution with hydrogen ion concentration [H⁺] = 1 × 10⁻³ mol/L?',
     options: ['1', '3', '7', '11'],
@@ -50,7 +50,7 @@ export const SAMPLE_QUESTIONS: Question[] = [
     explanation: 'pH = −log[H⁺] = −log(10⁻³) = 3. pH below 7 is acidic, pH 7 is neutral, above 7 is alkaline. Always apply the negative log formula.',
   },
   {
-    id: 'q7', subject: 'Physics', year: 2023,
+    id: 'q7', subject: 'Physics', year: 2025,
     difficulty: 'Easy', topic: "Newton's Laws",
     text: "Which statement correctly describes Newton's First Law of Motion?",
     options: [
@@ -63,7 +63,7 @@ export const SAMPLE_QUESTIONS: Question[] = [
     explanation: "Newton's First Law (Law of Inertia) states that an object at rest stays at rest, and an object in motion stays in motion at the same speed and direction, unless acted on by an unbalanced force.",
   },
   {
-    id: 'q8', subject: 'Mathematics', year: 2021,
+    id: 'q8', subject: 'Mathematics', year: 2025,
     difficulty: 'Hard', topic: 'Arithmetic Progression',
     text: 'Find the sum of the first 10 terms of the AP: 3, 7, 11, 15…',
     options: ['210', '215', '220', '230'],
@@ -71,7 +71,7 @@ export const SAMPLE_QUESTIONS: Question[] = [
     explanation: 'a = 3, d = 4, n = 10. Sₙ = n/2 × [2a + (n−1)d] = 10/2 × [6 + 36] = 5 × 42 = 210. Always identify a and d first.',
   },
   {
-    id: 'q9', subject: 'English', year: 2023,
+    id: 'q9', subject: 'English', year: 2025,
     difficulty: 'Medium', topic: 'Grammar',
     text: 'Choose the option that best completes the sentence: "Neither the students nor the teacher ___ aware of the change."',
     options: ['were', 'was', 'are', 'have been'],
@@ -79,7 +79,7 @@ export const SAMPLE_QUESTIONS: Question[] = [
     explanation: 'With "neither…nor", the verb agrees with the subject closest to it. Here "the teacher" is singular, so "was" is correct. This is the proximity rule.',
   },
   {
-    id: 'q10', subject: 'Biology', year: 2022,
+    id: 'q10', subject: 'Biology', year: 2025,
     difficulty: 'Medium', topic: 'Genetics',
     text: 'In a monohybrid cross between two heterozygous parents (Tt × Tt), what is the expected phenotypic ratio?',
     options: ['1:2:1', '3:1', '1:1', '2:1:1'],
@@ -87,7 +87,7 @@ export const SAMPLE_QUESTIONS: Question[] = [
     explanation: 'A Tt × Tt cross produces TT, Tt, Tt, tt — that is 3 tall : 1 short. The phenotypic ratio is 3:1 because T is dominant. The genotypic ratio is 1:2:1.',
   },
   {
-    id: 'lit-01', subject: 'Literature in English', year: 2023,
+    id: 'lit-01', subject: 'Literature in English', year: 2025,
     difficulty: 'Medium', topic: 'Literary Devices',
     text: '"The sun peeped over the mountain and smiled at the valley" is an example of:',
     options: ['Metaphor', 'Personification', 'Hyperbole', 'Oxymoron'],
@@ -95,7 +95,7 @@ export const SAMPLE_QUESTIONS: Question[] = [
     explanation: 'Personification is a figure of speech where human qualities are given to non-human objects, such as the sun "peeping" or "smiling."',
   },
   {
-    id: 'hist-01', subject: 'History', year: 2022,
+    id: 'hist-01', subject: 'History', year: 2025,
     difficulty: 'Hard', topic: 'Pre-Colonial Nigeria',
     text: 'Which of these empires was famous for its "Golden Age" under the rule of Mansa Musa?',
     options: ['Songhai Empire', 'Kanem-Bornu Empire', 'Mali Empire', 'Ghana Empire'],
@@ -103,7 +103,7 @@ export const SAMPLE_QUESTIONS: Question[] = [
     explanation: 'Mansa Musa was the tenth Mansa of the Mali Empire, and his pilgrimage to Mecca made the empire world-famous for its incredible wealth in gold.',
   },
   {
-    id: 'geo-01', subject: 'Geography', year: 2023,
+    id: 'geo-01', subject: 'Geography', year: 2025,
     difficulty: 'Medium', topic: 'Map Reading',
     text: 'If a map has a scale of 1:50,000, what distance on the ground is represented by 2cm on the map?',
     options: ['100km', '10km', '1km', '5km'],
@@ -111,7 +111,7 @@ export const SAMPLE_QUESTIONS: Question[] = [
     explanation: '1:50,000 means 1cm = 50,000cm (0.5km). Therefore, 2cm = 100,000cm, which equals 1km.',
   },
   {
-    id: 'govt-01', subject: 'Government', year: 2021,
+    id: 'govt-01', subject: 'Government', year: 2025,
     difficulty: 'Medium', topic: 'Organs of Government',
     text: 'The primary function of the Judiciary is to:',
     options: ['Make laws', 'Execute laws', 'Interpret laws', 'Enforce laws'],
@@ -119,7 +119,7 @@ export const SAMPLE_QUESTIONS: Question[] = [
     explanation: 'The Legislature makes laws, the Executive implements them, and the Judiciary interprets the laws to ensure justice.',
   },
   {
-    id: 'econ-01', subject: 'Economics', year: 2022,
+    id: 'econ-01', subject: 'Economics', year: 2025,
     difficulty: 'Medium', topic: 'Demand and Supply',
     text: 'An increase in the price of a commodity will lead to a:',
     options: ['Shift in the demand curve', 'Contraction of demand', 'Extension of demand', 'Increase in demand'],
@@ -127,16 +127,15 @@ export const SAMPLE_QUESTIONS: Question[] = [
     explanation: 'According to the law of demand, as price increases, quantity demanded decreases. This movement along the curve is known as a contraction of demand.',
   },
   {
-    id: 'crs-01', subject: 'CRS', year: 2023,
+    id: 'crs-01', subject: 'CRS', year: 2025,
     difficulty: 'Easy', topic: 'Creation',
     text: 'On which day did God create man according to the first account of creation?',
     options: ['Third day', 'Fifth day', 'Sixth day', 'Seventh day'],
     answer: 2,
     explanation: 'In Genesis 1, God created animals and humans (man) on the sixth day before resting on the seventh.',
   },
-  /* ── Literature in English ────────────────────────── */
   {
-    id: 'lit-02', subject: 'Literature in English', year: 2022,
+    id: 'lit-02', subject: 'Literature in English', year: 2025,
     difficulty: 'Medium', topic: 'Drama',
     text: 'A speech made by a character alone on stage to reveal their inner thoughts is a:',
     options: ['Prologue', 'Monologue', 'Soliloquy', 'Aside'],
@@ -144,17 +143,15 @@ export const SAMPLE_QUESTIONS: Question[] = [
     explanation: 'A soliloquy is a dramatic device where a character speaks to themselves, relating thoughts and feelings, thereby sharing them with the audience.',
   },
   {
-    id: 'lit-03', subject: 'Literature in English', year: 2021,
+    id: 'lit-03', subject: 'Literature in English', year: 2025,
     difficulty: 'Easy', topic: 'Poetry',
     text: 'A poem of fourteen lines with a specific rhyme scheme is called a:',
     options: ['Lyric', 'Ode', 'Sonnet', 'Elegy'],
     answer: 2,
     explanation: 'A sonnet is a 14-line poem, typically written in iambic pentameter, popularized by poets like Shakespeare and Petrarch.',
   },
-
-  /* ── History ─────────────────────────────────────── */
   {
-    id: 'hist-02', subject: 'History', year: 2023,
+    id: 'hist-02', subject: 'History', year: 2025,
     difficulty: 'Medium', topic: 'Nationalism',
     text: 'Who was the first titular President of Nigeria when it became a Republic in 1963?',
     options: ['Obafemi Awolowo', 'Nnamdi Azikiwe', 'Tafawa Balewa', 'Herbert Macaulay'],
@@ -162,17 +159,15 @@ export const SAMPLE_QUESTIONS: Question[] = [
     explanation: 'Dr. Nnamdi Azikiwe became the first President of Nigeria when the country transitioned to a Federal Republic in 1963.',
   },
   {
-    id: 'hist-03', subject: 'History', year: 2022,
+    id: 'hist-03', subject: 'History', year: 2025,
     difficulty: 'Hard', topic: 'Ancient Kingdoms',
     text: 'The Nok Culture is best known for its unique:',
     options: ['Bronze Castings', 'Terracotta Sculptures', 'Iron Smelting', 'Ivory Carvings'],
     answer: 1,
     explanation: 'The Nok Culture (c. 1500 BC – 500 AD) of central Nigeria is famous for its distinctive terracotta heads and figures.',
   },
-
-  /* ── Geography ───────────────────────────────────── */
   {
-    id: 'geo-02', subject: 'Geography', year: 2021,
+    id: 'geo-02', subject: 'Geography', year: 2025,
     difficulty: 'Medium', topic: 'Rocks',
     text: 'Rocks formed from the cooling and solidification of molten magma are:',
     options: ['Sedimentary', 'Metamorphic', 'Igneous', 'Calcareous'],
@@ -180,17 +175,15 @@ export const SAMPLE_QUESTIONS: Question[] = [
     explanation: 'Igneous rocks (like basalt or granite) are formed when hot, molten rock crystallizes and solidifies.',
   },
   {
-    id: 'geo-03', subject: 'Geography', year: 2023,
+    id: 'geo-03', subject: 'Geography', year: 2025,
     difficulty: 'Easy', topic: 'The Solar System',
     text: 'Which planet is known as the "Red Planet"?',
     options: ['Venus', 'Jupiter', 'Mars', 'Saturn'],
     answer: 2,
     explanation: 'Mars is known as the Red Planet due to the iron oxide (rust) on its surface, which gives it a reddish appearance.',
   },
-
-  /* ── Government ──────────────────────────────────── */
   {
-    id: 'govt-02', subject: 'Government', year: 2022,
+    id: 'govt-02', subject: 'Government', year: 2025,
     difficulty: 'Medium', topic: 'Political Ideologies',
     text: 'A system of government where power is concentrated in a single central authority is:',
     options: ['Federal', 'Unitary', 'Confederal', 'Democratic'],
@@ -198,17 +191,15 @@ export const SAMPLE_QUESTIONS: Question[] = [
     explanation: 'In a unitary system, the central government is supreme, and any administrative divisions exercise only powers that the central government chooses to delegate.',
   },
   {
-    id: 'govt-03', subject: 'Government', year: 2023,
+    id: 'govt-03', subject: 'Government', year: 2025,
     difficulty: 'Medium', topic: 'Electoral Process',
     text: 'The right of adult citizens to vote in an election is known as:',
     options: ['Franchise', 'Plebiscite', 'Referendum', 'Immunization'],
     answer: 0,
     explanation: 'Franchise (or suffrage) is the right or privilege of voting in public, political elections.',
   },
-
-  /* ── Economics ───────────────────────────────────── */
   {
-    id: 'econ-02', subject: 'Economics', year: 2021,
+    id: 'econ-02', subject: 'Economics', year: 2025,
     difficulty: 'Hard', topic: 'Market Structures',
     text: 'A market situation with only one seller and many buyers is a:',
     options: ['Duopoly', 'Oligopoly', 'Monopsony', 'Monopoly'],
@@ -216,17 +207,15 @@ export const SAMPLE_QUESTIONS: Question[] = [
     explanation: 'A monopoly exists when a specific person or enterprise is the only supplier of a particular commodity.',
   },
   {
-    id: 'econ-03', subject: 'Economics', year: 2023,
+    id: 'econ-03', subject: 'Economics', year: 2025,
     difficulty: 'Medium', topic: 'Production',
     text: 'Which of the following is NOT a factor of production?',
     options: ['Land', 'Labour', 'Capital', 'Money'],
     answer: 3,
     explanation: 'The four factors of production are Land, Labour, Capital, and Entrepreneurship. Money is considered a medium of exchange, not a factor of production.',
   },
-
-  /* ── CRS ─────────────────────────────────────────── */
   {
-    id: 'crs-02', subject: 'CRS', year: 2022,
+    id: 'crs-02', subject: 'CRS', year: 2025,
     difficulty: 'Medium', topic: 'The Covenant',
     text: 'God changed the name of Abram to Abraham which means:',
     options: ['Exalted Father', 'Father of Many', 'Friend of God', 'The Chosen One'],
@@ -234,13 +223,11 @@ export const SAMPLE_QUESTIONS: Question[] = [
     explanation: 'In Genesis 17:5, God changes Abram ("Exalted Father") to Abraham ("Father of a Multitude/Many").',
   },
   {
-    id: 'crs-03', subject: 'CRS', year: 2021,
+    id: 'crs-03', subject: 'CRS', year: 2025,
     difficulty: 'Easy', topic: 'Leadership',
     text: 'Who succeeded Moses as the leader of the Israelites?',
     options: ['Aaron', 'Caleb', 'Joshua', 'Gideon'],
     answer: 2,
     explanation: 'Joshua was appointed by God to lead the Israelites into the Promised Land after the death of Moses.',
   }
-
-
 ];
