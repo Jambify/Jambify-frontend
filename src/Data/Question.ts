@@ -127,7 +127,7 @@ export const SAMPLE_QUESTIONS: Question[] = [
     explanation: 'According to the law of demand, as price increases, quantity demanded decreases. This movement along the curve is known as a contraction of demand.',
   },
   {
-    id: 'crs-01', subject: 'Christian Religious Studies (CRS)', year: 2023,
+    id: 'crs-01', subject: 'CRS', year: 2023,
     difficulty: 'Easy', topic: 'Creation',
     text: 'On which day did God create man according to the first account of creation?',
     options: ['Third day', 'Fifth day', 'Sixth day', 'Seventh day'],
@@ -226,7 +226,7 @@ export const SAMPLE_QUESTIONS: Question[] = [
 
   /* ── CRS ─────────────────────────────────────────── */
   {
-    id: 'crs-02', subject: 'Christian Religious Studies (CRS)', year: 2022,
+    id: 'crs-02', subject: 'CRS', year: 2022,
     difficulty: 'Medium', topic: 'The Covenant',
     text: 'God changed the name of Abram to Abraham which means:',
     options: ['Exalted Father', 'Father of Many', 'Friend of God', 'The Chosen One'],
@@ -234,7 +234,7 @@ export const SAMPLE_QUESTIONS: Question[] = [
     explanation: 'In Genesis 17:5, God changes Abram ("Exalted Father") to Abraham ("Father of a Multitude/Many").',
   },
   {
-    id: 'crs-03', subject: 'Christian Religious Studies (CRS)', year: 2021,
+    id: 'crs-03', subject: 'CRS', year: 2021,
     difficulty: 'Easy', topic: 'Leadership',
     text: 'Who succeeded Moses as the leader of the Israelites?',
     options: ['Aaron', 'Caleb', 'Joshua', 'Gideon'],

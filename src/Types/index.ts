@@ -1,6 +1,6 @@
 export interface Question {
   id: string;
-  subject: 'English' | 'Mathematics' | 'Physics' | 'Chemistry' | 'Biology' | 'Literature in English' | 'History' | 'Geography' | 'Government' | 'Economics' | 'Christian Religious Studies (CRS)';
+  subject: 'English' | 'Mathematics' | 'Physics' | 'Chemistry' | 'Biology' | 'Literature in English' | 'History' | 'Geography' | 'Government' | 'Economics' | 'CRS';
   year: number;
   difficulty: 'Easy' | 'Medium' | 'Hard';
   text: string;

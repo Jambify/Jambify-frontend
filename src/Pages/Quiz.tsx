@@ -21,7 +21,7 @@ const SUBJECTS = [
   "Geography",
   "Government",
   "Economics",
-  "Christian Religious Studies (CRS)",
+  "CRS",
 ];
 
 const Quiz: React.FC = () => {

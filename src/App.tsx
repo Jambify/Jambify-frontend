@@ -17,6 +17,7 @@ import RouteGuard from "./components/Layout/RouteGuard";
 import StudyGroups from "./Pages/StudyGroups";
 import MentorChat from "./Pages/MentorChat";
 import PastQuestions from "./Pages/PastQuestions";
+import ReviewScreen from "./Pages/ReviewExam";
 
 const App: React.FC = () => (
   <Routes>
@@ -94,6 +95,14 @@ const App: React.FC = () => (
       element={                       
         <RouteGuard>
           <PastQuestions />
+        </RouteGuard>
+      }
+    />
+    <Route
+      path="/review"
+      element={
+        <RouteGuard>
+          <ReviewScreen onBack={() => window.history.back()} />
         </RouteGuard>
       }
     />
