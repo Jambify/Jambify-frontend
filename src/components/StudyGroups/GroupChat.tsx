@@ -30,7 +30,7 @@ const GroupChat: React.FC<GroupChatProps> = ({ group, onBack }) => {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-112px)]">
+    <div className="flex flex-col h-[calc(100dvh-112px)]">
 
       {/* Chat header */}
       <div className="flex items-center gap-3 pb-4 mb-4 border-b border-borderMuted shrink-0">

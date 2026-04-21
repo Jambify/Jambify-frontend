@@ -35,7 +35,7 @@ const Welcome: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0F1115] text-white flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-[#0F1115] text-white flex flex-col items-center justify-center p-4 pb-[env(safe-area-inset-bottom)]">
       {/* Animated background elements */}
       {showConfetti && (
         <div className="fixed inset-0 pointer-events-none overflow-hidden">

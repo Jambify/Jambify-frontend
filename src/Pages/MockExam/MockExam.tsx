@@ -267,7 +267,7 @@ const MockExam: React.FC = () => {
             </span>
           </div>
 
-          <p className="text-base sm:text-lg text-textMain mb-6 sm:mb-8 leading-relaxed break-word select-text">
+          <p className="text-base sm:text-lg text-textMain mb-6 sm:mb-8 leading-relaxed break-words select-text">
             {q.text}
           </p>
 

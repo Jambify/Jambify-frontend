@@ -65,7 +65,7 @@ const SignIn: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-bgMain flex items-center justify-center p-4 relative overflow-hidden text-textMain">
+    <div className="min-h-screen bg-bgMain flex items-center justify-center p-4 relative overflow-hidden text-textMain pb-[env(safe-area-inset-bottom)]">
       {/* Background Decor */}
       <div className="absolute top-0 right-1/4 w-125 h-125 bg-brand/5 blur-[120px] rounded-full pointer-events-none" />
       

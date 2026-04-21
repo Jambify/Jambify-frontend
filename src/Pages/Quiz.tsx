@@ -75,7 +75,7 @@ const Quiz: React.FC = () => {
         <div className="flex items-center gap-4 mb-6">
           <button
             onClick={() => setShowExitModal(true)} // Trigger Modal
-            className="flex items-center gap-1.5 text-xs text-textMuted hover:text-textMain transition-colors shrink-0"
+            className="flex items-center gap-1.5 text-xs text-textMuted hover:text-textMain transition-colors shrink-0 touch-target no-double-tap active:scale-95"
           >
             <svg
               width="14"
@@ -129,13 +129,13 @@ const Quiz: React.FC = () => {
               <div className="flex gap-3">
                 <button 
                   onClick={() => setShowExitModal(false)}
-                  className="flex-1 py-3 rounded-brand font-medium bg-white/5 hover:bg-white/10 text-textMain transition-colors"
+                  className="flex-1 py-3 rounded-brand font-medium bg-white/5 hover:bg-white/10 text-textMain transition-colors touch-target no-double-tap active:scale-95"
                 >
                   Stay
                 </button>
                 <button 
                   onClick={reset}
-                  className="flex-1 py-3 rounded-brand font-medium bg-danger text-white hover:bg-danger/80 transition-colors"
+                  className="flex-1 py-3 rounded-brand font-medium bg-danger text-white hover:bg-danger/80 transition-colors touch-target no-double-tap active:scale-95"
                 >
                   Exit
                 </button>
@@ -213,7 +213,7 @@ const Quiz: React.FC = () => {
       ${
         selectedSubject === s
           ? "bg-brand text-warning shadow-lg shadow-brand/30 scale-105"
-          : "bg-bgSurface text-textMuted hover:bg-white/5 hover:text-textMain hover:scale-[1.03]"
+          : "bg-bgSurface text-textMuted hover:bg-white/5 hover:text-textMain hover:scale-[1.03] touch-target no-double-tap active:scale-95"
       }
       focus:outline-none focus:ring-2 focus:ring-brand/40 focus:ring-offset-2 focus:ring-offset-bgCard
     `}
@@ -230,7 +230,7 @@ const Quiz: React.FC = () => {
   bg-bgSurface border border-borderMuted
   text-textDim hover:text-textMain hover:border-white/20
   hover:bg-white/5 transition-all duration-200
-  active:scale-95"
+  active:scale-95 touch-target no-double-tap"
               >
                 {showAllSubjects ? "Show less" : `+${SUBJECTS.length - 4} more`}
               </button>

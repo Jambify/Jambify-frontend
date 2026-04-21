@@ -60,7 +60,7 @@ const Settings: React.FC = () => {
                 'flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-brand text-sm font-medium transition-all',
                 activeTab === tab.id
                   ? 'bg-bgCard text-textMain shadow-sm border border-borderMuted'
-                  : 'text-textMuted hover:text-textMain',
+                  : 'text-textMuted hover:text-textMain touch-target no-double-tap active:scale-95',
               )}
             >
               <span className="text-base leading-none">{tab.icon}</span>
