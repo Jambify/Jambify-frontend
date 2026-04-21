@@ -206,7 +206,7 @@ const MockExam: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex gap-2 mb-4 overflow-x-auto pb-2 scrollbar-hide">
+        <div className="flex gap-2 mb-4 overflow-x-auto pb-2 scrollbar-hide momentum-scroll">
           {examSubjects.map((sub) => (
             <button
               key={sub}
@@ -218,11 +218,12 @@ const MockExam: React.FC = () => {
                 if (firstIdx !== -1) nextQuestion(firstIdx);
               }}
               className={cn(
-                "px-4 py-2 rounded-full text-xs font-bold transition-all whitespace-nowrap border",
+                "px-4 py-2 rounded-full text-xs font-bold transition-all whitespace-nowrap border touch-target no-double-tap",
                 activeSubject === sub
                   ? "bg-brand text-white border-brand"
                   : "bg-bgSurface text-textDim border-borderMuted hover:border-brand/50",
               )}
+              aria-label={`Select ${sub} subject`}
             >
               {sub}
             </button>
@@ -238,7 +239,7 @@ const MockExam: React.FC = () => {
                   key={quest.id}
                   onClick={() => nextQuestion(globalIdx)}
                   className={cn(
-                    "w-8 h-8 rounded-md text-xs font-mono transition-all shrink-0 border",
+                    "w-8 h-8 rounded-md text-xs font-mono transition-all shrink-0 border touch-target no-double-tap",
                     globalIdx === currentIndex
                       ? "bg-brand text-white border-brand shadow-lg scale-110 z-10"
                       : answers[globalIdx] !== undefined &&
@@ -246,6 +247,7 @@ const MockExam: React.FC = () => {
                         ? "bg-success/10 text-success border-success/30"
                         : "bg-bgSurface text-textDim border-borderMuted",
                   )}
+                  aria-label={`Go to question ${i + 1}`}
                 >
                   {i + 1}
                 </button>
@@ -254,7 +256,7 @@ const MockExam: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-bgCard border border-borderMuted rounded-brand-xl p-6 mb-6 shadow-sm">
+        <div className="bg-bgCard border border-borderMuted rounded-brand-xl p-4 sm:p-6 mb-6 shadow-sm">
           <div className="flex items-center gap-2 mb-4">
             <span className="text-[10px] uppercase tracking-widest font-bold px-2 py-1 rounded bg-brand/10 text-brand">
               {q.subject} ({q.year})
@@ -265,7 +267,7 @@ const MockExam: React.FC = () => {
             </span>
           </div>
 
-          <p className="text-base sm:text-lg text-textMain mb-8 leading-relaxed">
+          <p className="text-base sm:text-lg text-textMain mb-6 sm:mb-8 leading-relaxed break-word select-text">
             {q.text}
           </p>
 
@@ -290,6 +292,8 @@ const MockExam: React.FC = () => {
             size="md"
             disabled={currentIndex === 0}
             onClick={() => prevQuestion()}
+            className="touch-target no-double-tap"
+            aria-label="Previous question"
           >
             Previous
           </Button>
@@ -297,15 +301,17 @@ const MockExam: React.FC = () => {
           <Button
             variant="primary"
             size="md"
-            onClick={() =>
-              currentIndex === questions.length - 1
-                ? setShowConfirmExit(true)
-                : nextQuestion(currentIndex + 1)
-            }
+            onClick={() => {
+              if (currentIndex === questions.length - 1) {
+                setShowConfirmExit(true);
+              } else {
+                nextQuestion(currentIndex + 1);
+              }
+            }}
+            className="touch-target no-double-tap"
+            aria-label={currentIndex === questions.length - 1 ? "Finish exam" : "Next question"}
           >
-            {currentIndex === questions.length - 1
-              ? "Finish Exam"
-              : "Next Question"}
+            {currentIndex === questions.length - 1 ? "Finish" : "Next"}
           </Button>
         </div>
 

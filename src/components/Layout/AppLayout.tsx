@@ -75,7 +75,7 @@ const AppLayout: React.FC<LayoutProps> = ({
   const initials = getInitials(displayName);
 
   return (
-    <div className="flex min-h-screen bg-bgMain text-textMain font-body">
+    <div className="flex min-h-screen bg-bgMain text-textMain font-body safe-area-all">
       <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
       {/* SIDEBAR - DESKTOP */}
       <aside className="fixed left-0 top-0 bottom-0 w-60 bg-bgSurface border-r border-borderMuted flex-col z-100 hidden lg:flex">
@@ -139,12 +139,13 @@ const AppLayout: React.FC<LayoutProps> = ({
 
       {/* MAIN CONTENT AREA */}
       <main className="flex-1 lg:ml-60 pb-24 lg:pb-0">
-        <header className="sticky top-0 z-50 h-14 bg-bgMain/85 backdrop-blur-md border-b border-borderMuted px-4 lg:px-7 flex items-center justify-between">
+        <header className="sticky top-0 z-50 h-14 bg-bgMain/85 backdrop-blur-md border-b border-borderMuted px-4 lg:px-7 flex items-center justify-between safe-area-top fixed-ios">
           <div className="flex items-center gap-3">
             {/* HAMBURGER (ONLY MOBILE) */}
             <button
               onClick={() => setIsSidebarOpen(true)}
-              className="lg:hidden p-2 rounded-md hover:bg-bgCard"
+              className="lg:hidden p-2 rounded-md hover:bg-bgCard touch-target no-double-tap"
+              aria-label="Open menu"
             >
               <Menu size={22} />
             </button>
@@ -173,11 +174,12 @@ const AppLayout: React.FC<LayoutProps> = ({
       </main>
 
       {/* UNIQUE MOBILE FLOATING NAV */}
-      <div className="fixed bottom-6 left-0 right-0 px-4 lg:hidden z-100">
+      <div className="fixed bottom-6 left-0 right-0 px-4 lg:hidden z-100 safe-area-bottom">
         <nav className="bg-bgSurface/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] px-2 py-2 flex items-center justify-around relative">
           <Link
             to="/"
-            className="relative flex flex-col items-center justify-center w-12 h-12 transition-transform active:scale-95"
+            className="relative flex flex-col items-center justify-center w-12 h-12 transition-transform active:scale-95 touch-target no-double-tap"
+            aria-label="Dashboard"
           >
             <LayoutGrid
               size={22}
@@ -194,7 +196,8 @@ const AppLayout: React.FC<LayoutProps> = ({
 
           <Link
             to="/subjects"
-            className="relative flex flex-col items-center justify-center w-12 h-12 transition-transform active:scale-95"
+            className="relative flex flex-col items-center justify-center w-12 h-12 transition-transform active:scale-95 touch-target no-double-tap"
+            aria-label="Subjects"
           >
             <BookOpen
               size={22}
@@ -208,15 +211,16 @@ const AppLayout: React.FC<LayoutProps> = ({
           </Link>
 
           {/* Center Action Button */}
-          <Link to="/quiz" className="relative -top-6">
-            <div className="bg-brand w-14 h-14 rounded-2xl rotate-45 flex items-center justify-center shadow-[0_10px_25px_rgba(91,59,255,0.4)] transition-all hover:scale-105 active:scale-90">
+          <Link to="/quiz" className="relative -top-6" aria-label="Quiz">
+            <div className="bg-brand w-14 h-14 rounded-2xl rotate-45 flex items-center justify-center shadow-[0_10px_25px_rgba(91,59,255,0.4)] transition-all hover:scale-105 active:scale-90 touch-target no-double-tap">
               <FileText size={24} className="text-white -rotate-45" />
             </div>
           </Link>
 
           <Link
             to="/performance"
-            className="relative flex flex-col items-center justify-center w-12 h-12 transition-transform active:scale-95"
+            className="relative flex flex-col items-center justify-center w-12 h-12 transition-transform active:scale-95 touch-target no-double-tap"
+            aria-label="Performance"
           >
             <Activity
               size={22}
@@ -233,7 +237,8 @@ const AppLayout: React.FC<LayoutProps> = ({
 
           <Link
             to="/settings"
-            className="relative flex flex-col items-center justify-center w-12 h-12 transition-transform active:scale-95"
+            className="relative flex flex-col items-center justify-center w-12 h-12 transition-transform active:scale-95 touch-target no-double-tap"
+            aria-label="Settings"
           >
             <Settings
               size={22}

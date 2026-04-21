@@ -115,14 +115,15 @@ const ReviewScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 variant="secondary"
                 size="sm"
                 onClick={onBack}
-                className="rounded-xl shrink-0 bg-bgCard border-borderMuted text-textDim hover:bg-bgCard/80 focus:ring-2 focus:ring-brand/30 focus:ring-offset-1 focus:ring-offset-bgCard transition-all"
-              > 
-              <div className="flex items-center gap-2 justify-center">
-                <ArrowLeft size={16} className="mr-1" />
-              <p>Back</p>
-              </div> 
+                // Added 'active:scale-95' for haptic-like visual feedback on tap
+                className="rounded-xl shrink-0 bg-brand/10 border-brand/10 text-brand hover:bg-brand/20 active:scale-95 transition-all px-4"
+              >
+                <div className="flex items-center gap-2 justify-center">
+                  <ArrowLeft size={18} />{" "}
+                  {/* Slightly larger icon for mobile readability */}
+                  <span className="font-medium">Back</span>
+                </div>
               </Button>
-              <h1 className="text-xl md:text-2xl font-bold truncate">Review</h1>
             </div>
             <div className="flex items-center gap-2 bg-brand/5 border border-brand/20 p-2.5 rounded-xl self-start sm:self-auto shrink-0">
               <Trophy className="text-brand w-4 h-4" />

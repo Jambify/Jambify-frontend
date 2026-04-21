@@ -77,6 +77,35 @@ html {
   -webkit-font-smoothing:  antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering:          optimizeLegibility;
+  
+  /* iOS Safari 100vh bug fix */
+  height: 100%;
+  height: -webkit-fill-available;
+  
+  /* Prevent zoom on input focus */
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+}
+
+body {
+  /* iOS Safari 100vh bug fix */
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+  
+  /* Safe area insets for notched devices */
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  
+  /* Prevent bounce scrolling on iOS */
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+  
+  /* Touch action optimization */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 /* ── Scrollbar ────────────────────────────────────────── */
@@ -87,8 +116,127 @@ html {
   border-radius: 99px;
   border: 2px solid var(--color-bgDeep);
 }
-::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.15);
+::-webkit-scrollbar-thumb:hover { 
+  background: rgba(255,255,255,0.15);
   background: var(--color-brand);
+}
+
+/* ── Mobile-specific fixes ───────────────────────────────── */
+/* iOS Safari viewport height fix */
+@supports (-webkit-touch-callout: none) {
+  .h-screen {
+    height: 100vh;
+    height: -webkit-fill-available;
+  }
+  
+  .min-h-screen {
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+  }
+}
+
+/* Safe area utilities */
+.safe-area-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.safe-area-left {
+  padding-left: env(safe-area-inset-left);
+}
+
+.safe-area-right {
+  padding-right: env(safe-area-inset-right);
+}
+
+.safe-area-all {
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+/* Touch-friendly buttons */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+  position: relative;
+}
+
+/* Prevent double-tap zoom */
+.no-double-tap {
+  touch-action: manipulation;
+}
+
+/* Mobile scrollbar hiding */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide::-moz-scrollbar {
+  display: none;
+}
+
+/* iOS momentum scrolling */
+.momentum-scroll {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Prevent text selection on mobile */
+.no-select {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Allow text selection where needed */
+.select-text {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
+
+/* Mobile input fixes */
+input, textarea {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  border-radius: 0;
+  font-size: 16px; /* Prevent zoom on focus */
+}
+
+/* Keep dropdown arrow for select elements */
+select {
+  font-size: 16px; /* Prevent zoom on focus */
+  -webkit-appearance: menulist;
+  -moz-appearance: menulist;
+  appearance: auto;
+}
+
+/* Mobile button fixes */
+button {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+/* iOS Safari specific fixes */
+@supports (-webkit-touch-callout: none) {
+  /* Fix for iOS Safari fixed positioning */
+  .fixed-ios {
+    position: fixed;
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+  }
+  
+  /* Fix for iOS Safari scrolling */
+  .scroll-ios {
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 /* ── No scrollbar utility ───────────────────────────── */
@@ -127,5 +275,35 @@ html {
   -webkit-line-clamp: var(--lines);   /* vendor prefix     */
 }
 .line-clamp-1 { --lines: 1; }
+.line-clamp-2 { --lines: 2; }
+.line-clamp-3 { --lines: 3; }
+
+/* ── Mobile viewport meta tag support ─────────────────────── */
+/* Ensure proper viewport scaling */
+@viewport {
+  width: device-width;
+  initial-scale: 1;
+  maximum-scale: 1;
+  user-scalable: no;
+}
+
+/* ── Mobile performance optimizations ────────────────────── */
+/* Reduce paint on scroll */
+.gpu-accelerated {
+  -webkit-transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+/* Prevent flicker on animations */
+.smooth-animation {
+  -webkit-transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  -webkit-perspective: 1000;
+  perspective: 1000;
+}
 .line-clamp-2 { --lines: 2; }
 .line-clamp-3 { --lines: 3; }
