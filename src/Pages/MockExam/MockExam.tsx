@@ -106,14 +106,18 @@ const MockExam: React.FC = () => {
       return;
     }
 
-    const shuffledData = shuffleArray(filtered).map((q) => {
-      const correctOptionText = q.options[q.answer];
-      const shuffledOptions = shuffleArray(q.options);
-      const newCorrectIndex = shuffledOptions.indexOf(correctOptionText);
-      return { ...q, options: shuffledOptions, answer: newCorrectIndex };
+    // Group and shuffle within subjects to maintain navigation flow
+    const finalOrderedQuestions = selectedCombination.flatMap((sub) => {
+      const subjectQuestions = filtered.filter((q) => q.subject === sub);
+      return shuffleArray(subjectQuestions).map((q) => {
+        const correctOptionText = q.options[q.answer];
+        const shuffledOptions = shuffleArray(q.options);
+        const newCorrectIndex = shuffledOptions.indexOf(correctOptionText);
+        return { ...q, options: shuffledOptions, answer: newCorrectIndex };
+      });
     });
 
-    startExam(shuffledData, MOCK_DURATION);
+    startExam(finalOrderedQuestions, MOCK_DURATION);
     setActiveSubject(selectedCombination[0]);
   };
 
