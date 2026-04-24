@@ -61,7 +61,11 @@ const Quiz: React.FC = () => {
   /* ── Results ───────────────────────────────────────── */
   if (isFinished) {
     return (
-      <AppLayout currentPage="quiz"  isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen}>
+      <AppLayout
+        currentPage="quiz"
+        isSidebarOpen={isSidebarOpen}
+        setIsSidebarOpen={setIsSidebarOpen}
+      >
         <ResultsScreen onRetry={handleStart} onHome={() => navigate("/")} />
       </AppLayout>
     );
@@ -70,7 +74,11 @@ const Quiz: React.FC = () => {
   /* ── Active quiz ───────────────────────────────────── */
   if (isStarted && questions.length > 0) {
     return (
-      <AppLayout currentPage="quiz" isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen}>
+      <AppLayout
+        currentPage="quiz"
+        isSidebarOpen={isSidebarOpen}
+        setIsSidebarOpen={setIsSidebarOpen}
+      >
         {/* <Progress header */}
         <div className="flex items-center gap-4 mb-6">
           <button
@@ -122,18 +130,21 @@ const Quiz: React.FC = () => {
         {showExitModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
             <div className="bg-bgCard border border-white/10 p-6 rounded-brand-xl max-w-sm w-full shadow-2xl animate-slideDown">
-              <h3 className="font-display text-xl font-bold text-textMain mb-2">Quit Quiz?</h3>
+              <h3 className="font-display text-xl font-bold text-textMain mb-2">
+                Quit Quiz?
+              </h3>
               <p className="text-textMuted text-sm mb-6">
-                Your progress will be lost. Are you sure you want to exit the current session?
+                Your progress will be lost. Are you sure you want to exit the
+                current session?
               </p>
               <div className="flex gap-3">
-                <button 
+                <button
                   onClick={() => setShowExitModal(false)}
                   className="flex-1 py-3 rounded-brand font-medium bg-white/5 hover:bg-white/10 text-textMain transition-colors touch-target no-double-tap active:scale-95"
                 >
                   Stay
                 </button>
-                <button 
+                <button
                   onClick={reset}
                   className="flex-1 py-3 rounded-brand font-medium bg-danger text-white hover:bg-danger/80 transition-colors touch-target no-double-tap active:scale-95"
                 >
@@ -149,7 +160,11 @@ const Quiz: React.FC = () => {
 
   /* ── Start screen ──────────────────────────────────── */
   return (
-    <AppLayout currentPage="quiz" isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen}>
+    <AppLayout
+      currentPage="quiz"
+      isSidebarOpen={isSidebarOpen}
+      setIsSidebarOpen={setIsSidebarOpen}
+    >
       <div className="max-w-2xl mx-auto">
         {/* <Hero */}
         <div className="text-center mb-10 pt-4">
