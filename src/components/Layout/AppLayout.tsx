@@ -121,7 +121,10 @@ const AppLayout: React.FC<LayoutProps> = ({
         </nav>
 
         <div className="p-4 border-t border-borderMuted">
-          <div className="flex items-center gap-3 p-2 hover:bg-bgCard rounded-brand cursor-pointer transition-colors">
+          <Link
+            to="/settings"
+            className="flex items-center gap-3 p-2 hover:bg-bgCard rounded-brand cursor-pointer transition-colors"
+          >
             <div className="w-8 h-8 rounded-full bg-brand flex items-center justify-center font-display text-xs font-bold text-white shadow-sm">
               {initials}
             </div>
@@ -133,7 +136,7 @@ const AppLayout: React.FC<LayoutProps> = ({
                   : "Pro Plan · 🔥 14 days"}
               </div>
             </div>
-          </div>
+          </Link>
         </div>
       </aside>
 
