@@ -18,11 +18,13 @@ import StudyGroups from "./Pages/StudyGroups";
 import MentorChat from "./Pages/MentorChat";
 import PastQuestions from "./Pages/PastQuestions";
 import ReviewScreen from "./Pages/MockExam/ReviewExam";
+import AuthCallback from "./components/auth/AuthCallbacl";
 
 const App: React.FC = () => (
   <Routes>
     <Route path="/signup" element={<SignUp />} />
     <Route path="/signin" element={<SignIn />} />
+     <Route path="/auth/callback" element={<AuthCallback />} />
     <Route path="/onboarding" element={<Onboarding />} />
     <Route path="/welcome" element={<Welcome />} />
     <Route

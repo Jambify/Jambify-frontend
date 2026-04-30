@@ -34,25 +34,49 @@ const SUBJECT_COMBOS = [
 ];
 
 const TARGET_SCORES = [
-  { range: "320+", label: "Elite", sub: "Top 1% nationwide", color: "#A855F7" }, // Brighter Purple
+  { range: "320+", label: "Elite", sub: "Top 1% nationwide", color: "#A855F7" },
   {
     range: "280–319",
     label: "Excellent",
     sub: "Competitive for all Unis",
     color: "#22C55E",
-  }, // Brighter Green
+  },
   {
     range: "250–279",
     label: "Strong",
     sub: "Target for State/Federal",
     color: "#EAB308",
-  }, // Brighter Yellow
+  },
   {
     range: "200–249",
     label: "Target",
     sub: "Standard Entry Level",
     color: "#EF4444",
-  }, // Brighter Red
+  },
+];
+
+// FALLBACK UNIVERSITY LIST (Nigerian Universities)
+const FALLBACK_UNIVERSITIES = [
+  "University of Lagos (UNILAG)",
+  "University of Ibadan (UI)",
+  "Obafemi Awolowo University (OAU)",
+  "Ahmadu Bello University (ABU)",
+  "University of Nigeria, Nsukka (UNN)",
+  "Covenant University",
+  "University of Benin (UNIBEN)",
+  "Federal University of Technology, Minna",
+  "University of Ilorin (UNILORIN)",
+  "Lagos State University (LASU)",
+  "Nnamdi Azikiwe University (UNIZIK)",
+  "University of Port Harcourt (UNIPORT)",
+  "Bayero University Kano (BUK)",
+  "University of Abuja",
+  "Federal University of Technology, Akure",
+  "Babcock University",
+  "Pan-Atlantic University",
+  "Rivers State University",
+  "Kwara State University",
+  "University of Calabar (UNICAL)",
 ];
 
 interface FormData {
@@ -61,53 +85,173 @@ interface FormData {
   subjectCombo: string;
   targetScore: string;
   examYear: string;
+  examDate: string;
 }
 
 const TOTAL_STEPS = 4;
 
 const Onboarding: React.FC = () => {
+  console.log("🔵 Onboarding component mounted");
   const navigate = useNavigate();
-  const completeOnboarding = useUserStore((s) => s.completeOnboarding);
+  const { completeOnboarding, isLoading, isAuthenticated, onboardingComplete, syncProfile } = useUserStore();
+  
   const [step, setStep] = useState(1);
   const [uniSearch, setUniSearch] = useState("");
   const [uniResults, setUniResults] = useState<string[]>([]);
   const [loadingUnis, setLoadingUnis] = useState(false);
+  const [uniError, setUniError] = useState<string | null>(null);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const [useFallback, setUseFallback] = useState(false);
 
   const [form, setForm] = useState<FormData>({
     name: "",
     university: "",
     subjectCombo: "",
     targetScore: "",
-    examYear: " ",
+    examYear: "2025",
+    examDate: "Jun 14",
   });
   const [errors, setErrors] = useState<Partial<FormData>>({});
 
-  /* ── University API Search Logic ── */
+  // Debug logging
+  useEffect(() => {
+    console.log("🔵 Onboarding state:", {
+      isAuthenticated,
+      onboardingComplete,
+      isLoading,
+      id: useUserStore.getState().id,
+      email: useUserStore.getState().email,
+    });
+    setIsCheckingAuth(false);
+  }, [isAuthenticated, onboardingComplete, isLoading]);
+
+  // Redirect if already onboarded
+  useEffect(() => {
+    if (!isCheckingAuth && onboardingComplete) {
+      console.log("🔵 Already onboarded, redirecting to /");
+      navigate("/", { replace: true });
+    }
+  }, [onboardingComplete, navigate, isCheckingAuth]);
+
+  // Redirect if not authenticated
+  useEffect(() => {
+    if (!isCheckingAuth && !isAuthenticated && !isLoading) {
+      console.log("🔵 Not authenticated, redirecting to /signin");
+      navigate("/signin", { replace: true });
+    }
+  }, [isAuthenticated, isLoading, navigate, isCheckingAuth]);
+
+  // Sync profile on mount to ensure we have latest data
+  useEffect(() => {
+    const loadProfile = async () => {
+      await syncProfile();
+    };
+    loadProfile();
+  }, [syncProfile]);
+
+  // Filter fallback universities based on search
+  const getFilteredFallbackUniversities = (search: string) => {
+    if (!search || search.length < 2) return [];
+    const searchLower = search.toLowerCase();
+    return FALLBACK_UNIVERSITIES.filter(uni => 
+      uni.toLowerCase().includes(searchLower)
+    );
+  };
+
+  /* ── University API Search Logic with Fallback ── */
   useEffect(() => {
     if (uniSearch.length < 2) {
       setUniResults([]);
+      setUniError(null);
+      return;
+    }
+
+    // If we're using fallback mode, just filter the local list
+    if (useFallback) {
+      const filtered = getFilteredFallbackUniversities(uniSearch);
+      setUniResults(filtered);
       return;
     }
 
     const fetchUnis = async () => {
       setLoadingUnis(true);
+      setUniError(null);
+      
       try {
-        // Fetching specifically for Nigeria to keep results relevant
-        const res = await fetch(
-          `http://universities.hipolabs.com/search?name=${uniSearch}&country=Nigeria`,
-        );
-        const data = await res.json();
-        setUniResults(data.map((u: any) => u.name));
+        // Try multiple API endpoints
+        let data = [];
+        let success = false;
+        
+        // Try primary API
+        try {
+          const res = await fetch(
+            `https://universities.hipolabs.com/search?name=${encodeURIComponent(uniSearch)}&country=Nigeria`,
+            { mode: 'cors' }
+          );
+          if (res.ok) {
+            data = await res.json();
+            if (data.length > 0) success = true;
+          }
+        } catch (err) {
+          console.log("Primary API failed, trying backup...");
+        }
+        
+        // If primary fails or returns no results, try backup API
+        if (!success) {
+          try {
+            // Backup: Use a different endpoint
+            const backupRes = await fetch(
+              `https://raw.githubusercontent.com/Hipo/university-domains-list/master/world_universities_and_domains.json`
+            );
+            if (backupRes.ok) {
+              const allUnis = await backupRes.json();
+              const nigeriaUnis = allUnis.filter((u: any) => 
+                u.country === "Nigeria" && 
+                u.name.toLowerCase().includes(uniSearch.toLowerCase())
+              );
+              data = nigeriaUnis.slice(0, 20);
+              if (data.length > 0) success = true;
+            }
+          } catch (err) {
+            console.log("Backup API also failed");
+          }
+        }
+        
+        if (success && data.length > 0) {
+          setUniResults(data.map((u: any) => u.name));
+          setUseFallback(false);
+        } else {
+          // If APIs fail, use fallback list
+          const fallbackResults = getFilteredFallbackUniversities(uniSearch);
+          if (fallbackResults.length > 0) {
+            setUniResults(fallbackResults);
+            setUseFallback(true);
+            setUniError("Using offline university list. Showing available matches.");
+          } else {
+            setUniResults([]);
+            setUniError("No universities found. Try a different search term.");
+          }
+        }
       } catch (err) {
-        console.error("Failed to fetch universities");
+        console.error("Failed to fetch universities:", err);
+        // Use fallback on error
+        const fallbackResults = getFilteredFallbackUniversities(uniSearch);
+        if (fallbackResults.length > 0) {
+          setUniResults(fallbackResults);
+          setUseFallback(true);
+          setUniError("Connected to offline university database.");
+        } else {
+          setUniResults([]);
+          setUniError("Unable to search. Please type the full university name.");
+        }
       } finally {
         setLoadingUnis(false);
       }
     };
 
-    const timeoutId = setTimeout(fetchUnis, 500); // Debounce
+    const timeoutId = setTimeout(fetchUnis, 500);
     return () => clearTimeout(timeoutId);
-  }, [uniSearch]);
+  }, [uniSearch, useFallback]);
 
   const set = (key: keyof FormData, val: string) => {
     setForm((prev) => ({ ...prev, [key]: val }));
@@ -127,15 +271,45 @@ const Onboarding: React.FC = () => {
     return Object.keys(e).length === 0;
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (!validate()) return;
+    
     if (step < TOTAL_STEPS) {
       setStep((s) => s + 1);
       return;
     }
-    completeOnboarding(form);
-    navigate("/welcome");
+    
+    console.log("🔵 Completing onboarding with data:", form);
+    
+    const { error } = await completeOnboarding({
+      name: form.name,
+      university: form.university,
+      subjectCombo: form.subjectCombo,
+      targetScore: form.targetScore,
+      examYear: form.examYear,
+      examDate: form.examDate,
+    });
+    
+    if (!error) {
+      console.log("🔵 Onboarding complete, redirecting to /");
+      navigate("/", { replace: true });
+    } else {
+      console.error("Onboarding error:", error);
+      setErrors({ ...errors, name: "Failed to save. Please try again." });
+    }
   };
+
+  // Show loading state while checking auth
+  if (isLoading || isCheckingAuth) {
+    return (
+      <div className="min-h-screen bg-[#0F1115] flex items-center justify-center">
+        <div className="text-white text-center">
+          <div className="w-12 h-12 border-4 border-brand border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p>Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#0F1115] text-white flex flex-col items-center justify-center p-4">
@@ -195,7 +369,7 @@ const Onboarding: React.FC = () => {
             </div>
           )}
 
-          {/* STEP 2: University (API Powered) */}
+          {/* STEP 2: University */}
           {step === 2 && (
             <div className="space-y-6">
               <header>
@@ -211,15 +385,28 @@ const Onboarding: React.FC = () => {
                   type="text"
                   value={uniSearch}
                   onChange={(e) => setUniSearch(e.target.value)}
-                  placeholder="Start typing (e.g. Unilag...)"
-                  className={inputCls(false)}
+                  placeholder="Start typing (e.g. Unilag, OAU, UNN...)"
+                  className={inputCls(!!errors.university)}
                 />
+                
+                {/* Show error/warning message */}
+                {uniError && (
+                  <p className="text-xs text-yellow-500 mt-2">{uniError}</p>
+                )}
+                
                 <div className="mt-4 space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
                   {loadingUnis && (
                     <p className="text-xs text-brand animate-pulse">
                       Searching universities...
                     </p>
                   )}
+                  
+                  {!loadingUnis && uniResults.length === 0 && uniSearch.length >= 2 && (
+                    <p className="text-xs text-textDim text-center py-4">
+                      No universities found. Try a different search or type the full name.
+                    </p>
+                  )}
+                  
                   {uniResults.map((uni) => (
                     <button
                       key={uni}
@@ -239,6 +426,21 @@ const Onboarding: React.FC = () => {
                   ))}
                 </div>
               </Field>
+              
+              {/* Manual input option */}
+              {uniSearch.length >= 2 && uniResults.length === 0 && !loadingUnis && (
+                <div className="mt-4 pt-4 border-t border-white/10">
+                  <p className="text-xs text-textDim mb-2">Can't find your university?</p>
+                  <button
+                    onClick={() => {
+                      set("university", uniSearch);
+                    }}
+                    className="w-full text-left px-4 py-3 rounded-xl border border-dashed border-brand/50 text-sm text-brand-light hover:bg-brand/10 transition-all"
+                  >
+                    Use "{uniSearch}" as your university
+                  </button>
+                </div>
+              )}
             </div>
           )}
 

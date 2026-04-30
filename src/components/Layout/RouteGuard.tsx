@@ -6,23 +6,29 @@ interface RouteGuardProps {
   children: React.ReactNode;
 }
 
-/**
- * Wraps any page that requires authentication and onboarding to be complete.
- * User flow:
- * 1. New user -> /signup (no email in store)
- * 2. After signup -> /onboarding (email exists but onboarding not complete)
- * 3. After onboarding -> protected routes
- */
 const RouteGuard: React.FC<RouteGuardProps> = ({ children }) => {
-  const email = useUserStore((s) => s.email);
+  const isAuthenticated = useUserStore((s) => s.isAuthenticated);
   const onboardingComplete = useUserStore((s) => s.onboardingComplete);
+  const isLoading = useUserStore((s) => s.isLoading);
 
-  // If no email, user needs to sign up first
-  if (!email) {
-    return <Navigate to="/signup" replace />;
+  // Show loading state while checking auth
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-bgMain flex items-center justify-center">
+        <div className="text-white text-center">
+          <div className="w-12 h-12 border-4 border-brand border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p>Loading...</p>
+        </div>
+      </div>
+    );
   }
 
-  // If email exists but onboarding not complete, redirect to onboarding
+  // If not authenticated, go to sign in
+  if (!isAuthenticated) {
+    return <Navigate to="/signin" replace />;
+  }
+
+  // If authenticated but onboarding not complete, go to onboarding
   if (!onboardingComplete) {
     return <Navigate to="/onboarding" replace />;
   }
