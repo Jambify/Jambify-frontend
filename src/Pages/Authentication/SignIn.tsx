@@ -13,9 +13,10 @@ const SignIn: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [step, setStep] = useState<"form" | "otp">("form");
+  const [cooldown, setCooldown] = useState(0);
   const navigate = useNavigate();
   const setEmailStore = useUserStore((s) => s.setEmail);
-  const { syncProfile } = useUserStore(); // Removed isAuthenticated since it wasn't used
+  const { syncProfile } = useUserStore();
 
   // Check if already logged in
   useEffect(() => {
@@ -29,76 +30,74 @@ const SignIn: React.FC = () => {
     checkSession();
   }, [navigate, syncProfile]);
 
-  // Check if user exists before sending OTP
-  const checkUserExists = async (email: string): Promise<boolean> => {
-    try {
-      // Check profiles table for existing user
-      const { data: existingProfile } = await supabase // Removed profileError since it wasn't used
-        .from('profiles')
-        .select('email')
-        .eq('email', email)
-        .maybeSingle();
-      
-      if (existingProfile) {
-        return true;
-      }
-      
-      // Alternative: Try to get session info
-      const { error: signInError } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          shouldCreateUser: false,
-        },
-      });
-      
-      // If we get a rate limit error, user likely exists
-      if (signInError && signInError.status === 429) {
-        return true;
-      }
-      
-      return false;
-    } catch (err) {
-      console.error("Error checking user:", err);
-      return false;
+  // Cooldown timer for resend button
+  useEffect(() => {
+    if (cooldown > 0) {
+      const timer = setTimeout(() => setCooldown(cooldown - 1), 1000);
+      return () => clearTimeout(timer);
     }
-  };
+  }, [cooldown]);
 
-  // Step 1: Send OTP to email (with existence check)
+  // Step 1: Send OTP to email (SINGLE REQUEST)
   const sendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Prevent rapid requests
+    if (cooldown > 0) {
+      setError(`Please wait ${cooldown} seconds before trying again.`);
+      return;
+    }
+    
     setError("");
     setIsLoading(true);
 
     try {
       setEmailStore(email);
 
-      // Check if user exists before sending OTP
-      const userExists = await checkUserExists(email);
-      
-      if (!userExists) {
-        setError("No account found with this email. Would you like to create one?");
-        setIsLoading(false);
-        return;
-      }
-
-      // Send OTP to existing user
+      // Make SINGLE request to send OTP
+      // If user doesn't exist, Supabase will return error
       const { error: signInError } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          shouldCreateUser: false, // Don't create new user for sign in
+          shouldCreateUser: false, // Don't create new user
         },
       });
 
+      console.log("🔵 SignInWithOtp response:", signInError?.message);
+
       if (signInError) {
+        // User does NOT exist
+        if (signInError.message.includes("User not found") ||
+            signInError.message.includes("Invalid email") ||
+            signInError.message.includes("Email address not found")) {
+          setError("No account found with this email. Would you like to create one?");
+          setIsLoading(false);
+          return;
+        }
+        
+        // Email not confirmed
         if (signInError.message.includes("Email not confirmed")) {
           setError("Please verify your email first. Check your inbox for the verification link.");
-        } else {
-          throw signInError;
+          setIsLoading(false);
+          return;
         }
-        return;
+        
+        // Rate limit hit
+        if (signInError.message.includes("rate limit") || 
+            signInError.status === 429) {
+          setError("Too many requests. Please wait 60 seconds before trying again.");
+          setCooldown(60);
+          setIsLoading(false);
+          return;
+        }
+        
+        throw signInError;
       }
 
+      // Success - OTP sent
       setStep("otp");
+      setCooldown(30); // 30 second cooldown for resend
+      
     } catch (err) {
       console.error("OTP send error:", err);
       setError((err as Error).message || "Failed to send verification code. Please try again.");
@@ -107,56 +106,74 @@ const SignIn: React.FC = () => {
     }
   };
 
-  // components/auth/SignIn.tsx - Update the verifyOTP function
+  // Step 2: Verify OTP
+  const verifyOTP = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setIsLoading(true);
 
-// Step 2: Verify OTP
-const verifyOTP = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setError("");
-  setIsLoading(true);
+    try {
+      const { data, error: verifyError } = await supabase.auth.verifyOtp({
+        email,
+        token: otpCode,
+        type: 'email',
+      });
 
-  try {
-    const { data, error: verifyError } = await supabase.auth.verifyOtp({
-      email,
-      token: otpCode,
-      type: 'email',
-    });
-
-    if (verifyError) {
-      if (verifyError.message.includes("Invalid token")) {
-        setError("Invalid verification code. Please check and try again.");
-      } else if (verifyError.message.includes("expired")) {
-        setError("Code has expired. Please request a new code.");
-      } else {
-        setError(verifyError.message);
+      if (verifyError) {
+        if (verifyError.message.includes("Invalid token")) {
+          setError("Invalid verification code. Please check and try again.");
+        } else if (verifyError.message.includes("expired")) {
+          setError("Code has expired. Please request a new code.");
+        } else if (verifyError.message.includes("rate limit")) {
+          setError("Too many attempts. Please wait a moment.");
+        } else {
+          setError(verifyError.message);
+        }
+        return;
       }
+
+      if (data?.session) {
+        // Set auth state manually
+        useUserStore.setState({
+          isAuthenticated: true,
+          id: data.session.user.id,
+          email: data.session.user.email || email,
+        });
+        
+        // Sync the profile with Zustand store
+        await syncProfile();
+        
+        // Wait for profile to be fully loaded
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Get the updated onboarding status
+        const state = useUserStore.getState();
+        const isOnboardingComplete = state.onboardingComplete;
+        
+        console.log("🔵 Sign in - onboarding status:", isOnboardingComplete);
+        
+        // Navigate based on onboarding status
+        if (isOnboardingComplete) {
+          navigate("/", { replace: true });
+        } else {
+          navigate("/onboarding", { replace: true });
+        }
+      }
+    } catch (err) {
+      console.error("OTP verify error:", err);
+      setError("Invalid or expired code. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Resend OTP (with cooldown)
+  const resendOTP = async () => {
+    if (cooldown > 0) {
+      setError(`Please wait ${cooldown} seconds before requesting another code.`);
       return;
     }
-
-    if (data?.session) {
-      // IMPORTANT: Sync the profile with Zustand store
-      await syncProfile();
-      
-      // Get the updated onboarding status
-      const { onboardingComplete: isOnboardingComplete } = useUserStore.getState();
-      
-      // Navigate based on onboarding status
-      if (isOnboardingComplete) {
-        navigate("/");
-      } else {
-        navigate("/onboarding");
-      }
-    }
-  } catch (err) {
-    console.error("OTP verify error:", err);
-    setError("Invalid or expired code. Please try again.");
-  } finally {
-    setIsLoading(false);
-  }
-};
-
-  // Resend OTP
-  const resendOTP = async () => {
+    
     setError("");
     setIsLoading(true);
 
@@ -168,8 +185,19 @@ const verifyOTP = async (e: React.FormEvent) => {
         },
       });
 
-      if (error) throw error;
-      setError("");
+      if (error) {
+        if (error.message.includes("rate limit") || error.status === 429) {
+          setError("Too many requests. Please wait 60 seconds.");
+          setCooldown(60);
+        } else if (error.message.includes("Email not confirmed")) {
+          setError("Please verify your email first.");
+        } else {
+          throw error;
+        }
+      } else {
+        setError("");
+        setCooldown(30); // Reset cooldown on successful send
+      }
     } catch (err) {
       console.error("Resend error:", err);
       setError("Failed to resend code. Please try again.");
@@ -191,8 +219,8 @@ const verifyOTP = async (e: React.FormEvent) => {
           <div className="w-20 h-20 bg-brand/20 rounded-2xl flex items-center justify-center mx-auto mb-6 border border-brand/30">
              <UserCheck className="w-10 h-10 text-brand-light" />
           </div>
-          <h2 className="text-3xl font-display font-bold text-white mb-2 tracking-tight">Checking Account</h2>
-          <p className="text-textDim mb-8">Verifying email address...</p>
+          <h2 className="text-3xl font-display font-bold text-white mb-2 tracking-tight">Sending Code</h2>
+          <p className="text-textDim mb-8">Sending verification code to your email...</p>
           
           <div className="w-64 h-1 bg-white/5 rounded-full overflow-hidden mx-auto">
             <motion.div 
@@ -260,7 +288,7 @@ const verifyOTP = async (e: React.FormEvent) => {
 
             <button
               type="submit"
-              disabled={!otpCode || otpCode.length < 6}
+              disabled={!otpCode || otpCode.length < 6 || isLoading}
               className="w-full bg-brand hover:bg-brand-light disabled:opacity-50 disabled:cursor-not-allowed text-white py-4 rounded-brand-lg font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-brand/20 active:scale-[0.98]"
             >
               {isLoading ? "Verifying..." : "Sign In"}
@@ -271,10 +299,10 @@ const verifyOTP = async (e: React.FormEvent) => {
           <div className="mt-6 text-center">
             <button
               onClick={resendOTP}
-              disabled={isLoading}
-              className="text-textDim hover:text-brand-light text-sm transition-colors"
+              disabled={isLoading || cooldown > 0}
+              className="text-textDim hover:text-brand-light text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Didn't receive code? Resend
+              {cooldown > 0 ? `Resend code in ${cooldown}s` : "Didn't receive code? Resend"}
             </button>
           </div>
 
@@ -353,10 +381,10 @@ const verifyOTP = async (e: React.FormEvent) => {
 
           <button
             type="submit"
-            disabled={!email}
+            disabled={!email || isLoading}
             className="w-full bg-brand hover:bg-brand-light disabled:opacity-50 disabled:cursor-not-allowed text-white py-4 rounded-brand-lg font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-brand/20 active:scale-[0.98]"
           >
-            Send Verification Code
+            {isLoading ? "Sending..." : "Send Verification Code"}
             <ArrowRight className="w-5 h-5" />
           </button>
         </form>
