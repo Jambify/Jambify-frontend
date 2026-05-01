@@ -1,4 +1,4 @@
-// components/auth/SignIn.tsx
+// components/auth/SignIn.tsx (Fixed version)
 
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
@@ -30,7 +30,7 @@ const SignIn: React.FC = () => {
     checkSession();
   }, [navigate, syncProfile]);
 
-  // Cooldown timer for resend button
+  // Cooldown timer
   useEffect(() => {
     if (cooldown > 0) {
       const timer = setTimeout(() => setCooldown(cooldown - 1), 1000);
@@ -38,11 +38,31 @@ const SignIn: React.FC = () => {
     }
   }, [cooldown]);
 
-  // Step 1: Send OTP to email (SINGLE REQUEST)
+  // Check if user exists in profiles table
+  const checkUserExists = async (email: string): Promise<boolean> => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('email')
+        .eq('email', email)
+        .maybeSingle();
+      
+      if (error) {
+        console.error("Error checking user:", error);
+        return false;
+      }
+      
+      return !!data;
+    } catch (err) {
+      console.error("Check user exists error:", err);
+      return false;
+    }
+  };
+
+  // Send OTP only if user exists
   const sendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Prevent rapid requests
     if (cooldown > 0) {
       setError(`Please wait ${cooldown} seconds before trying again.`);
       return;
@@ -54,39 +74,35 @@ const SignIn: React.FC = () => {
     try {
       setEmailStore(email);
 
-      // Make SINGLE request to send OTP
-      // If user doesn't exist, Supabase will return error
+      // FIRST check if user exists in profiles
+      const userExists = await checkUserExists(email);
+      
+      if (!userExists) {
+        setError("No account found with this email. Would you like to create one?");
+        setIsLoading(false);
+        return;
+      }
+
+      // ONLY send OTP if user exists
       const { error: signInError } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          shouldCreateUser: false, // Don't create new user
+          shouldCreateUser: false,
         },
       });
 
       console.log("🔵 SignInWithOtp response:", signInError?.message);
 
       if (signInError) {
-        // User does NOT exist
-        if (signInError.message.includes("User not found") ||
-            signInError.message.includes("Invalid email") ||
-            signInError.message.includes("Email address not found")) {
-          setError("No account found with this email. Would you like to create one?");
-          setIsLoading(false);
-          return;
-        }
-        
-        // Email not confirmed
-        if (signInError.message.includes("Email not confirmed")) {
-          setError("Please verify your email first. Check your inbox for the verification link.");
-          setIsLoading(false);
-          return;
-        }
-        
-        // Rate limit hit
-        if (signInError.message.includes("rate limit") || 
-            signInError.status === 429) {
+        if (signInError.message.includes("rate limit") || signInError.status === 429) {
           setError("Too many requests. Please wait 60 seconds before trying again.");
           setCooldown(60);
+          setIsLoading(false);
+          return;
+        }
+        
+        if (signInError.message.includes("Email not confirmed")) {
+          setError("Please verify your email first. Check your inbox.");
           setIsLoading(false);
           return;
         }
@@ -96,7 +112,7 @@ const SignIn: React.FC = () => {
 
       // Success - OTP sent
       setStep("otp");
-      setCooldown(30); // 30 second cooldown for resend
+      setCooldown(30);
       
     } catch (err) {
       console.error("OTP send error:", err);
@@ -106,7 +122,7 @@ const SignIn: React.FC = () => {
     }
   };
 
-  // Step 2: Verify OTP
+  // Verify OTP
   const verifyOTP = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -133,26 +149,18 @@ const SignIn: React.FC = () => {
       }
 
       if (data?.session) {
-        // Set auth state manually
         useUserStore.setState({
           isAuthenticated: true,
           id: data.session.user.id,
           email: data.session.user.email || email,
         });
         
-        // Sync the profile with Zustand store
         await syncProfile();
-        
-        // Wait for profile to be fully loaded
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // Get the updated onboarding status
         const state = useUserStore.getState();
         const isOnboardingComplete = state.onboardingComplete;
         
-        console.log("🔵 Sign in - onboarding status:", isOnboardingComplete);
-        
-        // Navigate based on onboarding status
         if (isOnboardingComplete) {
           navigate("/", { replace: true });
         } else {
@@ -167,7 +175,7 @@ const SignIn: React.FC = () => {
     }
   };
 
-  // Resend OTP (with cooldown)
+  // Resend OTP
   const resendOTP = async () => {
     if (cooldown > 0) {
       setError(`Please wait ${cooldown} seconds before requesting another code.`);
@@ -196,7 +204,7 @@ const SignIn: React.FC = () => {
         }
       } else {
         setError("");
-        setCooldown(30); // Reset cooldown on successful send
+        setCooldown(30);
       }
     } catch (err) {
       console.error("Resend error:", err);
@@ -219,8 +227,8 @@ const SignIn: React.FC = () => {
           <div className="w-20 h-20 bg-brand/20 rounded-2xl flex items-center justify-center mx-auto mb-6 border border-brand/30">
              <UserCheck className="w-10 h-10 text-brand-light" />
           </div>
-          <h2 className="text-3xl font-display font-bold text-white mb-2 tracking-tight">Sending Code</h2>
-          <p className="text-textDim mb-8">Sending verification code to your email...</p>
+          <h2 className="text-3xl font-display font-bold text-white mb-2 tracking-tight">Checking Account</h2>
+          <p className="text-textDim mb-8">Verifying your account...</p>
           
           <div className="w-64 h-1 bg-white/5 rounded-full overflow-hidden mx-auto">
             <motion.div 
@@ -384,7 +392,7 @@ const SignIn: React.FC = () => {
             disabled={!email || isLoading}
             className="w-full bg-brand hover:bg-brand-light disabled:opacity-50 disabled:cursor-not-allowed text-white py-4 rounded-brand-lg font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-brand/20 active:scale-[0.98]"
           >
-            {isLoading ? "Sending..." : "Send Verification Code"}
+            {isLoading ? "Checking..." : "Send Verification Code"}
             <ArrowRight className="w-5 h-5" />
           </button>
         </form>
