@@ -276,35 +276,31 @@ const Onboarding: React.FC = () => {
   };
 
   const handleNext = async () => {
-    if (!validate()) return;
+  if (!validate()) return;
 
-    if (step < TOTAL_STEPS) {
-      setStep((s) => s + 1);
-      return;
-    }
+  if (step < TOTAL_STEPS) {
+    setStep((s) => s + 1);
+    return;
+  }
 
-    console.log("🔵 Completing onboarding with data:", {
-      ...form,
-      name: userName,
-    });
+  console.log("🔵 Completing onboarding...");
 
-    const { error } = await completeOnboarding({
-      name: userName, // Use the name from the store (from signup)
-      university: form.university,
-      subjectCombo: form.subjectCombo,
-      targetScore: form.targetScore,
-      examYear: form.examYear,
-      examDate: form.examDate,
-    });
+  const { error } = await completeOnboarding({
+    name: userName,
+    university: form.university,
+    subjectCombo: form.subjectCombo,
+    targetScore: form.targetScore,
+    examYear: form.examYear,
+    examDate: form.examDate,
+  });
 
-    if (!error) {
-      navigate("/welcome", { replace: true });
-    } else {
-      console.error("Onboarding error:", error);
-      setErrors({ ...errors, university: "Failed to save. Please try again." });
-    }
-  };
-
+  if (!error) {
+    // IMPORTANT: Navigate to welcome page
+    navigate("/welcome", { replace: true });
+  } else {
+    console.error("Onboarding error:", error);
+  }
+};
   // Show loading state while checking auth
   if (isLoading || isCheckingAuth) {
     return (

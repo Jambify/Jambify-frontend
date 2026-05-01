@@ -1,14 +1,14 @@
-// src/components/Layout/RouteGuard.tsx
+// src/components/Layout/WelcomeGuard.tsx
 
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useUserStore } from '../../Store/UseUserStore';
 
-interface RouteGuardProps {
+interface WelcomeGuardProps {
   children: React.ReactNode;
 }
 
-const RouteGuard: React.FC<RouteGuardProps> = ({ children }) => {
+const WelcomeGuard: React.FC<WelcomeGuardProps> = ({ children }) => {
   const isAuthenticated = useUserStore((s) => s.isAuthenticated);
   const onboardingComplete = useUserStore((s) => s.onboardingComplete);
   const isLoading = useUserStore((s) => s.isLoading);
@@ -29,13 +29,13 @@ const RouteGuard: React.FC<RouteGuardProps> = ({ children }) => {
     return <Navigate to="/signin" replace />;
   }
 
-  // Authenticated but onboarding not complete → go to onboarding
-  if (!onboardingComplete) {
-    return <Navigate to="/onboarding" replace />;
+  // User has already completed onboarding → welcome page not needed
+  if (onboardingComplete) {
+    return <Navigate to="/" replace />;
   }
 
-  // Fully authenticated and onboarded
+  // New user who just completed onboarding → show welcome page
   return <>{children}</>;
 };
 
-export default RouteGuard;
+export default WelcomeGuard;

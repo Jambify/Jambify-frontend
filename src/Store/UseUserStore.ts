@@ -62,6 +62,7 @@ interface UserState {
   onboardingComplete: boolean;
   isPro: boolean;
   downloadedData: DownloadedData;
+  hasSeenWelcome: boolean; // New flag to track if welcome page has been seen
   
   // Auth state
   isAuthenticated: boolean;
@@ -115,6 +116,7 @@ const DEFAULTS = {
   isAuthenticated: false,
   isLoading: false,
   authError: null,
+  hasSeenWelcome: false,  // ← New default for welcome page flag
 };
 
 // Helper to map subject combo ID to the stored string format
@@ -143,6 +145,7 @@ export const useUserStore = create<UserState>()(
   persist(
     (set, get) => ({
       ...DEFAULTS,
+    
 
       // Auth Actions
       signUp: async (email: string, password: string, name: string) => {
@@ -260,55 +263,68 @@ export const useUserStore = create<UserState>()(
       clearAuthError: () => set({ authError: null }),
 
       // Complete Onboarding - Using your stored procedure
-      completeOnboarding: async (data: OnboardingData) => {
-        const { id } = get();
-        
-        if (!id) {
-          console.error('No user ID found');
-          return { error: new Error('Not authenticated') };
-        }
+      // In UseUserStore.ts - Find the completeOnboarding function and update it:
 
-        set({ isLoading: true });
-        
-        try {
-          // Call your complete_onboarding function
-          const { error } = await supabase.rpc('complete_onboarding', {
-            p_user_id: id,
-            p_name: data.name,
-            p_university: data.university,
-            p_subject_combo: getSubjectComboString(data.subjectCombo),
-            p_target_score: data.targetScore,
-            p_exam_year: data.examYear,
-            p_exam_date: data.examDate || 'Jun 14',
-          });
+completeOnboarding: async (data: OnboardingData) => {
+  const { id } = get();
+  
+  if (!id) {
+    console.error('No user ID found');
+    return { error: new Error('Not authenticated') };
+  }
 
-          if (error) throw error;
-          
-          // Initialize subject progress for the new user
-          console.log('🔵 Initializing subjects for new user...');
-          await useSubjectStore.getState().initialize();
-          console.log('🔵 Subjects initialized successfully');
-          
-          // Update local store
-          set({ 
-            name: data.name,
-            university: data.university,
-            subjectCombo: data.subjectCombo,
-            targetScore: data.targetScore,
-            examYear: data.examYear,
-            examDate: data.examDate || 'Jun 14',
-            onboardingComplete: true 
-          });
-          
-          await get().syncProfile();
-          return { error: null };
-        } catch (error) {
-          console.error('Complete onboarding error:', error);
-          return { error: error as Error };
-        } finally {
-          set({ isLoading: false });
-        }
-      },
+  set({ isLoading: true });
+  
+  try {
+    // Call your complete_onboarding function
+    const { error } = await supabase.rpc('complete_onboarding', {
+      p_user_id: id,
+      p_name: data.name,
+      p_university: data.university,
+      p_subject_combo: getSubjectComboString(data.subjectCombo),
+      p_target_score: data.targetScore,
+      p_exam_year: data.examYear,
+      p_exam_date: data.examDate || 'Jun 14',
+    });
+
+    if (error) throw error;
+    
+    // Initialize subject progress for the new user
+    console.log('🔵 Initializing subjects for new user...');
+    await useSubjectStore.getState().initialize();
+    console.log('🔵 Subjects initialized successfully');
+    
+    // Update local store
+    set({ 
+      name: data.name,
+      university: data.university,
+      subjectCombo: data.subjectCombo,
+      targetScore: data.targetScore,
+      examYear: data.examYear,
+      examDate: data.examDate || 'Jun 14',
+      // IMPORTANT: Do NOT set onboardingComplete here
+      // Let the welcome page mark it as seen
+      // onboardingComplete: true  // ← KEEP THIS COMMENTED
+    });
+    
+    await get().syncProfile();
+    return { error: null };
+  } catch (error) {
+    console.error('Complete onboarding error:', error);
+    return { error: error as Error };
+  } finally {
+    set({ isLoading: false });
+  }
+},
+
+// Make sure markWelcomeAsSeen exists and sets both flags:
+markWelcomeAsSeen: () => {
+  console.log("🔵 markWelcomeAsSeen called");
+  set({ 
+    onboardingComplete: true,
+    hasSeenWelcome: true 
+  });
+},
 
       // Regular profile update (without completing onboarding)
       updateProfile: async (data: ProfileUpdate) => {
@@ -418,6 +434,7 @@ export const useUserStore = create<UserState>()(
         totalQuestions: s.totalQuestions,
         schoolRank: s.schoolRank,
         daysToExam: s.daysToExam,
+  hasSeenWelcome: s.hasSeenWelcome,  
       }),
     },
   ),
