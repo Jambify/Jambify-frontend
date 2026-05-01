@@ -292,7 +292,7 @@ const Onboarding: React.FC = () => {
     
     if (!error) {
       console.log("🔵 Onboarding complete, redirecting to /");
-      navigate("/", { replace: true });
+      navigate("/welcome", { replace: true });
     } else {
       console.error("Onboarding error:", error);
       setErrors({ ...errors, name: "Failed to save. Please try again." });
