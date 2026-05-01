@@ -3,6 +3,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { supabase } from '../lib/supabase';
+import { useSubjectStore } from './useSubjectStore';
 
 interface OnboardingData {
   name: string;
@@ -282,6 +283,11 @@ export const useUserStore = create<UserState>()(
           });
 
           if (error) throw error;
+          
+          // Initialize subject progress for the new user
+          console.log('🔵 Initializing subjects for new user...');
+          await useSubjectStore.getState().initialize();
+          console.log('🔵 Subjects initialized successfully');
           
           // Update local store
           set({ 

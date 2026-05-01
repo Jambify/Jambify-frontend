@@ -80,7 +80,6 @@ const FALLBACK_UNIVERSITIES = [
 ];
 
 interface FormData {
-  name: string;
   university: string;
   subjectCombo: string;
   targetScore: string;
@@ -88,13 +87,20 @@ interface FormData {
   examDate: string;
 }
 
-const TOTAL_STEPS = 4;
+const TOTAL_STEPS = 3; // Changed from 4 to 3 (removed name step)
 
 const Onboarding: React.FC = () => {
   console.log("🔵 Onboarding component mounted");
   const navigate = useNavigate();
-  const { completeOnboarding, isLoading, isAuthenticated, onboardingComplete, syncProfile } = useUserStore();
-  
+  const {
+    completeOnboarding,
+    isLoading,
+    isAuthenticated,
+    onboardingComplete,
+    syncProfile,
+    name: userName,
+  } = useUserStore();
+
   const [step, setStep] = useState(1);
   const [uniSearch, setUniSearch] = useState("");
   const [uniResults, setUniResults] = useState<string[]>([]);
@@ -104,7 +110,6 @@ const Onboarding: React.FC = () => {
   const [useFallback, setUseFallback] = useState(false);
 
   const [form, setForm] = useState<FormData>({
-    name: "",
     university: "",
     subjectCombo: "",
     targetScore: "",
@@ -119,11 +124,12 @@ const Onboarding: React.FC = () => {
       isAuthenticated,
       onboardingComplete,
       isLoading,
+      userName,
       id: useUserStore.getState().id,
       email: useUserStore.getState().email,
     });
     setIsCheckingAuth(false);
-  }, [isAuthenticated, onboardingComplete, isLoading]);
+  }, [isAuthenticated, onboardingComplete, isLoading, userName]);
 
   // Redirect if already onboarded
   useEffect(() => {
@@ -153,8 +159,8 @@ const Onboarding: React.FC = () => {
   const getFilteredFallbackUniversities = (search: string) => {
     if (!search || search.length < 2) return [];
     const searchLower = search.toLowerCase();
-    return FALLBACK_UNIVERSITIES.filter(uni => 
-      uni.toLowerCase().includes(searchLower)
+    return FALLBACK_UNIVERSITIES.filter((uni) =>
+      uni.toLowerCase().includes(searchLower),
     );
   };
 
@@ -176,17 +182,15 @@ const Onboarding: React.FC = () => {
     const fetchUnis = async () => {
       setLoadingUnis(true);
       setUniError(null);
-      
+
       try {
-        // Try multiple API endpoints
         let data = [];
         let success = false;
-        
-        // Try primary API
+
         try {
           const res = await fetch(
             `https://universities.hipolabs.com/search?name=${encodeURIComponent(uniSearch)}&country=Nigeria`,
-            { mode: 'cors' }
+            { mode: "cors" },
           );
           if (res.ok) {
             data = await res.json();
@@ -195,19 +199,18 @@ const Onboarding: React.FC = () => {
         } catch (err) {
           console.log("Primary API failed, trying backup...");
         }
-        
-        // If primary fails or returns no results, try backup API
+
         if (!success) {
           try {
-            // Backup: Use a different endpoint
             const backupRes = await fetch(
-              `https://raw.githubusercontent.com/Hipo/university-domains-list/master/world_universities_and_domains.json`
+              `https://raw.githubusercontent.com/Hipo/university-domains-list/master/world_universities_and_domains.json`,
             );
             if (backupRes.ok) {
               const allUnis = await backupRes.json();
-              const nigeriaUnis = allUnis.filter((u: any) => 
-                u.country === "Nigeria" && 
-                u.name.toLowerCase().includes(uniSearch.toLowerCase())
+              const nigeriaUnis = allUnis.filter(
+                (u: any) =>
+                  u.country === "Nigeria" &&
+                  u.name.toLowerCase().includes(uniSearch.toLowerCase()),
               );
               data = nigeriaUnis.slice(0, 20);
               if (data.length > 0) success = true;
@@ -216,17 +219,18 @@ const Onboarding: React.FC = () => {
             console.log("Backup API also failed");
           }
         }
-        
+
         if (success && data.length > 0) {
           setUniResults(data.map((u: any) => u.name));
           setUseFallback(false);
         } else {
-          // If APIs fail, use fallback list
           const fallbackResults = getFilteredFallbackUniversities(uniSearch);
           if (fallbackResults.length > 0) {
             setUniResults(fallbackResults);
             setUseFallback(true);
-            setUniError("Using offline university list. Showing available matches.");
+            setUniError(
+              "Using offline university list. Showing available matches.",
+            );
           } else {
             setUniResults([]);
             setUniError("No universities found. Try a different search term.");
@@ -234,7 +238,6 @@ const Onboarding: React.FC = () => {
         }
       } catch (err) {
         console.error("Failed to fetch universities:", err);
-        // Use fallback on error
         const fallbackResults = getFilteredFallbackUniversities(uniSearch);
         if (fallbackResults.length > 0) {
           setUniResults(fallbackResults);
@@ -242,7 +245,9 @@ const Onboarding: React.FC = () => {
           setUniError("Connected to offline university database.");
         } else {
           setUniResults([]);
-          setUniError("Unable to search. Please type the full university name.");
+          setUniError(
+            "Unable to search. Please type the full university name.",
+          );
         }
       } finally {
         setLoadingUnis(false);
@@ -260,12 +265,11 @@ const Onboarding: React.FC = () => {
 
   const validate = (): boolean => {
     const e: Partial<FormData> = {};
-    if (step === 1 && !form.name.trim()) e.name = "Please enter your name";
-    if (step === 2 && !form.university)
+    if (step === 1 && !form.university)
       e.university = "Please select a university";
-    if (step === 3 && !form.subjectCombo)
+    if (step === 2 && !form.subjectCombo)
       e.subjectCombo = "Please choose a combination";
-    if (step === 4 && !form.targetScore)
+    if (step === 3 && !form.targetScore)
       e.targetScore = "Please choose a target";
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -273,29 +277,31 @@ const Onboarding: React.FC = () => {
 
   const handleNext = async () => {
     if (!validate()) return;
-    
+
     if (step < TOTAL_STEPS) {
       setStep((s) => s + 1);
       return;
     }
-    
-    console.log("🔵 Completing onboarding with data:", form);
-    
+
+    console.log("🔵 Completing onboarding with data:", {
+      ...form,
+      name: userName,
+    });
+
     const { error } = await completeOnboarding({
-      name: form.name,
+      name: userName, // Use the name from the store (from signup)
       university: form.university,
       subjectCombo: form.subjectCombo,
       targetScore: form.targetScore,
       examYear: form.examYear,
       examDate: form.examDate,
     });
-    
+
     if (!error) {
-      console.log("🔵 Onboarding complete, redirecting to /");
       navigate("/welcome", { replace: true });
     } else {
       console.error("Onboarding error:", error);
-      setErrors({ ...errors, name: "Failed to save. Please try again." });
+      setErrors({ ...errors, university: "Failed to save. Please try again." });
     }
   };
 
@@ -323,31 +329,98 @@ const Onboarding: React.FC = () => {
         </span>
       </div>
 
+      {/* Welcome message with user's name */}
+      <div className="text-center mb-6">
+        <p className="text-textDim">Welcome,</p>
+        <h2 className="text-2xl font-bold text-white">
+          {userName || "JAMB Champion"}!
+        </h2>
+        <p className="text-textDim text-sm mt-1">Let's set up your profile</p>
+      </div>
+
       <div className="w-full max-w-md">
         <StepIndicator current={step} total={TOTAL_STEPS} />
 
         <div className="bg-[#1A1D23] border border-white/5 rounded-4xl p-8 shadow-2xl backdrop-blur-md animate-fadeIn">
-          {/* STEP 1: Name */}
+          {/* STEP 1: University */}
           {step === 1 && (
             <div className="space-y-6">
               <header>
                 <h2 className="text-3xl font-bold text-white mb-2">
-                  What's your name?
+                  Dream University
                 </h2>
                 <p className="text-white/60">
-                  Let's personalize your prep experience.
+                  Search for any Federal, State, or Private school.
                 </p>
               </header>
-              <Field label="Full Name" error={errors.name}>
+              <Field label="Search University" error={errors.university}>
                 <input
-                  autoFocus
                   type="text"
-                  value={form.name}
-                  onChange={(e) => set("name", e.target.value)}
-                  placeholder="e.g. Chinedu Azikiwe"
-                  className={inputCls(!!errors.name)}
+                  value={uniSearch}
+                  onChange={(e) => setUniSearch(e.target.value)}
+                  placeholder="Start typing (e.g. Unilag, OAU, UNN...)"
+                  className={inputCls(!!errors.university)}
+                  autoFocus
                 />
+
+                {uniError && (
+                  <p className="text-xs text-yellow-500 mt-2">{uniError}</p>
+                )}
+
+                <div className="mt-4 space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
+                  {loadingUnis && (
+                    <p className="text-xs text-brand animate-pulse">
+                      Searching universities...
+                    </p>
+                  )}
+
+                  {!loadingUnis &&
+                    uniResults.length === 0 &&
+                    uniSearch.length >= 2 && (
+                      <p className="text-xs text-textDim text-center py-4">
+                        No universities found. Try a different search or type
+                        the full name.
+                      </p>
+                    )}
+
+                  {uniResults.map((uni) => (
+                    <button
+                      key={uni}
+                      onClick={() => {
+                        set("university", uni);
+                        setUniSearch(uni);
+                      }}
+                      className={cn(
+                        "w-full text-left px-4 py-3 rounded-xl border text-sm transition-all",
+                        form.university === uni
+                          ? "bg-brand/20 border-brand text-white"
+                          : "bg-white/5 border-white/10 text-white/70 hover:bg-white/10",
+                      )}
+                    >
+                      {uni}
+                    </button>
+                  ))}
+                </div>
               </Field>
+
+              {uniSearch.length >= 2 &&
+                uniResults.length === 0 &&
+                !loadingUnis && (
+                  <div className="mt-4 pt-4 border-t border-white/10">
+                    <p className="text-xs text-textDim mb-2">
+                      Can't find your university?
+                    </p>
+                    <button
+                      onClick={() => {
+                        set("university", uniSearch);
+                      }}
+                      className="w-full text-left px-4 py-3 rounded-xl border border-dashed border-brand/50 text-sm text-brand-light hover:bg-brand/10 transition-all"
+                    >
+                      Use "{uniSearch}" as your university
+                    </button>
+                  </div>
+                )}
+
               <Field label="Exam Year">
                 <div className="grid grid-cols-2 gap-3">
                   {["2025", "2026"].map((yr) => (
@@ -369,83 +442,8 @@ const Onboarding: React.FC = () => {
             </div>
           )}
 
-          {/* STEP 2: University */}
+          {/* STEP 2: Subject Combo */}
           {step === 2 && (
-            <div className="space-y-6">
-              <header>
-                <h2 className="text-3xl font-bold text-white mb-2">
-                  Dream University
-                </h2>
-                <p className="text-white/60">
-                  Search for any Federal, State, or Private school.
-                </p>
-              </header>
-              <Field label="Search University" error={errors.university}>
-                <input
-                  type="text"
-                  value={uniSearch}
-                  onChange={(e) => setUniSearch(e.target.value)}
-                  placeholder="Start typing (e.g. Unilag, OAU, UNN...)"
-                  className={inputCls(!!errors.university)}
-                />
-                
-                {/* Show error/warning message */}
-                {uniError && (
-                  <p className="text-xs text-yellow-500 mt-2">{uniError}</p>
-                )}
-                
-                <div className="mt-4 space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
-                  {loadingUnis && (
-                    <p className="text-xs text-brand animate-pulse">
-                      Searching universities...
-                    </p>
-                  )}
-                  
-                  {!loadingUnis && uniResults.length === 0 && uniSearch.length >= 2 && (
-                    <p className="text-xs text-textDim text-center py-4">
-                      No universities found. Try a different search or type the full name.
-                    </p>
-                  )}
-                  
-                  {uniResults.map((uni) => (
-                    <button
-                      key={uni}
-                      onClick={() => {
-                        set("university", uni);
-                        setUniSearch(uni);
-                      }}
-                      className={cn(
-                        "w-full text-left px-4 py-3 rounded-xl border text-sm transition-all",
-                        form.university === uni
-                          ? "bg-brand/20 border-brand text-white"
-                          : "bg-white/5 border-white/10 text-white/70 hover:bg-white/10",
-                      )}
-                    >
-                      {uni}
-                    </button>
-                  ))}
-                </div>
-              </Field>
-              
-              {/* Manual input option */}
-              {uniSearch.length >= 2 && uniResults.length === 0 && !loadingUnis && (
-                <div className="mt-4 pt-4 border-t border-white/10">
-                  <p className="text-xs text-textDim mb-2">Can't find your university?</p>
-                  <button
-                    onClick={() => {
-                      set("university", uniSearch);
-                    }}
-                    className="w-full text-left px-4 py-3 rounded-xl border border-dashed border-brand/50 text-sm text-brand-light hover:bg-brand/10 transition-all"
-                  >
-                    Use "{uniSearch}" as your university
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* STEP 3: Subject Combo */}
-          {step === 3 && (
             <div className="space-y-6">
               <header>
                 <h2 className="text-3xl font-bold text-white mb-2">
@@ -478,8 +476,8 @@ const Onboarding: React.FC = () => {
             </div>
           )}
 
-          {/* STEP 4: Target Score */}
-          {step === 4 && (
+          {/* STEP 3: Target Score */}
+          {step === 3 && (
             <div className="space-y-6">
               <header>
                 <h2 className="text-3xl font-bold text-white mb-2">Aim High</h2>

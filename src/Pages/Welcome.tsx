@@ -100,7 +100,7 @@ const Welcome: React.FC = () => {
             transition={{ delay: 0.3 }}
             className="text-3xl font-display font-bold text-white mb-2"
           >
-            Welcome to JAMBify, {name}! 
+            Welcome to JAMBIFY, {name}! 
           </motion.h1>
           
           <motion.p
