@@ -1,29 +1,87 @@
+// src/Pages/MockExam/MockExam.tsx (FIXED - removed unused SUBJECT_CONFIG)
+
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AppLayout from "../../components/Layout/AppLayout";
 import { useMockStore } from "../../Store/useMockStore";
+import { usePerformanceStore } from "../../Store/usePerformanceStore";
 import { SAMPLE_QUESTIONS } from "../../Data/Question";
 import OptionButton from "../../components/Quiz/OptionButton";
 import MockResultsScreen from "../../components/MockExam/MockResultScreen";
 import Button from "../../components/ui/Button";
 import { cn } from "../../lib/utils";
 
-const MOCK_DURATION = 7200;
+const MOCK_DURATION = 7200; // 2 hours in seconds
 
 const AVAILABLE_SUBJECTS = [
+  { id: "English", name: "English" },
   { id: "Mathematics", name: "Mathematics" },
   { id: "Physics", name: "Physics" },
   { id: "Chemistry", name: "Chemistry" },
   { id: "Biology", name: "Biology" },
-  { id: "Literature in English", name: "Literature in English" },
+  { id: "Economics", name: "Economics" },
+  { id: "Government", name: "Government" },
+  { id: "Literature", name: "Literature" },
   { id: "History", name: "History" },
   { id: "Geography", name: "Geography" },
-  { id: "Government", name: "Government" },
-  { id: "Economics", name: "Economics" },
   { id: "CRS", name: "CRS" },
 ];
 
 const AVAILABLE_YEARS = Array.from({ length: 11 }, (_, i) => (2016 + i).toString());
+
+// API Configuration
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://your-api.com";
+
+// Function to fetch questions from API
+const fetchQuestionsFromAPI = async (subject: string, year: string): Promise<any[]> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/questions?subject=${subject}&year=${year}`, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    return data.questions || [];
+  } catch (error) {
+    console.error(`Failed to fetch ${subject} questions:`, error);
+    return [];
+  }
+};
+
+// Function to fetch all selected subjects' questions
+const fetchAllQuestions = async (
+  subjects: string[], 
+  year: string
+): Promise<Record<string, any[]>> => {
+  const results: Record<string, any[]> = {};
+  
+  await Promise.all(
+    subjects.map(async (subject) => {
+      const questions = await fetchQuestionsFromAPI(subject, year);
+      results[subject] = questions;
+    })
+  );
+  
+  return results;
+};
+
+// Calculate JAMB score (out of 400)
+const calculateJambScore = (correctBySubject: Record<string, number>, totalQuestionsBySubject: Record<string, number>): number => {
+  let totalCorrect = 0;
+  let totalQuestions = 0;
+  
+  Object.keys(correctBySubject).forEach((subject) => {
+    totalCorrect += correctBySubject[subject];
+    totalQuestions += totalQuestionsBySubject[subject];
+  });
+  
+  return Math.round((totalCorrect / totalQuestions) * 400);
+};
 
 const shuffleArray = <T,>(array: T[]): T[] => {
   const shuffled = [...array];
@@ -44,6 +102,7 @@ const formatTime = (s: number) => {
 const MockExam: React.FC = () => {
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const { addQuizResult } = usePerformanceStore();
   const {
     isStarted,
     isFinished,
@@ -62,6 +121,8 @@ const MockExam: React.FC = () => {
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [showConfirmExit, setShowConfirmExit] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingQuestions, setIsLoadingQuestions] = useState(false);
   const [jumpTo, setJumpTo] = useState("");
   const [selectedYear, setSelectedYear] = useState("2025");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -71,7 +132,7 @@ const MockExam: React.FC = () => {
     "",
     "",
   ]);
-
+  const [useApi, setUseApi] = useState(false);
   const [activeSubject, setActiveSubject] = useState("English");
 
   useEffect(() => {
@@ -86,8 +147,10 @@ const MockExam: React.FC = () => {
   }, [isStarted, isFinished, tickTimer]);
 
   useEffect(() => {
-    if (isStarted && !isFinished && timeLeft === 0) finishExam();
-  }, [timeLeft, isStarted, isFinished, finishExam]);
+    if (isStarted && !isFinished && timeLeft === 0) {
+      handleFinishExam();
+    }
+  }, [timeLeft, isStarted, isFinished]);
 
   useEffect(() => {
     if (isStarted && questions[currentIndex]) {
@@ -95,30 +158,122 @@ const MockExam: React.FC = () => {
     }
   }, [currentIndex, isStarted, questions]);
 
-  const handleStart = () => {
-    setErrorMessage(null);
-    const filtered = SAMPLE_QUESTIONS.filter((q) =>
-      selectedCombination.includes(q.subject) && String(q.year) === selectedYear
-    );
-
-    if (filtered.length === 0) {
-      setErrorMessage(`Questions for the year ${selectedYear} are currently being uploaded.`);
-      return;
-    }
-
-    // Group and shuffle within subjects to maintain navigation flow
-    const finalOrderedQuestions = selectedCombination.flatMap((sub) => {
-      const subjectQuestions = filtered.filter((q) => q.subject === sub);
-      return shuffleArray(subjectQuestions).map((q) => {
-        const correctOptionText = q.options[q.answer];
-        const shuffledOptions = shuffleArray(q.options);
-        const newCorrectIndex = shuffledOptions.indexOf(correctOptionText);
-        return { ...q, options: shuffledOptions, answer: newCorrectIndex };
+  const handleFinishExam = async () => {
+    setIsSubmitting(true);
+    
+    try {
+      const timeTakenSeconds = MOCK_DURATION - timeLeft;
+      
+      const correctBySubject: Record<string, number> = {};
+      const totalBySubject: Record<string, number> = {};
+      
+      questions.forEach((q, idx) => {
+        if (!totalBySubject[q.subject]) {
+          totalBySubject[q.subject] = 0;
+          correctBySubject[q.subject] = 0;
+        }
+        totalBySubject[q.subject]++;
+        if (answers[idx] === q.answer) {
+          correctBySubject[q.subject]++;
+        }
       });
-    });
+      
+      const jambScore = calculateJambScore(correctBySubject, totalBySubject);
+      
+      const subjectResults = new Map<string, { 
+        questionIds: string[]; 
+        answers: Record<number, number>;
+        startIndex: number;
+      }>();
+      
+      questions.forEach((q, idx) => {
+        if (!subjectResults.has(q.subject)) {
+          subjectResults.set(q.subject, {
+            questionIds: [],
+            answers: {},
+            startIndex: idx,
+          });
+        }
+        const subjectData = subjectResults.get(q.subject)!;
+        subjectData.questionIds.push(q.id);
+        if (answers[idx] !== undefined) {
+          const answerIndex = idx - subjectData.startIndex;
+          subjectData.answers[answerIndex] = answers[idx];
+        }
+      });
+      
+      console.log("🔵 JAMB Score Calculation:", { correctBySubject, totalBySubject, jambScore });
+      
+      for (const [subject, data] of subjectResults) {
+        if (Object.keys(data.answers).length > 0) {
+          try {
+            await addQuizResult('mock', subject, data.questionIds, data.answers, timeTakenSeconds);
+          } catch (err) {
+            console.error(`❌ Failed to submit ${subject}:`, err);
+          }
+        }
+      }
+      
+    } catch (error) {
+      console.error('Failed to submit mock exam results:', error);
+    } finally {
+      setIsSubmitting(false);
+      finishExam();
+    }
+  };
 
-    startExam(finalOrderedQuestions, MOCK_DURATION);
-    setActiveSubject(selectedCombination[0]);
+  const handleStart = async () => {
+    setErrorMessage(null);
+    setIsLoadingQuestions(true);
+    
+    try {
+      let allQuestions: any[] = [];
+      
+      if (useApi) {
+        const questionsBySubject = await fetchAllQuestions(selectedCombination, selectedYear);
+        
+        for (const subject of selectedCombination) {
+          const subjectQuestions = questionsBySubject[subject] || [];
+          if (subjectQuestions.length === 0) {
+            setErrorMessage(`No questions found for ${subject} in ${selectedYear}. Using sample data.`);
+            const sampleFiltered = SAMPLE_QUESTIONS.filter((q) => q.subject === subject);
+            allQuestions.push(...sampleFiltered);
+          } else {
+            allQuestions.push(...subjectQuestions);
+          }
+        }
+      } else {
+        const filtered = SAMPLE_QUESTIONS.filter((q) =>
+          selectedCombination.includes(q.subject) && String(q.year) === selectedYear
+        );
+        
+        if (filtered.length === 0) {
+          setErrorMessage(`Questions for the year ${selectedYear} are currently being uploaded.`);
+          setIsLoadingQuestions(false);
+          return;
+        }
+        allQuestions = filtered;
+      }
+      
+      const finalOrderedQuestions = selectedCombination.flatMap((sub) => {
+        const subjectQuestions = allQuestions.filter((q) => q.subject === sub);
+        return shuffleArray(subjectQuestions).map((q) => {
+          const correctOptionText = q.options[q.answer];
+          const shuffledOptions = shuffleArray(q.options);
+          const newCorrectIndex = shuffledOptions.indexOf(correctOptionText);
+          return { ...q, options: shuffledOptions, answer: newCorrectIndex };
+        });
+      });
+      
+      startExam(finalOrderedQuestions, MOCK_DURATION);
+      setActiveSubject(selectedCombination[0]);
+      
+    } catch (error) {
+      console.error('Error starting exam:', error);
+      setErrorMessage('Failed to load questions. Please try again.');
+    } finally {
+      setIsLoadingQuestions(false);
+    }
   };
 
   const updateSubject = (index: number, value: string) => {
@@ -200,8 +355,9 @@ const MockExam: React.FC = () => {
               variant="danger"
               size="sm"
               onClick={() => setShowConfirmExit(true)}
+              disabled={isSubmitting}
             >
-              Finish
+              {isSubmitting ? "Submitting..." : "Finish"}
             </Button>
           </div>
         </div>
@@ -336,12 +492,10 @@ const MockExam: React.FC = () => {
                   variant="primary"
                   size="md"
                   fullWidth
-                  onClick={() => {
-                    finishExam();
-                    setShowConfirmExit(false);
-                  }}
+                  onClick={handleFinishExam}
+                  disabled={isSubmitting}
                 >
-                  Yes, Submit
+                  {isSubmitting ? "Submitting..." : "Yes, Submit"}
                 </Button>
               </div>
             </div>
@@ -363,6 +517,18 @@ const MockExam: React.FC = () => {
           <p className="text-textDim text-sm mb-8">
             Select your year and 4 subjects to begin.
           </p>
+
+          <div className="flex items-center justify-center gap-4 mb-6">
+            <label className="flex items-center gap-2 text-xs text-textDim">
+              <input
+                type="checkbox"
+                checked={useApi}
+                onChange={(e) => setUseApi(e.target.checked)}
+                className="w-4 h-4 rounded border-borderMuted bg-bgSurface text-brand focus:ring-brand"
+              />
+              Use API for questions
+            </label>
+          </div>
 
           {errorMessage && (
             <div className="mb-6 p-3 bg-danger/10 border border-danger/20 text-danger text-xs rounded-brand animate-in fade-in slide-in-from-top-1">
@@ -395,7 +561,7 @@ const MockExam: React.FC = () => {
               <label className="text-[10px] font-bold uppercase text-brand mb-1">
                 Subject 1
               </label>
-              <div className="bg-bgSurface border border-borderMuted p-3 rounded-brand text-sm text-textMain opacity-60">
+              <div className="bg-bgSurface border border-borderMuted p-3 rounded-brand text-sm text-textMain">
                 English
               </div>
             </div>
@@ -414,7 +580,7 @@ const MockExam: React.FC = () => {
                     <option
                       key={sub.id}
                       value={sub.id}
-                      disabled={selectedCombination.includes(sub.id)}
+                      disabled={selectedCombination.includes(sub.id) || sub.id === "English"}
                     >
                       {sub.name}
                     </option>
@@ -427,10 +593,10 @@ const MockExam: React.FC = () => {
             variant="primary"
             size="lg"
             fullWidth
-            disabled={selectedCombination.some((s) => s === "")}
+            disabled={selectedCombination.some((s) => s === "") || isLoadingQuestions}
             onClick={handleStart}
           >
-            Start Mock Exam
+            {isLoadingQuestions ? "Loading Questions..." : "Start Mock Exam"}
           </Button>
         </div>
 
@@ -441,16 +607,19 @@ const MockExam: React.FC = () => {
             </h3>
             <ul className="space-y-3 text-sm text-textMain">
               <li className="flex gap-3">
-                <span>•</span> Practicing with <strong>{selectedYear}</strong> past questions.
+                <span>•</span> English: <strong>60 questions</strong>
               </li>
               <li className="flex gap-3">
-                <span>•</span> Total of 240 questions across 4 subjects.
+                <span>•</span> Each other subject: <strong>40 questions</strong>
               </li>
               <li className="flex gap-3">
-                <span>•</span> You have exactly 2 hours (120 minutes).
+                <span>•</span> Total: <strong>220 questions</strong>
               </li>
               <li className="flex gap-3">
-                <span>•</span> Results are generated instantly upon submission.
+                <span>•</span> Time: <strong>2 hours (120 minutes)</strong>
+              </li>
+              <li className="flex gap-3">
+                <span>•</span> Score calculation: <strong>(Correct/Total) × 400</strong>
               </li>
             </ul>
           </div>

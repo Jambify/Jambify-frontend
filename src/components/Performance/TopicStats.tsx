@@ -1,3 +1,5 @@
+// src/components/Performance/TopicStats.tsx
+
 import React, { useState } from "react";
 import { usePerformanceStore } from "../../Store/usePerformanceStore";
 import { useNavigate } from "react-router-dom";
@@ -7,29 +9,50 @@ type Filter = "all" | "weak" | "strong";
 
 const TopicStats: React.FC = () => {
   const navigate = useNavigate();
-  const { topicStats } = usePerformanceStore();
+  const { topicStats, isLoading } = usePerformanceStore();
   const [filter, setFilter] = useState<Filter>("all");
+  const [showAll, setShowAll] = useState(false);
 
-  const visible = topicStats.filter((t) =>
+  // Limit to first 5 topics unless showAll is true
+  const visibleTopics = topicStats.filter((t) =>
     filter === "weak"
       ? t.accuracy < 60
       : filter === "strong"
         ? t.accuracy >= 75
         : true,
   );
+  
+  const displayedTopics = showAll ? visibleTopics : visibleTopics.slice(0, 5);
+  const hasMore = visibleTopics.length > 5;
 
-  const getBarColor = (acc: number) =>
-    acc < 60 ? "#FF4D6D" : acc < 75 ? "#FFB020" : "#00C896";
+  const getBarColor = (acc: number) => {
+    const cappedAcc = Math.min(acc, 100);
+    if (cappedAcc < 60) return "#FF4D6D";
+    if (cappedAcc < 75) return "#FFB020";
+    return "#00C896";
+  };
 
-  const getLabel = (acc: number) =>
-    acc < 60
-      ? { text: "Weak", cls: "bg-danger/10 text-danger border-danger/20" }
-      : acc < 75
-        ? { text: "Fair", cls: "bg-warn/10 text-warn border-warn/20" }
-        : {
-            text: "Strong",
-            cls: "bg-success/10 text-success border-success/20",
-          };
+  const getLabel = (acc: number) => {
+    const cappedAcc = Math.min(acc, 100);
+    if (cappedAcc < 60)
+      return { text: "Weak", cls: "bg-danger/10 text-danger border-danger/20" };
+    if (cappedAcc < 75)
+      return { text: "Fair", cls: "bg-warn/10 text-warn border-warn/20" };
+    return {
+      text: "Strong",
+      cls: "bg-success/10 text-success border-success/20",
+    };
+  };
+
+  if (isLoading) {
+    return (
+      <div className="bg-bgCard border border-borderMuted rounded-brand-lg p-5">
+        <div className="flex items-center justify-center h-32">
+          <div className="text-textDim text-sm">Loading topics...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-bgCard border border-borderMuted rounded-brand-lg p-5">
@@ -45,7 +68,7 @@ const TopicStats: React.FC = () => {
         </button>
       </div>
 
-      {/* <Filter pills */}
+      {/* Filter pills */}
       <div className="flex gap-1.5 mb-4">
         {(["all", "weak", "strong"] as Filter[]).map((f) => (
           <button
@@ -63,15 +86,16 @@ const TopicStats: React.FC = () => {
         ))}
       </div>
 
-      {/* <Topic rows */}
+      {/* Topic rows */}
       <div className="space-y-3">
-        {visible.length === 0 && (
+        {displayedTopics.length === 0 && (
           <p className="text-xs text-textDim text-center py-4">
             No topics match this filter.
           </p>
         )}
-        {visible.map((t) => {
-          const label = getLabel(t.accuracy);
+        {displayedTopics.map((t) => {
+          const cappedAccuracy = Math.min(t.accuracy, 100);
+          const label = getLabel(cappedAccuracy);
           return (
             <div key={t.id} className="flex items-center gap-3">
               <div className="flex-1 min-w-0">
@@ -91,9 +115,9 @@ const TopicStats: React.FC = () => {
                     </span>
                     <span
                       className="font-mono text-xs font-semibold w-8 text-right"
-                      style={{ color: getBarColor(t.accuracy) }}
+                      style={{ color: getBarColor(cappedAccuracy) }}
                     >
-                      {t.accuracy}%
+                      {cappedAccuracy}%
                     </span>
                   </div>
                 </div>
@@ -101,8 +125,8 @@ const TopicStats: React.FC = () => {
                   <div
                     className="h-full rounded-full transition-all duration-700"
                     style={{
-                      width: `${t.accuracy}%`,
-                      background: getBarColor(t.accuracy),
+                      width: `${cappedAccuracy}%`,
+                      background: getBarColor(cappedAccuracy),
                     }}
                   />
                 </div>
@@ -110,6 +134,16 @@ const TopicStats: React.FC = () => {
             </div>
           );
         })}
+        
+        {/* Show more/less button */}
+        {hasMore && (
+          <button
+            onClick={() => setShowAll(!showAll)}
+            className="text-xs text-brand-light hover:underline mt-2 text-center w-full"
+          >
+            {showAll ? "Show less" : `Show ${visibleTopics.length - 5} more topics`}
+          </button>
+        )}
       </div>
     </div>
   );

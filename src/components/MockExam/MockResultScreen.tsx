@@ -21,9 +21,10 @@ const SUBJECT_COLORS: Record<string, string> = {
 };
 
 const MockResultsScreen: React.FC<MockResultsProps> = ({ onRetry, onHome }) => {
+  const { addMockScore, addActivity, loadPerformanceData } = usePerformanceStore();
   const { questions, answers, timeLeft } = useMockStore();
   const { incrementQuestions, updateAccuracy, isPro } = useUserStore();
-  const { addActivity, addMockScore } = usePerformanceStore();
+
 
   const total = questions.length;
   const correct = questions.filter((q, i) => answers[i] === q.answer).length;
@@ -47,6 +48,7 @@ const MockResultsScreen: React.FC<MockResultsProps> = ({ onRetry, onHome }) => {
       .slice(0, 3);
     addActivity(today, total);
   }, []);
+  
 
   /* Per-subject breakdown */
   const subjectMap: Record<string, { correct: number; total: number }> = {};

@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+// src/Pages/Performance.tsx (FIXED)
+
+import React, { useState, useEffect } from "react";
 import AppLayout from "../components/Layout/AppLayout";
 import { usePerformanceStore } from "../Store/usePerformanceStore";
 import { useUserStore } from "../Store/UseUserStore";
@@ -9,14 +11,52 @@ import MockScores from "../components/Performance/MockScores";
 const Performance: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { accuracy, overallScore, questionsCompleted, streak } = useUserStore();
-  const { topicStats } = usePerformanceStore();
+  const { 
+    topicStats, 
+    totalQuestions, 
+    avgAccuracy,
+    isLoading, 
+    loadPerformanceData 
+  } = usePerformanceStore();  // Removed weeklyActivity, mockScores (not used directly)
+
+  // Load performance data on mount
+ // In Performance.tsx, add this console log
+
+useEffect(() => {
+  console.log("🔵 Loading performance data...");
+  loadPerformanceData().then(() => {
+    console.log("✅ Performance data loaded:", {
+      weeklyActivity: usePerformanceStore.getState().weeklyActivity,
+      topicStats: usePerformanceStore.getState().topicStats,
+      mockScores: usePerformanceStore.getState().mockScores,
+      totalQuestions: usePerformanceStore.getState().totalQuestions,
+      avgAccuracy: usePerformanceStore.getState().avgAccuracy,
+    });
+  });
+}, [loadPerformanceData]);
+
+  // Use real data from Supabase, fallback to user store
+  const displayAccuracy = avgAccuracy > 0 ? avgAccuracy : accuracy;
+  const displayTotalQuestions = totalQuestions > 0 ? totalQuestions : questionsCompleted;
 
   const weakCount = topicStats.filter((t) => t.accuracy < 60).length;
   const strongCount = topicStats.filter((t) => t.accuracy >= 75).length;
 
+  if (isLoading) {
+    return (
+      <AppLayout currentPage="performance" isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen}>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-white text-center">
+            <div className="w-12 h-12 border-4 border-brand border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p>Loading performance data...</p>
+          </div>
+        </div>
+      </AppLayout>
+    );
+  }
+
   return (
     <AppLayout currentPage="performance" isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen}>
-      {/* <── Page header ── */}
       <div className="mb-6">
         <h2 className="font-display text-2xl font-bold tracking-tight">
           Performance
@@ -27,7 +67,7 @@ const Performance: React.FC = () => {
         </p>
       </div>
 
-      {/* <── Top stat cards ── */}
+      {/* Top stat cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
         <StatCard
           label="Overall score"
@@ -39,7 +79,7 @@ const Performance: React.FC = () => {
         />
         <StatCard
           label="Accuracy"
-          value={`${accuracy}%`}
+          value={`${displayAccuracy}%`}
           sub="across all subjects"
           color="text-success"
           icon="✅"
@@ -47,7 +87,7 @@ const Performance: React.FC = () => {
         />
         <StatCard
           label="Questions done"
-          value={questionsCompleted.toLocaleString()}
+          value={displayTotalQuestions.toLocaleString()}
           sub="total answered"
           color="text-warn"
           icon="📚"
@@ -63,7 +103,7 @@ const Performance: React.FC = () => {
         />
       </div>
 
-      {/* <── Weak / Strong summary pills ── */}
+      {/* Weak / Strong summary pills */}
       {(weakCount > 0 || strongCount > 0) && (
         <div className="flex flex-wrap gap-2 mb-6">
           {weakCount > 0 && (
@@ -86,12 +126,12 @@ const Performance: React.FC = () => {
         </div>
       )}
 
-      {/* <── Weekly activity chart ── */}
+      {/* Weekly activity chart */}
       <div className="mb-5">
         <WeeklyChart />
       </div>
 
-      {/* <── Topic breakdown + Mock scores ── */}
+      {/* Topic breakdown + Mock scores */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
         <TopicStats />
         <MockScores />
@@ -100,7 +140,7 @@ const Performance: React.FC = () => {
   );
 };
 
-/* ── Inline StatCard — small enough to live here ─────── */
+/* StatCard component */
 interface StatCardProps {
   label: string;
   value: string;

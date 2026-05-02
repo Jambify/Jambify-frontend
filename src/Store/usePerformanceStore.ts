@@ -1,65 +1,160 @@
+// src/Store/usePerformanceStore.ts
+
 import { create } from 'zustand';
-
-export interface TopicStat {
-  id:       string;
-  name:     string;
-  subject:  string;
-  accuracy: number;
-}
-
-export interface WeeklyActivity {
-  day:       string;
-  questions: number;
-}
+import { 
+  getPerformanceSummary, 
+  getWeeklyActivity, 
+  getTopicStats,
+  submitQuizSession,
+  type WeeklyActivity, 
+  type TopicStat
+} from '../Services/PerfromanceService';
 
 interface PerformanceState {
+  // Data
   weeklyActivity: WeeklyActivity[];
-  topicStats:     TopicStat[];
-  mockScores:     number[];
-  /** Call after a quiz to record a new mock score */
-  addMockScore:   (score: number) => void;
-  /** Call after a quiz session to update a topic's accuracy */
-  updateTopic:    (id: string, accuracy: number) => void;
-  /** Bump today's question count */
-  addActivity:    (day: string, count: number) => void;
+  topicStats: TopicStat[];
+  mockScores: number[];
+  totalQuestions: number;
+  avgAccuracy: number;
+  isLoading: boolean;
+  error: string | null;
+  
+  // Actions
+  loadPerformanceData: () => Promise<void>;
+  loadWeeklyActivity: () => Promise<void>;
+  loadTopicStats: () => Promise<void>;
+  addMockScore: (score: number) => void;
+  addActivity: (day: string, count: number) => void;  // ← ADD THIS
+  updateTopic: (id: string, accuracy: number) => void;  // ← ADD THIS
+  addQuizResult: (mode: 'practice' | 'mock', subject: string, questionIds: string[], answers: Record<number, number>, timeTaken: number) => Promise<{
+    correct: number;
+    total: number;
+    accuracy: number;
+    streak: number;
+  }>;
+  reset: () => void;
 }
 
-export const usePerformanceStore = create<PerformanceState>()((set) => ({
+export const usePerformanceStore = create<PerformanceState>()((set, get) => ({
   weeklyActivity: [
-    { day: 'Mon', questions: 45 },
-    { day: 'Tue', questions: 72 },
-    { day: 'Wed', questions: 30 },
-    { day: 'Thu', questions: 88 },
-    { day: 'Fri', questions: 65 },
-    { day: 'Sat', questions: 20 },
-    { day: 'Sun', questions: 0  },
+    { day: 'Sun', questions: 0 },
+    { day: 'Mon', questions: 0 },
+    { day: 'Tue', questions: 0 },
+    { day: 'Wed', questions: 0 },
+    { day: 'Thu', questions: 0 },
+    { day: 'Fri', questions: 0 },
+    { day: 'Sat', questions: 0 },
   ],
+  topicStats: [],
+  mockScores: [],
+  totalQuestions: 0,
+  avgAccuracy: 0,
+  isLoading: false,
+  error: null,
 
-  topicStats: [
-    { id: 't1', name: 'Organic Chemistry',   subject: 'Chemistry',   accuracy: 32 },
-    { id: 't2', name: 'Acid-Base Reactions', subject: 'Chemistry',   accuracy: 41 },
-    { id: 't3', name: 'Arithmetic Series',   subject: 'Mathematics', accuracy: 55 },
-    { id: 't4', name: 'Projectile Motion',   subject: 'Physics',     accuracy: 62 },
-    { id: 't5', name: "Newton's Laws",       subject: 'Physics',     accuracy: 88 },
-    { id: 't6', name: 'Word Problems',       subject: 'Mathematics', accuracy: 91 },
-  ],
+ // src/Store/usePerformanceStore.ts
 
-  mockScores: [241, 248, 255],
+// Update the loadPerformanceData function
+loadPerformanceData: async () => {
+  set({ isLoading: true, error: null });
+  try {
+    const summary = await getPerformanceSummary();
+    const weekly = await getWeeklyActivity();
+    const topics = await getTopicStats();  // This will now only return selected subjects
+    
+    // Extract mock scores from summary
+    const mockScores = summary.mockScores.map(m => m.score);
+    
+    console.log("🔵 Loaded topics (only selected subjects):", topics);
+    
+    set({
+      totalQuestions: summary.totalQuestions,
+      avgAccuracy: Math.min(summary.avgAccuracy, 100), // Cap at 100%
+      weeklyActivity: weekly,
+      topicStats: topics,
+      mockScores: mockScores,
+      isLoading: false,
+    });
+  } catch (error) {
+    console.error('Failed to load performance data:', error);
+    set({ error: 'Failed to load performance data', isLoading: false });
+  }
+},
 
-  addMockScore: (score) =>
-    set((s) => ({ mockScores: [...s.mockScores, score] })),
+  loadWeeklyActivity: async () => {
+    try {
+      const weekly = await getWeeklyActivity();
+      set({ weeklyActivity: weekly });
+    } catch (error) {
+      console.error('Failed to load weekly activity:', error);
+    }
+  },
 
-  updateTopic: (id, accuracy) =>
-    set((s) => ({
-      topicStats: s.topicStats.map((t) =>
-        t.id === id ? { ...t, accuracy } : t
-      ),
-    })),
+  loadTopicStats: async () => {
+    try {
+      const topics = await getTopicStats();
+      set({ topicStats: topics });
+    } catch (error) {
+      console.error('Failed to load topic stats:', error);
+    }
+  },
 
-  addActivity: (day, count) =>
-    set((s) => ({
-      weeklyActivity: s.weeklyActivity.map((d) =>
+  addMockScore: (score: number) => {
+    set((state) => ({
+      mockScores: [...state.mockScores, score]
+    }));
+  },
+
+  // ← ADD THIS FUNCTION - for updating weekly activity
+  addActivity: (day: string, count: number) => {
+    set((state) => ({
+      weeklyActivity: state.weeklyActivity.map((d) =>
         d.day === day ? { ...d, questions: d.questions + count } : d
       ),
-    })),
+    }));
+  },
+
+  // ← ADD THIS FUNCTION - for updating topic accuracy
+  updateTopic: (id: string, accuracy: number) => {
+    set((state) => ({
+      topicStats: state.topicStats.map((t) =>
+        t.id === id ? { ...t, accuracy } : t
+      ),
+    }));
+  },
+
+  addQuizResult: async (mode, subject, questionIds, answers, timeTaken) => {
+    try {
+      const result = await submitQuizSession(mode, subject, questionIds, answers, timeTaken);
+      
+      // Refresh data after adding quiz result
+      await get().loadPerformanceData();
+      
+      return result;
+    } catch (error) {
+      console.error('Failed to submit quiz result:', error);
+      throw error;
+    }
+  },
+
+  reset: () => {
+    set({
+      weeklyActivity: [
+        { day: 'Sun', questions: 0 },
+        { day: 'Mon', questions: 0 },
+        { day: 'Tue', questions: 0 },
+        { day: 'Wed', questions: 0 },
+        { day: 'Thu', questions: 0 },
+        { day: 'Fri', questions: 0 },
+        { day: 'Sat', questions: 0 },
+      ],
+      topicStats: [],
+      mockScores: [],
+      totalQuestions: 0,
+      avgAccuracy: 0,
+      isLoading: false,
+      error: null,
+    });
+  },
 }));
