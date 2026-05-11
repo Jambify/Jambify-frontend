@@ -14,7 +14,6 @@ import SignIn from "./Pages/Authentication/SignIn";
 import Welcome from "./Pages/Welcome";
 import Settings from "./Pages/Settings";
 import RouteGuard from "./components/Layout/RouteGuard";
-import WelcomeGuard from "./components/Layout/welcomeGuard";
 import StudyGroups from "./Pages/StudyGroups";
 import MentorChat from "./Pages/MentorChat";
 import PastQuestions from "./Pages/PastQuestions";
@@ -30,9 +29,7 @@ const App: React.FC = () => (
  <Route 
       path="/welcome" 
       element={
-        <WelcomeGuard>
           <Welcome />
-        </WelcomeGuard>
       } 
     />
     <Route

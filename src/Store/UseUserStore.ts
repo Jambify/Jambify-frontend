@@ -61,6 +61,7 @@ interface UserState {
   daysToExam: number;
   onboardingComplete: boolean;
   isPro: boolean;
+  markWelcomeAsSeen: () => void;
   downloadedData: DownloadedData;
   hasSeenWelcome: boolean; // New flag to track if welcome page has been seen
   
@@ -117,6 +118,7 @@ const DEFAULTS = {
   isLoading: false,
   authError: null,
   hasSeenWelcome: false,  // ← New default for welcome page flag
+  
 };
 
 // Helper to map subject combo ID to the stored string format
@@ -267,26 +269,25 @@ export const useUserStore = create<UserState>()(
 
 completeOnboarding: async (data: OnboardingData) => {
   const { id } = get();
-  
+
   if (!id) {
     console.error('No user ID found');
     return { error: new Error('Not authenticated') };
   }
 
   set({ isLoading: true });
-  
-  try {
-    // Call your complete_onboarding function
-    const { error } = await supabase.rpc('complete_onboarding', {
-      p_user_id: id,
-      p_name: data.name,
-      p_university: data.university,
-      p_subject_combo: getSubjectComboString(data.subjectCombo),
-      p_target_score: data.targetScore,
-      p_exam_year: data.examYear,
-      p_exam_date: data.examDate || 'Jun 14',
-    });
 
+  try {
+    // Call the Supabase RPC — this sets onboarding_complete = TRUE in DB
+    const { error } = await supabase.rpc('complete_onboarding', {
+      p_user_id:       id,
+      p_name:          data.name,
+      p_university:    data.university,
+      p_subject_combo: getSubjectComboString(data.subjectCombo),
+      p_target_score:  data.targetScore,
+      p_exam_year:     data.examYear,
+      p_exam_date:     data.examDate || 'Jun 14',
+    });
     if (error) throw error;
     
     // Initialize subject progress for the new user
