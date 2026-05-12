@@ -64,12 +64,13 @@ interface UserState {
   markWelcomeAsSeen: () => void;
   downloadedData: DownloadedData;
   hasSeenWelcome: boolean; // New flag to track if welcome page has been seen
-  
+  _lastSync: number | null;
+
   // Auth state
   isAuthenticated: boolean;
   isLoading: boolean;
   authError: string | null;
-  
+
   // Actions
   completeOnboarding: (data: OnboardingData) => Promise<{ error: Error | null }>;
   updateProfile: (data: ProfileUpdate) => Promise<{ error: Error | null }>;
@@ -84,13 +85,14 @@ interface UserState {
   downgradeToPro: () => void;
   setDownloadedData: (data: DownloadedData) => void;
   addDownloadedData: (key: string, data: any) => void;
-  
+
   // Auth actions
   signUp: (email: string, password: string, name: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
-  syncProfile: () => Promise<void>;
+  // syncProfile: () => Promise<void>;
   clearAuthError: () => void;
+  syncProfile: (force?: boolean) => Promise<{ onboardingComplete: boolean }>;
 }
 
 const DEFAULTS = {
@@ -118,7 +120,7 @@ const DEFAULTS = {
   isLoading: false,
   authError: null,
   hasSeenWelcome: false,  // ← New default for welcome page flag
-  
+
 };
 
 // Helper to map subject combo ID to the stored string format
@@ -147,12 +149,12 @@ export const useUserStore = create<UserState>()(
   persist(
     (set, get) => ({
       ...DEFAULTS,
-    
+
 
       // Auth Actions
       signUp: async (email: string, password: string, name: string) => {
         set({ isLoading: true, authError: null });
-        
+
         try {
           const { data, error } = await supabase.auth.signUp({
             email,
@@ -162,20 +164,21 @@ export const useUserStore = create<UserState>()(
             }
           });
 
+
           if (error) throw error;
-          
+
           if (data.user) {
-            set({ 
-              email, 
+            set({
+              email,
               name,
               id: data.user.id,
-              isAuthenticated: true 
+              isAuthenticated: true
             });
-            
+
             // Wait for your trigger to create the profile
             setTimeout(() => get().syncProfile(), 1000);
           }
-          
+
           return { error: null };
         } catch (error) {
           console.error('Signup error:', error);
@@ -188,7 +191,7 @@ export const useUserStore = create<UserState>()(
 
       signIn: async (email: string, password: string) => {
         set({ isLoading: true, authError: null });
-        
+
         try {
           const { data, error } = await supabase.auth.signInWithPassword({
             email,
@@ -196,16 +199,16 @@ export const useUserStore = create<UserState>()(
           });
 
           if (error) throw error;
-          
+
           if (data.user) {
-            set({ 
+            set({
               email,
               id: data.user.id,
-              isAuthenticated: true 
+              isAuthenticated: true
             });
             await get().syncProfile();
           }
-          
+
           return { error: null };
         } catch (error) {
           console.error('Signin error:', error);
@@ -221,7 +224,7 @@ export const useUserStore = create<UserState>()(
         try {
           const { error } = await supabase.auth.signOut();
           if (error) throw error;
-          
+
           set({ ...DEFAULTS, isAuthenticated: false, id: null });
           localStorage.removeItem('jambready-user');
         } catch (error) {
@@ -231,113 +234,133 @@ export const useUserStore = create<UserState>()(
         }
       },
 
-      syncProfile: async () => {
-        const { id } = get();
-        if (!id) return;
-
-        try {
-          const { data, error } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', id)
-            .maybeSingle();
-
-          if (error) throw error;
-
-          if (data) {
-            // Map your database fields to store (using 'name' not 'full_name')
-            set({
-              name: data.name || get().name,
-              university: data.university || '',
-              targetScore: data.target_score || '',
-              examYear: data.exam_year || '2025',
-              examDate: data.exam_date || 'Jun 14',
-              subjectCombo: data.subject_combo ? getSubjectComboId(data.subject_combo) : '',
-              onboardingComplete: data.onboarding_complete || false,
-              email: data.email || get().email,
-            });
-          }
-        } catch (error) {
-          console.error('Sync profile error:', error);
-        }
-      },
-
-      clearAuthError: () => set({ authError: null }),
-
-      // Complete Onboarding - Using your stored procedure
-      // In UseUserStore.ts - Find the completeOnboarding function and update it:
-
-completeOnboarding: async (data: OnboardingData) => {
-  const { id } = get();
-
-  if (!id) {
-    console.error('No user ID found');
-    return { error: new Error('Not authenticated') };
+      // Update the syncProfile function in UseUserStore.ts
+syncProfile: async (force = false): Promise<{ onboardingComplete: boolean }> => {
+  const { id, _lastSync } = get();
+  if (!id) return { onboardingComplete: false };
+  
+  const now = Date.now();
+  if (!force && _lastSync && (now - _lastSync) < 5000) {
+    console.log('🔵 Using cached profile data');
+    return { onboardingComplete: get().onboardingComplete };
   }
-
-  set({ isLoading: true });
-
+  
+  set({ isLoading: true, _lastSync: now });
+  
   try {
-    // Call the Supabase RPC — this sets onboarding_complete = TRUE in DB
-    const { error } = await supabase.rpc('complete_onboarding', {
-      p_user_id:       id,
-      p_name:          data.name,
-      p_university:    data.university,
-      p_subject_combo: getSubjectComboString(data.subjectCombo),
-      p_target_score:  data.targetScore,
-      p_exam_year:     data.examYear,
-      p_exam_date:     data.examDate || 'Jun 14',
-    });
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', id)
+      .maybeSingle();
+
     if (error) throw error;
+
+    if (data) {
+      const onboardingComplete = data.onboarding_complete === true;
+      
+      set({
+        name: data.name || get().name,
+        university: data.university || '',
+        targetScore: data.target_score || '',
+        examYear: data.exam_year || '2025',
+        examDate: data.exam_date || 'Jun 14',
+        subjectCombo: data.subject_combo ? getSubjectComboId(data.subject_combo) : '',
+        onboardingComplete: onboardingComplete,
+        email: data.email || get().email,
+        isLoading: false,
+      });
+      
+      return { onboardingComplete };
+    }
     
-    // Initialize subject progress for the new user
-    console.log('🔵 Initializing subjects for new user...');
-    await useSubjectStore.getState().initialize();
-    console.log('🔵 Subjects initialized successfully');
-    
-    // Update local store
-    set({ 
-      name: data.name,
-      university: data.university,
-      subjectCombo: data.subjectCombo,
-      targetScore: data.targetScore,
-      examYear: data.examYear,
-      examDate: data.examDate || 'Jun 14',
-      // IMPORTANT: Do NOT set onboardingComplete here
-      // Let the welcome page mark it as seen
-      // onboardingComplete: true  // ← KEEP THIS COMMENTED
-    });
-    
-    await get().syncProfile();
-    return { error: null };
+    return { onboardingComplete: false };
   } catch (error) {
-    console.error('Complete onboarding error:', error);
-    return { error: error as Error };
+    console.error('Sync profile error:', error);
+    return { onboardingComplete: get().onboardingComplete };
   } finally {
     set({ isLoading: false });
   }
 },
 
-// Make sure markWelcomeAsSeen exists and sets both flags:
-markWelcomeAsSeen: () => {
-  console.log("🔵 markWelcomeAsSeen called");
-  set({ 
-    onboardingComplete: true,
-    hasSeenWelcome: true 
-  });
-},
+      clearAuthError: () => set({ authError: null }),
+      _lastSync: null,
+
+      // Complete Onboarding - Using your stored procedure
+      // In UseUserStore.ts - Find the completeOnboarding function and update it:
+
+      completeOnboarding: async (data: OnboardingData) => {
+        const { id } = get();
+
+        if (!id) {
+          console.error('No user ID found');
+          return { error: new Error('Not authenticated') };
+        }
+
+        set({ isLoading: true });
+
+        try {
+          // Call the Supabase RPC — this sets onboarding_complete = TRUE in DB
+          const { error } = await supabase.rpc('complete_onboarding', {
+            p_user_id: id,
+            p_name: data.name,
+            p_university: data.university,
+            p_subject_combo: getSubjectComboString(data.subjectCombo),
+            p_target_score: data.targetScore,
+            p_exam_year: data.examYear,
+            p_exam_date: data.examDate || 'Jun 14',
+          });
+          if (error) throw error;
+
+          // Initialize subject progress for the new user
+          console.log('🔵 Initializing subjects for new user...');
+          await useSubjectStore.getState().initialize();
+          console.log('🔵 Subjects initialized successfully');
+
+          // Update local store
+          set({
+            name: data.name,
+            university: data.university,
+            subjectCombo: data.subjectCombo,
+            targetScore: data.targetScore,
+            examYear: data.examYear,
+            examDate: data.examDate || 'Jun 14',
+            onboardingComplete: true,  // Optimistic!
+            // IMPORTANT: Do NOT set onboardingComplete here
+            // Let the welcome page mark it as seen
+            // onboardingComplete: true  // ← KEEP THIS COMMENTED
+          });
+
+           await get().syncProfile(true); // Force sync to get the latest onboardingComplete status from DB
+          return { error: null };
+        } catch (error) {
+          console.error('Complete onboarding error:', error);
+          return { error: error as Error };
+        } finally {
+          set({ isLoading: false });
+        }
+      },
+
+      // Make sure markWelcomeAsSeen exists and sets both flags:
+      markWelcomeAsSeen: () => {
+        console.log("🔵 markWelcomeAsSeen called");
+        set({
+          onboardingComplete: true,
+          hasSeenWelcome: true
+        });
+      },
 
       // Regular profile update (without completing onboarding)
       updateProfile: async (data: ProfileUpdate) => {
         const { id } = get();
-        
+
         if (!id) {
           set(data);
           return { error: null };
         }
 
         set({ isLoading: true });
-        
+
         try {
           const { error } = await supabase
             .from('profiles')
@@ -349,7 +372,7 @@ markWelcomeAsSeen: () => {
             .eq('id', id);
 
           if (error) throw error;
-          
+
           set(data);
           await get().syncProfile();
           return { error: null };
@@ -363,14 +386,14 @@ markWelcomeAsSeen: () => {
 
       updateExamSettings: async (data: ExamUpdate) => {
         const { id } = get();
-        
+
         if (!id) {
           set(data);
           return { error: null };
         }
 
         set({ isLoading: true });
-        
+
         try {
           const { error } = await supabase
             .from('profiles')
@@ -382,7 +405,7 @@ markWelcomeAsSeen: () => {
             .eq('id', id);
 
           if (error) throw error;
-          
+
           set(data);
           await get().syncProfile();
           return { error: null };
@@ -409,8 +432,8 @@ markWelcomeAsSeen: () => {
       upgradeToPro: () => set({ isPro: true }),
       downgradeToPro: () => set({ isPro: false }),
       setDownloadedData: (data: DownloadedData) => set({ downloadedData: data }),
-      addDownloadedData: (key: string, data: any) => set((s) => ({ 
-        downloadedData: { ...s.downloadedData, [key]: data } 
+      addDownloadedData: (key: string, data: any) => set((s) => ({
+        downloadedData: { ...s.downloadedData, [key]: data }
       })),
     }),
     {
@@ -435,7 +458,7 @@ markWelcomeAsSeen: () => {
         totalQuestions: s.totalQuestions,
         schoolRank: s.schoolRank,
         daysToExam: s.daysToExam,
-  hasSeenWelcome: s.hasSeenWelcome,  
+        hasSeenWelcome: s.hasSeenWelcome,
       }),
     },
   ),

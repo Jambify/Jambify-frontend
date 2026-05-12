@@ -24,13 +24,22 @@ const App: React.FC = () => (
   <Routes>
     <Route path="/signup" element={<SignUp />} />
     <Route path="/signin" element={<SignIn />} />
-     <Route path="/auth/callback" element={<AuthCallback />} />
-    <Route path="/onboarding" element={<Onboarding />} />
- <Route 
-      path="/welcome" 
+    <Route path="/auth/callback" element={<AuthCallback />} />
+    <Route
+      path="/onboarding"
       element={
+        <RouteGuard>
+          <Onboarding />
+        </RouteGuard>
+      }
+    />
+    <Route
+      path="/welcome"
+      element={
+        <RouteGuard>
           <Welcome />
-      } 
+        </RouteGuard>
+      }
     />
     <Route
       path="/"

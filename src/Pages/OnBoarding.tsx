@@ -4,6 +4,7 @@ import { useUserStore } from "../Store/UseUserStore";
 import StepIndicator from "../components/OnBoarding/StepIndicator";
 import Button from "../components/ui/Button";
 import { cn } from "../lib/utils";
+import LoadingScreen from '../components/ui/LoadingScreen';
 
 /* ── Updated Data with Professional Combos ── */
 const SUBJECT_COMBOS = [
@@ -108,6 +109,7 @@ const Onboarding: React.FC = () => {
   const [uniError, setUniError] = useState<string | null>(null);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [useFallback, setUseFallback] = useState(false);
+   const [isCompleting, setIsCompleting] = useState(false);
 
   const [form, setForm] = useState<FormData>({
     university: "",
@@ -283,35 +285,43 @@ const Onboarding: React.FC = () => {
     return;
   }
 
+  setIsCompleting(true); // ← Set this before API call
   console.log("🔵 Completing onboarding...");
 
-  const { error } = await completeOnboarding({
-    name: userName,
-    university: form.university,
-    subjectCombo: form.subjectCombo,
-    targetScore: form.targetScore,
-    examYear: form.examYear,
-    examDate: form.examDate,
-  });
+  try {
+    const { error } = await completeOnboarding({
+      name: userName,
+      university: form.university,
+      subjectCombo: form.subjectCombo,
+      targetScore: form.targetScore,
+      examYear: form.examYear,
+      examDate: form.examDate,
+    });
 
-  if (!error) {
-    // IMPORTANT: Navigate to welcome page
-    navigate("/welcome", { replace: true });
-  } else {
-    console.error("Onboarding error:", error);
+    if (!error) {
+      // Small delay to ensure state updates
+      setTimeout(() => {
+        navigate("/welcome", { replace: true });
+      }, 100);
+    } else {
+      console.error("Onboarding error:", error);
+      setIsCompleting(false);
+    }
+  } catch (err) {
+    console.error("Unexpected error:", err);
+    setIsCompleting(false);
   }
 };
   // Show loading state while checking auth
-  if (isLoading || isCheckingAuth) {
-    return (
-      <div className="min-h-screen bg-[#0F1115] flex items-center justify-center">
-        <div className="text-white text-center">
-          <div className="w-12 h-12 border-4 border-brand border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p>Loading...</p>
-        </div>
-      </div>
-    );
-  }
+  if (isLoading || isCheckingAuth || isCompleting) {
+  return (
+    <LoadingScreen 
+      message={isCompleting ? "Completing your setup" : "Loading your profile"}
+      submessage={isCompleting ? "This will just take a moment" : "Please wait"}
+      estimatedTime={isCompleting ? 3 : 2}
+    />
+  );
+}
 
   return (
     <div className="min-h-screen bg-[#0F1115] text-white flex flex-col items-center justify-center p-4">
