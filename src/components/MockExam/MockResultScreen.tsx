@@ -21,7 +21,7 @@ const SUBJECT_COLORS: Record<string, string> = {
 };
 
 const MockResultsScreen: React.FC<MockResultsProps> = ({ onRetry, onHome }) => {
-  const { addMockScore, addActivity, loadPerformanceData } = usePerformanceStore();
+  const { addMockScore, addActivity, } = usePerformanceStore();
   const { questions, answers, timeLeft } = useMockStore();
   const { incrementQuestions, updateAccuracy, isPro } = useUserStore();
 

@@ -21,7 +21,7 @@ const GuestLanding: React.FC = () => {
 
       {/* <Ambient glow */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-0 left-1/3 w-[500px] h-[500px] bg-brand/5 blur-[120px] rounded-full" />
+        <div className="absolute top-0 left-1/3 w-125 h-125 bg-brand/5 blur-[120px] rounded-full" />
       </div>
 
       <div className="relative z-10 w-full max-w-md">
