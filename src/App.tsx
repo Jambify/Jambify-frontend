@@ -19,12 +19,20 @@ import MentorChat from "./Pages/MentorChat";
 import PastQuestions from "./Pages/PastQuestions";
 import ReviewScreen from "./Pages/MockExam/ReviewExam";
 import AuthCallback from "./components/auth/AuthCallbacl";
+import GuestLanding from "./Pages/GuestUser/GuestLanding";
+import GuestQuiz from "./Pages/GuestUser/GuestQuiz";
+import GuestMock from "./Pages/GuestUser/GuestExam";
 
 const App: React.FC = () => (
   <Routes>
     <Route path="/signup" element={<SignUp />} />
     <Route path="/signin" element={<SignIn />} />
     <Route path="/auth/callback" element={<AuthCallback />} />
+
+    <Route path="/guest" element={<GuestLanding />} />
+    <Route path="/guest/quiz" element={<GuestQuiz />} />
+    <Route path="/guest/mock" element={<GuestMock />} />
+    <Route path="/guest/past-questions" element={<GuestQuiz />} />
     <Route
       path="/onboarding"
       element={

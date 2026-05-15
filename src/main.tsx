@@ -17,11 +17,16 @@ import { supabase }        from './lib/supabase';
 import { useUserStore }    from './Store/UseUserStore';
 import './index.css';
 
+
+
 // ── Bootstrap: restore session on page load ────────────────────────────
 // Runs ONCE before React renders anything.
 // Reads existing Supabase session from localStorage/cookie,
 // sets useUserStore, then renders the app.
 // This replaces the need for useAuthStore entirely.
+// In your main layout component
+
+
 async function bootstrap() {
   const { data: { session } } = await supabase.auth.getSession();
 
