@@ -22,6 +22,13 @@ import AuthCallback from "./components/auth/AuthCallbacl";
 import GuestLanding from "./Pages/GuestUser/GuestLanding";
 import GuestQuiz from "./Pages/GuestUser/GuestQuiz";
 import GuestMock from "./Pages/GuestUser/GuestExam";
+// In App.tsx, add this near the top
+import { supabase } from './lib/supabase';
+
+// Make supabase available in console for debugging
+if (typeof window !== 'undefined') {
+  (window as any).supabase = supabase;
+}
 
 const App: React.FC = () => (
   <Routes>

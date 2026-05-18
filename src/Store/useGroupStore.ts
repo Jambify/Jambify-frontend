@@ -1,151 +1,373 @@
+// src/Store/useGroupStore.ts - COMPLETE REPLACEMENT
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { supabase } from '../lib/supabase';
+import { useUserStore } from './UseUserStore';
 
 export interface ChatMessage {
-  id:     string;
+  id: string;
+  group_id: string;
+  user_id: string;
   author: string;
-  text:   string;
-  time:   string;
+  message: string;
+  created_at: string;
+  is_edited: boolean;
 }
 
 export interface StudyGroup {
-  id:            string;
-  name:          string;
-  description:   string;
-  subject:       string;
-  icon:          string;
-  memberCount:   number;
+  id: string;
+  name: string;
+  description: string;
+  subject: string;
+  icon: string;
+  join_code: string;
+  is_private: boolean;
+  member_count: number;
+  created_by: string;
+  created_at: string;
+  isActive: boolean;
   recentMembers: string[];
-  isActive:      boolean;
-  messages:      ChatMessage[];
+
 }
 
 interface GroupState {
-  groups:       StudyGroup[];
-  myGroupIds:   string[];
-  createGroup:  (data: Pick<StudyGroup, 'name' | 'description' | 'subject' | 'icon'>) => void;
-  joinGroup:    (id: string) => void;
-  leaveGroup:   (id: string) => void;
-  sendMessage:  (groupId: string, msg: Pick<ChatMessage, 'author' | 'text'>) => void;
-  getMessages:  (groupId: string) => ChatMessage[];
+  groups: StudyGroup[];
+  myGroupIds: string[];
+  messages: Record<string, ChatMessage[]>;
+  loading: boolean;
+  msgLoading: boolean;
+  error: string | null;
+  loadGroups: () => Promise<void>;
+  loadMyGroups: () => Promise<void>;
+  createGroup: (data: { name: string; description: string; subject: string }) => Promise<void>;
+  joinGroup: (id: string) => Promise<void>;
+  joinByCode: (code: string) => Promise<{ error: string | null }>;
+  leaveGroup: (id: string) => Promise<void>;
+  loadMessages: (groupId: string) => Promise<void>;
+  sendMessage: (groupId: string, text: string) => Promise<void>;
+  subscribeToChat: (groupId: string) => () => void;
+  getMessages: (groupId: string) => ChatMessage[];
 }
 
-const now = () => new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+const SUBJECT_ICONS: Record<string, string> = {
+  'English': '📖', 'Mathematics': '🔢', 'Physics': '⚡',
+  'Chemistry': '⚗️', 'Biology': '🧬', 'Economics': '📊',
+  'Government': '🏛️', 'Literature': '📚', 'CRS/IRS': '✝️',
+  'History': '📜', 'Mixed': '📑',
+};
 
-export const useGroupStore = create<GroupState>()(
-  persist(
-    (set, get) => ({
-      myGroupIds: [],
+export const useGroupStore = create<GroupState>()((set, get) => ({
+  groups: [],
+  myGroupIds: [],
+  messages: {},
+  loading: false,
+  msgLoading: false,
+  error: null,
 
-      groups: [
-        {
-          id: 'g1', icon: '⚗️', subject: 'Chemistry',
-          name: 'Chemistry Crew 2025',
-          description: 'Focused on organic reactions, acid-base chemistry and JAMB past questions from 2015 onwards.',
-          memberCount: 47, isActive: true,
-          recentMembers: ['Tunde', 'Ngozi', 'Fatima', 'Emeka', 'Amara'],
-          messages: [
-            { id: 'm1', author: 'Tunde',  text: 'Anyone understand the equilibrium constant question from 2022?', time: '09:14' },
-            { id: 'm2', author: 'Ngozi',  text: 'Yes! Le Chatelier principle — increase pressure shifts equilibrium toward fewer moles of gas.', time: '09:17' },
-            { id: 'm3', author: 'Fatima', text: 'Thanks Ngozi. The 2019 organic naming question was confusing too.', time: '09:22' },
-          ],
-        },
-        {
-          id: 'g2', icon: '🔢', subject: 'Mathematics',
-          name: 'Maths Masters',
-          description: 'Tackling integration, sequences, and permutations together. Daily problem sets and solution sharing.',
-          memberCount: 63, isActive: false,
-          recentMembers: ['Emeka', 'Amara', 'Chidi', 'Zara'],
-          messages: [
-            { id: 'm4', author: 'Chidi', text: 'GP sum formula: Sn = a(1-rⁿ)/(1-r). Memorise this!', time: '08:05' },
-            { id: 'm5', author: 'Zara',  text: 'What about when r=1? The formula breaks down.', time: '08:09' },
-            { id: 'm6', author: 'Chidi', text: 'Good catch — when r=1, Sn = na. JAMB loves that edge case.', time: '08:12' },
-          ],
-        },
-        {
-          id: 'g3', icon: '⚡', subject: 'Physics',
-          name: 'Physics Force',
-          description: 'Mechanics, waves, electromagnetism — we cover it all. Weekly mock quizzes every Sunday.',
-          memberCount: 38, isActive: true,
-          recentMembers: ['Bayo', 'Kemi', 'Dele'],
-          messages: [
-            { id: 'm7', author: 'Bayo', text: 'Sunday quiz starts at 4pm. Topic: projectile motion.', time: '14:00' },
-          ],
-        },
-        {
-          id: 'g4', icon: '📚', subject: 'Mixed',
-          name: 'JAMB 2025 General',
-          description: 'Open group for all subjects. Share tips, resources, motivation and past question links.',
-          memberCount: 214, isActive: true,
-          recentMembers: ['Tunde', 'Ngozi', 'Fatima', 'Emeka', 'Amara', 'Bayo'],
-          messages: [
-            { id: 'm8', author: 'Amara', text: 'JAMB registration closes end of month. Has anyone gotten their profile code?', time: '11:30' },
-            { id: 'm9', author: 'Emeka', text: 'Yes, visit any accredited CBT centre with your JAMB registration slip.', time: '11:45' },
-          ],
-        },
-      ],
+  loadGroups: async () => {
+    set({ loading: true, error: null });
+    try {
+      // SIMPLE QUERY - NO JOINS
+      const { data: groupsData, error: groupsError } = await supabase
+        .from('study_groups')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-      createGroup: (data) => {
-        const newGroup: StudyGroup = {
-          id:            `g-${Date.now()}`,
-          name:          data.name,
-          description:   data.description,
-          subject:       data.subject,
-          icon:          data.icon,
-          memberCount:   1,
-          recentMembers: [],
-          isActive:      false,
-          messages:      [],
-        };
-        set((s) => ({
-          groups:     [...s.groups, newGroup],
-          myGroupIds: [...s.myGroupIds, newGroup.id],
-        }));
+      if (groupsError) throw groupsError;
+
+      if (!groupsData || groupsData.length === 0) {
+        set({ groups: [], loading: false });
+        return;
+      }
+
+      // Map groups with icons
+      const mappedGroups = groupsData.map(group => ({
+        ...group,
+        icon: SUBJECT_ICONS[group.subject] || '📚',
+        recentMembers: [],
+        isActive: false,
+      }));
+
+      set({ groups: mappedGroups as StudyGroup[], loading: false });
+    } catch (err: any) {
+      console.error('loadGroups error:', err);
+      set({ error: err.message, loading: false });
+    }
+  },
+
+  loadMyGroups: async () => {
+    const userId = useUserStore.getState().id;
+    if (!userId) {
+      set({ myGroupIds: [] });
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('group_members')
+        .select('group_id')
+        .eq('user_id', userId);
+
+      if (error) throw error;
+      set({ myGroupIds: data?.map(r => r.group_id) || [] });
+    } catch (err) {
+      console.error('loadMyGroups error:', err);
+      set({ myGroupIds: [] });
+    }
+  },
+
+  createGroup: async (data) => {
+    const userId = useUserStore.getState().id;
+    if (!userId) {
+      console.error('Cannot create group: No user logged in');
+      return;
+    }
+
+    set({ loading: true, error: null });
+    try {
+      const { error } = await supabase
+        .from('study_groups')
+        .insert({
+          name: data.name,
+          description: data.description,
+          subject: data.subject,
+          created_by: userId,
+        });
+
+      if (error) throw error;
+
+      // Reload both group lists
+      await get().loadGroups();
+      await get().loadMyGroups();
+    } catch (err: any) {
+      console.error('createGroup error:', err);
+      set({ error: err.message });
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  joinGroup: async (groupId) => {
+    const userId = useUserStore.getState().id;
+    if (!userId) return;
+
+    try {
+      const { error } = await supabase
+        .from('group_members')
+        .insert({ group_id: groupId, user_id: userId, role: 'member' });
+
+      if (error) throw error;
+
+      // Update myGroupIds and reload groups
+      set(state => ({ 
+        myGroupIds: [...new Set([...state.myGroupIds, groupId])] 
+      }));
+      await get().loadGroups();
+    } catch (err) {
+      console.error('joinGroup error:', err);
+    }
+  },
+
+  joinByCode: async (code) => {
+    const userId = useUserStore.getState().id;
+    if (!userId) return { error: 'Please sign in to join groups' };
+
+    try {
+      const { data: group, error: groupError } = await supabase
+        .from('study_groups')
+        .select('id')
+        .eq('join_code', code.toUpperCase().trim())
+        .single();
+
+      if (groupError || !group) {
+        return { error: 'Invalid join code. Please check and try again.' };
+      }
+
+      const { error: insertError } = await supabase
+        .from('group_members')
+        .insert({ group_id: group.id, user_id: userId, role: 'member' });
+
+      if (insertError) {
+        if (insertError.code === '23505') {
+          return { error: 'You are already a member of this group.' };
+        }
+        return { error: 'Failed to join group. Please try again.' };
+      }
+
+      set(state => ({ 
+        myGroupIds: [...new Set([...state.myGroupIds, group.id])] 
+      }));
+      await get().loadGroups();
+      return { error: null };
+    } catch (err) {
+      return { error: 'Something went wrong. Please try again.' };
+    }
+  },
+
+  leaveGroup: async (groupId) => {
+    const userId = useUserStore.getState().id;
+    if (!userId) return;
+
+    try {
+      await supabase
+        .from('group_members')
+        .delete()
+        .eq('group_id', groupId)
+        .eq('user_id', userId);
+
+      set(state => ({ 
+        myGroupIds: state.myGroupIds.filter(id => id !== groupId) 
+      }));
+      await get().loadGroups();
+    } catch (err) {
+      console.error('leaveGroup error:', err);
+    }
+  },
+
+  loadMessages: async (groupId) => {
+    set({ msgLoading: true });
+    try {
+      const { data, error } = await supabase
+        .from('group_messages')
+        .select(`
+          id,
+          group_id,
+          user_id,
+          message,
+          created_at,
+          is_edited
+        `)
+        .eq('group_id', groupId)
+        .order('created_at', { ascending: true })
+        .limit(100);
+
+      if (error) throw error;
+
+      // Get author names separately
+      const messagesWithAuthors = await Promise.all(
+        (data || []).map(async (msg) => {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('name')
+            .eq('id', msg.user_id)
+            .single();
+          
+          return {
+            id: msg.id,
+            group_id: msg.group_id,
+            user_id: msg.user_id,
+            author: profile?.name || 'Unknown',
+            message: msg.message,
+            created_at: msg.created_at,
+            is_edited: msg.is_edited,
+          };
+        })
+      );
+
+      set(s => ({
+        messages: { ...s.messages, [groupId]: messagesWithAuthors },
+        msgLoading: false,
+      }));
+    } catch (err) {
+      console.error('loadMessages error:', err);
+      set({ msgLoading: false });
+    }
+  },
+
+  sendMessage: async (groupId, text) => {
+    const userId = useUserStore.getState().id;
+    const name = useUserStore.getState().name;
+    
+    if (!userId || !text.trim()) return;
+
+    const tempId = `temp-${Date.now()}`;
+    const tempMsg: ChatMessage = {
+      id: tempId,
+      group_id: groupId,
+      user_id: userId,
+      author: name || 'You',
+      message: text.trim(),
+      created_at: new Date().toISOString(),
+      is_edited: false,
+    };
+
+    // Optimistic update
+    set(s => ({
+      messages: {
+        ...s.messages,
+        [groupId]: [...(s.messages[groupId] || []), tempMsg],
       },
+    }));
 
-      joinGroup: (id) =>
-        set((s) => ({
-          myGroupIds: s.myGroupIds.includes(id)
-            ? s.myGroupIds
-            : [...s.myGroupIds, id],
-          groups: s.groups.map(g =>
-            g.id === id ? { ...g, memberCount: g.memberCount + 1 } : g
-          ),
-        })),
+    // Send to server
+    const { error } = await supabase
+      .from('group_messages')
+      .insert({ 
+        group_id: groupId, 
+        user_id: userId, 
+        message: text.trim() 
+      });
 
-      leaveGroup: (id) =>
-        set((s) => ({
-          myGroupIds: s.myGroupIds.filter(gid => gid !== id),
-          groups: s.groups.map(g =>
-            g.id === id ? { ...g, memberCount: Math.max(1, g.memberCount - 1) } : g
-          ),
-        })),
+    if (error) {
+      // Rollback on error
+      set(s => ({
+        messages: {
+          ...s.messages,
+          [groupId]: (s.messages[groupId] || []).filter(m => m.id !== tempId),
+        },
+      }));
+      console.error('sendMessage error:', error);
+    }
+  },
 
-      sendMessage: (groupId, msg) => {
-        const message: ChatMessage = {
-          id:   `msg-${Date.now()}`,
-          author: msg.author,
-          text:   msg.text,
-          time:   now(),
-        };
-        set((s) => ({
-          groups: s.groups.map(g =>
-            g.id === groupId
-              ? { ...g, messages: [...g.messages, message], isActive: true }
-              : g
-          ),
-        }));
-      },
+  subscribeToChat: (groupId) => {
+    const channel = supabase
+      .channel(`group-chat-${groupId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'group_messages',
+          filter: `group_id=eq.${groupId}`,
+        },
+        async (payload) => {
+          const newMsg = payload.new as any;
+          const myId = useUserStore.getState().id;
+          
+          // Skip if it's our own message (already added optimistically)
+          if (newMsg.user_id === myId) return;
 
-      getMessages: (groupId) =>
-        get().groups.find(g => g.id === groupId)?.messages ?? [],
-    }),
-    {
-      name: 'jambready-groups',
-      partialize: (s) => ({
-        myGroupIds: s.myGroupIds,
-        groups:     s.groups,
-      }),
-    },
-  ),
-);
+          // Get author name
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('name')
+            .eq('id', newMsg.user_id)
+            .single();
+
+          const message: ChatMessage = {
+            id: newMsg.id,
+            group_id: newMsg.group_id,
+            user_id: newMsg.user_id,
+            author: profile?.name || 'Member',
+            message: newMsg.message,
+            created_at: newMsg.created_at,
+            is_edited: newMsg.is_edited,
+          };
+
+          set(s => ({
+            messages: {
+              ...s.messages,
+              [groupId]: [...(s.messages[groupId] || []), message],
+            },
+          }));
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  },
+
+  getMessages: (groupId) => get().messages[groupId] || [],
+}));

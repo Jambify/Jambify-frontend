@@ -1,98 +1,127 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useGroupStore } from '../../Store/useGroupStore';
-import { useUserStore } from '../../Store/UseUserStore';
+import { useGroupStore }  from '../../Store/useGroupStore';
+import { useUserStore }   from '../../Store/UseUserStore';
 import type { StudyGroup } from '../../Store/useGroupStore';
-import { cn } from '../../lib/utils';
-import { ArrowLeft, Send, Users, Activity } from 'lucide-react';
+import { cn }              from '../../lib/utils';
+import {
+  ArrowLeft, Send, Users, Activity,
+  Copy, Check, Loader2,
+} from 'lucide-react';
 
-interface GroupChatProps {
-  group: StudyGroup;
-  onBack: () => void;
-}
+interface GroupChatProps { group: StudyGroup; onBack: () => void; }
 
 const GroupChat: React.FC<GroupChatProps> = ({ group, onBack }) => {
-  const { name } = useUserStore();
-  const { sendMessage, getMessages, myGroupIds, joinGroup } = useGroupStore();
-  const messages = getMessages(group.id);
-  const isMember = myGroupIds.includes(group.id);
-  const [text, setText] = useState('');
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const { id: myId,  }                                 = useUserStore();
+  const { myGroupIds, loadMessages, sendMessage,
+          subscribeToChat, getMessages, msgLoading,
+          joinGroup }                                       = useGroupStore();
 
-  // Auto-scroll to latest message
+  const messages   = getMessages(group.id);
+  const isMember   = myGroupIds.includes(group.id);
+  const [text, setText]         = useState('');
+  const [copied, setCopied]     = useState(false);
+  const bottomRef               = useRef<HTMLDivElement>(null);
+
+  // Load + subscribe on mount
+  useEffect(() => {
+    loadMessages(group.id);
+    const unsub = subscribeToChat(group.id);
+    return unsub;
+  }, [group.id]);
+
+  // Auto-scroll
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages.length]);
 
   const handleSend = () => {
     if (!text.trim() || !isMember) return;
-    sendMessage(group.id, { author: name || 'You', text: text.trim() });
+    sendMessage(group.id, text);
     setText('');
   };
+
+  const copyJoinCode = () => {
+    navigator.clipboard.writeText(group.join_code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const formatTime = (iso: string) =>
+    new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
 
   return (
     <div className="flex flex-col h-[calc(100dvh-112px)]">
 
-      {/* Chat header */}
+      {/* Header */}
       <div className="flex items-center gap-3 pb-4 mb-4 border-b border-borderMuted shrink-0">
-        <button
-          onClick={onBack}
-          className="flex items-center gap-1.5 text-xs text-textMuted hover:text-textMain transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back
+        <button onClick={onBack}
+          className="flex items-center gap-1.5 text-xs text-textMuted hover:text-textMain transition-colors">
+          <ArrowLeft className="w-4 h-4" /> Back
         </button>
         <div className="text-xl">{group.icon}</div>
         <div className="flex-1 min-w-0">
-          <p className="font-display font-semibold text-sm tracking-tight truncate">
-            {group.name}
-          </p>
+          <p className="font-display font-semibold text-sm tracking-tight truncate">{group.name}</p>
           <div className="flex items-center gap-2 text-[11px] text-textDim">
             <Users className="w-3 h-3" />
-            <span>{group.memberCount}</span>
+            <span>{group.member_count}</span>
             <span>·</span>
             <span>{group.subject}</span>
           </div>
         </div>
+
+        {/* <Join code copy button */}
+        {isMember && (
+          <button
+            onClick={copyJoinCode}
+            title={`Join code: ${group.join_code}`}
+            className="flex items-center gap-1.5 text-[10px] font-mono font-bold px-2.5 py-1.5 bg-bgSurface border border-borderMuted rounded-brand hover:border-brand/40 transition-all"
+          >
+            {copied ? <><Check className="w-3 h-3 text-success" /> Copied</>
+              : <><Copy className="w-3 h-3" /> {group.join_code}</>}
+          </button>
+        )}
+
         {group.isActive && (
           <span className="flex items-center gap-1.5 text-[11px] text-success">
-            <Activity className="w-3 h-3" />
-            Active now
+            <Activity className="w-3 h-3" /> Active
           </span>
         )}
       </div>
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto flex flex-col gap-3 pb-4">
-        {messages.length === 0 && (
+        {msgLoading && (
+          <div className="flex justify-center py-8">
+            <Loader2 className="w-5 h-5 text-brand animate-spin" />
+          </div>
+        )}
+
+        {!msgLoading && messages.length === 0 && (
           <div className="text-center py-10 text-textDim">
             <div className="text-3xl mb-2">💬</div>
             <p className="text-xs">No messages yet. Start the conversation!</p>
           </div>
         )}
-        {messages.map((msg) => {
-          const isMe = msg.author === (name || 'You');
+
+        {messages.map(msg => {
+          const isMe = msg.user_id === myId;
           return (
-            <div
-              key={msg.id}
-              className={cn('flex gap-2.5 max-w-[80%]', isMe && 'ml-auto flex-row-reverse')}
-            >
+            <div key={msg.id}
+              className={cn('flex gap-2.5 max-w-[80%]', isMe && 'ml-auto flex-row-reverse')}>
               <div
                 className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5"
                 style={{
-                  background: isMe ? 'rgb(91, 59, 255)' : 'rgb(30, 30, 39)',
-                  color: isMe ? '#fff' : 'rgb(152, 150, 176)',
-                  border: '1px solid rgba(255,255,255,0.07)'
+                  background: isMe ? 'rgb(91,59,255)' : 'rgb(30,30,39)',
+                  color: isMe ? '#fff' : 'rgb(152,150,176)',
+                  border: '1px solid rgba(255,255,255,0.07)',
                 }}
               >
                 {msg.author.slice(0, 1).toUpperCase()}
               </div>
               <div>
-                <p className={cn(
-                  'text-[11px] mb-1',
-                  isMe ? 'text-right text-textDim' : 'text-textDim'
-                )}>
+                <p className={cn('text-[11px] mb-1', isMe ? 'text-right text-textDim' : 'text-textDim')}>
                   {isMe ? 'You' : msg.author}
-                  <span className="ml-1.5 text-[10px] opacity-60">{msg.time}</span>
+                  <span className="ml-1.5 text-[10px] opacity-60">{formatTime(msg.created_at)}</span>
                 </p>
                 <div className={cn(
                   'px-3 py-2 rounded-brand text-sm leading-relaxed',
@@ -100,7 +129,10 @@ const GroupChat: React.FC<GroupChatProps> = ({ group, onBack }) => {
                     ? 'bg-brand text-white rounded-tr-sm'
                     : 'bg-bgSurface border border-borderMuted text-textMain rounded-tl-sm'
                 )}>
-                  {msg.text}
+                  {msg.message}
+                  {msg.is_edited && (
+                    <span className="text-[10px] opacity-50 ml-1">(edited)</span>
+                  )}
                 </div>
               </div>
             </div>
@@ -109,15 +141,16 @@ const GroupChat: React.FC<GroupChatProps> = ({ group, onBack }) => {
         <div ref={bottomRef} />
       </div>
 
-      {/* Input area */}
+      {/* <Input */}
       {isMember ? (
         <div className="flex gap-2 pt-3 border-t border-borderMuted shrink-0">
           <input
             type="text"
             value={text}
-            onChange={(e) => setText(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-            placeholder="Type a message..."
+            onChange={e => setText(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleSend()}
+            placeholder="Type a message…"
+            style={{ fontSize: '16px' }}
             className="flex-1 px-4 py-2.5 bg-bgSurface border border-borderMuted rounded-brand text-sm text-textMain placeholder:text-textDim focus:outline-none focus:border-brand/40 transition-colors"
           />
           <button
