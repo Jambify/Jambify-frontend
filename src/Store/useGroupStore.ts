@@ -223,151 +223,177 @@ export const useGroupStore = create<GroupState>()((set, get) => ({
     }
   },
 
-  loadMessages: async (groupId) => {
-    set({ msgLoading: true });
-    try {
-      const { data, error } = await supabase
-        .from('group_messages')
-        .select(`
-          id,
-          group_id,
-          user_id,
-          message,
-          created_at,
-          is_edited
-        `)
-        .eq('group_id', groupId)
-        .order('created_at', { ascending: true })
-        .limit(100);
+ loadMessages: async (groupId) => {
+  set({ msgLoading: true });
+  try {
+    // Step 1: fetch messages
+    const { data: msgs, error: msgErr } = await supabase
+      .from('group_messages')
+      .select('*')
+      .eq('group_id', groupId)
+      .order('created_at', { ascending: true })
+      .limit(100);
 
-      if (error) throw error;
-
-      // Get author names separately
-      const messagesWithAuthors = await Promise.all(
-        (data || []).map(async (msg) => {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('name')
-            .eq('id', msg.user_id)
-            .single();
-          
-          return {
-            id: msg.id,
-            group_id: msg.group_id,
-            user_id: msg.user_id,
-            author: profile?.name || 'Unknown',
-            message: msg.message,
-            created_at: msg.created_at,
-            is_edited: msg.is_edited,
-          };
-        })
-      );
-
-      set(s => ({
-        messages: { ...s.messages, [groupId]: messagesWithAuthors },
-        msgLoading: false,
-      }));
-    } catch (err) {
-      console.error('loadMessages error:', err);
-      set({ msgLoading: false });
+    if (msgErr) throw msgErr;
+    if (!msgs || msgs.length === 0) {
+      set(s => ({ messages: { ...s.messages, [groupId]: [] }, msgLoading: false }));
+      return;
     }
-  },
+
+    // Step 2: fetch unique profile names for all senders in one query
+    // This avoids the FK join issue entirely
+    const uniqueIds = [...new Set(msgs.map(m => m.user_id))];
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, name')
+      .in('id', uniqueIds);
+
+    // Build a lookup map: userId → name
+    const nameMap = new Map<string, string>();
+    (profiles || []).forEach(p => nameMap.set(p.id, p.name || 'Member'));
+
+    const messages: ChatMessage[] = msgs.map(row => ({
+      id:         row.id,
+      group_id:   row.group_id,
+      user_id:    row.user_id,
+      author:     nameMap.get(row.user_id) || 'Member',  // ← no more "Unknown"
+      message:    row.message,
+      created_at: row.created_at,
+      is_edited:  row.is_edited,
+    }));
+
+    set(s => ({ messages: { ...s.messages, [groupId]: messages }, msgLoading: false }));
+  } catch (err) {
+    console.error('loadMessages error:', err);
+    set({ msgLoading: false });
+  }
+},
 
   sendMessage: async (groupId, text) => {
-    const userId = useUserStore.getState().id;
-    const name = useUserStore.getState().name;
-    
-    if (!userId || !text.trim()) return;
+  const userId = useUserStore.getState().id;
+  const name   = useUserStore.getState().name;
+  if (!userId || !text.trim()) return;
 
-    const tempId = `temp-${Date.now()}`;
-    const tempMsg: ChatMessage = {
-      id: tempId,
-      group_id: groupId,
-      user_id: userId,
-      author: name || 'You',
-      message: text.trim(),
-      created_at: new Date().toISOString(),
-      is_edited: false,
-    };
+  // Optimistic message with temp id — realtime will replace it
+  const tempId = `temp-${Date.now()}`;
+  const tempMsg: ChatMessage = {
+    id:         tempId,
+    group_id:   groupId,
+    user_id:    userId,
+    author:     name || 'You',
+    message:    text.trim(),
+    created_at: new Date().toISOString(),
+    is_edited:  false,
+  };
 
-    // Optimistic update
+  set(s => ({
+    messages: { ...s.messages, [groupId]: [...(s.messages[groupId] || []), tempMsg] },
+  }));
+
+  const { error } = await supabase
+    .from('group_messages')
+    .insert({ group_id: groupId, user_id: userId, message: text.trim() });
+
+  if (error) {
+    // Remove failed optimistic message
     set(s => ({
       messages: {
         ...s.messages,
-        [groupId]: [...(s.messages[groupId] || []), tempMsg],
+        [groupId]: (s.messages[groupId] || []).filter(m => m.id !== tempId),
       },
     }));
+    console.error('sendMessage error:', error.message);
+  }
+  // On success: the realtime subscription will fire, see it's our own message,
+  // remove the temp- prefix message and insert the confirmed one.
+},
 
-    // Send to server
-    const { error } = await supabase
-      .from('group_messages')
-      .insert({ 
-        group_id: groupId, 
-        user_id: userId, 
-        message: text.trim() 
-      });
+  // ── subscribeToChat ────────────────────────────────────
+subscribeToChat: (groupId) => {
+  // Keep a local cache of IDs we've already shown (to dedup optimistic msgs)
+  const seenIds = new Set<string>();
 
-    if (error) {
-      // Rollback on error
-      set(s => ({
-        messages: {
-          ...s.messages,
-          [groupId]: (s.messages[groupId] || []).filter(m => m.id !== tempId),
-        },
-      }));
-      console.error('sendMessage error:', error);
-    }
-  },
+  // Pre-populate with messages we already have loaded
+  const existing = get().messages[groupId] || [];
+  existing.forEach(m => seenIds.add(m.id));
 
-  subscribeToChat: (groupId) => {
-    const channel = supabase
-      .channel(`group-chat-${groupId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'group_messages',
-          filter: `group_id=eq.${groupId}`,
-        },
-        async (payload) => {
-          const newMsg = payload.new as any;
-          const myId = useUserStore.getState().id;
-          
-          // Skip if it's our own message (already added optimistically)
-          if (newMsg.user_id === myId) return;
+  const channel = supabase
+    .channel(`group-chat-${groupId}-${Date.now()}`) // unique name prevents stale sub
+    .on(
+      'postgres_changes',
+      {
+        event:  'INSERT',
+        schema: 'public',
+        table:  'group_messages',
+        filter: `group_id=eq.${groupId}`,
+      },
+      async (payload) => {
+        const row = payload.new as any;
 
-          // Get author name
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('name')
-            .eq('id', newMsg.user_id)
-            .single();
+        // Skip if we've already rendered this message (optimistic or loaded)
+        // This is the key dedup — don't skip by user_id, skip by message id
+        if (seenIds.has(row.id)) return;
+        seenIds.add(row.id);
 
-          const message: ChatMessage = {
-            id: newMsg.id,
-            group_id: newMsg.group_id,
-            user_id: newMsg.user_id,
-            author: profile?.name || 'Member',
-            message: newMsg.message,
-            created_at: newMsg.created_at,
-            is_edited: newMsg.is_edited,
-          };
+        // Get the author name — check store first, then fetch
+        let authorName = 'Member';
+        const myId   = useUserStore.getState().id;
+        const myName = useUserStore.getState().name;
 
-          set(s => ({
-            messages: {
-              ...s.messages,
-              [groupId]: [...(s.messages[groupId] || []), message],
-            },
-          }));
+        if (row.user_id === myId) {
+          // It's our own message confirmed by DB — replace the optimistic one
+          authorName = myName || 'You';
+
+          // Remove the temp- optimistic message and replace with confirmed one
+          set(s => {
+            const existing = (s.messages[groupId] || [])
+              .filter(m => !m.id.startsWith('temp-'));
+            const confirmed: ChatMessage = {
+              id: row.id, group_id: row.group_id, user_id: row.user_id,
+              author: authorName, message: row.message,
+              created_at: row.created_at, is_edited: row.is_edited,
+            };
+            return { messages: { ...s.messages, [groupId]: [...existing, confirmed] } };
+          });
+          return;
         }
-      )
-      .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  },
+        // Someone else's message — fetch their name
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('name')
+          .eq('id', row.user_id)
+          .single();
+
+        authorName = profile?.name || 'Member';
+
+        const newMsg: ChatMessage = {
+          id:         row.id,
+          group_id:   row.group_id,
+          user_id:    row.user_id,
+          author:     authorName,
+          message:    row.message,
+          created_at: row.created_at,
+          is_edited:  row.is_edited,
+        };
+
+        set(s => ({
+          messages: {
+            ...s.messages,
+            [groupId]: [...(s.messages[groupId] || []), newMsg],
+          },
+        }));
+      }
+    )
+    .subscribe((status) => {
+      console.log(`[GroupChat] Realtime status for ${groupId}:`, status);
+    });
+
+  return () => {
+    console.log(`[GroupChat] Unsubscribing from ${groupId}`);
+    supabase.removeChannel(channel);
+  };
+},
 
   getMessages: (groupId) => get().messages[groupId] || [],
 }));
