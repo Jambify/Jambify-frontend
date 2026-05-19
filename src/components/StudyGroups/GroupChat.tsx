@@ -459,7 +459,7 @@ const GroupChat: React.FC<Props> = ({ group, onBack }) => {
                     isMe ? "text-brand-light" : "text-textDim",
                   )}
                 >
-                  {isMe ? (name || "You") : msg.author}
+                  {msg.author}
                 </p>
 
                 {/* Quoted Message (Reply) */}

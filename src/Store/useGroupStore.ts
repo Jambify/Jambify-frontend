@@ -45,6 +45,7 @@ interface GroupState {
   loading: boolean;
   msgLoading: boolean;
   error: string | null;
+  nameCache: Map<string, string>;
 
   loadGroups: () => Promise<void>;
   loadMyGroups: () => Promise<void>;
@@ -57,6 +58,7 @@ interface GroupState {
   retryMessage: (groupId: string, tempId: string) => Promise<void>;
   subscribeToChat: (groupId: string) => () => void;
   getMessages: (groupId: string) => ChatMessage[];
+  getName: (userId: string) => Promise<string>;
 }
 
 const SUBJECT_ICONS: Record<string, string> = {
@@ -76,6 +78,31 @@ export const useGroupStore = create<GroupState>()((set, get) => ({
   loading: false,
   msgLoading: false,
   error: null,
+  nameCache: new Map<string, string>(),
+
+  getName: async (userId: string) => {
+    const { nameCache } = get();
+    if (nameCache.has(userId)) return nameCache.get(userId)!;
+
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('name')
+        .eq('id', userId)
+        .maybeSingle();
+
+      const name = data?.name || 'JAMB Champion';
+      set(s => {
+        const newCache = new Map(s.nameCache);
+        newCache.set(userId, name);
+        return { nameCache: newCache };
+      });
+      return name;
+    } catch (err) {
+      console.error('Error fetching name:', err);
+      return 'JAMB Champion';
+    }
+  },
 
   // ── loadGroups ──────────────────────────────────────────
   loadGroups: async () => {
@@ -215,7 +242,10 @@ export const useGroupStore = create<GroupState>()((set, get) => ({
     try {
       const { data: msgs, error: msgErr } = await supabase
         .from('group_messages')
-        .select('*, author:profiles(name)') // Join to get the author name directly
+        .select(`
+          *,
+          profiles:user_id (name)
+        `)
         .eq('group_id', groupId)
         .order('created_at', { ascending: true })
         .limit(100);
@@ -225,6 +255,17 @@ export const useGroupStore = create<GroupState>()((set, get) => ({
         set(s => ({ messages: { ...s.messages, [groupId]: [] }, msgLoading: false }));
         return;
       }
+
+      // Update name cache from joined data
+      set(s => {
+        const newCache = new Map(s.nameCache);
+        msgs.forEach((m: any) => {
+          if (m.profiles?.name) {
+            newCache.set(m.user_id, m.profiles.name);
+          }
+        });
+        return { nameCache: newCache };
+      });
 
       const myId = useUserStore.getState().id;
       const myName = useUserStore.getState().name;
@@ -236,23 +277,29 @@ export const useGroupStore = create<GroupState>()((set, get) => ({
       if (replyIds.length > 0) {
         const { data: replyMsgs } = await supabase
           .from('group_messages')
-          .select('id, user_id, message, profiles(name)')
+          .select(`
+            id, 
+            user_id, 
+            message, 
+            profiles:user_id (name)
+          `)
           .in('id', replyIds);
 
-        (replyMsgs || []).forEach(r => {
-          const profileName = (r as any).profiles?.name;
-          const authorName = profileName || (r.user_id === myId ? myName : 'JAMB Champion');
-
+        (replyMsgs || []).forEach((r: any) => {
+          const authorName = r.profiles?.name || 'JAMB Champion';
           replyMap.set(r.id, {
             author: authorName,
             message: r.message,
           });
+          // Also update cache for reply authors
+          if (r.profiles?.name) {
+            get().nameCache.set(r.user_id, r.profiles.name);
+          }
         });
       }
 
-      const messages: ChatMessage[] = msgs.map(row => {
-        const profileName = (row as any).author?.name;
-        const authorName = profileName || (row.user_id === myId ? myName : 'JAMB Champion');
+      const messages: ChatMessage[] = msgs.map((row: any) => {
+        const authorName = row.profiles?.name || 'JAMB Champion';
 
         return {
           id: row.id,
@@ -279,8 +326,10 @@ export const useGroupStore = create<GroupState>()((set, get) => ({
   // ── sendMessage ─────────────────────────────────────────
   sendMessage: async (groupId, text, replyTo = null) => {
     const userId = useUserStore.getState().id;
-    const name = useUserStore.getState().name;
     if (!userId || !text.trim()) return;
+
+    // Get the most up-to-date name for the current user
+    const currentName = await get().getName(userId);
 
     const tempId = `temp-${Date.now()}-${Math.random()}`;
 
@@ -289,7 +338,7 @@ export const useGroupStore = create<GroupState>()((set, get) => ({
       id: tempId,
       group_id: groupId,
       user_id: userId,
-      author: name || 'You',
+      author: currentName || 'You',
       message: text.trim(),
       created_at: new Date().toISOString(),
       is_edited: false,
@@ -388,7 +437,6 @@ export const useGroupStore = create<GroupState>()((set, get) => ({
           seenIds.add(row.id);
 
           const myId = useUserStore.getState().id;
-          const myName = useUserStore.getState().name;
 
           if (row.user_id === myId) {
             // Our own message confirmed — swap temp → real, mark 'delivered'
@@ -412,14 +460,7 @@ export const useGroupStore = create<GroupState>()((set, get) => ({
           }
 
           // Someone else's message
-          let authorName = 'JAMB Champion';
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('name')
-            .eq('id', row.user_id)
-            .single();
-
-          authorName = profile?.name || (row.user_id === myId ? myName : 'JAMB Champion');
+          const authorName = await get().getName(row.user_id);
 
           // Resolve reply preview if present
           let reply_to: ReplyPreview | null = null;
@@ -431,11 +472,10 @@ export const useGroupStore = create<GroupState>()((set, get) => ({
               .single();
 
             if (replyMsg) {
-              // Try to get the author name from already-loaded messages first
-              const existing = (get().messages[groupId] || []).find(m => m.id === replyMsg.id);
+              const replyAuthor = await get().getName(replyMsg.user_id);
               reply_to = {
                 id: replyMsg.id,
-                author: existing?.author || authorName,
+                author: replyAuthor,
                 message: replyMsg.message,
               };
             }
@@ -461,12 +501,10 @@ export const useGroupStore = create<GroupState>()((set, get) => ({
           }));
         }
       )
-      .subscribe(status => {
-        console.log(`[Realtime] ${groupId}:`, status);
-      });
+      .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      channel.unsubscribe();
     };
   },
 
