@@ -347,20 +347,21 @@ const GroupChat: React.FC<Props> = ({ group, onBack }) => {
     });
 
   return (
-    // FIXED Layout: Added overflow-hidden and absolute positioning to fill parent safely
-    <div className="flex flex-col h-full max-h-[calc(100dvh-140px)] md:max-h-[calc(100dvh-120px)] overflow-hidden relative w-full bg-bgMain">
+    // FIXED Layout: Removed restrictive max-height to allow chat to fill available viewport space
+    // The parent container in StudyGroups.tsx already handles the fixed positioning and sidebar offset.
+    <div className="flex flex-col h-full overflow-hidden relative w-full bg-bgMain">
       {/* ── Fixed group info header ────────────────────────── */}
       <div className="shrink-0 border-b border-borderMuted bg-bgCard/95 backdrop-blur-md z-30 shadow-sm">
-        <div className="flex items-center gap-3 px-3 py-3">
+        <div className="flex items-center gap-3 px-3 py-2 md:py-2.5">
           <button
             onClick={onBack}
-            className="flex items-center justify-center w-9 h-9 rounded-xl bg-bgSurface hover:bg-bgDeep text-textMuted hover:text-white transition-all shrink-0 border border-borderMuted active:scale-90"
+            className="flex items-center justify-center w-8 h-8 md:w-9 md:h-9 rounded-xl bg-bgSurface hover:bg-bgDeep text-textMuted hover:text-white transition-all shrink-0 border border-borderMuted active:scale-90"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-4 h-4 md:w-5 md:h-5" />
           </button>
 
           <div
-            className="w-10 h-10 rounded-xl flex items-center justify-center text-xl shrink-0 shadow-inner"
+            className="w-9 h-9 md:w-10 md:h-10 rounded-xl flex items-center justify-center text-lg md:text-xl shrink-0 shadow-inner"
             style={{ background: `${color}15`, border: `1px solid ${color}30` }}
           >
             {group.icon}
@@ -570,7 +571,7 @@ const GroupChat: React.FC<Props> = ({ group, onBack }) => {
         )}
       >
         {isMember ? (
-          <div className="flex flex-col w-full p-3 gap-2">
+          <div className="flex flex-col w-full p-2 md:p-3 gap-2">
             {replyTo && (
               <ReplyBanner reply={replyTo} onCancel={() => setReplyTo(null)} />
             )}
@@ -601,9 +602,9 @@ const GroupChat: React.FC<Props> = ({ group, onBack }) => {
                         : "Type a message…"
                   }
                   disabled={!isOnline}
-                  style={{ fontSize: "16px", minHeight: "44px" }}
+                  style={{ fontSize: "16px", minHeight: "40px" }}
                   className={cn(
-                    "w-full px-4 py-3 bg-bgSurface border rounded-2xl text-sm text-textMain placeholder:text-textDim focus:outline-none focus:border-brand/50 transition-all resize-none custom-scrollbar",
+                    "w-full px-3 md:px-4 py-2 md:py-3 bg-bgSurface border rounded-2xl text-sm text-textMain placeholder:text-textDim focus:outline-none focus:border-brand/50 transition-all resize-none custom-scrollbar",
                     isOnline
                       ? "border-borderMuted"
                       : "border-danger/30 opacity-60 cursor-not-allowed bg-danger/5",
@@ -614,13 +615,13 @@ const GroupChat: React.FC<Props> = ({ group, onBack }) => {
                 onClick={handleSend}
                 disabled={!text.trim() || !isOnline}
                 className={cn(
-                  "w-11 h-11 rounded-2xl flex items-center justify-center transition-all active:scale-90 shrink-0 shadow-lg",
+                  "w-10 h-10 md:w-11 md:h-11 rounded-2xl flex items-center justify-center transition-all active:scale-90 shrink-0 shadow-lg",
                   isOnline
                     ? "bg-brand hover:bg-brand-light text-white shadow-brand/20"
                     : "bg-danger/20 text-danger/50 cursor-not-allowed shadow-none",
                 )}
               >
-                <Send className="w-5 h-5" />
+                <Send className="w-4 h-4 md:w-5 md:h-5" />
               </button>
             </div>
 

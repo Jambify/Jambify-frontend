@@ -76,9 +76,11 @@ const AppLayout: React.FC<LayoutProps> = ({
   const initials = getInitials(displayName);
 
   return (
-    <div className="flex min-h-screen bg-bgMain text-textMain font-body safe-area-all">
+    <div className="min-h-screen bg-bgMain text-white font-sans selection:bg-brand/30">
+      {/* MOBILE SIDEBAR (Drawer) - Dark Theme */}
       <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-      {/* SIDEBAR - DESKTOP */}
+
+      {/* DESKTOP SIDEBAR - Inline with separate color theme */}
       <aside className="fixed left-0 top-0 bottom-0 w-60 bg-bgSurface border-r border-borderMuted flex-col z-100 hidden lg:flex">
         <div className="p-6 pb-4 flex items-center gap-3 border-b border-borderMuted">
           <div className="w-8 h-8 bg-brand rounded-lg flex items-center justify-center font-display font-extrabold shadow-[0_8px_40px_rgba(91,59,255,0.3)]">
@@ -179,7 +181,7 @@ const AppLayout: React.FC<LayoutProps> = ({
 
       {/* MOBILE BOTTOM NAVIGATION - Professional App Bar */}
       <div className="fixed bottom-0 left-0 right-0 lg:hidden z-100 bg-bgSurface/98 backdrop-blur-2xl border-t border-white/5 safe-area-bottom shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
-        <nav className="flex items-center justify-around h-18px px-1 relative">
+        <nav className="flex items-center justify-around h-18 px-1 relative">
           <Link
             to="/"
             className="flex flex-col items-center justify-center flex-1 h-full gap-1 transition-all active:scale-90 touch-target no-double-tap"

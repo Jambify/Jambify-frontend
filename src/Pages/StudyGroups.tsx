@@ -132,7 +132,7 @@ const StudyGroups: React.FC = () => {
         isSidebarOpen={isSidebarOpen}
         setIsSidebarOpen={setIsSidebarOpen}
       >
-        <div className="fixed inset-0 lg:left-60 top-14 bg-bgMain z-40 flex flex-col">
+        <div className="fixed top-14 left-0 right-0 bottom-[72px] lg:left-60 lg:bottom-0 bg-bgMain z-40 flex flex-col">
           <GroupChat group={activeGroup} onBack={() => setActiveGroupId(null)} />
         </div>
       </AppLayout>

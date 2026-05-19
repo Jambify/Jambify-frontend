@@ -194,10 +194,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
       <aside
         className={cn(
-          "fixed left-0 top-0 bottom-0 z-120 w-64 h-full",
+          "fixed left-0 top-0 bottom-0 z-120 w-64 h-full lg:hidden",
           "bg-bgDeep border-r border-borderMuted",
           "flex flex-col transition-transform duration-300 ease-in-out",
-          "lg:translate-x-0",
           isOpen ? "translate-x-0" : "-translate-x-full",
         )}
       >
