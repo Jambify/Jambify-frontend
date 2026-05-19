@@ -1,81 +1,68 @@
-/**
- * THE FLASH BUG EXPLAINED:
- *
- * After signOut(), DEFAULTS resets onboardingComplete → false.
- * When the user signs back in and navigates to '/', RouteGuard
- * renders BEFORE syncProfile() finishes. It sees:
- *   isAuthenticated = true
- *   onboardingComplete = false   ← still DEFAULTS
- * So it redirects → /onboarding for one frame. That's the flash.
- *
- * THE FIX:
- * Add an `isInitialising` state that is true while we're syncing
- * on first auth. Show a spinner during that window. Once sync
- * resolves, the correct onboardingComplete value is in Zustand
- * and the guard makes the right decision with no flash.
- *
- * KEY CHANGE vs your current code:
- * Your current guard only syncs when !onboardingComplete.
- * We must ALWAYS sync on first auth (just once), regardless
- * of what onboardingComplete currently says in Zustand —
- * because it might be stale from the previous signOut reset.
- */
-
+// src/components/Layout/RouteGuard.tsx
 import React, { useEffect, useRef, useState } from 'react';
-import { Navigate, useLocation }                from 'react-router-dom';
-import { useUserStore }                          from '../../Store/UseUserStore';
-import { supabase }                              from '../../lib/supabase';
+import { Navigate, useLocation }               from 'react-router-dom';
+import { useUserStore }                         from '../../Store/UseUserStore';
+import { supabase }                             from '../../lib/supabase';
 
-const PUBLIC_ROUTES     = ['/signin', '/signup', '/verify', '/guest'];
-const ONBOARDING_ROUTES = ['/onboarding', '/welcome'];
+// ── Route categories ──────────────────────────────────────────────────────────
+// Public: no auth needed at all
+const PUBLIC_ROUTES = ['/signin', '/signup', '/verify', '/guest'];
+
+// Semi-protected: auth required but onboarding check is SKIPPED.
+// /onboarding and /welcome MUST be here — they render between
+// "just signed up" and "fully onboarded" states.
+// If they're NOT here, the guard creates a redirect loop:
+//   isAuthenticated=true + onboardingComplete=false → redirect to /onboarding
+//   /onboarding renders → guard fires again → redirect to /onboarding → ∞
+const SEMI_PROTECTED = ['/onboarding', '/welcome'];
 
 const RouteGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { pathname }       = useLocation();
   const isAuthenticated    = useUserStore(s => s.isAuthenticated);
   const onboardingComplete = useUserStore(s => s.onboardingComplete);
-  // const id                 = useUserStore(s => s.id);
   const syncProfile        = useUserStore(s => s.syncProfile);
 
-  // True while we're doing the FIRST sync after auth.
-  // Starts true so we NEVER render a redirect before sync completes.
+  // isInitialising starts TRUE so we NEVER render a redirect before we've
+  // confirmed the Supabase session. Without this, a page refresh on /dashboard
+  // shows isAuthenticated=false for one frame and flashes the signin page.
   const [isInitialising, setIsInitialising] = useState(true);
   const hasSynced = useRef(false);
 
   useEffect(() => {
-    // Always run once on mount to check the Supabase session.
     const init = async () => {
       if (hasSynced.current) return;
       hasSynced.current = true;
 
       try {
-        // 1. Check if Supabase has a live session
         const { data: { session } } = await supabase.auth.getSession();
 
         if (session?.user) {
-          // 2. Restore auth identity into Zustand
+          // Restore identity BEFORE syncProfile so syncProfile can read the id
           useUserStore.setState({
             isAuthenticated: true,
             id:    session.user.id,
-            email: session.user.email || '',
+            email: session.user.email ?? '',
           });
 
-          // 3. Force-sync profile so onboardingComplete is fresh from DB
-          //    This is what prevents the flash — we wait for this
-          //    before allowing any redirect decision.
+          // force=true bypasses the 5-second cache so we always get fresh
+          // onboarding_complete from DB, even if the user just signed out
+          // and signed back in (signOut resets Zustand to DEFAULTS)
           await syncProfile(true);
         }
+      } catch (err) {
+        console.error('[RouteGuard] init error:', err);
       } finally {
-        // 4. Only NOW let the guard make routing decisions
+        // Only NOW allow the guard to make redirect decisions
         setIsInitialising(false);
       }
     };
 
     init();
-  }, []); // runs exactly once on app start / page refresh
+  }, []); // runs exactly once per mount
 
-  // ── Show spinner while initialising ─────────────────────────────────
-  // This window is typically 200–500ms (one Supabase round-trip).
-  // During this time we render NOTHING that could cause a flash redirect.
+  // ── Spinner while initialising ────────────────────────────────────────────
+  // Typically 200–500 ms (one Supabase round-trip + one DB query).
+  // Keeps ANY redirect decision from firing until we have real state.
   if (isInitialising) {
     return (
       <div className="min-h-screen bg-bgMain flex items-center justify-center">
@@ -87,29 +74,36 @@ const RouteGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     );
   }
 
-  // ── Routing decisions (only reached after sync is done) ──────────────
+  // ── Routing decisions (sync is complete, state is authoritative) ──────────
 
-  // 1. Public routes — always allow
+  // 1. Public routes — always accessible, no auth check
+  // EXCEPT: If user is authenticated AND onboarded, we redirect them AWAY from signin/signup
   if (PUBLIC_ROUTES.some(r => pathname.startsWith(r))) {
+    if (isAuthenticated && onboardingComplete && (pathname === '/signin' || pathname === '/signup')) {
+      return <Navigate to="/" replace />;
+    }
     return <>{children}</>;
   }
 
-  // 2. Not logged in → signin
+  // 2. Not authenticated → send to sign-in
   if (!isAuthenticated) {
     return <Navigate to="/signin" replace />;
   }
 
-  // 3. Onboarding / welcome — logged in is enough
-  if (ONBOARDING_ROUTES.some(r => pathname.startsWith(r))) {
+  // 3. Onboarding & welcome — auth required but onboarding NOT required.
+  //    This must come BEFORE the onboardingComplete check below.
+  if (SEMI_PROTECTED.some(r => pathname.startsWith(r))) {
     return <>{children}</>;
   }
 
-  // 4. Logged in but onboarding not done → onboarding
+  // 4. Authenticated but onboarding not finished → send to onboarding
   if (!onboardingComplete) {
+    // If they are on a protected route (like /dashboard), send to onboarding
+    // But if they are on a public route (handled above) or semi-protected (handled above), they stay there.
     return <Navigate to="/onboarding" replace />;
   }
 
-  // 5. All good
+  // 5. Fully authenticated and onboarded — allow
   return <>{children}</>;
 };
 

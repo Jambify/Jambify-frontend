@@ -249,7 +249,7 @@ export const useGroupStore = create<GroupState>()((set, get) => ({
       // If some IDs are still missing from nameMap (including ME)
       uniqueIds.forEach(id => {
         if (!nameMap.has(id)) {
-          nameMap.set(id, (id === myId && myName) ? myName : 'JAMB Champion');
+          nameMap.set(id, (id === myId) ? (myName || 'JAMB Champion') : 'JAMB Champion');
         }
       });
 
@@ -264,8 +264,9 @@ export const useGroupStore = create<GroupState>()((set, get) => ({
           .in('id', replyIds);
 
         (replyMsgs || []).forEach(r => {
+          const authorName = nameMap.get(r.user_id) || (r.user_id === myId ? myName : 'JAMB Champion') || 'JAMB Champion';
           replyMap.set(r.id, {
-            author: nameMap.get(r.user_id) || (r.user_id === myId ? myName : 'JAMB Champion'),
+            author: authorName,
             message: r.message,
           });
         });
@@ -275,7 +276,7 @@ export const useGroupStore = create<GroupState>()((set, get) => ({
         id: row.id,
         group_id: row.group_id,
         user_id: row.user_id,
-        author: nameMap.get(row.user_id) || (row.user_id === myId ? myName : 'JAMB Champion'),
+        author: nameMap.get(row.user_id) || (row.user_id === myId ? myName : 'JAMB Champion') || 'JAMB Champion',
         message: row.message,
         created_at: row.created_at,
         is_edited: row.is_edited,
@@ -404,7 +405,7 @@ export const useGroupStore = create<GroupState>()((set, get) => ({
           seenIds.add(row.id);
 
           const myId = useUserStore.getState().id;
-          // const myName = useUserStore.getState().name;
+          const myName = useUserStore.getState().name;
 
           if (row.user_id === myId) {
             // Our own message confirmed — swap temp → real, mark 'delivered'
@@ -428,9 +429,6 @@ export const useGroupStore = create<GroupState>()((set, get) => ({
           }
 
           // Someone else's message
-          const myId = useUserStore.getState().id;
-          const myName = useUserStore.getState().name;
-
           let authorName = 'JAMB Champion';
           const { data: profile } = await supabase
             .from('profiles')

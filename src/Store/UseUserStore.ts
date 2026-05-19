@@ -153,7 +153,8 @@ export const useUserStore = create<UserState>()(
 
       // Auth Actions
       signUp: async (email: string, password: string, name: string) => {
-        set({ isLoading: true, authError: null });
+        // PRESERVE user's name immediately so it persists even if signup fails
+        set({ name, isLoading: true, authError: null });
 
         try {
           const { data, error } = await supabase.auth.signUp({
@@ -170,7 +171,6 @@ export const useUserStore = create<UserState>()(
           if (data.user) {
             set({
               email,
-              name,
               id: data.user.id,
               isAuthenticated: true
             });
@@ -197,7 +197,6 @@ export const useUserStore = create<UserState>()(
             email,
             password
           });
-
           if (error) throw error;
 
           if (data.user) {
@@ -222,66 +221,71 @@ export const useUserStore = create<UserState>()(
       signOut: async () => {
         set({ isLoading: true });
         try {
-          const { error } = await supabase.auth.signOut();
-          if (error) throw error;
-
+          await supabase.auth.signOut();
+          // Force reset EVERYTHING to defaults
           set({ ...DEFAULTS, isAuthenticated: false, id: null });
           localStorage.removeItem('jambready-user');
         } catch (error) {
           console.error('Signout error:', error);
+          // Still reset local state even if Supabase call fails
+          set({ ...DEFAULTS, isAuthenticated: false, id: null });
         } finally {
           set({ isLoading: false });
         }
       },
 
       // Update the syncProfile function in UseUserStore.ts
-syncProfile: async (force = false): Promise<{ onboardingComplete: boolean }> => {
-  const { id, _lastSync } = get();
-  if (!id) return { onboardingComplete: false };
-  
-  const now = Date.now();
-  if (!force && _lastSync && (now - _lastSync) < 5000) {
-    console.log('🔵 Using cached profile data');
-    return { onboardingComplete: get().onboardingComplete };
-  }
-  
-  set({ isLoading: true, _lastSync: now });
-  
-  try {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', id)
-      .maybeSingle();
+      syncProfile: async (force = false): Promise<{ onboardingComplete: boolean }> => {
+        const { id, _lastSync } = get();
+        if (!id) return { onboardingComplete: false };
 
-    if (error) throw error;
+        const now = Date.now();
+        if (!force && _lastSync && (now - _lastSync) < 5000) {
+          console.log('🔵 Using cached profile data');
+          return { onboardingComplete: get().onboardingComplete };
+        }
 
-    if (data) {
-      const onboardingComplete = data.onboarding_complete === true;
-      
-      set({
-        name: data.name || get().name,
-        university: data.university || '',
-        targetScore: data.target_score || '',
-        examYear: data.exam_year || '2025',
-        examDate: data.exam_date || 'Jun 14',
-        subjectCombo: data.subject_combo ? getSubjectComboId(data.subject_combo) : '',
-        onboardingComplete: onboardingComplete,
-        email: data.email || get().email,
-        isLoading: false,
-      });
-      
-      return { onboardingComplete };
-    }
-    
-    return { onboardingComplete: false };
-  } catch (error) {
-    console.error('Sync profile error:', error);
-    return { onboardingComplete: get().onboardingComplete };
-  } finally {
-    set({ isLoading: false });
-  }
-},
+        set({ isLoading: true, _lastSync: now });
+
+        try {
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', id)
+            .maybeSingle();
+
+          if (error) throw error;
+
+          if (data) {
+            const onboardingComplete = data.onboarding_complete === true;
+
+            // Merge logic: prefer DB name if it exists, otherwise keep current store name
+            const currentName = get().name;
+            const dbName = data.name || '';
+
+            set({
+              name: dbName || currentName,
+              university: data.university || '',
+              targetScore: data.target_score || '',
+              examYear: data.exam_year || '2025',
+              examDate: data.exam_date || 'Jun 14',
+              subjectCombo: data.subject_combo ? getSubjectComboId(data.subject_combo) : '',
+              onboardingComplete: onboardingComplete,
+              email: data.email || get().email,
+              isLoading: false,
+            });
+
+            return { onboardingComplete };
+          }
+
+          return { onboardingComplete: false };
+        } catch (error) {
+          console.error('Sync profile error:', error);
+          return { onboardingComplete: get().onboardingComplete };
+        } finally {
+          set({ isLoading: false });
+        }
+      },
 
       clearAuthError: () => set({ authError: null }),
       _lastSync: null,
@@ -331,7 +335,7 @@ syncProfile: async (force = false): Promise<{ onboardingComplete: boolean }> => 
             // onboardingComplete: true  // ← KEEP THIS COMMENTED
           });
 
-           await get().syncProfile(true); // Force sync to get the latest onboardingComplete status from DB
+          await get().syncProfile(true); // Force sync to get the latest onboardingComplete status from DB
           return { error: null };
         } catch (error) {
           console.error('Complete onboarding error:', error);

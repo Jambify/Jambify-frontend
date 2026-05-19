@@ -4,7 +4,7 @@ import { useUserStore } from "../Store/UseUserStore";
 import StepIndicator from "../components/OnBoarding/StepIndicator";
 import Button from "../components/ui/Button";
 import { cn } from "../lib/utils";
-import LoadingScreen from '../components/ui/LoadingScreen';
+import LoadingScreen from "../components/ui/LoadingScreen";
 
 /* ── Updated Data with Professional Combos ── */
 const SUBJECT_COMBOS = [
@@ -99,6 +99,7 @@ const Onboarding: React.FC = () => {
     isAuthenticated,
     onboardingComplete,
     syncProfile,
+    signOut,
     name: userName,
   } = useUserStore();
 
@@ -109,7 +110,18 @@ const Onboarding: React.FC = () => {
   const [uniError, setUniError] = useState<string | null>(null);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [useFallback, setUseFallback] = useState(false);
-   const [isCompleting, setIsCompleting] = useState(false);
+  const [isCompleting, setIsCompleting] = useState(false);
+
+  const handleCancel = async () => {
+    if (
+      window.confirm(
+        "Are you sure you want to cancel onboarding? You will be signed out.",
+      )
+    ) {
+      await signOut();
+      navigate("/signup", { replace: true });
+    }
+  };
 
   const [form, setForm] = useState<FormData>({
     university: "",
@@ -278,50 +290,54 @@ const Onboarding: React.FC = () => {
   };
 
   const handleNext = async () => {
-  if (!validate()) return;
+    if (!validate()) return;
 
-  if (step < TOTAL_STEPS) {
-    setStep((s) => s + 1);
-    return;
-  }
+    if (step < TOTAL_STEPS) {
+      setStep((s) => s + 1);
+      return;
+    }
 
-  setIsCompleting(true); // ← Set this before API call
-  console.log("🔵 Completing onboarding...");
+    setIsCompleting(true); // ← Set this before API call
+    console.log("🔵 Completing onboarding...");
 
-  try {
-    const { error } = await completeOnboarding({
-      name: userName,
-      university: form.university,
-      subjectCombo: form.subjectCombo,
-      targetScore: form.targetScore,
-      examYear: form.examYear,
-      examDate: form.examDate,
-    });
+    try {
+      const { error } = await completeOnboarding({
+        name: userName,
+        university: form.university,
+        subjectCombo: form.subjectCombo,
+        targetScore: form.targetScore,
+        examYear: form.examYear,
+        examDate: form.examDate,
+      });
 
-    if (!error) {
-      // Small delay to ensure state updates
-      setTimeout(() => {
-        navigate("/welcome", { replace: true });
-      }, 100);
-    } else {
-      console.error("Onboarding error:", error);
+      if (!error) {
+        // Small delay to ensure state updates
+        setTimeout(() => {
+          navigate("/welcome", { replace: true });
+        }, 100);
+      } else {
+        console.error("Onboarding error:", error);
+        setIsCompleting(false);
+      }
+    } catch (err) {
+      console.error("Unexpected error:", err);
       setIsCompleting(false);
     }
-  } catch (err) {
-    console.error("Unexpected error:", err);
-    setIsCompleting(false);
-  }
-};
+  };
   // Show loading state while checking auth
   if (isLoading || isCheckingAuth || isCompleting) {
-  return (
-    <LoadingScreen 
-      message={isCompleting ? "Completing your setup" : "Loading your profile"}
-      submessage={isCompleting ? "This will just take a moment" : "Please wait"}
-      estimatedTime={isCompleting ? 3 : 2}
-    />
-  );
-}
+    return (
+      <LoadingScreen
+        message={
+          isCompleting ? "Completing your setup" : "Loading your profile"
+        }
+        submessage={
+          isCompleting ? "This will just take a moment" : "Please wait"
+        }
+        estimatedTime={isCompleting ? 3 : 2}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#0F1115] text-white flex flex-col items-center justify-center p-4">
@@ -523,19 +539,28 @@ const Onboarding: React.FC = () => {
             </div>
           )}
 
-          <div className="flex gap-4 mt-10">
-            {step > 1 && (
-              <Button
-                variant="secondary"
-                onClick={() => setStep((s) => s - 1)}
-                className="bg-white/5 border-white/10"
-              >
-                Back
+          <div className="flex flex-col gap-4 mt-10">
+            <div className="flex gap-4">
+              {step > 1 && (
+                <Button
+                  variant="secondary"
+                  onClick={() => setStep((s) => s - 1)}
+                  className="bg-white/5 border-white/10"
+                >
+                  Back
+                </Button>
+              )}
+              <Button variant="primary" fullWidth onClick={handleNext}>
+                {step === TOTAL_STEPS ? "Ready to Win" : "Next Step"}
               </Button>
-            )}
-            <Button variant="primary" fullWidth onClick={handleNext}>
-              {step === TOTAL_STEPS ? "Ready to Win" : "Next Step"}
-            </Button>
+            </div>
+
+            <button
+              onClick={handleCancel}
+              className="text-xs text-textDim hover:text-white transition-colors py-2"
+            >
+              Cancel & Back to Sign Up
+            </button>
           </div>
         </div>
       </div>
