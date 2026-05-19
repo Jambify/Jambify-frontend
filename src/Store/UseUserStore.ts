@@ -256,12 +256,21 @@ export const useUserStore = create<UserState>()(
 
           if (error) throw error;
 
+          const currentName = get().name;
+
           if (data) {
             const onboardingComplete = data.onboarding_complete === true;
-
-            // Merge logic: prefer DB name if it exists, otherwise keep current store name
-            const currentName = get().name;
             const dbName = data.name || '';
+
+            // If we have a name locally but not in DB, sync it UP to the DB
+            // so other users can see it in chat immediately.
+            if (!dbName && currentName) {
+              console.log('🔵 Syncing name to DB profile:', currentName);
+              await supabase
+                .from('profiles')
+                .update({ name: currentName })
+                .eq('id', id);
+            }
 
             set({
               name: dbName || currentName,
@@ -276,6 +285,16 @@ export const useUserStore = create<UserState>()(
             });
 
             return { onboardingComplete };
+          } else {
+            // No profile record yet? Try to create one with the name we have
+            if (currentName) {
+              console.log('🔵 Creating initial profile with name:', currentName);
+              await supabase
+                .from('profiles')
+                .insert({ id, name: currentName, email: get().email })
+                .select()
+                .maybeSingle();
+            }
           }
 
           return { onboardingComplete: false };

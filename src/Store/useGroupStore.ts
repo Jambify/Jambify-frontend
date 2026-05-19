@@ -215,7 +215,7 @@ export const useGroupStore = create<GroupState>()((set, get) => ({
     try {
       const { data: msgs, error: msgErr } = await supabase
         .from('group_messages')
-        .select('*')
+        .select('*, author:profiles(name)') // Join to get the author name directly
         .eq('group_id', groupId)
         .order('created_at', { ascending: true })
         .limit(100);
@@ -226,32 +226,8 @@ export const useGroupStore = create<GroupState>()((set, get) => ({
         return;
       }
 
-      // Batch fetch all profile names in one query
-      const uniqueIds = [...new Set(msgs.map(m => m.user_id))];
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('id, name')
-        .in('id', uniqueIds);
-
       const myId = useUserStore.getState().id;
       const myName = useUserStore.getState().name;
-
-      const nameMap = new Map<string, string>();
-      (profiles || []).forEach(p => {
-        let displayName = p.name;
-        // If this is ME, and DB has no name, use my store name
-        if (p.id === myId && !displayName) {
-          displayName = myName;
-        }
-        nameMap.set(p.id, displayName || 'JAMB Champion');
-      });
-
-      // If some IDs are still missing from nameMap (including ME)
-      uniqueIds.forEach(id => {
-        if (!nameMap.has(id)) {
-          nameMap.set(id, (id === myId) ? (myName || 'JAMB Champion') : 'JAMB Champion');
-        }
-      });
 
       // Build reply preview map from reply_to_id references
       const replyIds = msgs.filter(m => m.reply_to_id).map(m => m.reply_to_id);
@@ -260,11 +236,13 @@ export const useGroupStore = create<GroupState>()((set, get) => ({
       if (replyIds.length > 0) {
         const { data: replyMsgs } = await supabase
           .from('group_messages')
-          .select('id, user_id, message')
+          .select('id, user_id, message, profiles(name)')
           .in('id', replyIds);
 
         (replyMsgs || []).forEach(r => {
-          const authorName = nameMap.get(r.user_id) || (r.user_id === myId ? myName : 'JAMB Champion') || 'JAMB Champion';
+          const profileName = (r as any).profiles?.name;
+          const authorName = profileName || (r.user_id === myId ? myName : 'JAMB Champion');
+
           replyMap.set(r.id, {
             author: authorName,
             message: r.message,
@@ -272,19 +250,24 @@ export const useGroupStore = create<GroupState>()((set, get) => ({
         });
       }
 
-      const messages: ChatMessage[] = msgs.map(row => ({
-        id: row.id,
-        group_id: row.group_id,
-        user_id: row.user_id,
-        author: nameMap.get(row.user_id) || (row.user_id === myId ? myName : 'JAMB Champion') || 'JAMB Champion',
-        message: row.message,
-        created_at: row.created_at,
-        is_edited: row.is_edited,
-        status: 'delivered' as MessageStatus,
-        reply_to: row.reply_to_id
-          ? { id: row.reply_to_id, ...replyMap.get(row.reply_to_id)! }
-          : null,
-      }));
+      const messages: ChatMessage[] = msgs.map(row => {
+        const profileName = (row as any).author?.name;
+        const authorName = profileName || (row.user_id === myId ? myName : 'JAMB Champion');
+
+        return {
+          id: row.id,
+          group_id: row.group_id,
+          user_id: row.user_id,
+          author: authorName,
+          message: row.message,
+          created_at: row.created_at,
+          is_edited: row.is_edited,
+          status: 'delivered' as MessageStatus,
+          reply_to: row.reply_to_id
+            ? { id: row.reply_to_id, ...replyMap.get(row.reply_to_id)! }
+            : null,
+        };
+      });
 
       set(s => ({ messages: { ...s.messages, [groupId]: messages }, msgLoading: false }));
     } catch (err) {
@@ -436,7 +419,7 @@ export const useGroupStore = create<GroupState>()((set, get) => ({
             .eq('id', row.user_id)
             .single();
 
-          authorName = profile?.name || (row.user_id === myId ? myName : 'JAMB Champion') || 'JAMB Champion';
+          authorName = profile?.name || (row.user_id === myId ? myName : 'JAMB Champion');
 
           // Resolve reply preview if present
           let reply_to: ReplyPreview | null = null;
