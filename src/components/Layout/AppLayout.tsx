@@ -178,79 +178,87 @@ const AppLayout: React.FC<LayoutProps> = ({
 
       {/* UNIQUE MOBILE FLOATING NAV */}
       <div className="fixed bottom-6 left-0 right-0 px-4 lg:hidden z-100 safe-area-bottom">
-        <nav className="bg-bgSurface/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] px-2 py-2 flex items-center justify-around relative">
+        <nav className="bg-bgSurface/95 backdrop-blur-xl border border-white/10 rounded-brand-xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] px-2 py-2 flex items-center justify-around relative">
           <Link
             to="/"
-            className="relative flex flex-col items-center justify-center w-12 h-12 transition-transform active:scale-95 touch-target no-double-tap"
+            className="relative flex flex-col items-center justify-center w-14 h-14 transition-all active:scale-90 touch-target no-double-tap"
             aria-label="Dashboard"
           >
             <LayoutGrid
-              size={22}
+              size={24}
+              strokeWidth={currentPage === "dashboard" ? 2.5 : 2}
               className={
                 currentPage === "dashboard"
-                  ? "text-brand-light"
-                  : "text-textDim"
+                  ? "text-brand-light drop-shadow-[0_0_8px_rgba(123,95,255,0.5)]"
+                  : "text-textDim opacity-70"
               }
             />
             {currentPage === "dashboard" && (
-              <div className="absolute -bottom-1 w-1 h-1 bg-brand-light rounded-full" />
+              <div className="absolute -bottom-1 w-1.5 h-1.5 bg-brand-light rounded-full shadow-[0_0_6px_rgba(123,95,255,0.8)]" />
             )}
           </Link>
 
           <Link
             to="/subjects"
-            className="relative flex flex-col items-center justify-center w-12 h-12 transition-transform active:scale-95 touch-target no-double-tap"
+            className="relative flex flex-col items-center justify-center w-14 h-14 transition-all active:scale-90 touch-target no-double-tap"
             aria-label="Subjects"
           >
             <BookOpen
-              size={22}
+              size={24}
+              strokeWidth={currentPage === "subjects" ? 2.5 : 2}
               className={
-                currentPage === "subjects" ? "text-brand-light" : "text-textDim"
+                currentPage === "subjects" 
+                  ? "text-brand-light drop-shadow-[0_0_8px_rgba(123,95,255,0.5)]" 
+                  : "text-textDim opacity-70"
               }
             />
             {currentPage === "subjects" && (
-              <div className="absolute -bottom-1 w-1 h-1 bg-brand-light rounded-full" />
+              <div className="absolute -bottom-1 w-1.5 h-1.5 bg-brand-light rounded-full shadow-[0_0_6px_rgba(123,95,255,0.8)]" />
             )}
           </Link>
 
           {/* Center Action Button */}
-          <Link to="/quiz" className="relative -top-6" aria-label="Quiz">
-            <div className="bg-brand w-14 h-14 rounded-2xl rotate-45 flex items-center justify-center shadow-[0_10px_25px_rgba(91,59,255,0.4)] transition-all hover:scale-105 active:scale-90 touch-target no-double-tap">
-              <FileText size={24} className="text-white -rotate-45" />
+          <Link to="/quiz" className="relative -top-7" aria-label="Quiz">
+            <div className="bg-brand w-16 h-16 rounded-brand-lg rotate-45 flex items-center justify-center shadow-[0_12px_30px_rgba(91,59,255,0.5)] transition-all hover:scale-110 active:scale-90 touch-target no-double-tap border border-white/20">
+              <FileText size={28} className="text-white -rotate-45" />
             </div>
           </Link>
 
           <Link
             to="/performance"
-            className="relative flex flex-col items-center justify-center w-12 h-12 transition-transform active:scale-95 touch-target no-double-tap"
+            className="relative flex flex-col items-center justify-center w-14 h-14 transition-all active:scale-90 touch-target no-double-tap"
             aria-label="Performance"
           >
             <Activity
-              size={22}
+              size={24}
+              strokeWidth={currentPage === "performance" ? 2.5 : 2}
               className={
                 currentPage === "performance"
-                  ? "text-brand-light"
-                  : "text-textDim"
+                  ? "text-brand-light drop-shadow-[0_0_8px_rgba(123,95,255,0.5)]"
+                  : "text-textDim opacity-70"
               }
             />
             {currentPage === "performance" && (
-              <div className="absolute -bottom-1 w-1 h-1 bg-brand-light rounded-full" />
+              <div className="absolute -bottom-1 w-1.5 h-1.5 bg-brand-light rounded-full shadow-[0_0_6px_rgba(123,95,255,0.8)]" />
             )}
           </Link>
 
           <Link
             to="/settings"
-            className="relative flex flex-col items-center justify-center w-12 h-12 transition-transform active:scale-95 touch-target no-double-tap"
+            className="relative flex flex-col items-center justify-center w-14 h-14 transition-all active:scale-90 touch-target no-double-tap"
             aria-label="Settings"
           >
             <Settings
-              size={22}
+              size={24}
+              strokeWidth={currentPage === "settings" ? 2.5 : 2}
               className={
-                currentPage === "settings" ? "text-brand-light" : "text-textDim"
+                currentPage === "settings" 
+                  ? "text-brand-light drop-shadow-[0_0_8px_rgba(123,95,255,0.5)]" 
+                  : "text-textDim opacity-70"
               }
             />
             {currentPage === "settings" && (
-              <div className="absolute -bottom-1 w-1 h-1 bg-brand-light rounded-full" />
+              <div className="absolute -bottom-1 w-1.5 h-1.5 bg-brand-light rounded-full shadow-[0_0_6px_rgba(123,95,255,0.8)]" />
             )}
           </Link>
         </nav>

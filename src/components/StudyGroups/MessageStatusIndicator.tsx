@@ -1,9 +1,9 @@
 // src/components/StudyGroups/MessageStatusIndicator.tsx
-import React from 'react';
-import { Check, CheckCheck, Clock, WifiOff, RefreshCw } from 'lucide-react';
-import { cn } from '../../lib/utils';
+import React from "react";
+import { Check, CheckCheck, Clock, WifiOff, RefreshCw } from "lucide-react";
+import { cn } from "../../lib/utils";
 
-export type MessageStatus = 'sending' | 'sent' | 'delivered' | 'failed';
+export type MessageStatus = "sending" | "sent" | "delivered" | "failed";
 
 interface Props {
   status: MessageStatus;
@@ -11,43 +11,51 @@ interface Props {
   className?: string;
 }
 
-const MessageStatusIndicator: React.FC<Props> = ({ status, onRetry, className }) => {
-  if (status === 'sending') {
+const MessageStatusIndicator: React.FC<Props> = ({
+  status,
+  onRetry,
+  className,
+}) => {
+  if (status === "sending") {
     return (
-      <span className={cn('flex items-center gap-0.5 text-white/40', className)}>
+      <span className={cn("flex items-center gap-0.5 text-textDim", className)}>
         <Clock className="w-3 h-3 animate-pulse" />
       </span>
     );
   }
 
-  if (status === 'sent') {
+  if (status === "sent") {
     return (
-      <span className={cn('flex items-center gap-0.5 text-white/50', className)}>
+      <span
+        className={cn("flex items-center gap-0.5 text-textMuted", className)}
+      >
         <Check className="w-3 h-3" />
       </span>
     );
   }
 
-  if (status === 'delivered') {
+  if (status === "delivered") {
     return (
-      <span className={cn('flex items-center gap-0.5 text-white/70', className)}>
+      <span
+        className={cn("flex items-center gap-0.5 text-brand-light", className)}
+      >
         <CheckCheck className="w-3 h-3" />
       </span>
     );
   }
 
-  if (status === 'failed') {
+  if (status === "failed") {
     return (
       <button
         onClick={onRetry}
         title="Tap to retry"
         className={cn(
-          'flex items-center gap-1 text-red-400 hover:text-red-300 transition-colors',
-          className
+          "flex items-center gap-1 text-danger hover:text-danger/80 transition-all active:scale-95",
+          className,
         )}
       >
-        <WifiOff className="w-3 h-3" />
-        {onRetry && <RefreshCw className="w-3 h-3 hover:rotate-180 transition-transform duration-500" />}
+        <WifiOff className="w-3.5 h-3.5" />
+        {onRetry && <RefreshCw className="w-3 h-3 animate-spin" />}
       </button>
     );
   }

@@ -7,7 +7,7 @@ import type { StudyGroup } from "../../Store/useGroupStore";
 import { useNetworkStatus } from "../../hooks/useNetworkStatus";
 import MessageStatusIndicator from "./MessageStatusIndicator";
 import { cn } from "../../lib/utils";
-import { motion, useAnimation,} from "framer-motion";
+import { motion, useAnimation } from "framer-motion";
 import type { PanInfo } from "framer-motion";
 import {
   ArrowLeft,
@@ -58,9 +58,13 @@ const ReplyBanner: React.FC<ReplyBannerProps> = ({ reply, onCancel }) => (
     </div>
     <div className="flex-1 min-w-0">
       <div className="flex items-center gap-2">
-        <p className="text-[11px] font-black text-brand uppercase tracking-wider">Replying to {reply.author}</p>
+        <p className="text-[11px] font-black text-brand uppercase tracking-wider">
+          Replying to {reply.author}
+        </p>
       </div>
-      <p className="text-xs text-textDim truncate mt-0.5 opacity-80 italic">"{reply.message}"</p>
+      <p className="text-xs text-textDim truncate mt-0.5 opacity-80 italic">
+        "{reply.message}"
+      </p>
     </div>
     <button
       onClick={onCancel}
@@ -222,9 +226,22 @@ const SwipeableBubble: React.FC<SwipeableBubbleProps> = ({
         onDrag={handleDrag}
         onDragEnd={handleDragEnd}
         animate={controls}
-        className="w-full cursor-grab active:cursor-grabbing"
+        className="w-full cursor-grab active:cursor-grabbing relative"
       >
         {children}
+
+        {/* Desktop Hover Reply Button */}
+        {!msg.id.startsWith("temp-") && msg.status !== "failed" && (
+          <button
+            onClick={() => onReply(msg)}
+            className={cn(
+              "absolute top-1/2 -translate-y-1/2 p-2 rounded-full bg-bgSurface border border-borderMuted shadow-xl text-textMuted hover:text-brand hover:border-brand/40 transition-all opacity-0 group-hover/bubble:opacity-100 scale-75 group-hover/bubble:scale-100 z-10 hidden md:flex",
+              isMe ? "-left-12" : "-right-12",
+            )}
+          >
+            <CornerDownRight className="w-4 h-4" />
+          </button>
+        )}
       </motion.div>
     </div>
   );
@@ -291,7 +308,7 @@ const GroupChat: React.FC<Props> = ({ group, onBack }) => {
 
   // ── Handlers ──────────────────────────────────────────
   const handleSend = useCallback(() => {
-    if (!text.trim() || !isMember) return;
+    if (!text.trim() || !isMember || !isOnline) return;
 
     // Explicitly pass replyTo parameters through the action layer
     sendMessage(group.id, text, replyTo);
@@ -299,7 +316,7 @@ const GroupChat: React.FC<Props> = ({ group, onBack }) => {
     setText("");
     setReplyTo(null);
     setTimeout(() => inputRef.current?.focus(), 50);
-  }, [text, isMember, replyTo, group.id, sendMessage]);
+  }, [text, isMember, isOnline, replyTo, group.id, sendMessage]);
 
   const handleReply = useCallback(
     (msg: ChatMessage) => {
@@ -332,7 +349,6 @@ const GroupChat: React.FC<Props> = ({ group, onBack }) => {
   return (
     // FIXED Layout: Added overflow-hidden and absolute positioning to fill parent safely
     <div className="flex flex-col h-full max-h-[calc(100dvh-140px)] md:max-h-[calc(100dvh-120px)] overflow-hidden relative w-full bg-bgMain">
-
       {/* ── Fixed group info header ────────────────────────── */}
       <div className="shrink-0 border-b border-borderMuted bg-bgCard/95 backdrop-blur-md z-30 shadow-sm">
         <div className="flex items-center gap-3 px-3 py-3">
@@ -358,10 +374,22 @@ const GroupChat: React.FC<Props> = ({ group, onBack }) => {
               <Users className="w-3 h-3 text-brand" />
               <span>{group.member_count} members</span>
               <span className="opacity-20 text-white">|</span>
-              <span className={cn('flex items-center gap-1', connected ? 'text-success' : 'text-amber-500')}>
-                {connected
-                  ? <><div className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" /> Live</>
-                  : <><RefreshCw className="w-3 h-3 animate-spin" /> Syncing</>}
+              <span
+                className={cn(
+                  "flex items-center gap-1",
+                  connected ? "text-success" : "text-amber-500",
+                )}
+              >
+                {connected ? (
+                  <>
+                    <div className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />{" "}
+                    Live
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="w-3 h-3 animate-spin" /> Syncing
+                  </>
+                )}
               </span>
             </div>
           </div>
@@ -370,13 +398,17 @@ const GroupChat: React.FC<Props> = ({ group, onBack }) => {
             <button
               onClick={copyJoinCode}
               className={cn(
-                'flex items-center gap-2 text-[10px] font-mono font-bold px-3 py-2 rounded-xl border transition-all shrink-0 active:scale-95',
+                "flex items-center gap-2 text-[10px] font-mono font-bold px-3 py-2 rounded-xl border transition-all shrink-0 active:scale-95",
                 copied
-                  ? 'bg-success/10 border-success/30 text-success'
-                  : 'bg-bgSurface border-borderMuted text-textMuted hover:border-brand/40 hover:text-textMain'
+                  ? "bg-success/10 border-success/30 text-success"
+                  : "bg-bgSurface border-borderMuted text-textMuted hover:border-brand/40 hover:text-textMain",
               )}
             >
-              {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+              {copied ? (
+                <Check className="w-3.5 h-3.5" />
+              ) : (
+                <Copy className="w-3.5 h-3.5" />
+              )}
               <span className="hidden sm:inline">{group.join_code}</span>
             </button>
           )}
@@ -395,7 +427,9 @@ const GroupChat: React.FC<Props> = ({ group, onBack }) => {
         {msgLoading && (
           <div className="flex flex-col items-center justify-center py-12 gap-3">
             <Loader2 className="w-8 h-8 text-brand animate-spin" />
-            <p className="text-xs text-textDim font-medium">Fetching messages...</p>
+            <p className="text-xs text-textDim font-medium">
+              Fetching messages...
+            </p>
           </div>
         )}
 
@@ -405,7 +439,9 @@ const GroupChat: React.FC<Props> = ({ group, onBack }) => {
               💬
             </div>
             <div className="text-center">
-              <p className="text-sm font-bold text-white">No conversation yet</p>
+              <p className="text-sm font-bold text-white">
+                No conversation yet
+              </p>
               <p className="text-xs mt-1">Be the first to break the ice!</p>
             </div>
           </div>
@@ -504,14 +540,19 @@ const GroupChat: React.FC<Props> = ({ group, onBack }) => {
                   </span>
 
                   {isMe && (
-                    <MessageStatusIndicator
-                      status={msg.status ?? "delivered"}
-                      onRetry={
-                        isFailed
-                          ? () => retryMessage(group.id, msg.id)
-                          : undefined
-                      }
-                    />
+                    <div className="flex items-center">
+                      <MessageStatusIndicator
+                        status={
+                          msg.status ||
+                          (msg.id.startsWith("temp-") ? "sending" : "delivered")
+                        }
+                        onRetry={
+                          isFailed
+                            ? () => retryMessage(group.id, msg.id)
+                            : undefined
+                        }
+                      />
+                    </div>
                   )}
                 </div>
               </div>
@@ -522,7 +563,12 @@ const GroupChat: React.FC<Props> = ({ group, onBack }) => {
       </div>
 
       {/* ── Fixed Input Area ─────────────────────────────── */}
-      <div className="shrink-0 border-t border-borderMuted bg-bgCard/95 backdrop-blur-sm z-20 pb-safe">
+      <div
+        className={cn(
+          "shrink-0 border-t bg-bgCard/95 backdrop-blur-sm z-20 pb-safe transition-colors duration-300",
+          isOnline ? "border-borderMuted" : "border-danger/50 bg-danger/2",
+        )}
+      >
         {isMember ? (
           <div className="flex flex-col w-full p-3 gap-2">
             {replyTo && (
@@ -548,7 +594,11 @@ const GroupChat: React.FC<Props> = ({ group, onBack }) => {
                     if (e.key === "Escape") setReplyTo(null);
                   }}
                   placeholder={
-                    replyTo ? `Reply to ${replyTo.author}…` : "Type a message…"
+                    !isOnline
+                      ? "Connection lost..."
+                      : replyTo
+                        ? `Reply to ${replyTo.author}…`
+                        : "Type a message…"
                   }
                   disabled={!isOnline}
                   style={{ fontSize: "16px", minHeight: "44px" }}
@@ -556,27 +606,34 @@ const GroupChat: React.FC<Props> = ({ group, onBack }) => {
                     "w-full px-4 py-3 bg-bgSurface border rounded-2xl text-sm text-textMain placeholder:text-textDim focus:outline-none focus:border-brand/50 transition-all resize-none custom-scrollbar",
                     isOnline
                       ? "border-borderMuted"
-                      : "border-borderMuted/30 opacity-50 cursor-not-allowed",
+                      : "border-danger/30 opacity-60 cursor-not-allowed bg-danger/5",
                   )}
                 />
               </div>
               <button
                 onClick={handleSend}
                 disabled={!text.trim() || !isOnline}
-                className="w-11 h-11 bg-brand hover:bg-brand-light disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-2xl flex items-center justify-center transition-all active:scale-90 shrink-0 shadow-lg shadow-brand/20"
+                className={cn(
+                  "w-11 h-11 rounded-2xl flex items-center justify-center transition-all active:scale-90 shrink-0 shadow-lg",
+                  isOnline
+                    ? "bg-brand hover:bg-brand-light text-white shadow-brand/20"
+                    : "bg-danger/20 text-danger/50 cursor-not-allowed shadow-none",
+                )}
               >
                 <Send className="w-5 h-5" />
               </button>
             </div>
 
             {!isOnline && (
-              <div className="flex flex-col items-center gap-1 pb-3 px-3">
-                <div className="w-full h-1px bg-danger/20 mb-2" />
-                <p className="text-[10px] text-danger font-bold flex items-center gap-1.5 animate-pulse uppercase tracking-widest">
-                  <WifiOff className="w-3.5 h-3.5" /> No Internet Connection
-                </p>
-                <p className="text-[9px] text-textDim text-center leading-tight">
-                  You can still type messages; they will be sent automatically once you're back online.
+              <div className="flex flex-col items-center gap-1.5 py-3 px-4 bg-danger/10 rounded-xl border border-danger/20 mt-1 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                <div className="flex items-center gap-2 text-danger">
+                  <WifiOff className="w-4 h-4 animate-pulse" />
+                  <span className="text-[11px] font-black uppercase tracking-widest">
+                    No Active Connection
+                  </span>
+                </div>
+                <p className="text-[10px] text-danger/90 text-center leading-tight font-bold">
+                  You are currently offline. Please check your network.
                 </p>
               </div>
             )}
