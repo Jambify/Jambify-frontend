@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useGroupStore } from "../../Store/useGroupStore";
 import Button from "../ui/Button";
 import { cn } from "../../lib/utils";
-import { X, Users, Loader2 } from "lucide-react";
+import { X, Users,  } from "lucide-react";
 
 const SUBJECTS = [
   "Mixed",
@@ -137,7 +137,7 @@ const CreateGroupModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
         {error && <p className="text-xs text-danger mb-3">{error}</p>}
 
-        <div className="flex gap-2">
+        <div className="flex gap-3">
           <Button variant="secondary" fullWidth onClick={onClose}>
             Cancel
           </Button>
@@ -146,16 +146,10 @@ const CreateGroupModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             fullWidth
             onClick={handleCreate}
             disabled={loading}
+            loading={loading}
+            icon={!loading && <Users className="w-4 h-4" />}
           >
-            {loading ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" /> Creating…
-              </>
-            ) : (
-              <>
-                <Users className="w-4 h-4" /> Create group
-              </>
-            )}
+            Create group
           </Button>
         </div>
       </div>
