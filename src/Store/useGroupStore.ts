@@ -85,7 +85,7 @@ export const useGroupStore = create<GroupState>()((set, get) => ({
     if (nameCache.has(userId)) return nameCache.get(userId)!;
 
     try {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('profiles')
         .select('name')
         .eq('id', userId)
@@ -266,9 +266,6 @@ export const useGroupStore = create<GroupState>()((set, get) => ({
         });
         return { nameCache: newCache };
       });
-
-      const myId = useUserStore.getState().id;
-      const myName = useUserStore.getState().name;
 
       // Build reply preview map from reply_to_id references
       const replyIds = msgs.filter(m => m.reply_to_id).map(m => m.reply_to_id);
