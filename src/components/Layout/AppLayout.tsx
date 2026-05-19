@@ -13,6 +13,7 @@ import {
   type LucideIcon,
   Settings,
 } from "lucide-react";
+import { cn } from "../../lib/utils";
 
 interface LayoutProps {
   children: ReactNode;
@@ -176,90 +177,155 @@ const AppLayout: React.FC<LayoutProps> = ({
         </div>
       </main>
 
-      {/* UNIQUE MOBILE FLOATING NAV */}
-      <div className="fixed bottom-6 left-0 right-0 px-4 lg:hidden z-100 safe-area-bottom">
-        <nav className="bg-bgSurface/95 backdrop-blur-xl border border-white/10 rounded-brand-xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] px-2 py-2 flex items-center justify-around relative">
+      {/* MOBILE BOTTOM NAVIGATION - Professional App Bar */}
+      <div className="fixed bottom-0 left-0 right-0 lg:hidden z-100 bg-bgSurface/98 backdrop-blur-2xl border-t border-white/5 safe-area-bottom shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+        <nav className="flex items-center justify-around h-18px px-1 relative">
           <Link
             to="/"
-            className="relative flex flex-col items-center justify-center w-14 h-14 transition-all active:scale-90 touch-target no-double-tap"
+            className="flex flex-col items-center justify-center flex-1 h-full gap-1 transition-all active:scale-90 touch-target no-double-tap"
             aria-label="Dashboard"
           >
-            <LayoutGrid
-              size={24}
-              strokeWidth={currentPage === "dashboard" ? 2.5 : 2}
-              className={
+            <div
+              className={cn(
+                "p-2 rounded-xl transition-colors",
+                currentPage === "dashboard" ? "bg-brand/10" : "",
+              )}
+            >
+              <LayoutGrid
+                size={24}
+                strokeWidth={currentPage === "dashboard" ? 2.5 : 2}
+                className={
+                  currentPage === "dashboard"
+                    ? "text-brand-light"
+                    : "text-textDim"
+                }
+              />
+            </div>
+            <span
+              className={cn(
+                "text-[10px] font-bold tracking-tight transition-colors",
                 currentPage === "dashboard"
-                  ? "text-brand-light drop-shadow-[0_0_8px_rgba(123,95,255,0.5)]"
-                  : "text-textDim opacity-70"
-              }
-            />
-            {currentPage === "dashboard" && (
-              <div className="absolute -bottom-1 w-1.5 h-1.5 bg-brand-light rounded-full shadow-[0_0_6px_rgba(123,95,255,0.8)]" />
-            )}
+                  ? "text-brand-light"
+                  : "text-textDim/70",
+              )}
+            >
+              Home
+            </span>
           </Link>
 
           <Link
             to="/subjects"
-            className="relative flex flex-col items-center justify-center w-14 h-14 transition-all active:scale-90 touch-target no-double-tap"
+            className="flex flex-col items-center justify-center flex-1 h-full gap-1 transition-all active:scale-90 touch-target no-double-tap"
             aria-label="Subjects"
           >
-            <BookOpen
-              size={24}
-              strokeWidth={currentPage === "subjects" ? 2.5 : 2}
-              className={
-                currentPage === "subjects" 
-                  ? "text-brand-light drop-shadow-[0_0_8px_rgba(123,95,255,0.5)]" 
-                  : "text-textDim opacity-70"
-              }
-            />
-            {currentPage === "subjects" && (
-              <div className="absolute -bottom-1 w-1.5 h-1.5 bg-brand-light rounded-full shadow-[0_0_6px_rgba(123,95,255,0.8)]" />
-            )}
+            <div
+              className={cn(
+                "p-2 rounded-xl transition-colors",
+                currentPage === "subjects" ? "bg-brand/10" : "",
+              )}
+            >
+              <BookOpen
+                size={24}
+                strokeWidth={currentPage === "subjects" ? 2.5 : 2}
+                className={
+                  currentPage === "subjects"
+                    ? "text-brand-light"
+                    : "text-textDim"
+                }
+              />
+            </div>
+            <span
+              className={cn(
+                "text-[10px] font-bold tracking-tight transition-colors",
+                currentPage === "subjects"
+                  ? "text-brand-light"
+                  : "text-textDim/70",
+              )}
+            >
+              Subjects
+            </span>
           </Link>
 
-          {/* Center Action Button */}
-          <Link to="/quiz" className="relative -top-7" aria-label="Quiz">
-            <div className="bg-brand w-16 h-16 rounded-brand-lg rotate-45 flex items-center justify-center shadow-[0_12px_30px_rgba(91,59,255,0.5)] transition-all hover:scale-110 active:scale-90 touch-target no-double-tap border border-white/20">
-              <FileText size={28} className="text-white -rotate-45" />
-            </div>
-          </Link>
+          {/* Prominent Center Action */}
+          <div className="flex-1 flex justify-center h-full relative">
+            <Link
+              to="/quiz"
+              className="absolute -top-6 flex flex-col items-center gap-1 group"
+              aria-label="Quiz"
+            >
+              <div className="bg-brand w-15 h-15 rounded-2xl rotate-45 flex items-center justify-center shadow-[0_12px_30px_rgba(91,59,255,0.4)] transition-all group-hover:scale-105 group-active:scale-95 border-2 border-bgMain">
+                <FileText size={26} className="text-white -rotate-45" />
+              </div>
+              <span className="text-[10px] font-black text-brand-light mt-14 uppercase tracking-tighter">
+                Practice
+              </span>
+            </Link>
+          </div>
 
           <Link
             to="/performance"
-            className="relative flex flex-col items-center justify-center w-14 h-14 transition-all active:scale-90 touch-target no-double-tap"
+            className="flex flex-col items-center justify-center flex-1 h-full gap-1 transition-all active:scale-90 touch-target no-double-tap"
             aria-label="Performance"
           >
-            <Activity
-              size={24}
-              strokeWidth={currentPage === "performance" ? 2.5 : 2}
-              className={
+            <div
+              className={cn(
+                "p-2 rounded-xl transition-colors",
+                currentPage === "performance" ? "bg-brand/10" : "",
+              )}
+            >
+              <Activity
+                size={24}
+                strokeWidth={currentPage === "performance" ? 2.5 : 2}
+                className={
+                  currentPage === "performance"
+                    ? "text-brand-light"
+                    : "text-textDim"
+                }
+              />
+            </div>
+            <span
+              className={cn(
+                "text-[10px] font-bold tracking-tight transition-colors",
                 currentPage === "performance"
-                  ? "text-brand-light drop-shadow-[0_0_8px_rgba(123,95,255,0.5)]"
-                  : "text-textDim opacity-70"
-              }
-            />
-            {currentPage === "performance" && (
-              <div className="absolute -bottom-1 w-1.5 h-1.5 bg-brand-light rounded-full shadow-[0_0_6px_rgba(123,95,255,0.8)]" />
-            )}
+                  ? "text-brand-light"
+                  : "text-textDim/70",
+              )}
+            >
+              Stats
+            </span>
           </Link>
 
           <Link
             to="/settings"
-            className="relative flex flex-col items-center justify-center w-14 h-14 transition-all active:scale-90 touch-target no-double-tap"
+            className="flex flex-col items-center justify-center flex-1 h-full gap-1 transition-all active:scale-90 touch-target no-double-tap"
             aria-label="Settings"
           >
-            <Settings
-              size={24}
-              strokeWidth={currentPage === "settings" ? 2.5 : 2}
-              className={
-                currentPage === "settings" 
-                  ? "text-brand-light drop-shadow-[0_0_8px_rgba(123,95,255,0.5)]" 
-                  : "text-textDim opacity-70"
-              }
-            />
-            {currentPage === "settings" && (
-              <div className="absolute -bottom-1 w-1.5 h-1.5 bg-brand-light rounded-full shadow-[0_0_6px_rgba(123,95,255,0.8)]" />
-            )}
+            <div
+              className={cn(
+                "p-2 rounded-xl transition-colors",
+                currentPage === "settings" ? "bg-brand/10" : "",
+              )}
+            >
+              <Settings
+                size={24}
+                strokeWidth={currentPage === "settings" ? 2.5 : 2}
+                className={
+                  currentPage === "settings"
+                    ? "text-brand-light"
+                    : "text-textDim"
+                }
+              />
+            </div>
+            <span
+              className={cn(
+                "text-[10px] font-bold tracking-tight transition-colors",
+                currentPage === "settings"
+                  ? "text-brand-light"
+                  : "text-textDim/70",
+              )}
+            >
+              Profile
+            </span>
           </Link>
         </nav>
       </div>
