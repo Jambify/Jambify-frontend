@@ -1,7 +1,9 @@
-// src/Store/useGroupStore.ts - COMPLETE REPLACEMENT
+// src/Store/useGroupStore.ts
 import { create } from 'zustand';
 import { supabase } from '../lib/supabase';
 import { useUserStore } from './UseUserStore';
+
+export type MessageStatus = 'sending' | 'sent' | 'delivered' | 'failed';
 
 export interface ChatMessage {
   id: string;
@@ -11,6 +13,14 @@ export interface ChatMessage {
   message: string;
   created_at: string;
   is_edited: boolean;
+  status?: MessageStatus;        // only on outgoing messages
+  reply_to?: ReplyPreview | null; // quoted message info
+}
+
+export interface ReplyPreview {
+  id: string;
+  author: string;
+  message: string;
 }
 
 export interface StudyGroup {
@@ -26,7 +36,6 @@ export interface StudyGroup {
   created_at: string;
   isActive: boolean;
   recentMembers: string[];
-
 }
 
 interface GroupState {
@@ -36,6 +45,7 @@ interface GroupState {
   loading: boolean;
   msgLoading: boolean;
   error: string | null;
+
   loadGroups: () => Promise<void>;
   loadMyGroups: () => Promise<void>;
   createGroup: (data: { name: string; description: string; subject: string }) => Promise<void>;
@@ -43,7 +53,8 @@ interface GroupState {
   joinByCode: (code: string) => Promise<{ error: string | null }>;
   leaveGroup: (id: string) => Promise<void>;
   loadMessages: (groupId: string) => Promise<void>;
-  sendMessage: (groupId: string, text: string) => Promise<void>;
+  sendMessage: (groupId: string, text: string, replyTo?: ReplyPreview | null) => Promise<void>;
+  retryMessage: (groupId: string, tempId: string) => Promise<void>;
   subscribeToChat: (groupId: string) => () => void;
   getMessages: (groupId: string) => ChatMessage[];
 }
@@ -55,6 +66,9 @@ const SUBJECT_ICONS: Record<string, string> = {
   'History': '📜', 'Mixed': '📑',
 };
 
+// Store failed messages for retry: tempId → { groupId, text, replyTo }
+const failedMessages = new Map<string, { groupId: string; text: string; replyTo?: ReplyPreview | null }>();
+
 export const useGroupStore = create<GroupState>()((set, get) => ({
   groups: [],
   myGroupIds: [],
@@ -63,43 +77,35 @@ export const useGroupStore = create<GroupState>()((set, get) => ({
   msgLoading: false,
   error: null,
 
+  // ── loadGroups ──────────────────────────────────────────
   loadGroups: async () => {
     set({ loading: true, error: null });
     try {
-      // SIMPLE QUERY - NO JOINS
-      const { data: groupsData, error: groupsError } = await supabase
+      const { data, error } = await supabase
         .from('study_groups')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (groupsError) throw groupsError;
+      if (error) throw error;
 
-      if (!groupsData || groupsData.length === 0) {
-        set({ groups: [], loading: false });
-        return;
-      }
-
-      // Map groups with icons
-      const mappedGroups = groupsData.map(group => ({
-        ...group,
-        icon: SUBJECT_ICONS[group.subject] || '📚',
+      const mapped = (data || []).map(g => ({
+        ...g,
+        icon: SUBJECT_ICONS[g.subject] || '📚',
         recentMembers: [],
         isActive: false,
       }));
 
-      set({ groups: mappedGroups as StudyGroup[], loading: false });
+      set({ groups: mapped as StudyGroup[], loading: false });
     } catch (err: any) {
       console.error('loadGroups error:', err);
       set({ error: err.message, loading: false });
     }
   },
 
+  // ── loadMyGroups ────────────────────────────────────────
   loadMyGroups: async () => {
     const userId = useUserStore.getState().id;
-    if (!userId) {
-      set({ myGroupIds: [] });
-      return;
-    }
+    if (!userId) { set({ myGroupIds: [] }); return; }
 
     try {
       const { data, error } = await supabase
@@ -115,37 +121,27 @@ export const useGroupStore = create<GroupState>()((set, get) => ({
     }
   },
 
+  // ── createGroup ─────────────────────────────────────────
   createGroup: async (data) => {
     const userId = useUserStore.getState().id;
-    if (!userId) {
-      console.error('Cannot create group: No user logged in');
-      return;
-    }
+    if (!userId) return;
 
     set({ loading: true, error: null });
     try {
       const { error } = await supabase
         .from('study_groups')
-        .insert({
-          name: data.name,
-          description: data.description,
-          subject: data.subject,
-          created_by: userId,
-        });
+        .insert({ name: data.name, description: data.description, subject: data.subject, created_by: userId });
 
       if (error) throw error;
-
-      // Reload both group lists
-      await get().loadGroups();
-      await get().loadMyGroups();
+      await Promise.all([get().loadGroups(), get().loadMyGroups()]);
     } catch (err: any) {
-      console.error('createGroup error:', err);
       set({ error: err.message });
     } finally {
       set({ loading: false });
     }
   },
 
+  // ── joinGroup ───────────────────────────────────────────
   joinGroup: async (groupId) => {
     const userId = useUserStore.getState().id;
     if (!userId) return;
@@ -156,17 +152,14 @@ export const useGroupStore = create<GroupState>()((set, get) => ({
         .insert({ group_id: groupId, user_id: userId, role: 'member' });
 
       if (error) throw error;
-
-      // Update myGroupIds and reload groups
-      set(state => ({ 
-        myGroupIds: [...new Set([...state.myGroupIds, groupId])] 
-      }));
+      set(s => ({ myGroupIds: [...new Set([...s.myGroupIds, groupId])] }));
       await get().loadGroups();
     } catch (err) {
       console.error('joinGroup error:', err);
     }
   },
 
+  // ── joinByCode ──────────────────────────────────────────
   joinByCode: async (code) => {
     const userId = useUserStore.getState().id;
     if (!userId) return { error: 'Please sign in to join groups' };
@@ -178,31 +171,26 @@ export const useGroupStore = create<GroupState>()((set, get) => ({
         .eq('join_code', code.toUpperCase().trim())
         .single();
 
-      if (groupError || !group) {
-        return { error: 'Invalid join code. Please check and try again.' };
-      }
+      if (groupError || !group) return { error: 'Invalid join code. Please check and try again.' };
 
       const { error: insertError } = await supabase
         .from('group_members')
         .insert({ group_id: group.id, user_id: userId, role: 'member' });
 
       if (insertError) {
-        if (insertError.code === '23505') {
-          return { error: 'You are already a member of this group.' };
-        }
+        if (insertError.code === '23505') return { error: 'You are already a member of this group.' };
         return { error: 'Failed to join group. Please try again.' };
       }
 
-      set(state => ({ 
-        myGroupIds: [...new Set([...state.myGroupIds, group.id])] 
-      }));
+      set(s => ({ myGroupIds: [...new Set([...s.myGroupIds, group.id])] }));
       await get().loadGroups();
       return { error: null };
-    } catch (err) {
+    } catch {
       return { error: 'Something went wrong. Please try again.' };
     }
   },
 
+  // ── leaveGroup ──────────────────────────────────────────
   leaveGroup: async (groupId) => {
     const userId = useUserStore.getState().id;
     if (!userId) return;
@@ -214,186 +202,295 @@ export const useGroupStore = create<GroupState>()((set, get) => ({
         .eq('group_id', groupId)
         .eq('user_id', userId);
 
-      set(state => ({ 
-        myGroupIds: state.myGroupIds.filter(id => id !== groupId) 
-      }));
+      set(s => ({ myGroupIds: s.myGroupIds.filter(id => id !== groupId) }));
       await get().loadGroups();
     } catch (err) {
       console.error('leaveGroup error:', err);
     }
   },
 
- loadMessages: async (groupId) => {
-  set({ msgLoading: true });
-  try {
-    // Step 1: fetch messages
-    const { data: msgs, error: msgErr } = await supabase
-      .from('group_messages')
-      .select('*')
-      .eq('group_id', groupId)
-      .order('created_at', { ascending: true })
-      .limit(100);
+  // ── loadMessages ────────────────────────────────────────
+  loadMessages: async (groupId) => {
+    set({ msgLoading: true });
+    try {
+      const { data: msgs, error: msgErr } = await supabase
+        .from('group_messages')
+        .select('*')
+        .eq('group_id', groupId)
+        .order('created_at', { ascending: true })
+        .limit(100);
 
-    if (msgErr) throw msgErr;
-    if (!msgs || msgs.length === 0) {
-      set(s => ({ messages: { ...s.messages, [groupId]: [] }, msgLoading: false }));
-      return;
+      if (msgErr) throw msgErr;
+      if (!msgs || msgs.length === 0) {
+        set(s => ({ messages: { ...s.messages, [groupId]: [] }, msgLoading: false }));
+        return;
+      }
+
+      // Batch fetch all profile names in one query
+      const uniqueIds = [...new Set(msgs.map(m => m.user_id))];
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, name')
+        .in('id', uniqueIds);
+
+      const myId = useUserStore.getState().id;
+      const myName = useUserStore.getState().name;
+
+      const nameMap = new Map<string, string>();
+      (profiles || []).forEach(p => {
+        let displayName = p.name;
+        // If this is ME, and DB has no name, use my store name
+        if (p.id === myId && !displayName) {
+          displayName = myName;
+        }
+        nameMap.set(p.id, displayName || 'JAMB Champion');
+      });
+
+      // If some IDs are still missing from nameMap (including ME)
+      uniqueIds.forEach(id => {
+        if (!nameMap.has(id)) {
+          nameMap.set(id, (id === myId && myName) ? myName : 'JAMB Champion');
+        }
+      });
+
+      // Build reply preview map from reply_to_id references
+      const replyIds = msgs.filter(m => m.reply_to_id).map(m => m.reply_to_id);
+      let replyMap = new Map<string, { author: string; message: string }>();
+
+      if (replyIds.length > 0) {
+        const { data: replyMsgs } = await supabase
+          .from('group_messages')
+          .select('id, user_id, message')
+          .in('id', replyIds);
+
+        (replyMsgs || []).forEach(r => {
+          replyMap.set(r.id, {
+            author: nameMap.get(r.user_id) || (r.user_id === myId ? myName : 'JAMB Champion'),
+            message: r.message,
+          });
+        });
+      }
+
+      const messages: ChatMessage[] = msgs.map(row => ({
+        id: row.id,
+        group_id: row.group_id,
+        user_id: row.user_id,
+        author: nameMap.get(row.user_id) || (row.user_id === myId ? myName : 'JAMB Champion'),
+        message: row.message,
+        created_at: row.created_at,
+        is_edited: row.is_edited,
+        status: 'delivered' as MessageStatus,
+        reply_to: row.reply_to_id
+          ? { id: row.reply_to_id, ...replyMap.get(row.reply_to_id)! }
+          : null,
+      }));
+
+      set(s => ({ messages: { ...s.messages, [groupId]: messages }, msgLoading: false }));
+    } catch (err) {
+      console.error('loadMessages error:', err);
+      set({ msgLoading: false });
     }
+  },
 
-    // Step 2: fetch unique profile names for all senders in one query
-    // This avoids the FK join issue entirely
-    const uniqueIds = [...new Set(msgs.map(m => m.user_id))];
-    const { data: profiles } = await supabase
-      .from('profiles')
-      .select('id, name')
-      .in('id', uniqueIds);
+  // ── sendMessage ─────────────────────────────────────────
+  sendMessage: async (groupId, text, replyTo = null) => {
+    const userId = useUserStore.getState().id;
+    const name = useUserStore.getState().name;
+    if (!userId || !text.trim()) return;
 
-    // Build a lookup map: userId → name
-    const nameMap = new Map<string, string>();
-    (profiles || []).forEach(p => nameMap.set(p.id, p.name || 'Member'));
+    const tempId = `temp-${Date.now()}-${Math.random()}`;
 
-    const messages: ChatMessage[] = msgs.map(row => ({
-      id:         row.id,
-      group_id:   row.group_id,
-      user_id:    row.user_id,
-      author:     nameMap.get(row.user_id) || 'Member',  // ← no more "Unknown"
-      message:    row.message,
-      created_at: row.created_at,
-      is_edited:  row.is_edited,
+    // Optimistic: status = 'sending'
+    const tempMsg: ChatMessage = {
+      id: tempId,
+      group_id: groupId,
+      user_id: userId,
+      author: name || 'You',
+      message: text.trim(),
+      created_at: new Date().toISOString(),
+      is_edited: false,
+      status: 'sending',
+      reply_to: replyTo,
+    };
+
+    set(s => ({
+      messages: { ...s.messages, [groupId]: [...(s.messages[groupId] || []), tempMsg] },
     }));
 
-    set(s => ({ messages: { ...s.messages, [groupId]: messages }, msgLoading: false }));
-  } catch (err) {
-    console.error('loadMessages error:', err);
-    set({ msgLoading: false });
-  }
-},
+    // Store for potential retry
+    failedMessages.set(tempId, { groupId, text: text.trim(), replyTo });
 
-  sendMessage: async (groupId, text) => {
-  const userId = useUserStore.getState().id;
-  const name   = useUserStore.getState().name;
-  if (!userId || !text.trim()) return;
+    try {
+      const insertPayload: any = {
+        group_id: groupId,
+        user_id: userId,
+        message: text.trim(),
+      };
+      if (replyTo?.id) insertPayload.reply_to_id = replyTo.id;
 
-  // Optimistic message with temp id — realtime will replace it
-  const tempId = `temp-${Date.now()}`;
-  const tempMsg: ChatMessage = {
-    id:         tempId,
-    group_id:   groupId,
-    user_id:    userId,
-    author:     name || 'You',
-    message:    text.trim(),
-    created_at: new Date().toISOString(),
-    is_edited:  false,
-  };
+      const { error } = await supabase
+        .from('group_messages')
+        .insert(insertPayload);
 
-  set(s => ({
-    messages: { ...s.messages, [groupId]: [...(s.messages[groupId] || []), tempMsg] },
-  }));
+      if (error) throw error;
 
-  const { error } = await supabase
-    .from('group_messages')
-    .insert({ group_id: groupId, user_id: userId, message: text.trim() });
+      // Mark as 'sent' — realtime will update to 'delivered' when confirmed
+      set(s => ({
+        messages: {
+          ...s.messages,
+          [groupId]: (s.messages[groupId] || []).map(m =>
+            m.id === tempId ? { ...m, status: 'sent' as MessageStatus } : m
+          ),
+        },
+      }));
 
-  if (error) {
-    // Remove failed optimistic message
+      // Remove from retry queue on success
+      failedMessages.delete(tempId);
+
+    } catch (err: any) {
+      console.error('sendMessage error:', err);
+      // Mark as 'failed'
+      set(s => ({
+        messages: {
+          ...s.messages,
+          [groupId]: (s.messages[groupId] || []).map(m =>
+            m.id === tempId ? { ...m, status: 'failed' as MessageStatus } : m
+          ),
+        },
+      }));
+    }
+  },
+
+  // ── retryMessage ────────────────────────────────────────
+  retryMessage: async (groupId, tempId) => {
+    const failed = failedMessages.get(tempId);
+    if (!failed) return;
+
+    // Remove the failed message from UI
     set(s => ({
       messages: {
         ...s.messages,
         [groupId]: (s.messages[groupId] || []).filter(m => m.id !== tempId),
       },
     }));
-    console.error('sendMessage error:', error.message);
-  }
-  // On success: the realtime subscription will fire, see it's our own message,
-  // remove the temp- prefix message and insert the confirmed one.
-},
+    failedMessages.delete(tempId);
 
-  // ── subscribeToChat ────────────────────────────────────
-subscribeToChat: (groupId) => {
-  // Keep a local cache of IDs we've already shown (to dedup optimistic msgs)
-  const seenIds = new Set<string>();
+    // Resend
+    await get().sendMessage(failed.groupId, failed.text, failed.replyTo);
+  },
 
-  // Pre-populate with messages we already have loaded
-  const existing = get().messages[groupId] || [];
-  existing.forEach(m => seenIds.add(m.id));
+  // ── subscribeToChat ─────────────────────────────────────
+  subscribeToChat: (groupId) => {
+    const seenIds = new Set<string>();
 
-  const channel = supabase
-    .channel(`group-chat-${groupId}-${Date.now()}`) // unique name prevents stale sub
-    .on(
-      'postgres_changes',
-      {
-        event:  'INSERT',
-        schema: 'public',
-        table:  'group_messages',
-        filter: `group_id=eq.${groupId}`,
-      },
-      async (payload) => {
-        const row = payload.new as any;
+    // Pre-populate seen IDs from already loaded messages
+    (get().messages[groupId] || []).forEach(m => seenIds.add(m.id));
 
-        // Skip if we've already rendered this message (optimistic or loaded)
-        // This is the key dedup — don't skip by user_id, skip by message id
-        if (seenIds.has(row.id)) return;
-        seenIds.add(row.id);
+    const channel = supabase
+      .channel(`group-chat-${groupId}-${Date.now()}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'group_messages',
+          filter: `group_id=eq.${groupId}`,
+        },
+        async (payload) => {
+          const row = payload.new as any;
 
-        // Get the author name — check store first, then fetch
-        let authorName = 'Member';
-        const myId   = useUserStore.getState().id;
-        const myName = useUserStore.getState().name;
+          // Already rendered this exact confirmed message
+          if (seenIds.has(row.id)) return;
+          seenIds.add(row.id);
 
-        if (row.user_id === myId) {
-          // It's our own message confirmed by DB — replace the optimistic one
-          authorName = myName || 'You';
+          const myId = useUserStore.getState().id;
+          // const myName = useUserStore.getState().name;
 
-          // Remove the temp- optimistic message and replace with confirmed one
-          set(s => {
-            const existing = (s.messages[groupId] || [])
-              .filter(m => !m.id.startsWith('temp-'));
-            const confirmed: ChatMessage = {
-              id: row.id, group_id: row.group_id, user_id: row.user_id,
-              author: authorName, message: row.message,
-              created_at: row.created_at, is_edited: row.is_edited,
-            };
-            return { messages: { ...s.messages, [groupId]: [...existing, confirmed] } };
-          });
-          return;
+          if (row.user_id === myId) {
+            // Our own message confirmed — swap temp → real, mark 'delivered'
+            set(s => {
+              const list = s.messages[groupId] || [];
+              // Find a 'sent' or 'sending' temp message with matching text to replace
+              const tempIdx = list.findIndex(
+                m => m.id.startsWith('temp-') && m.message === row.message && m.status !== 'failed'
+              );
+              if (tempIdx === -1) return s; // nothing to swap
+              const updated = [...list];
+              updated[tempIdx] = {
+                ...updated[tempIdx],
+                id: row.id,
+                created_at: row.created_at,
+                status: 'delivered',
+              };
+              return { messages: { ...s.messages, [groupId]: updated } };
+            });
+            return;
+          }
+
+          // Someone else's message
+          const myId = useUserStore.getState().id;
+          const myName = useUserStore.getState().name;
+
+          let authorName = 'JAMB Champion';
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('name')
+            .eq('id', row.user_id)
+            .single();
+
+          authorName = profile?.name || (row.user_id === myId ? myName : 'JAMB Champion') || 'JAMB Champion';
+
+          // Resolve reply preview if present
+          let reply_to: ReplyPreview | null = null;
+          if (row.reply_to_id) {
+            const { data: replyMsg } = await supabase
+              .from('group_messages')
+              .select('id, user_id, message')
+              .eq('id', row.reply_to_id)
+              .single();
+
+            if (replyMsg) {
+              // Try to get the author name from already-loaded messages first
+              const existing = (get().messages[groupId] || []).find(m => m.id === replyMsg.id);
+              reply_to = {
+                id: replyMsg.id,
+                author: existing?.author || authorName,
+                message: replyMsg.message,
+              };
+            }
+          }
+
+          const newMsg: ChatMessage = {
+            id: row.id,
+            group_id: row.group_id,
+            user_id: row.user_id,
+            author: authorName,
+            message: row.message,
+            created_at: row.created_at,
+            is_edited: row.is_edited,
+            status: 'delivered',
+            reply_to,
+          };
+
+          set(s => ({
+            messages: {
+              ...s.messages,
+              [groupId]: [...(s.messages[groupId] || []), newMsg],
+            },
+          }));
         }
+      )
+      .subscribe(status => {
+        console.log(`[Realtime] ${groupId}:`, status);
+      });
 
-        // Someone else's message — fetch their name
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('name')
-          .eq('id', row.user_id)
-          .single();
-
-        authorName = profile?.name || 'Member';
-
-        const newMsg: ChatMessage = {
-          id:         row.id,
-          group_id:   row.group_id,
-          user_id:    row.user_id,
-          author:     authorName,
-          message:    row.message,
-          created_at: row.created_at,
-          is_edited:  row.is_edited,
-        };
-
-        set(s => ({
-          messages: {
-            ...s.messages,
-            [groupId]: [...(s.messages[groupId] || []), newMsg],
-          },
-        }));
-      }
-    )
-    .subscribe((status) => {
-      console.log(`[GroupChat] Realtime status for ${groupId}:`, status);
-    });
-
-  return () => {
-    console.log(`[GroupChat] Unsubscribing from ${groupId}`);
-    supabase.removeChannel(channel);
-  };
-},
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  },
 
   getMessages: (groupId) => get().messages[groupId] || [],
 }));
+
+// Export retry helper so GroupChat can call it when network is restored
+export { failedMessages };
