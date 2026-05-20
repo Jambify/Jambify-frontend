@@ -116,9 +116,13 @@ const AppLayout: React.FC<LayoutProps> = ({
             <p className="text-[10px] tracking-widest uppercase text-textDim px-2 mb-2 font-medium">
               Study
             </p>
-            <NavItem label="Mock Exams" icon="clock" path="/mock" />
-            <NavItem label="Study Groups" icon="users" path="/groups" />
-            <NavItem label="Past Questions" icon="settings" path="/past-questions" />
+            <NavItem label="Mock Exams" icon="clock" path="/mock-exams" />
+            <NavItem label="Study Groups" icon="users" path="/study-groups" />
+            <NavItem
+              label="Past Questions"
+              icon="settings"
+              path="/past-questions"
+            />
           </section>
         </nav>
 
@@ -166,11 +170,11 @@ const AppLayout: React.FC<LayoutProps> = ({
             </span>
             {/* Dynamic Streak Badge */}
             <div className="bg-orange-500/10 text-orange-400 border border-orange-500/20 px-2.5 lg:px-3 py-1 rounded-full text-[10px] lg:text-xs font-medium">
-              🔥 {streak} day{streak !== 1 ? 's' : ''}
+              🔥 {streak} day{streak !== 1 ? "s" : ""}
             </div>
             {/* Dynamic Countdown Badge - No more hardcoded 47d! */}
             <div className="bg-brand-dim text-brand-light border border-brand/20 px-2.5 lg:px-3 py-1 rounded-full text-[10px] lg:text-xs font-medium">
-              ⏳ {daysLeft} day{daysLeft !== 1 ? 's' : ''}
+              ⏳ {daysLeft} day{daysLeft !== 1 ? "s" : ""}
             </div>
           </div>
         </header>

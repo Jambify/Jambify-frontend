@@ -10,7 +10,7 @@ const PAGE_TITLES: Record<string, string> = {
   '/performance':    'Performance',
   '/mock-exams':           'Mock Exams',
   '/past-questions': 'Past Questions',
-  '/groups':         'Study Groups',
+  '/study-groups':         'Study Groups',
   '/settings':       'Settings',
 };
 
