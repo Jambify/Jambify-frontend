@@ -1,10 +1,10 @@
-import React from 'react';
-import { useQuizStore } from '../../Store/useQuizStore';
-import { useTimer } from '../../hooks/useTimer';
-import { cn } from '../../lib/utils';
+import React from "react";
+import { useQuizStore } from "../../Store/useQuizStore";
+import { useTimer } from "../../hooks/useTimer";
+import { cn } from "../../lib/utils/utils";
 
 // 30 minutes for the entire quiz (standard JAMB practice timing)
-const TOTAL_SECONDS = 30 * 60; 
+const TOTAL_SECONDS = 30 * 60;
 
 const TimerBar: React.FC = () => {
   const isFinished = useQuizStore((s) => s.isFinished);
@@ -19,13 +19,13 @@ const TimerBar: React.FC = () => {
   });
 
   const pct = (timeLeft / TOTAL_SECONDS) * 100;
-  
+
   // Adjusted warnings for a longer duration
   // Warn at 5 minutes, Danger at 1 minute
   const isWarn = timeLeft <= 5 * 60 && timeLeft > 60;
   const isDanger = timeLeft <= 60 && timeLeft > 0;
 
-  const barColor = isDanger ? 'bg-danger' : isWarn ? 'bg-warn' : 'bg-brand';
+  const barColor = isDanger ? "bg-danger" : isWarn ? "bg-warn" : "bg-brand";
 
   // If the quiz is already finished (user submitted manually), don't show the timer
   if (isFinished) return null;
@@ -38,7 +38,7 @@ const TimerBar: React.FC = () => {
           ⚠️ 5 Minutes Remaining!
         </div>
       )}
-      
+
       {isDanger && (
         <div className="absolute -top-8 left-1/2 -translate-x-1/2 animate-pulse bg-danger/10 border border-danger/30 text-danger text-[10px] px-3 py-1 rounded-full whitespace-nowrap z-10 font-bold uppercase tracking-tighter">
           🚨 Final Minute - Submit Now!
@@ -49,10 +49,12 @@ const TimerBar: React.FC = () => {
         <span className="text-[11px] text-textDim uppercase tracking-wider font-medium">
           Total Exam Time
         </span>
-        <span className={cn(
-          'font-mono text-sm font-semibold tabular-nums transition-colors',
-          isDanger ? 'text-danger' : isWarn ? 'text-warn' : 'text-textMain',
-        )}>
+        <span
+          className={cn(
+            "font-mono text-sm font-semibold tabular-nums transition-colors",
+            isDanger ? "text-danger" : isWarn ? "text-warn" : "text-textMain",
+          )}
+        >
           {formatted}
         </span>
       </div>
@@ -60,7 +62,7 @@ const TimerBar: React.FC = () => {
       <div className="h-1.5 bg-bgSurface rounded-full overflow-hidden">
         <div
           className={cn(
-            'h-full rounded-full transition-all duration-1000 ease-linear',
+            "h-full rounded-full transition-all duration-1000 ease-linear",
             barColor,
           )}
           style={{ width: `${pct}%` }}

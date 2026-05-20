@@ -1,6 +1,6 @@
 import React from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { cn } from "../../lib/utils";
+import { cn } from "../../lib/utils/utils";
 import { useUserStore } from "../../Store/UseUserStore";
 import { MessageSquare } from "lucide-react";
 interface NavItem {

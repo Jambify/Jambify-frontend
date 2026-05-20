@@ -1,252 +1,154 @@
-// Store/UseUserStore.ts
-
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { supabase } from '../lib/supabase';
+// src/Store/UseUserStore.ts
+import { create }          from 'zustand';
+import { persist }         from 'zustand/middleware';
+import { supabase }        from '../lib/supabase';
 import { useSubjectStore } from './useSubjectStore';
 
+// ── Interfaces ────────────────────────────────────────────────────────────────
 interface OnboardingData {
-  name: string;
-  university: string;
+  name:         string;
+  university:   string;
   subjectCombo: string;
-  targetScore: string;
-  examYear: string;
-  examDate?: string;
+  targetScore:  string;
+  examYear:     string;
+  examDate?:    string;
 }
 
-interface ProfileUpdate {
-  name: string;
-  university: string;
-  subjectCombo: string;
-}
-
-interface ExamUpdate {
-  targetScore: string;
-  examYear: string;
-  examDate: string;
-}
-
-interface DownloadedData {
-  [key: string]: any;
-}
+interface ProfileUpdate  { name: string; university: string; subjectCombo: string; }
+interface ExamUpdate     { targetScore: string; examYear: string; examDate: string; }
+interface DownloadedData { [key: string]: any; }
 
 export const APP_CONFIG = {
   PRICING: {
-    PRO_LIFETIME: 3000,
-    CURRENCY: '₦',
-    DISPLAY_PRICE: '3,000',
+    PRO_LIFETIME:        3000,
+    CURRENCY:            '₦',
+    DISPLAY_PRICE:       '3,000',
     PRO_LIFETIME_YEARLY: 20000,
-    DISPLAY_PRICE_YEARLY: '20,000',
-  }
+    DISPLAY_PRICE_YEARLY:'20,000',
+  },
 };
 
 interface UserState {
-  // User data (matches your profiles table)
-  id: string | null;
-  name: string;
-  email: string;
-  university: string;
-  subjectCombo: string;
-  targetScore: string;  // Stored as TEXT in your DB
-  examYear: string;
-  examDate: string;
-  streak: number;
-  overallScore: number;
-  weeklyScoreChange: number;
-  accuracy: number;
-  previousAccuracy: number;
-  questionsCompleted: number;
-  totalQuestions: number;
-  schoolRank: number;
-  daysToExam: number;
-  onboardingComplete: boolean;
-  isPro: boolean;
-  markWelcomeAsSeen: () => void;
-  downloadedData: DownloadedData;
-  hasSeenWelcome: boolean; // New flag to track if welcome page has been seen
-  _lastSync: number | null;
+  // ── Profile ──────────────────────────────────────────
+  id:                  string | null;
+  name:                string;
+  email:               string;
+  university:          string;
+  subjectCombo:        string;
+  targetScore:         string;
+  examYear:            string;
+  examDate:            string;
+  streak:              number;
+  overallScore:        number;
+  weeklyScoreChange:   number;
+  accuracy:            number;
+  previousAccuracy:    number;
+  questionsCompleted:  number;
+  totalQuestions:      number;
+  schoolRank:          number;
+  // daysToExam is NOT stored — computed live by useExamCountdown hook
+  onboardingComplete:  boolean;
+  isPro:               boolean;
+  hasSeenWelcome:      boolean;
+  downloadedData:      DownloadedData;
+  _lastSync:           number | null;
 
-  // Auth state
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  authError: string | null;
+  // ── Auth ─────────────────────────────────────────────
+  isAuthenticated:     boolean;
+  isLoading:           boolean;
+  authError:           string | null;
 
-  // Actions
-  completeOnboarding: (data: OnboardingData) => Promise<{ error: Error | null }>;
-  updateProfile: (data: ProfileUpdate) => Promise<{ error: Error | null }>;
-  updateExamSettings: (data: ExamUpdate) => Promise<{ error: Error | null }>;
-  resetAccount: () => Promise<{ error: Error | null }>;
-  setName: (name: string) => void;
-  setEmail: (email: string) => void;
-  incrementScore: (pts: number) => void;
-  incrementQuestions: (n: number) => void;
-  updateAccuracy: (acc: number) => void;
-  upgradeToPro: () => void;
-  downgradeToPro: () => void;
-  setDownloadedData: (data: DownloadedData) => void;
-  addDownloadedData: (key: string, data: any) => void;
+  // ── Actions ──────────────────────────────────────────
+  completeOnboarding:  (data: OnboardingData) => Promise<{ error: Error | null }>;
+  updateProfile:       (data: ProfileUpdate)   => Promise<{ error: Error | null }>;
+  updateExamSettings:  (data: ExamUpdate)      => Promise<{ error: Error | null }>;
+  resetAccount:        ()                       => Promise<{ error: Error | null }>;
+  markWelcomeAsSeen:   ()                       => void;
+  setName:             (name: string)           => void;
+  setEmail:            (email: string)          => void;
+  incrementScore:      (pts: number)            => void;
+  incrementQuestions:  (n: number)              => void;
+  updateAccuracy:      (acc: number)            => void;
+  upgradeToPro:        ()                       => void;
+  downgradeToPro:      ()                       => void;
+  setDownloadedData:   (data: DownloadedData)   => void;
+  addDownloadedData:   (key: string, data: any) => void;
 
-  // Auth actions
-  signUp: (email: string, password: string, name: string) => Promise<{ error: Error | null }>;
-  signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
-  signOut: () => Promise<void>;
-  // syncProfile: () => Promise<void>;
-  clearAuthError: () => void;
-  syncProfile: (force?: boolean) => Promise<{ onboardingComplete: boolean }>;
+  // ── Auth actions ─────────────────────────────────────
+  signOut:             ()                                          => Promise<void>;
+  clearAuthError:      ()                                          => void;
+  syncProfile:         (force?: boolean) => Promise<{ onboardingComplete: boolean }>;
+
+  // Legacy — kept for compatibility but not used for OTP flow
+  signUp:              (email: string, password: string, name: string) => Promise<{ error: Error | null }>;
+  signIn:              (email: string, password: string)               => Promise<{ error: Error | null }>;
 }
 
+// ── Defaults ──────────────────────────────────────────────────────────────────
+// These are the values applied after signOut or on first load.
+// Intentionally lean — stats like streak/score are loaded from DB via syncProfile.
 const DEFAULTS = {
-  id: null,
-  name: '',
-  email: '',
-  university: '',
-  subjectCombo: '',
-  targetScore: '',
-  examYear: '2025',
-  examDate: 'Jun 14',
-  streak: 14,
-  overallScore: 267,
-  weeklyScoreChange: 12,
-  accuracy: 74,
-  previousAccuracy: 68,
-  questionsCompleted: 1842,
-  totalQuestions: 3200,
-  schoolRank: 38,
-  daysToExam: 47,
-  onboardingComplete: false,
-  isPro: false,
-  downloadedData: {},
-  isAuthenticated: false,
-  isLoading: false,
-  authError: null,
-  hasSeenWelcome: false,  // ← New default for welcome page flag
-
+  id:                  null,
+  name:                '',
+  email:               '',
+  university:          '',
+  subjectCombo:        '',
+  targetScore:         '',
+  examYear:            '2027',
+  examDate:            'Apr 27',
+  streak:              0,
+  overallScore:        0,
+  weeklyScoreChange:   0,
+  accuracy:            0,
+  previousAccuracy:    0,
+  questionsCompleted:  0,
+  totalQuestions:      0,
+  schoolRank:          0,
+  // daysToExam removed — computed live by useExamCountdown
+  onboardingComplete:  false,
+  isPro:               false,
+  hasSeenWelcome:      false,
+  downloadedData:      {},
+  isAuthenticated:     false,
+  isLoading:           false,
+  authError:           null,
+  _lastSync:           null,
 };
 
-// Helper to map subject combo ID to the stored string format
-const getSubjectComboString = (comboId: string): string => {
-  const combos: Record<string, string> = {
-    medicine: "English, Biology, Chemistry, Physics",
-    engineering: "English, Mathematics, Physics, Chemistry",
-    "social-sci": "English, Mathematics, Economics, Government",
-    law: "English, Literature, Government, CRS/IRS",
-  };
-  return combos[comboId] || comboId;
-};
+// ── Helpers ───────────────────────────────────────────────────────────────────
+const getSubjectComboString = (id: string): string => ({
+  medicine:     'English, Biology, Chemistry, Physics',
+  engineering:  'English, Mathematics, Physics, Chemistry',
+  'social-sci': 'English, Mathematics, Economics, Government',
+  law:          'English, Literature, Government, CRS/IRS',
+} as Record<string, string>)[id] ?? id;
 
-// Helper to parse combo string back to ID
-const getSubjectComboId = (comboString: string): string => {
-  const combos: Record<string, string> = {
-    "English, Biology, Chemistry, Physics": "medicine",
-    "English, Mathematics, Physics, Chemistry": "engineering",
-    "English, Mathematics, Economics, Government": "social-sci",
-    "English, Literature, Government, CRS/IRS": "law",
-  };
-  return combos[comboString] || comboString;
-};
+const getSubjectComboId = (str: string): string => ({
+  'English, Biology, Chemistry, Physics':      'medicine',
+  'English, Mathematics, Physics, Chemistry':  'engineering',
+  'English, Mathematics, Economics, Government': 'social-sci',
+  'English, Literature, Government, CRS/IRS':  'law',
+} as Record<string, string>)[str] ?? str;
 
+// ── Store ─────────────────────────────────────────────────────────────────────
 export const useUserStore = create<UserState>()(
   persist(
     (set, get) => ({
       ...DEFAULTS,
 
-
-      // Auth Actions
-      signUp: async (email: string, password: string, name: string) => {
-        // PRESERVE user's name immediately so it persists even if signup fails
-        set({ name, isLoading: true, authError: null });
-
-        try {
-          const { data, error } = await supabase.auth.signUp({
-            email,
-            password,
-            options: {
-              data: { full_name: name }
-            }
-          });
-
-
-          if (error) throw error;
-
-          if (data.user) {
-            set({
-              email,
-              id: data.user.id,
-              isAuthenticated: true
-            });
-
-            // Wait for your trigger to create the profile
-            setTimeout(() => get().syncProfile(), 1000);
-          }
-
-          return { error: null };
-        } catch (error) {
-          console.error('Signup error:', error);
-          set({ authError: (error as Error).message });
-          return { error: error as Error };
-        } finally {
-          set({ isLoading: false });
-        }
-      },
-
-      signIn: async (email: string, password: string) => {
-        set({ isLoading: true, authError: null });
-
-        try {
-          const { data, error } = await supabase.auth.signInWithPassword({
-            email,
-            password
-          });
-          if (error) throw error;
-
-          if (data.user) {
-            set({
-              email,
-              id: data.user.id,
-              isAuthenticated: true
-            });
-            await get().syncProfile();
-          }
-
-          return { error: null };
-        } catch (error) {
-          console.error('Signin error:', error);
-          set({ authError: (error as Error).message });
-          return { error: error as Error };
-        } finally {
-          set({ isLoading: false });
-        }
-      },
-
-      signOut: async () => {
-        set({ isLoading: true });
-        try {
-          await supabase.auth.signOut();
-          // Force reset EVERYTHING to defaults
-          set({ ...DEFAULTS, isAuthenticated: false, id: null });
-          localStorage.removeItem('jambready-user');
-        } catch (error) {
-          console.error('Signout error:', error);
-          // Still reset local state even if Supabase call fails
-          set({ ...DEFAULTS, isAuthenticated: false, id: null });
-        } finally {
-          set({ isLoading: false });
-        }
-      },
-
-      // Update the syncProfile function in UseUserStore.ts
-      syncProfile: async (force = false): Promise<{ onboardingComplete: boolean }> => {
+      // ── syncProfile ────────────────────────────────────
+      // Returns { onboardingComplete } so callers can navigate
+      // based on the FRESH value without reading stale Zustand state.
+      syncProfile: async (force = false) => {
         const { id, _lastSync } = get();
         if (!id) return { onboardingComplete: false };
 
         const now = Date.now();
-        if (!force && _lastSync && (now - _lastSync) < 5000) {
-          console.log('🔵 Using cached profile data');
+        if (!force && _lastSync && now - _lastSync < 5_000) {
           return { onboardingComplete: get().onboardingComplete };
         }
 
         set({ isLoading: true, _lastSync: now });
-
         try {
           const { data, error } = await supabase
             .from('profiles')
@@ -255,233 +157,238 @@ export const useUserStore = create<UserState>()(
             .maybeSingle();
 
           if (error) throw error;
+          if (!data) return { onboardingComplete: false };
 
-          const currentName = get().name;
+          const onboardingComplete = data.onboarding_complete === true;
 
-          if (data) {
-            const onboardingComplete = data.onboarding_complete === true;
-            const dbName = data.name || '';
+          set({
+            name:               data.name               || get().name,
+            university:         data.university          || '',
+            targetScore:        data.target_score        || '',
+            examYear:           data.exam_year           || '2027',
+            examDate:           data.exam_date           || 'Apr 27',
+            subjectCombo:       data.subject_combo
+                                  ? getSubjectComboId(data.subject_combo) : '',
+            email:              data.email               || get().email,
+            isPro:              data.is_pro              ?? false,
+            onboardingComplete,
+            isLoading:          false,
+          });
 
-            // If we have a name locally but not in DB, sync it UP to the DB
-            // so other users can see it in chat immediately.
-            if (!dbName && currentName) {
-              console.log('🔵 Syncing name to DB profile:', currentName);
-              await supabase
-                .from('profiles')
-                .update({ name: currentName })
-                .eq('id', id);
-            }
-
-            set({
-              name: dbName || currentName,
-              university: data.university || '',
-              targetScore: data.target_score || '',
-              examYear: data.exam_year || '2025',
-              examDate: data.exam_date || 'Jun 14',
-              subjectCombo: data.subject_combo ? getSubjectComboId(data.subject_combo) : '',
-              onboardingComplete: onboardingComplete,
-              email: data.email || get().email,
-              isLoading: false,
-            });
-
-            return { onboardingComplete };
-          } else {
-            // No profile record yet? Try to create one with the name we have
-            if (currentName) {
-              console.log('🔵 Creating initial profile with name:', currentName);
-              await supabase
-                .from('profiles')
-                .insert({ id, name: currentName, email: get().email })
-                .select()
-                .maybeSingle();
-            }
-          }
-
-          return { onboardingComplete: false };
-        } catch (error) {
-          console.error('Sync profile error:', error);
+          return { onboardingComplete };
+        } catch (err) {
+          console.error('[syncProfile]', err);
           return { onboardingComplete: get().onboardingComplete };
         } finally {
           set({ isLoading: false });
         }
       },
 
-      clearAuthError: () => set({ authError: null }),
-      _lastSync: null,
-
-      // Complete Onboarding - Using your stored procedure
-      // In UseUserStore.ts - Find the completeOnboarding function and update it:
-
-      completeOnboarding: async (data: OnboardingData) => {
-        const { id } = get();
-
-        if (!id) {
-          console.error('No user ID found');
-          return { error: new Error('Not authenticated') };
-        }
-
-        set({ isLoading: true });
-
+      // ── signUp (legacy password flow — kept for compat) ─
+      signUp: async (email, _password, name) => {
+        // This path is no longer used in the OTP flow.
+        // Preserved so existing call-sites don't break.
+        set({ isLoading: true, authError: null });
         try {
-          // Call the Supabase RPC — this sets onboarding_complete = TRUE in DB
-          const { error } = await supabase.rpc('complete_onboarding', {
-            p_user_id: id,
-            p_name: data.name,
-            p_university: data.university,
-            p_subject_combo: getSubjectComboString(data.subjectCombo),
-            p_target_score: data.targetScore,
-            p_exam_year: data.examYear,
-            p_exam_date: data.examDate || 'Jun 14',
+          const { data, error } = await supabase.auth.signUp({
+            email,
+            password: _password,
+            options: { data: { full_name: name } },
           });
           if (error) throw error;
-
-          // Initialize subject progress for the new user
-          console.log('🔵 Initializing subjects for new user...');
-          await useSubjectStore.getState().initialize();
-          console.log('🔵 Subjects initialized successfully');
-
-          // Update local store
-          set({
-            name: data.name,
-            university: data.university,
-            subjectCombo: data.subjectCombo,
-            targetScore: data.targetScore,
-            examYear: data.examYear,
-            examDate: data.examDate || 'Jun 14',
-            onboardingComplete: true,  // Optimistic!
-            // IMPORTANT: Do NOT set onboardingComplete here
-            // Let the welcome page mark it as seen
-            // onboardingComplete: true  // ← KEEP THIS COMMENTED
-          });
-
-          await get().syncProfile(true); // Force sync to get the latest onboardingComplete status from DB
+          if (data.user) {
+            set({ email, name, id: data.user.id, isAuthenticated: true });
+            setTimeout(() => get().syncProfile(), 1_000);
+          }
           return { error: null };
-        } catch (error) {
-          console.error('Complete onboarding error:', error);
-          return { error: error as Error };
+        } catch (err) {
+          set({ authError: (err as Error).message });
+          // FIX: preserve the name the user typed even on failure
+          // so Onboarding.tsx can display it correctly
+          set(s => ({ name: s.name || '' }));
+          return { error: err as Error };
         } finally {
           set({ isLoading: false });
         }
       },
 
-      // Make sure markWelcomeAsSeen exists and sets both flags:
-      markWelcomeAsSeen: () => {
-        console.log("🔵 markWelcomeAsSeen called");
-        set({
-          onboardingComplete: true,
-          hasSeenWelcome: true
-        });
+      // ── signIn (legacy password flow) ─────────────────
+      signIn: async (email, password) => {
+        set({ isLoading: true, authError: null });
+        try {
+          const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+          if (error) throw error;
+          if (data.user) {
+            set({ email, id: data.user.id, isAuthenticated: true });
+            await get().syncProfile();
+          }
+          return { error: null };
+        } catch (err) {
+          set({ authError: (err as Error).message });
+          return { error: err as Error };
+        } finally {
+          set({ isLoading: false });
+        }
       },
 
-      // Regular profile update (without completing onboarding)
-      updateProfile: async (data: ProfileUpdate) => {
-        const { id } = get();
-
-        if (!id) {
-          set(data);
-          return { error: null };
+      // ── signOut ────────────────────────────────────────
+      // Clears everything including the persisted localStorage key.
+      signOut: async () => {
+        set({ isLoading: true });
+        try {
+          await supabase.auth.signOut();
+          set({ ...DEFAULTS });
+          localStorage.removeItem('jambready-user');
+        } catch (err) {
+          console.error('[signOut]', err);
+        } finally {
+          set({ isLoading: false });
         }
+      },
+
+      clearAuthError: () => set({ authError: null }),
+
+      // ── completeOnboarding ────────────────────────────
+      completeOnboarding: async (data) => {
+        const { id } = get();
+        if (!id) return { error: new Error('Not authenticated') };
 
         set({ isLoading: true });
+        try {
+          const { error } = await supabase.rpc('complete_onboarding', {
+            p_user_id:       id,
+            p_name:          data.name,
+            p_university:    data.university,
+            p_subject_combo: getSubjectComboString(data.subjectCombo),
+            p_target_score:  data.targetScore,
+            p_exam_year:     data.examYear,
+            p_exam_date:     data.examDate ?? 'Apr 27',
+          });
+          if (error) throw error;
 
+          await useSubjectStore.getState().initialize();
+
+          // Set optimistically — DB already has the truth
+          set({
+            name:               data.name,
+            university:         data.university,
+            subjectCombo:       data.subjectCombo,
+            targetScore:        data.targetScore,
+            examYear:           data.examYear,
+            examDate:           data.examDate ?? 'Apr 27',
+            onboardingComplete: true,
+            hasSeenWelcome:     false,
+          });
+
+          // Force-sync to confirm DB state matches
+          await get().syncProfile(true);
+          return { error: null };
+        } catch (err) {
+          console.error('[completeOnboarding]', err);
+          return { error: err as Error };
+        } finally {
+          set({ isLoading: false });
+        }
+      },
+
+      // ── markWelcomeAsSeen ─────────────────────────────
+      markWelcomeAsSeen: () =>
+        set({ onboardingComplete: true, hasSeenWelcome: true }),
+
+      // ── Profile updates ───────────────────────────────
+      updateProfile: async (data) => {
+        const { id } = get();
+        if (!id) { set(data); return { error: null }; }
+        set({ isLoading: true });
         try {
           const { error } = await supabase
             .from('profiles')
             .update({
-              name: data.name,
-              university: data.university,
+              name:          data.name,
+              university:    data.university,
               subject_combo: getSubjectComboString(data.subjectCombo),
             })
             .eq('id', id);
-
           if (error) throw error;
-
           set(data);
           await get().syncProfile();
           return { error: null };
-        } catch (error) {
-          console.error('Update profile error:', error);
-          return { error: error as Error };
+        } catch (err) {
+          return { error: err as Error };
         } finally {
           set({ isLoading: false });
         }
       },
 
-      updateExamSettings: async (data: ExamUpdate) => {
+      updateExamSettings: async (data) => {
         const { id } = get();
-
-        if (!id) {
-          set(data);
-          return { error: null };
-        }
-
+        if (!id) { set(data); return { error: null }; }
         set({ isLoading: true });
-
         try {
           const { error } = await supabase
             .from('profiles')
             .update({
               target_score: data.targetScore,
-              exam_year: data.examYear,
-              exam_date: data.examDate,
+              exam_year:    data.examYear,
+              exam_date:    data.examDate,
             })
             .eq('id', id);
-
           if (error) throw error;
-
           set(data);
           await get().syncProfile();
           return { error: null };
-        } catch (error) {
-          console.error('Update exam settings error:', error);
-          return { error: error as Error };
+        } catch (err) {
+          return { error: err as Error };
         } finally {
           set({ isLoading: false });
         }
       },
 
       resetAccount: async () => {
-        const { signOut } = get();
-        await signOut();
+        await get().signOut();
         return { error: null };
       },
 
-      // Simple setters
-      setName: (name: string) => set({ name }),
-      setEmail: (email: string) => set({ email }),
-      incrementScore: (pts: number) => set((s) => ({ overallScore: s.overallScore + pts })),
-      incrementQuestions: (n: number) => set((s) => ({ questionsCompleted: s.questionsCompleted + n })),
-      updateAccuracy: (acc: number) => set((s) => ({ previousAccuracy: s.accuracy, accuracy: acc })),
-      upgradeToPro: () => set({ isPro: true }),
-      downgradeToPro: () => set({ isPro: false }),
-      setDownloadedData: (data: DownloadedData) => set({ downloadedData: data }),
-      addDownloadedData: (key: string, data: any) => set((s) => ({
-        downloadedData: { ...s.downloadedData, [key]: data }
+      // ── Simple setters ────────────────────────────────
+      setName:           n    => set({ name: n }),
+      setEmail:          e    => set({ email: e }),
+      incrementScore:    pts  => set(s => ({ overallScore:      s.overallScore + pts })),
+      incrementQuestions:n    => set(s => ({ questionsCompleted:s.questionsCompleted + n })),
+      updateAccuracy:    acc  => set(s => ({ previousAccuracy:  s.accuracy, accuracy: acc })),
+      upgradeToPro:      ()   => set({ isPro: true }),
+      downgradeToPro:    ()   => set({ isPro: false }),
+      setDownloadedData: data => set({ downloadedData: data }),
+      addDownloadedData: (k, v) => set(s => ({
+        downloadedData: { ...s.downloadedData, [k]: v },
       })),
     }),
+
     {
       name: 'jambready-user',
-      partialize: (s) => ({
-        name: s.name,
-        email: s.email,
-        university: s.university,
-        subjectCombo: s.subjectCombo,
-        targetScore: s.targetScore,
-        examYear: s.examYear,
-        examDate: s.examDate,
-        onboardingComplete: s.onboardingComplete,
-        isPro: s.isPro,
-        downloadedData: s.downloadedData,
-        streak: s.streak,
-        overallScore: s.overallScore,
-        weeklyScoreChange: s.weeklyScoreChange,
-        accuracy: s.accuracy,
-        previousAccuracy: s.previousAccuracy,
-        questionsCompleted: s.questionsCompleted,
-        totalQuestions: s.totalQuestions,
-        schoolRank: s.schoolRank,
-        daysToExam: s.daysToExam,
-        hasSeenWelcome: s.hasSeenWelcome,
+      partialize: s => ({
+        // Persist auth identity and profile so page refresh works
+        id:                  s.id,
+        name:                s.name,
+        email:               s.email,
+        university:          s.university,
+        subjectCombo:        s.subjectCombo,
+        targetScore:         s.targetScore,
+        examYear:            s.examYear,
+        examDate:            s.examDate,
+        onboardingComplete:  s.onboardingComplete,
+        isPro:               s.isPro,
+        hasSeenWelcome:      s.hasSeenWelcome,
+        downloadedData:      s.downloadedData,
+        streak:              s.streak,
+        overallScore:        s.overallScore,
+        weeklyScoreChange:   s.weeklyScoreChange,
+        accuracy:            s.accuracy,
+        previousAccuracy:    s.previousAccuracy,
+        questionsCompleted:  s.questionsCompleted,
+        totalQuestions:      s.totalQuestions,
+        schoolRank:          s.schoolRank,
+        // daysToExam intentionally excluded — computed live by useExamCountdown
+        isAuthenticated:     s.isAuthenticated,
       }),
     },
   ),

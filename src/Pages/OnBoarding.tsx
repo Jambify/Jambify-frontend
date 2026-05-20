@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useUserStore } from "../Store/UseUserStore";
 import StepIndicator from "../components/OnBoarding/StepIndicator";
 import Button from "../components/ui/Button";
-import { cn } from "../lib/utils";
+import { cn } from "../lib/utils/utils";
 import LoadingScreen from "../components/ui/LoadingScreen";
 
 /* ── Updated Data with Professional Combos ── */

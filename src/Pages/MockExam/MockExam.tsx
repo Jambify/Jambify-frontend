@@ -9,7 +9,7 @@ import { SAMPLE_QUESTIONS } from "../../Data/Question";
 import OptionButton from "../../components/Quiz/OptionButton";
 import MockResultsScreen from "../../components/MockExam/MockResultScreen";
 import Button from "../../components/ui/Button";
-import { cn } from "../../lib/utils";
+import { cn } from "../../lib/utils/utils";
 
 const MOCK_DURATION = 7200; // 2 hours in seconds
 
@@ -27,24 +27,33 @@ const AVAILABLE_SUBJECTS = [
   { id: "CRS", name: "CRS" },
 ];
 
-const AVAILABLE_YEARS = Array.from({ length: 11 }, (_, i) => (2016 + i).toString());
+const AVAILABLE_YEARS = Array.from({ length: 11 }, (_, i) =>
+  (2016 + i).toString(),
+);
 
 // API Configuration
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://your-api.com";
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "https://your-api.com";
 
 // Function to fetch questions from API
-const fetchQuestionsFromAPI = async (subject: string, year: string): Promise<any[]> => {
+const fetchQuestionsFromAPI = async (
+  subject: string,
+  year: string,
+): Promise<any[]> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/questions?subject=${subject}&year=${year}`, {
-      headers: {
-        'Content-Type': 'application/json',
+    const response = await fetch(
+      `${API_BASE_URL}/questions?subject=${subject}&year=${year}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
       },
-    });
-    
+    );
+
     if (!response.ok) {
       throw new Error(`API error: ${response.status}`);
     }
-    
+
     const data = await response.json();
     return data.questions || [];
   } catch (error) {
@@ -55,31 +64,34 @@ const fetchQuestionsFromAPI = async (subject: string, year: string): Promise<any
 
 // Function to fetch all selected subjects' questions
 const fetchAllQuestions = async (
-  subjects: string[], 
-  year: string
+  subjects: string[],
+  year: string,
 ): Promise<Record<string, any[]>> => {
   const results: Record<string, any[]> = {};
-  
+
   await Promise.all(
     subjects.map(async (subject) => {
       const questions = await fetchQuestionsFromAPI(subject, year);
       results[subject] = questions;
-    })
+    }),
   );
-  
+
   return results;
 };
 
 // Calculate JAMB score (out of 400)
-const calculateJambScore = (correctBySubject: Record<string, number>, totalQuestionsBySubject: Record<string, number>): number => {
+const calculateJambScore = (
+  correctBySubject: Record<string, number>,
+  totalQuestionsBySubject: Record<string, number>,
+): number => {
   let totalCorrect = 0;
   let totalQuestions = 0;
-  
+
   Object.keys(correctBySubject).forEach((subject) => {
     totalCorrect += correctBySubject[subject];
     totalQuestions += totalQuestionsBySubject[subject];
   });
-  
+
   return Math.round((totalCorrect / totalQuestions) * 400);
 };
 
@@ -160,13 +172,13 @@ const MockExam: React.FC = () => {
 
   const handleFinishExam = async () => {
     setIsSubmitting(true);
-    
+
     try {
       const timeTakenSeconds = MOCK_DURATION - timeLeft;
-      
+
       const correctBySubject: Record<string, number> = {};
       const totalBySubject: Record<string, number> = {};
-      
+
       questions.forEach((q, idx) => {
         if (!totalBySubject[q.subject]) {
           totalBySubject[q.subject] = 0;
@@ -177,15 +189,18 @@ const MockExam: React.FC = () => {
           correctBySubject[q.subject]++;
         }
       });
-      
+
       const jambScore = calculateJambScore(correctBySubject, totalBySubject);
-      
-      const subjectResults = new Map<string, { 
-        questionIds: string[]; 
-        answers: Record<number, number>;
-        startIndex: number;
-      }>();
-      
+
+      const subjectResults = new Map<
+        string,
+        {
+          questionIds: string[];
+          answers: Record<number, number>;
+          startIndex: number;
+        }
+      >();
+
       questions.forEach((q, idx) => {
         if (!subjectResults.has(q.subject)) {
           subjectResults.set(q.subject, {
@@ -201,21 +216,30 @@ const MockExam: React.FC = () => {
           subjectData.answers[answerIndex] = answers[idx];
         }
       });
-      
-      console.log("🔵 JAMB Score Calculation:", { correctBySubject, totalBySubject, jambScore });
-      
+
+      console.log("🔵 JAMB Score Calculation:", {
+        correctBySubject,
+        totalBySubject,
+        jambScore,
+      });
+
       for (const [subject, data] of subjectResults) {
         if (Object.keys(data.answers).length > 0) {
           try {
-            await addQuizResult('mock', subject, data.questionIds, data.answers, timeTakenSeconds);
+            await addQuizResult(
+              "mock",
+              subject,
+              data.questionIds,
+              data.answers,
+              timeTakenSeconds,
+            );
           } catch (err) {
             console.error(`❌ Failed to submit ${subject}:`, err);
           }
         }
       }
-      
     } catch (error) {
-      console.error('Failed to submit mock exam results:', error);
+      console.error("Failed to submit mock exam results:", error);
     } finally {
       setIsSubmitting(false);
       finishExam();
@@ -225,36 +249,47 @@ const MockExam: React.FC = () => {
   const handleStart = async () => {
     setErrorMessage(null);
     setIsLoadingQuestions(true);
-    
+
     try {
       let allQuestions: any[] = [];
-      
+
       if (useApi) {
-        const questionsBySubject = await fetchAllQuestions(selectedCombination, selectedYear);
-        
+        const questionsBySubject = await fetchAllQuestions(
+          selectedCombination,
+          selectedYear,
+        );
+
         for (const subject of selectedCombination) {
           const subjectQuestions = questionsBySubject[subject] || [];
           if (subjectQuestions.length === 0) {
-            setErrorMessage(`No questions found for ${subject} in ${selectedYear}. Using sample data.`);
-            const sampleFiltered = SAMPLE_QUESTIONS.filter((q) => q.subject === subject);
+            setErrorMessage(
+              `No questions found for ${subject} in ${selectedYear}. Using sample data.`,
+            );
+            const sampleFiltered = SAMPLE_QUESTIONS.filter(
+              (q) => q.subject === subject,
+            );
             allQuestions.push(...sampleFiltered);
           } else {
             allQuestions.push(...subjectQuestions);
           }
         }
       } else {
-        const filtered = SAMPLE_QUESTIONS.filter((q) =>
-          selectedCombination.includes(q.subject) && String(q.year) === selectedYear
+        const filtered = SAMPLE_QUESTIONS.filter(
+          (q) =>
+            selectedCombination.includes(q.subject) &&
+            String(q.year) === selectedYear,
         );
-        
+
         if (filtered.length === 0) {
-          setErrorMessage(`Questions for the year ${selectedYear} are currently being uploaded.`);
+          setErrorMessage(
+            `Questions for the year ${selectedYear} are currently being uploaded.`,
+          );
           setIsLoadingQuestions(false);
           return;
         }
         allQuestions = filtered;
       }
-      
+
       const finalOrderedQuestions = selectedCombination.flatMap((sub) => {
         const subjectQuestions = allQuestions.filter((q) => q.subject === sub);
         return shuffleArray(subjectQuestions).map((q) => {
@@ -264,13 +299,12 @@ const MockExam: React.FC = () => {
           return { ...q, options: shuffledOptions, answer: newCorrectIndex };
         });
       });
-      
+
       startExam(finalOrderedQuestions, MOCK_DURATION);
       setActiveSubject(selectedCombination[0]);
-      
     } catch (error) {
-      console.error('Error starting exam:', error);
-      setErrorMessage('Failed to load questions. Please try again.');
+      console.error("Error starting exam:", error);
+      setErrorMessage("Failed to load questions. Please try again.");
     } finally {
       setIsLoadingQuestions(false);
     }
@@ -399,7 +433,7 @@ const MockExam: React.FC = () => {
                     globalIdx === currentIndex
                       ? "bg-brand text-white border-brand shadow-lg scale-110 z-10"
                       : answers[globalIdx] !== undefined &&
-                        answers[globalIdx] !== -1
+                          answers[globalIdx] !== -1
                         ? "bg-success/10 text-success border-success/30"
                         : "bg-bgSurface text-textDim border-borderMuted",
                   )}
@@ -465,7 +499,11 @@ const MockExam: React.FC = () => {
               }
             }}
             className="touch-target no-double-tap"
-            aria-label={currentIndex === questions.length - 1 ? "Finish exam" : "Next question"}
+            aria-label={
+              currentIndex === questions.length - 1
+                ? "Finish exam"
+                : "Next question"
+            }
           >
             {currentIndex === questions.length - 1 ? "Finish" : "Next"}
           </Button>
@@ -580,7 +618,10 @@ const MockExam: React.FC = () => {
                     <option
                       key={sub.id}
                       value={sub.id}
-                      disabled={selectedCombination.includes(sub.id) || sub.id === "English"}
+                      disabled={
+                        selectedCombination.includes(sub.id) ||
+                        sub.id === "English"
+                      }
                     >
                       {sub.name}
                     </option>
@@ -593,7 +634,9 @@ const MockExam: React.FC = () => {
             variant="primary"
             size="lg"
             fullWidth
-            disabled={selectedCombination.some((s) => s === "") || isLoadingQuestions}
+            disabled={
+              selectedCombination.some((s) => s === "") || isLoadingQuestions
+            }
             onClick={handleStart}
           >
             {isLoadingQuestions ? "Loading Questions..." : "Start Mock Exam"}
@@ -619,7 +662,8 @@ const MockExam: React.FC = () => {
                 <span>•</span> Time: <strong>2 hours (120 minutes)</strong>
               </li>
               <li className="flex gap-3">
-                <span>•</span> Score calculation: <strong>(Correct/Total) × 400</strong>
+                <span>•</span> Score calculation:{" "}
+                <strong>(Correct/Total) × 400</strong>
               </li>
             </ul>
           </div>

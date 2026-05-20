@@ -1,43 +1,53 @@
-import React from 'react';
-import { useOfflineStore } from '../../Store/useOfflineStore';
-import { cn } from '../../lib/utils';
+import React from "react";
+import { useOfflineStore } from "../../Store/useOfflineStore";
+import { cn } from "../../lib/utils/utils";
 
 export interface OfflinePack {
-  id:      string;
+  id: string;
   subject: string;
-  years:   string;
-  count:   number;
-  size:    string;
+  years: string;
+  count: number;
+  size: string;
 }
 
 const SUBJ_ICONS: Record<string, string> = {
-  English: '📖', Mathematics: '🔢', Physics: '⚡',
-  Chemistry: '⚗️', Biology: '🧬',
+  English: "📖",
+  Mathematics: "🔢",
+  Physics: "⚡",
+  Chemistry: "⚗️",
+  Biology: "🧬",
 };
 
 const SUBJ_COLORS: Record<string, string> = {
-  English: '#7B5FFF', Mathematics: '#00C896', Physics: '#FFB020',
-  Chemistry: '#FF4D6D', Biology: '#00C896',
+  English: "#7B5FFF",
+  Mathematics: "#00C896",
+  Physics: "#FFB020",
+  Chemistry: "#FF4D6D",
+  Biology: "#00C896",
 };
 
 const OfflinePackCard: React.FC<{ pack: OfflinePack }> = ({ pack }) => {
-  const { downloadedPacks, downloadingId, downloadPack, removePack } = useOfflineStore();
-  const isDownloaded  = downloadedPacks.includes(pack.id);
+  const { downloadedPacks, downloadingId, downloadPack, removePack } =
+    useOfflineStore();
+  const isDownloaded = downloadedPacks.includes(pack.id);
   const isDownloading = downloadingId === pack.id;
-  const color         = SUBJ_COLORS[pack.subject] ?? '#7B5FFF';
+  const color = SUBJ_COLORS[pack.subject] ?? "#7B5FFF";
 
   return (
-    <div className={cn(
-      'bg-bgCard border rounded-brand-lg p-4 flex items-center gap-4 transition-all',
-      isDownloaded ? 'border-success/30' : 'border-borderMuted hover:border-white/10',
-    )}>
-
+    <div
+      className={cn(
+        "bg-bgCard border rounded-brand-lg p-4 flex items-center gap-4 transition-all",
+        isDownloaded
+          ? "border-success/30"
+          : "border-borderMuted hover:border-white/10",
+      )}
+    >
       {/* <Subject icon */}
       <div
         className="w-11 h-11 rounded-brand flex items-center justify-center text-xl shrink-0"
-        style={{ background: color + '18' }}
+        style={{ background: color + "18" }}
       >
-        {SUBJ_ICONS[pack.subject] ?? '📚'}
+        {SUBJ_ICONS[pack.subject] ?? "📚"}
       </div>
 
       {/* <Info */}
@@ -53,7 +63,10 @@ const OfflinePackCard: React.FC<{ pack: OfflinePack }> = ({ pack }) => {
         )}
         {isDownloading && (
           <div className="mt-2 h-1 bg-bgSurface rounded-full overflow-hidden">
-            <div className="h-full bg-brand rounded-full animate-pulse" style={{ width: '60%' }} />
+            <div
+              className="h-full bg-brand rounded-full animate-pulse"
+              style={{ width: "60%" }}
+            />
           </div>
         )}
       </div>

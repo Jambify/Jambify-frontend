@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { usePerformanceStore } from "../../Store/usePerformanceStore";
 import { useNavigate } from "react-router-dom";
-import { cn } from "../../lib/utils";
+import { cn } from "../../lib/utils/utils";
 
 type Filter = "all" | "weak" | "strong";
 
@@ -21,7 +21,7 @@ const TopicStats: React.FC = () => {
         ? t.accuracy >= 75
         : true,
   );
-  
+
   const displayedTopics = showAll ? visibleTopics : visibleTopics.slice(0, 5);
   const hasMore = visibleTopics.length > 5;
 
@@ -134,14 +134,16 @@ const TopicStats: React.FC = () => {
             </div>
           );
         })}
-        
+
         {/* Show more/less button */}
         {hasMore && (
           <button
             onClick={() => setShowAll(!showAll)}
             className="text-xs text-brand-light hover:underline mt-2 text-center w-full"
           >
-            {showAll ? "Show less" : `Show ${visibleTopics.length - 5} more topics`}
+            {showAll
+              ? "Show less"
+              : `Show ${visibleTopics.length - 5} more topics`}
           </button>
         )}
       </div>

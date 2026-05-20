@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { SAMPLE_QUESTIONS } from "../../Data/Question";
-import { cn } from "../../lib/utils";
+import { cn } from "../../lib/utils/utils";
 import {
   ArrowLeft,
   ArrowRight,

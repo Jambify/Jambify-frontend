@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { useUserStore } from '../../Store/UseUserStore';
-import Button from '../ui/Button';
-import { cn } from '../../lib/utils';
-import { Section, Field, inputCls } from './Shared';
-import { Search, Loader2 } from 'lucide-react'; // Added Loader2
+import React, { useState, useEffect, useMemo } from "react";
+import { useUserStore } from "../../Store/UseUserStore";
+import Button from "../ui/Button";
+import { cn } from "../../lib/utils/utils";
+import { Section, Field, inputCls } from "./Shared";
+import { Search, Loader2 } from "lucide-react"; // Added Loader2
 
 const SUBJECT_COMBOS = [
   {
@@ -33,9 +33,26 @@ const SUBJECT_COMBOS = [
 ];
 
 const ProfileForm: React.FC = () => {
-  const { name, email, university, subjectCombo, targetScore, examYear, examDate, completeOnboarding } = useUserStore();
-  
-  const [form, setForm] = useState({ name, email, university, subjectCombo, targetScore, examYear, examDate });
+  const {
+    name,
+    email,
+    university,
+    subjectCombo,
+    targetScore,
+    examYear,
+    examDate,
+    completeOnboarding,
+  } = useUserStore();
+
+  const [form, setForm] = useState({
+    name,
+    email,
+    university,
+    subjectCombo,
+    targetScore,
+    examYear,
+    examDate,
+  });
   const [universities, setUniversities] = useState<string[]>([]);
   const [isLoadingUnis, setIsLoadingUnis] = useState(false);
   const [searchTerm, setSearchTerm] = useState(university || "");
@@ -47,7 +64,9 @@ const ProfileForm: React.FC = () => {
     const fetchUniversities = async () => {
       setIsLoadingUnis(true);
       try {
-        const response = await fetch('http://universities.hipolabs.com/search?country=Nigeria');
+        const response = await fetch(
+          "http://universities.hipolabs.com/search?country=Nigeria",
+        );
         const data = await response.json();
         const uniNames = data.map((uni: any) => uni.name).sort();
         setUniversities(uniNames);
@@ -62,14 +81,18 @@ const ProfileForm: React.FC = () => {
 
   const filteredUnis = useMemo(() => {
     if (!searchTerm) return [];
-    return universities.filter(uni => 
-      uni.toLowerCase().includes(searchTerm.toLowerCase()) && uni !== searchTerm
-    ).slice(0, 8);
+    return universities
+      .filter(
+        (uni) =>
+          uni.toLowerCase().includes(searchTerm.toLowerCase()) &&
+          uni !== searchTerm,
+      )
+      .slice(0, 8);
   }, [searchTerm, universities]);
 
   const handleSave = () => {
     if (!form.name.trim()) {
-      setErrors({ name: 'Name cannot be empty' });
+      setErrors({ name: "Name cannot be empty" });
       return;
     }
     completeOnboarding(form);
@@ -93,10 +116,15 @@ const ProfileForm: React.FC = () => {
             type="email"
             value={email}
             readOnly
-            className={cn(inputCls(false), "bg-bgDeep cursor-not-allowed opacity-75")}
+            className={cn(
+              inputCls(false),
+              "bg-bgDeep cursor-not-allowed opacity-75",
+            )}
             placeholder="your.email@example.com"
           />
-          <p className="text-xs text-textDim mt-1">Email cannot be changed - it's your account identifier</p>
+          <p className="text-xs text-textDim mt-1">
+            Email cannot be changed - it's your account identifier
+          </p>
         </Field>
         <Field label="Full name" error={errors.name}>
           <input
@@ -122,18 +150,24 @@ const ProfileForm: React.FC = () => {
                 value={searchTerm}
                 onChange={(e) => {
                   setSearchTerm(e.target.value);
-                  setForm(p => ({ ...p, university: e.target.value }));
+                  setForm((p) => ({ ...p, university: e.target.value }));
                   setShowDropdown(true);
                 }}
                 onFocus={() => setShowDropdown(true)}
                 className={cn(inputCls(false), "pl-10 pr-10")}
                 placeholder="Search Nigerian universities..."
               />
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-textDim" size={16} />
-              
+              <Search
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-textDim"
+                size={16}
+              />
+
               {/* Spinner logic */}
               {isLoadingUnis && (
-                <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 text-brand animate-spin" size={16} />
+                <Loader2
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-brand animate-spin"
+                  size={16}
+                />
               )}
             </div>
           </Field>
@@ -151,7 +185,7 @@ const ProfileForm: React.FC = () => {
                     type="button"
                     onClick={() => {
                       setSearchTerm(uni);
-                      setForm(p => ({ ...p, university: uni }));
+                      setForm((p) => ({ ...p, university: uni }));
                       setShowDropdown(false);
                     }}
                     className="w-full text-left px-4 py-3 text-sm hover:bg-brand/10 hover:text-brand-light transition-colors border-b border-borderMuted/30 last:border-none"
@@ -169,8 +203,6 @@ const ProfileForm: React.FC = () => {
         </div>
       </Section>
 
-     
-
       {/* Updated Subject Combinations */}
       <Section title="Subject combination">
         <div className="grid grid-cols-1 gap-2">
@@ -180,21 +212,28 @@ const ProfileForm: React.FC = () => {
               <button
                 key={combo.id}
                 type="button"
-                onClick={() => setForm((p) => ({ ...p, subjectCombo: combo.id }))}
+                onClick={() =>
+                  setForm((p) => ({ ...p, subjectCombo: combo.id }))
+                }
                 className={cn(
-                  'w-full text-left px-4 py-3 rounded-brand border flex items-center gap-3 transition-all duration-200',
+                  "w-full text-left px-4 py-3 rounded-brand border flex items-center gap-3 transition-all duration-200",
                   isSelected
-                    ? 'bg-brand/10 border-brand ring-1 ring-brand/50'
-                    : 'bg-bgSurface border-borderMuted hover:border-white/20',
+                    ? "bg-brand/10 border-brand ring-1 ring-brand/50"
+                    : "bg-bgSurface border-borderMuted hover:border-white/20",
                 )}
               >
                 <span className="text-xl grayscale-0">{combo.icon}</span>
                 <div className="flex-1">
-                  <p className={cn('text-sm font-semibold', isSelected ? 'text-brand-light' : 'text-textMain')}>
+                  <p
+                    className={cn(
+                      "text-sm font-semibold",
+                      isSelected ? "text-brand-light" : "text-textMain",
+                    )}
+                  >
                     {combo.label}
                   </p>
                   <p className="text-[11px] text-textDim leading-tight mt-0.5">
-                    {combo.subjects.join(' · ')}
+                    {combo.subjects.join(" · ")}
                   </p>
                 </div>
                 {isSelected && (
@@ -208,17 +247,27 @@ const ProfileForm: React.FC = () => {
 
       <div className="flex items-center gap-5">
         <Button
-          variant={saved ? 'success' : 'primary'}
+          variant={saved ? "success" : "primary"}
           className="md"
           disabled={!isDirty && !saved}
           onClick={handleSave}
         >
-          {saved ? '✓ Changes Saved' : 'Save Profile'}
+          {saved ? "✓ Changes Saved" : "Save Profile"}
         </Button>
-         {isDirty && (
+        {isDirty && (
           <button
             className="text-sm text-textDim hover:text-textMain transition-colors"
-            onClick={() => setForm({ name, email, university, subjectCombo, targetScore, examYear, examDate })}
+            onClick={() =>
+              setForm({
+                name,
+                email,
+                university,
+                subjectCombo,
+                targetScore,
+                examYear,
+                examDate,
+              })
+            }
           >
             Discard
           </button>

@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { SAMPLE_QUESTIONS } from "../../Data/Question";
-import { cn } from "../../lib/utils";
+import { cn } from "../../lib/utils/utils";
 
 const MOCK_DURATION = 7200; // 2 hours in seconds
 
@@ -315,7 +315,6 @@ const GuestMockExam: React.FC = () => {
 
           {/* Action Buttons */}
           <div className="flex gap-3">
-           
             <button
               onClick={() => {
                 // Complete reset

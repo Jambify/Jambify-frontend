@@ -1,36 +1,44 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import type { Subject } from '../../Store/useSubjectStore';
-import TopicList from './SubjectTopic';
-import { cn } from '../../lib/utils';
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import type { Subject } from "../../Store/useSubjectStore";
+import TopicList from "./SubjectTopic";
+import { cn } from "../../lib/utils/utils";
 
 interface SubjectCardProps {
-  subject:    Subject;
+  subject: Subject;
   isExpanded: boolean;
-  onToggle:   () => void;
+  onToggle: () => void;
 }
 
-const SubjectCard: React.FC<SubjectCardProps> = ({ subject, isExpanded, onToggle }) => {
-  const navigate    = useNavigate();
+const SubjectCard: React.FC<SubjectCardProps> = ({
+  subject,
+  isExpanded,
+  onToggle,
+}) => {
+  const navigate = useNavigate();
   const progressPct = Math.round((subject.completed / subject.total) * 100);
 
-  const statusLabel = subject.accuracy < 55
-    ? { text: 'Needs work', cls: 'bg-danger/10 text-danger border-danger/20'  }
-    : subject.accuracy < 75
-      ? { text: 'In progress', cls: 'bg-warn/10 text-warn border-warn/20'       }
-      : { text: 'On track',   cls: 'bg-success/10 text-success border-success/20' };
+  const statusLabel =
+    subject.accuracy < 55
+      ? { text: "Needs work", cls: "bg-danger/10 text-danger border-danger/20" }
+      : subject.accuracy < 75
+        ? { text: "In progress", cls: "bg-warn/10 text-warn border-warn/20" }
+        : {
+            text: "On track",
+            cls: "bg-success/10 text-success border-success/20",
+          };
 
   return (
-    <div className={cn(
-      'bg-bgCard border rounded-brand-lg overflow-hidden transition-all duration-200',
-      isExpanded ? 'border-white/15' : 'border-borderMuted hover:border-white/10',
-    )}>
-
+    <div
+      className={cn(
+        "bg-bgCard border rounded-brand-lg overflow-hidden transition-all duration-200",
+        isExpanded
+          ? "border-white/15"
+          : "border-borderMuted hover:border-white/10",
+      )}
+    >
       {/* <── Card top — always visible ── */}
-      <div
-        className="p-5 cursor-pointer"
-        onClick={onToggle}
-      >
+      <div className="p-5 cursor-pointer" onClick={onToggle}>
         {/* <Header row */}
         <div className="flex items-start justify-between gap-3 mb-4">
           <div className="flex items-center gap-3">
@@ -50,22 +58,28 @@ const SubjectCard: React.FC<SubjectCardProps> = ({ subject, isExpanded, onToggle
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <span className={cn(
-              'text-[10px] font-medium px-2 py-0.5 rounded border',
-              statusLabel.cls,
-            )}>
+            <span
+              className={cn(
+                "text-[10px] font-medium px-2 py-0.5 rounded border",
+                statusLabel.cls,
+              )}
+            >
               {statusLabel.text}
             </span>
             {/* <Chevron */}
             <svg
-              width="14" height="14" viewBox="0 0 24 24"
-              fill="none" stroke="currentColor" strokeWidth="2"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
               className={cn(
-                'text-textDim transition-transform duration-200 shrink-0',
-                isExpanded && 'rotate-180',
+                "text-textDim transition-transform duration-200 shrink-0",
+                isExpanded && "rotate-180",
               )}
             >
-              <polyline points="6 9 12 15 18 9"/>
+              <polyline points="6 9 12 15 18 9" />
             </svg>
           </div>
         </div>
@@ -83,7 +97,8 @@ const SubjectCard: React.FC<SubjectCardProps> = ({ subject, isExpanded, onToggle
           </div>
           <div className="text-right">
             <p className="font-mono text-sm font-medium text-textMain">
-              {subject.completed}<span className="text-textDim">/{subject.total}</span>
+              {subject.completed}
+              <span className="text-textDim">/{subject.total}</span>
             </p>
             <p className="text-[11px] text-textDim mt-0.5">questions done</p>
           </div>
@@ -99,14 +114,15 @@ const SubjectCard: React.FC<SubjectCardProps> = ({ subject, isExpanded, onToggle
 
         {/* <Progress bar */}
         <div className="flex items-center justify-between">
-          <span className="text-[10px] text-textDim">{progressPct}% of questions attempted</span>
+          <span className="text-[10px] text-textDim">
+            {progressPct}% of questions attempted
+          </span>
         </div>
       </div>
 
       {/* <── Expanded section — topics + action buttons ── */}
       {isExpanded && (
         <div className="border-t border-borderMuted animate-slideDown">
-
           {/* <Weak topics */}
           {subject.weakTopics.length > 0 && (
             <div className="px-5 pt-4 pb-2">
@@ -116,18 +132,24 @@ const SubjectCard: React.FC<SubjectCardProps> = ({ subject, isExpanded, onToggle
               <TopicList topics={subject.weakTopics} color={subject.color} />
             </div>
           )}
-{/* 
+          {/* 
           <Action buttons */}
           <div className="flex gap-2 px-5 py-4">
             <button
-              onClick={(e) => { e.stopPropagation(); navigate('/quiz'); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate("/quiz");
+              }}
               className="flex-1 py-2 rounded-brand text-xs font-medium text-white transition-all active:scale-[0.98]"
               style={{ background: subject.color }}
             >
               Practise this subject
             </button>
             <button
-              onClick={(e) => { e.stopPropagation(); navigate('/performance'); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate("/performance");
+              }}
               className="px-4 py-2 rounded-brand text-xs font-medium bg-bgSurface border border-borderMuted text-textMuted hover:text-textMain hover:border-white/15 transition-all"
             >
               View stats

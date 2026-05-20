@@ -6,7 +6,7 @@ import { useUserStore } from "../../Store/UseUserStore";
 import type { StudyGroup } from "../../Store/useGroupStore";
 import { useNetworkStatus } from "../../hooks/useNetworkStatus";
 import MessageStatusIndicator from "./MessageStatusIndicator";
-import { cn } from "../../lib/utils";
+import { cn } from "../../lib/utils/utils";
 import { motion, useAnimation } from "framer-motion";
 import type { PanInfo } from "framer-motion";
 import {

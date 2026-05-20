@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import { useMockStore } from "../../Store/useMockStore";
 import AppLayout from "../../components/Layout/AppLayout";
-import { cn } from "../../lib/utils";
+import { cn } from "../../lib/utils/utils";
 import {
   CheckCircle,
   XCircle,

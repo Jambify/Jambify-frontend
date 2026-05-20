@@ -3,7 +3,7 @@ import { useMockStore } from "../../Store/useMockStore";
 import { useUserStore } from "../../Store/UseUserStore";
 import { usePerformanceStore } from "../../Store/usePerformanceStore";
 import Button from "../ui/Button";
-import { cn } from "../../lib/utils";
+import { cn } from "../../lib/utils/utils";
 import ExamPaywall from "./ExamPaywall";
 import { Link } from "react-router";
 
@@ -21,10 +21,9 @@ const SUBJECT_COLORS: Record<string, string> = {
 };
 
 const MockResultsScreen: React.FC<MockResultsProps> = ({ onRetry, onHome }) => {
-  const { addMockScore, addActivity, } = usePerformanceStore();
+  const { addMockScore, addActivity } = usePerformanceStore();
   const { questions, answers, timeLeft } = useMockStore();
   const { incrementQuestions, updateAccuracy, isPro } = useUserStore();
-
 
   const total = questions.length;
   const correct = questions.filter((q, i) => answers[i] === q.answer).length;
@@ -48,7 +47,6 @@ const MockResultsScreen: React.FC<MockResultsProps> = ({ onRetry, onHome }) => {
       .slice(0, 3);
     addActivity(today, total);
   }, []);
-  
 
   /* Per-subject breakdown */
   const subjectMap: Record<string, { correct: number; total: number }> = {};
@@ -160,44 +158,44 @@ const MockResultsScreen: React.FC<MockResultsProps> = ({ onRetry, onHome }) => {
       </div>
 
       {/* CTAs Section */}
-<div className="grid grid-cols-2 md:grid-cols-4 gap-3 w-full mt-8">
-  <Button 
-    variant="primary" 
-    fullWidth 
-    onClick={onRetry}
-    className="flex items-center justify-center gap-2"
-  >
-    <span className="text-lg">🔄</span> Try again
-  </Button>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 w-full mt-8">
+        <Button
+          variant="primary"
+          fullWidth
+          onClick={onRetry}
+          className="flex items-center justify-center gap-2"
+        >
+          <span className="text-lg">🔄</span> Try again
+        </Button>
 
-  <Link to="/review" className="w-full">
-    <Button 
-      variant="secondary" 
-      fullWidth
-      className="h-full flex items-center justify-center gap-2"
-    >
-      <span className="text-lg">📊</span> Detailed
-    </Button>
-  </Link>
+        <Link to="/review" className="w-full">
+          <Button
+            variant="secondary"
+            fullWidth
+            className="h-full flex items-center justify-center gap-2"
+          >
+            <span className="text-lg">📊</span> Detailed
+          </Button>
+        </Link>
 
-  <Button 
-    variant="secondary" 
-    fullWidth 
-    onClick={onHome}
-    className="flex items-center justify-center gap-2"
-  >
-    <span className="text-lg">📈</span> Stats
-  </Button>
+        <Button
+          variant="secondary"
+          fullWidth
+          onClick={onHome}
+          className="flex items-center justify-center gap-2"
+        >
+          <span className="text-lg">📈</span> Stats
+        </Button>
 
-  <Button 
-    variant="secondary" 
-    fullWidth 
-    onClick={onHome}
-    className="flex items-center justify-center gap-2"
-  >
-    <span className="text-lg">🏠</span> Home
-  </Button>
-</div>
+        <Button
+          variant="secondary"
+          fullWidth
+          onClick={onHome}
+          className="flex items-center justify-center gap-2"
+        >
+          <span className="text-lg">🏠</span> Home
+        </Button>
+      </div>
     </div>
   );
 };

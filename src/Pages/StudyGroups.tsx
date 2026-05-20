@@ -5,7 +5,7 @@ import GroupCard from "../components/StudyGroups/GroupCard";
 import GroupChat from "../components/StudyGroups/GroupChat";
 import CreateGroupModal from "../components/StudyGroups/CreateGroupModal";
 import Button from "../components/ui/Button";
-import { cn } from "../lib/utils";
+import { cn } from "../lib/utils/utils";
 import {
   Users,
   Plus,
@@ -133,7 +133,10 @@ const StudyGroups: React.FC = () => {
         setIsSidebarOpen={setIsSidebarOpen}
       >
         <div className="fixed top-14 left-0 right-0 bottom-18 lg:left-60 lg:bottom-0 bg-bgMain z-40 flex flex-col">
-          <GroupChat group={activeGroup} onBack={() => setActiveGroupId(null)} />
+          <GroupChat
+            group={activeGroup}
+            onBack={() => setActiveGroupId(null)}
+          />
         </div>
       </AppLayout>
     );
