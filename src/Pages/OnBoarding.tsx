@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useUserStore } from "../Store/UseUserStore";
 import StepIndicator from "../components/OnBoarding/StepIndicator";
 import Button from "../components/ui/Button";
+import ConfirmModal from "../components/ui/ConfirmModal";
 import { cn } from "../lib/utils/utils";
 import LoadingScreen from "../components/ui/LoadingScreen";
 
@@ -88,7 +89,7 @@ interface FormData {
   examDate: string;
 }
 
-const TOTAL_STEPS = 3; // Changed from 4 to 3 (removed name step)
+const TOTAL_STEPS = 3;
 
 const Onboarding: React.FC = () => {
   console.log("🔵 Onboarding component mounted");
@@ -111,24 +112,14 @@ const Onboarding: React.FC = () => {
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [useFallback, setUseFallback] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
-
-  const handleCancel = async () => {
-    if (
-      window.confirm(
-        "Are you sure you want to cancel onboarding? You will be signed out.",
-      )
-    ) {
-      await signOut();
-      navigate("/signup", { replace: true });
-    }
-  };
+  const [showCancelModal, setShowCancelModal] = useState(false); // ← Add this
 
   const [form, setForm] = useState<FormData>({
     university: "",
     subjectCombo: "",
     targetScore: "",
     examYear: "2027",
-    examDate: "APR 14",
+    examDate: "Apr 27",
   });
   const [errors, setErrors] = useState<Partial<FormData>>({});
 
@@ -169,6 +160,13 @@ const Onboarding: React.FC = () => {
     loadProfile();
   }, [syncProfile]);
 
+  // Handle cancel with modal
+  const handleCancel = async () => {
+    setShowCancelModal(false);
+    await signOut();
+    navigate("/signup", { replace: true });
+  };
+
   // Filter fallback universities based on search
   const getFilteredFallbackUniversities = (search: string) => {
     if (!search || search.length < 2) return [];
@@ -186,7 +184,6 @@ const Onboarding: React.FC = () => {
       return;
     }
 
-    // If we're using fallback mode, just filter the local list
     if (useFallback) {
       const filtered = getFilteredFallbackUniversities(uniSearch);
       setUniResults(filtered);
@@ -297,7 +294,7 @@ const Onboarding: React.FC = () => {
       return;
     }
 
-    setIsCompleting(true); // ← Set this before API call
+    setIsCompleting(true);
     console.log("🔵 Completing onboarding...");
 
     try {
@@ -311,7 +308,6 @@ const Onboarding: React.FC = () => {
       });
 
       if (!error) {
-        // Small delay to ensure state updates
         setTimeout(() => {
           navigate("/welcome", { replace: true });
         }, 100);
@@ -324,7 +320,8 @@ const Onboarding: React.FC = () => {
       setIsCompleting(false);
     }
   };
-  // Show loading state while checking auth
+
+  // Show loading state
   if (isLoading || isCheckingAuth || isCompleting) {
     return (
       <LoadingScreen
@@ -445,7 +442,7 @@ const Onboarding: React.FC = () => {
 
               <Field label="Exam Year">
                 <div className="grid grid-cols-2 gap-3">
-                  {["2025", "2026"].map((yr) => (
+                  {["2025", "2026", "2027"].map((yr) => (
                     <button
                       key={yr}
                       onClick={() => set("examYear", yr)}
@@ -556,14 +553,26 @@ const Onboarding: React.FC = () => {
             </div>
 
             <button
-              onClick={handleCancel}
-              className="text-xs text-textDim hover:text-white transition-colors py-2"
+              onClick={() => setShowCancelModal(true)}
+              className="text-xs text-textDim hover:text-danger transition-colors py-2"
             >
               Cancel & Back to Sign Up
             </button>
           </div>
         </div>
       </div>
+
+      {/* Confirm Cancel Modal */}
+      <ConfirmModal
+        isOpen={showCancelModal}
+        onClose={() => setShowCancelModal(false)}
+        onConfirm={handleCancel}
+        title="Cancel Onboarding"
+        message="Are you sure you want to cancel? You will be signed out and your progress will not be saved."
+        confirmText="Yes, Cancel"
+        cancelText="Go Back"
+        type="danger"
+      />
     </div>
   );
 };
