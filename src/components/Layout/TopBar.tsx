@@ -1,17 +1,17 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
 import { useUserStore } from '../../Store/UseUserStore';
+import { useExamCountdown } from '../../hooks/useExamCountdown';
 
 const PAGE_TITLES: Record<string, string> = {
   '/':               'Dashboard',
   '/quiz':           'Practice Quiz',
   '/subjects':       'Subjects',
   '/performance':    'Performance',
-  '/mock':           'Mock Exams',
+  '/mock-exams':           'Mock Exams',
   '/past-questions': 'Past Questions',
   '/groups':         'Study Groups',
   '/settings':       'Settings',
-  
 };
 
 interface TopbarProps {
@@ -20,11 +20,13 @@ interface TopbarProps {
 
 const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
   const { pathname } = useLocation();
-  const { streak, daysToExam, examDate } = useUserStore();
+  const { streak } = useUserStore();
+  const { daysLeft } = useExamCountdown(); // ← Use hook for dynamic days
+  
   const title = PAGE_TITLES[pathname] ?? 'JAMBReady';
 
   return (
-    <header className="sticky top-0 z-30 h-14 flex items-center justify-between px-5 border-b border-borderMuted bg-bg/80 backdrop-blur-md">
+    <header className="sticky top-0 z-30 h-14 flex items-center justify-between px-5 border-b border-borderMuted bg-bgCard/80 backdrop-blur-md">
 
       <div className="flex items-center gap-3">
         {/* Mobile hamburger */}
@@ -46,13 +48,13 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
 
       <div className="flex items-center gap-2">
         {/* Streak pill */}
-        <div className="hidden sm:flex items-center gap-1.5 bg-warn/10 border border-warn/20 text-warn text-xs font-medium px-3 py-1.5 rounded-full">
-          🔥 {streak}-day streak
+        <div className="hidden sm:flex items-center gap-1.5 bg-orange-500/10 border border-orange-500/20 text-orange-400 text-xs font-medium px-3 py-1.5 rounded-full">
+          🔥 {streak} day{streak !== 1 ? 's' : ''} streak
         </div>
 
-        {/* Exam countdown pill */}
+        {/* Exam countdown pill - Dynamic! */}
         <div className="hidden sm:flex items-center gap-1.5 bg-brand/10 border border-brand/20 text-brand-light text-xs font-medium px-3 py-1.5 rounded-full">
-          ⏳ {daysToExam} days · {examDate}
+          ⏳ {daysLeft} day{daysLeft !== 1 ? 's' : ''}
         </div>
 
         {/* Notifications */}

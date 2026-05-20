@@ -1,6 +1,7 @@
 import React, { type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { useUserStore } from "../../Store/UseUserStore";
+import { useExamCountdown } from "../../hooks/useExamCountdown";
 import Sidebar from "./Sidebar";
 import {
   LayoutGrid,
@@ -29,6 +30,7 @@ const IconMap: Record<string, LucideIcon> = {
   activity: Activity,
   clock: Clock,
   users: Users,
+  settings: Settings,
 };
 
 const getInitials = (name: string) => {
@@ -71,16 +73,18 @@ const AppLayout: React.FC<LayoutProps> = ({
 }) => {
   const name = useUserStore((state) => state.name);
   const targetScore = useUserStore((state) => state.targetScore);
+  const streak = useUserStore((state) => state.streak);
+  const { daysLeft } = useExamCountdown(); // ← Dynamic countdown
 
   const displayName = name || "Guest User";
   const initials = getInitials(displayName);
 
   return (
-    <div className="min-h-screen bg-bgMain text-white font-sans selection:bg-brand/30">
-      {/* MOBILE SIDEBAR (Drawer) - Dark Theme */}
+    <div className="min-h-screen bg-bgMain text-textMain font-sans selection:bg-brand/30">
+      {/* MOBILE SIDEBAR (Drawer) */}
       <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
-      {/* DESKTOP SIDEBAR - Inline with separate color theme */}
+      {/* DESKTOP SIDEBAR */}
       <aside className="fixed left-0 top-0 bottom-0 w-60 bg-bgSurface border-r border-borderMuted flex-col z-100 hidden lg:flex">
         <div className="p-6 pb-4 flex items-center gap-3 border-b border-borderMuted">
           <div className="w-8 h-8 bg-brand rounded-lg flex items-center justify-center font-display font-extrabold shadow-[0_8px_40px_rgba(91,59,255,0.3)]">
@@ -112,14 +116,9 @@ const AppLayout: React.FC<LayoutProps> = ({
             <p className="text-[10px] tracking-widest uppercase text-textDim px-2 mb-2 font-medium">
               Study
             </p>
-
-            <NavItem label="Mock Exams" icon="clock" path="/mock-exams" />
-            <NavItem label="Study Groups" icon="users" path="/study-groups" />
-            <NavItem
-              label="Past Questions"
-              icon="settings"
-              path="/past-questions"
-            />
+            <NavItem label="Mock Exams" icon="clock" path="/mock" />
+            <NavItem label="Study Groups" icon="users" path="/groups" />
+            <NavItem label="Past Questions" icon="settings" path="/past-questions" />
           </section>
         </nav>
 
@@ -136,7 +135,7 @@ const AppLayout: React.FC<LayoutProps> = ({
               <div className="text-[11px] text-textDim">
                 {targetScore
                   ? `Target: ${targetScore}`
-                  : "Pro Plan · 🔥 14 days"}
+                  : `${streak} day streak`}
               </div>
             </div>
           </Link>
@@ -165,11 +164,13 @@ const AppLayout: React.FC<LayoutProps> = ({
             <span className="text-xs text-textDim hidden sm:inline">
               Hi, {displayName.split(" ")[0]}!
             </span>
-            <div className="bg-warn-dim text-warn border border-warn/20 px-2.5 lg:px-3 py-1 rounded-full text-[10px] lg:text-xs font-medium">
-              🔥 14d
+            {/* Dynamic Streak Badge */}
+            <div className="bg-orange-500/10 text-orange-400 border border-orange-500/20 px-2.5 lg:px-3 py-1 rounded-full text-[10px] lg:text-xs font-medium">
+              🔥 {streak} day{streak !== 1 ? 's' : ''}
             </div>
+            {/* Dynamic Countdown Badge - No more hardcoded 47d! */}
             <div className="bg-brand-dim text-brand-light border border-brand/20 px-2.5 lg:px-3 py-1 rounded-full text-[10px] lg:text-xs font-medium">
-              ⏳ 47d
+              ⏳ {daysLeft} day{daysLeft !== 1 ? 's' : ''}
             </div>
           </div>
         </header>
@@ -179,7 +180,7 @@ const AppLayout: React.FC<LayoutProps> = ({
         </div>
       </main>
 
-      {/* MOBILE BOTTOM NAVIGATION - Professional App Bar */}
+      {/* MOBILE BOTTOM NAVIGATION */}
       <div className="fixed bottom-0 left-0 right-0 lg:hidden z-100 bg-bgSurface/98 backdrop-blur-2xl border-t border-white/5 safe-area-bottom shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
         <nav className="flex items-center justify-around h-18 px-1 relative">
           <Link
