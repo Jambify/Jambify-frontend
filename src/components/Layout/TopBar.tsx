@@ -2,6 +2,7 @@ import React from 'react';
 import { useLocation } from 'react-router-dom';
 import { useUserStore } from '../../Store/UseUserStore';
 import { useExamCountdown } from '../../hooks/useExamCountdown';
+import ThemeToggle from '../ui/ThemeToggle';
 
 const PAGE_TITLES: Record<string, string> = {
   '/':               'Dashboard',
@@ -67,6 +68,9 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
             <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
           </svg>
         </button>
+
+        {/* Theme toggle */}
+        <ThemeToggle />
       </div>
 
     </header>

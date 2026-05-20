@@ -15,6 +15,7 @@ import {
   Settings,
 } from "lucide-react";
 import { cn } from "../../lib/utils/utils";
+import ThemeToggle from "../ui/ThemeToggle";
 
 interface LayoutProps {
   children: ReactNode;
@@ -176,6 +177,7 @@ const AppLayout: React.FC<LayoutProps> = ({
             <div className="bg-brand-dim text-brand-light border border-brand/20 px-2.5 lg:px-3 py-1 rounded-full text-[10px] lg:text-xs font-medium">
               ⏳ {daysLeft} day{daysLeft !== 1 ? "s" : ""}
             </div>
+            <ThemeToggle/>
           </div>
         </header>
 

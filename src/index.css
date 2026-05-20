@@ -12,12 +12,12 @@
   --font-body:    "DM Sans", sans-serif;
   --font-mono:    "DM Mono", monospace;
 
-  /* Brand */
+  /* Brand — identical in both themes */
   --color-brand:       #5B3BFF;
   --color-brand-light: #7B5FFF;
   --color-brand-dim:   rgba(91,59,255,0.12);
 
-  /* Semantic */
+  /* Semantic — identical in both themes */
   --color-success:     #00C896;
   --color-success-dim: rgba(0,200,150,0.12);
   --color-danger:      #FF4D6D;
@@ -25,20 +25,20 @@
   --color-warn:        #FFB020;
   --color-warn-dim:    rgba(255,176,32,0.12);
 
-  /* Backgrounds */
-  --color-bg:        #0A0A0F;
-  --color-bgDeep:    #070709;
-  --color-bgMain:    #0A0A0F;
-  --color-bgSurface: #111118;
-  --color-bgCard:    #18181F;
+  /* Backgrounds — resolved from CSS vars so they switch with theme */
+  --color-bg:        var(--bg);
+  --color-bgDeep:    var(--bgDeep);
+  --color-bgMain:    var(--bgMain);
+  --color-bgSurface: var(--bgSurface);
+  --color-bgCard:    var(--bgCard);
 
   /* Borders */
-  --color-borderMuted: rgba(255,255,255,0.07);
+  --color-borderMuted: var(--borderMuted);
 
   /* Text */
-  --color-textMain:  #F0EFF8;
-  --color-textMuted: #9896B0;
-  --color-textDim:   #5C5A72;
+  --color-textMain:  var(--textMain);
+  --color-textMuted: var(--textMuted);
+  --color-textDim:   var(--textDim);
 
   /* Border radius */
   --radius-brand:    12px;
@@ -49,12 +49,84 @@
   --shadow-brand:   0 4px 24px rgba(91,59,255,0.35);
   --shadow-success: 0 4px 16px rgba(0,200,150,0.25);
   --shadow-danger:  0 4px 16px rgba(255,77,109,0.25);
-  --shadow-card:    0 4px 32px rgba(0,0,0,0.4);
+  --shadow-card:    var(--shadow-card-val);
 
   /* Animations */
   --animate-fadeIn:    fadeIn 0.25s ease both;
   --animate-slideDown: slideDown 0.2s ease both;
   --animate-spin:      spin 0.75s linear infinite;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   DARK THEME — default (original values, untouched)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+:root {
+  --bg:             #0A0A0F;
+  --bgDeep:         #070709;
+  --bgMain:         #0A0A0F;
+  --bgSurface:      #111118;
+  --bgCard:         #18181F;
+  --borderMuted:    rgba(255,255,255,0.07);
+  --textMain:       #F0EFF8;
+  --textMuted:      #9896B0;
+  --textDim:        #5C5A72;
+  --shadow-card-val: 0 4px 32px rgba(0,0,0,0.4);
+  --scrollbar-thumb: rgba(255,255,255,0.08);
+  --scrollbar-thumb-hover: rgba(255,255,255,0.15);
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   LIGHT THEME — applied via <html data-theme="light">
+   Brand / semantic colors are NOT overridden here.
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+[data-theme="light"] {
+  --bg:             #F8F9FA;
+  --bgDeep:         #EDEEF0;
+  --bgMain:         #F8F9FA;
+  --bgSurface:      #F1F3F5;
+  --bgCard:         #FFFFFF;
+  --borderMuted:    #E5E8EB;
+  --textMain:       #1A1D23;
+  --textMuted:      #6B757D;
+  --textDim:        #9CA3AF;
+  --shadow-card-val: 0 2px 16px rgba(0,0,0,0.08);
+  --scrollbar-thumb: rgba(0,0,0,0.12);
+  --scrollbar-thumb-hover: rgba(0,0,0,0.22);
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   SMOOTH THEME TRANSITION
+   ─────────────────────────────────────────────────────
+   • Covers background, border, text, shadow, svg strokes
+   • Excludes transform/opacity — keeps animations fast
+   • cubic-bezier(0.4,0,0.2,1) = Material "standard" easing
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.theme-ready *,
+.theme-ready *::before,
+.theme-ready *::after {
+  transition:
+    background-color 200ms cubic-bezier(0.4, 0, 0.2, 1),
+    border-color     200ms cubic-bezier(0.4, 0, 0.2, 1),
+    color            200ms cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow       200ms cubic-bezier(0.4, 0, 0.2, 1),
+    fill             200ms cubic-bezier(0.4, 0, 0.2, 1),
+    stroke           200ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* ── Preload guard — suppresses ALL transitions on first paint ── */
+/* Added to <html> by initTheme(), removed 100ms after load.      */
+/* Prevents the "flash animate from browser default" on cold load. */
+.preload,
+.preload *,
+.preload *::before,
+.preload *::after {
+  transition: none !important;
+}
+
+/* ── Opt-out for specific elements (timers, spinners, etc.) ── */
+[data-no-transition],
+[data-no-transition] * {
+  transition: none !important;
 }
 
 /* ── Keyframes ────────────────────────────────────────── */
@@ -71,17 +143,21 @@
 }
 
 /* ── Base resets ──────────────────────────────────────── */
-*, *::before, *::after { box-sizing: border-box; }
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
 
 html {
   -webkit-font-smoothing:  antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering:          optimizeLegibility;
-  
+
   /* iOS Safari 100vh bug fix */
   height: 100%;
   height: -webkit-fill-available;
-  
+
   /* Prevent zoom on input focus */
   -webkit-text-size-adjust: 100%;
   -ms-text-size-adjust: 100%;
@@ -91,15 +167,15 @@ body {
   /* iOS Safari 100vh bug fix */
   min-height: 100vh;
   min-height: -webkit-fill-available;
-  
+
   /* Safe area insets for notched devices */
   padding-left: env(safe-area-inset-left);
   padding-right: env(safe-area-inset-right);
-  
+
   /* Prevent bounce scrolling on iOS */
   overscroll-behavior: none;
   -webkit-overflow-scrolling: touch;
-  
+
   /* Touch action optimization */
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
@@ -112,23 +188,20 @@ body {
 ::-webkit-scrollbar       { width: 7px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  background:    rgba(255,255,255,0.08);
+  background:    var(--scrollbar-thumb);
   border-radius: 99px;
-  border: 2px solid var(--color-bgDeep);
+  border: 2px solid var(--bgDeep);
 }
-::-webkit-scrollbar-thumb:hover { 
-  background: rgba(255,255,255,0.15);
+::-webkit-scrollbar-thumb:hover {
   background: var(--color-brand);
 }
 
 /* ── Mobile-specific fixes ───────────────────────────────── */
-/* iOS Safari viewport height fix */
 @supports (-webkit-touch-callout: none) {
   .h-screen {
     height: 100vh;
     height: -webkit-fill-available;
   }
-  
   .min-h-screen {
     min-height: 100vh;
     min-height: -webkit-fill-available;
@@ -136,24 +209,13 @@ body {
 }
 
 /* Safe area utilities */
-.safe-area-top {
-  padding-top: env(safe-area-inset-top);
-}
-
-.safe-area-bottom {
-  padding-bottom: env(safe-area-inset-bottom);
-}
-
-.safe-area-left {
-  padding-left: env(safe-area-inset-left);
-}
-
-.safe-area-right {
-  padding-right: env(safe-area-inset-right);
-}
-
-.safe-area-all {
-  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+.safe-area-top    { padding-top:    env(safe-area-inset-top);    }
+.safe-area-bottom { padding-bottom: env(safe-area-inset-bottom); }
+.safe-area-left   { padding-left:   env(safe-area-inset-left);   }
+.safe-area-right  { padding-right:  env(safe-area-inset-right);  }
+.safe-area-all    {
+  padding: env(safe-area-inset-top) env(safe-area-inset-right)
+           env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
 /* Touch-friendly buttons */
@@ -164,26 +226,17 @@ body {
 }
 
 /* Prevent double-tap zoom */
-.no-double-tap {
-  touch-action: manipulation;
-}
+.no-double-tap { touch-action: manipulation; }
 
 /* Mobile scrollbar hiding */
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
-.scrollbar-hide::-moz-scrollbar {
-  display: none;
-}
+.scrollbar-hide::-webkit-scrollbar { display: none; }
 
 /* iOS momentum scrolling */
-.momentum-scroll {
-  -webkit-overflow-scrolling: touch;
-}
+.momentum-scroll { -webkit-overflow-scrolling: touch; }
 
 /* Prevent text selection on mobile */
 .no-select {
@@ -212,7 +265,7 @@ input, textarea {
 
 /* Keep dropdown arrow for select elements */
 select {
-  font-size: 16px; /* Prevent zoom on focus */
+  font-size: 16px;
   -webkit-appearance: menulist;
   -moz-appearance: menulist;
   appearance: auto;
@@ -226,17 +279,12 @@ button {
 
 /* iOS Safari specific fixes */
 @supports (-webkit-touch-callout: none) {
-  /* Fix for iOS Safari fixed positioning */
   .fixed-ios {
     position: fixed;
     -webkit-transform: translate3d(0, 0, 0);
     transform: translate3d(0, 0, 0);
   }
-  
-  /* Fix for iOS Safari scrolling */
-  .scroll-ios {
-    -webkit-overflow-scrolling: touch;
-  }
+  .scroll-ios { -webkit-overflow-scrolling: touch; }
 }
 
 /* ── No scrollbar utility ───────────────────────────── */
@@ -244,12 +292,7 @@ button {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-.no-scrollbar::-moz-scrollbar {
-  display: none;
-}
+.no-scrollbar::-webkit-scrollbar { display: none; }
 
 /* ── Focus ────────────────────────────────────────────── */
 :focus         { outline: none; }
@@ -261,7 +304,7 @@ button {
 /* ── Selection ────────────────────────────────────────── */
 ::selection {
   background: rgba(91,59,255,0.35);
-  color:      #F0EFF8;
+  color:      var(--textMain);
 }
 
 /* ── Line clamp utilities ─────────────────────────────── */
@@ -271,15 +314,14 @@ button {
   display:            -webkit-box;
   -webkit-box-orient: vertical;
   overflow:           hidden;
-  line-clamp:         var(--lines);   /* standard property */
-  -webkit-line-clamp: var(--lines);   /* vendor prefix     */
+  line-clamp:         var(--lines);
+  -webkit-line-clamp: var(--lines);
 }
 .line-clamp-1 { --lines: 1; }
 .line-clamp-2 { --lines: 2; }
 .line-clamp-3 { --lines: 3; }
 
-/* ── Mobile viewport meta tag support ─────────────────────── */
-/* Ensure proper viewport scaling */
+/* ── Mobile viewport meta tag support ─────────────────── */
 @viewport {
   width: device-width;
   initial-scale: 1;
@@ -287,8 +329,7 @@ button {
   user-scalable: no;
 }
 
-/* ── Mobile performance optimizations ────────────────────── */
-/* Reduce paint on scroll */
+/* ── Mobile performance optimizations ────────────────── */
 .gpu-accelerated {
   -webkit-transform: translate3d(0, 0, 0);
   transform: translate3d(0, 0, 0);
@@ -296,7 +337,6 @@ button {
   backface-visibility: hidden;
 }
 
-/* Prevent flicker on animations */
 .smooth-animation {
   -webkit-transform: translate3d(0, 0, 0);
   transform: translate3d(0, 0, 0);
@@ -305,5 +345,3 @@ button {
   -webkit-perspective: 1000;
   perspective: 1000;
 }
-.line-clamp-2 { --lines: 2; }
-.line-clamp-3 { --lines: 3; }

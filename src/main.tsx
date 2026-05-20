@@ -15,7 +15,11 @@ import App         from './App';
 import { BrowserRouter } from 'react-router-dom';
 import { supabase }        from './lib/supabase';
 import { useUserStore }    from './Store/UseUserStore';
+import { initTheme }       from './components/ui/ThemeToggle';
 import './index.css';
+
+// Apply saved/system theme before first paint — prevents flash of wrong theme
+initTheme();
 
 
 

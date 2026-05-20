@@ -442,7 +442,7 @@ const Onboarding: React.FC = () => {
 
               <Field label="Exam Year">
                 <div className="grid grid-cols-2 gap-3">
-                  {["2025", "2026", "2027"].map((yr) => (
+                  {["2027"].map((yr) => (
                     <button
                       key={yr}
                       onClick={() => set("examYear", yr)}
