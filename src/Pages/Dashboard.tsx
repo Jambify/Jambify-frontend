@@ -118,7 +118,7 @@ const Dashboard: React.FC = () => {
                 Start Daily Quiz
               </button>
               <button
-                onClick={() => navigate('/mock')}
+                onClick={() => navigate('/mock-exams')}
                 className="inline-flex items-center gap-2 bg-bgSurface hover:bg-bgDeep text-textMain border border-borderMuted px-5 py-2.5 rounded-brand font-semibold text-sm transition-all active:scale-95"
               >
                 <Target className="w-4 h-4" />
