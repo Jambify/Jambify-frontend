@@ -89,7 +89,7 @@ const Dashboard: React.FC = () => {
                 JAMB {examYear} Prep
               </span>
               {university && (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-bgSurface border border-borderMuted text-[10px] text-textDim truncate max-w-[200px]">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-bgSurface border border-borderMuted text-[10px] text-textDim truncate max-w-50">
                   🎓 {university}
                 </span>
               )}
@@ -137,7 +137,7 @@ const Dashboard: React.FC = () => {
 
         {/* ── Right: countdown card ─────────────────────── */}
         <div
-          className="flex flex-col items-center justify-center bg-bgCard border border-borderMuted rounded-brand-xl px-8 py-6 gap-1 min-w-[160px] relative overflow-hidden"
+          className="flex flex-col items-center justify-center bg-bgCard border border-borderMuted rounded-brand-xl px-8 py-6 gap-1 min-w-40 relative overflow-hidden"
           style={{
             background: `linear-gradient(135deg, rgba(${cdColor === '#7B5FFF' ? '91,59,255' : cdColor === '#EF4444' ? '239,68,68' : cdColor === '#F59E0B' ? '245,158,11' : '249,115,22'},0.08) 0%, transparent 70%)`,
           }}
