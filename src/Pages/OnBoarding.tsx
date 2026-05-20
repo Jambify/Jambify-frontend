@@ -127,8 +127,8 @@ const Onboarding: React.FC = () => {
     university: "",
     subjectCombo: "",
     targetScore: "",
-    examYear: "2025",
-    examDate: "Jun 14",
+    examYear: "2027",
+    examDate: "APR 14",
   });
   const [errors, setErrors] = useState<Partial<FormData>>({});
 
