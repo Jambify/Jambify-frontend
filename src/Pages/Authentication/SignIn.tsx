@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "../../lib/supabase";
+import ThemeToggle from "../../components/ui/ThemeToggle";
 
 type Step = "form" | "otp";
 
@@ -289,10 +290,20 @@ const SignIn: React.FC = () => {
         className="bg-bgCard border border-borderMuted rounded-brand-2xl p-8 w-full max-w-md relative z-10 shadow-2xl"
       >
         <div className="text-center mb-8">
-          <div className="w-14 h-14 bg-brand rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-brand/40">
-            <span className="text-white text-2xl font-black">J</span>
+          <div className="relative mb-8">
+            {/* Theme Toggle - Top Right */}
+            <div className="absolute right-0 top-0">
+              <ThemeToggle />
+            </div>
+
+            {/* Centered Logo */}
+            <div className="flex justify-center">
+              <div className="w-14 h-14 bg-brand rounded-xl flex items-center justify-center shadow-lg shadow-brand/40">
+                <span className="text-white text-2xl font-black">J</span>
+              </div>
+            </div>
           </div>
-          <h1 className="text-3xl font-display font-bold text-white mb-2 tracking-tight">
+          <h1 className="text-3xl font-display font-bold text-brand mb-2 tracking-tight">
             Sign In
           </h1>
           <p className="text-textDim text-sm">

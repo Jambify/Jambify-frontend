@@ -1,32 +1,42 @@
 /**
  * src/hooks/useAIChat.ts
  * ──────────────────────
- * Reusable chat hook used by both MentorChat and ReviewExam AI drawer.
+ * Reusable chat hook for MentorChat and ReviewExam AI drawer.
  *
- * Features:
- * - Streaming responses (text appears word-by-word)
- * - Conversation history maintained for context
- * - Loading / error states
- * - localStorage persistence per session key
+ * Thresholds & limits:
+ * - MAX_MESSAGES: 40 total messages per session before showing a reset nudge
+ * - CONTEXT_WINDOW: only the last 12 messages are sent to the API on each
+ *   request (keeps token usage low and responses focused)
+ * - localStorage: persists last 40 messages, trimmed on save
  */
 
 import { useCallback, useRef, useState } from 'react';
 import { streamAI, type GeminiMessage } from '../lib/ai';
 
 export interface ChatMessage {
-  id:      string;
-  role:    'user' | 'ai';
-  content: string;
+  id:           string;
+  role:         'user' | 'ai';
+  content:      string;
   isStreaming?: boolean;
 }
 
 interface UseAIChatOptions {
-  /** Optional system prompt override */
   systemPrompt?: string;
-  /** localStorage key — if provided, history is persisted */
-  storageKey?: string;
+  storageKey?:   string;
 }
 
+// ── Thresholds ────────────────────────────────────────────────────────────────
+/** Hard cap: show a "start new conversation" nudge at this many messages */
+const MAX_MESSAGES = 40;
+
+/**
+ * Sliding context window: only send the last N messages to the API.
+ * Keeps each request under ~2k tokens regardless of conversation length.
+ * The system prompt always provides the student's profile context.
+ */
+const CONTEXT_WINDOW = 12;
+
+// ── localStorage helpers ──────────────────────────────────────────────────────
 function loadHistory(key?: string): ChatMessage[] {
   if (!key) return [];
   try {
@@ -39,12 +49,11 @@ function loadHistory(key?: string): ChatMessage[] {
 
 function saveHistory(key: string, messages: ChatMessage[]) {
   try {
-    // Keep last 50 messages to avoid bloating localStorage
-    const trimmed = messages.slice(-50);
-    localStorage.setItem(key, JSON.stringify(trimmed));
+    localStorage.setItem(key, JSON.stringify(messages.slice(-MAX_MESSAGES)));
   } catch { /* storage full — ignore */ }
 }
 
+// ── Hook ──────────────────────────────────────────────────────────────────────
 export function useAIChat(options: UseAIChatOptions = {}) {
   const { systemPrompt, storageKey } = options;
 
@@ -54,26 +63,34 @@ export function useAIChat(options: UseAIChatOptions = {}) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError]         = useState<string | null>(null);
 
-  // Ref to track the streaming message id so we can update it in-place
   const streamingIdRef = useRef<string | null>(null);
-  // Abort flag for cancelling in-flight streams
-  const abortRef = useRef(false);
+  const abortRef       = useRef(false);
 
-  // Convert our ChatMessage[] to Gemini's format (exclude streaming placeholders)
+  /** True when the conversation has hit the soft cap */
+  const isNearLimit = messages.filter(m => !m.isStreaming).length >= MAX_MESSAGES - 4;
+  const isAtLimit   = messages.filter(m => !m.isStreaming).length >= MAX_MESSAGES;
+
+  /**
+   * Convert ChatMessage[] → Gemini format.
+   * Only takes the last CONTEXT_WINDOW messages so we don't blow the token budget.
+   * Streaming placeholders (empty AI messages) are excluded.
+   */
   const toGeminiHistory = useCallback(
-    (msgs: ChatMessage[]): GeminiMessage[] =>
-      msgs
-        .filter((m) => !m.isStreaming && m.content.trim())
-        .map((m) => ({
-          role:  m.role === 'user' ? 'user' : 'model',
-          parts: [{ text: m.content }],
-        })),
+    (msgs: ChatMessage[]): GeminiMessage[] => {
+      const completed = msgs.filter(m => !m.isStreaming && m.content.trim());
+      // Slide: take only the last CONTEXT_WINDOW messages
+      const windowed  = completed.slice(-CONTEXT_WINDOW);
+      return windowed.map(m => ({
+        role:  m.role === 'user' ? 'user' : 'model',
+        parts: [{ text: m.content }],
+      }));
+    },
     []
   );
 
   const sendMessage = useCallback(
     async (text: string, prependContext?: string) => {
-      if (!text.trim() || isLoading) return;
+      if (!text.trim() || isLoading || isAtLimit) return;
 
       setError(null);
       abortRef.current = false;
@@ -84,14 +101,12 @@ export function useAIChat(options: UseAIChatOptions = {}) {
         content: text.trim(),
       };
 
-      // Add user message immediately
-      setMessages((prev) => {
+      setMessages(prev => {
         const next = [...prev, userMsg];
         if (storageKey) saveHistory(storageKey, next);
         return next;
       });
 
-      // Create streaming placeholder for AI response
       const aiId = `a-${Date.now()}`;
       streamingIdRef.current = aiId;
 
@@ -102,17 +117,13 @@ export function useAIChat(options: UseAIChatOptions = {}) {
         isStreaming: true,
       };
 
-      setMessages((prev) => [...prev, aiPlaceholder]);
+      setMessages(prev => [...prev, aiPlaceholder]);
       setIsLoading(true);
 
-      // Build history for Gemini (include the new user message)
-      const historyForApi = toGeminiHistory([
-        ...messages,
-        userMsg,
-      ]);
+      // Build windowed history for the API call
+      const historyForApi = toGeminiHistory([...messages, userMsg]);
 
-      // If there's context to prepend (e.g. question text), inject it into
-      // the last user message so the AI has full context
+      // Inject question context into the last user message if provided
       if (prependContext && historyForApi.length > 0) {
         const last = historyForApi[historyForApi.length - 1];
         last.parts[0].text = `${prependContext}\n\nUser question: ${last.parts[0].text}`;
@@ -123,14 +134,12 @@ export function useAIChat(options: UseAIChatOptions = {}) {
       await streamAI(
         historyForApi,
         // onChunk
-        (delta) => {
+        delta => {
           if (abortRef.current) return;
           accumulated += delta;
-          setMessages((prev) =>
-            prev.map((m) =>
-              m.id === aiId
-                ? { ...m, content: accumulated, isStreaming: true }
-                : m
+          setMessages(prev =>
+            prev.map(m =>
+              m.id === aiId ? { ...m, content: accumulated, isStreaming: true } : m
             )
           );
         },
@@ -138,8 +147,8 @@ export function useAIChat(options: UseAIChatOptions = {}) {
         () => {
           streamingIdRef.current = null;
           setIsLoading(false);
-          setMessages((prev) => {
-            const next = prev.map((m) =>
+          setMessages(prev => {
+            const next = prev.map(m =>
               m.id === aiId
                 ? { ...m, content: accumulated || 'No response received.', isStreaming: false }
                 : m
@@ -149,12 +158,12 @@ export function useAIChat(options: UseAIChatOptions = {}) {
           });
         },
         // onError
-        (err) => {
+        err => {
           streamingIdRef.current = null;
           setIsLoading(false);
           setError(err.message);
-          setMessages((prev) =>
-            prev.map((m) =>
+          setMessages(prev =>
+            prev.map(m =>
               m.id === aiId
                 ? { ...m, content: `❌ Error: ${err.message}`, isStreaming: false }
                 : m
@@ -164,7 +173,7 @@ export function useAIChat(options: UseAIChatOptions = {}) {
         systemPrompt,
       );
     },
-    [isLoading, messages, systemPrompt, storageKey, toGeminiHistory]
+    [isLoading, isAtLimit, messages, systemPrompt, storageKey, toGeminiHistory]
   );
 
   const clearHistory = useCallback(() => {
@@ -184,5 +193,11 @@ export function useAIChat(options: UseAIChatOptions = {}) {
     sendMessage,
     clearHistory,
     setMessages,
+    /** Show a soft warning when approaching the limit */
+    isNearLimit,
+    /** Input should be disabled when at the hard limit */
+    isAtLimit,
+    /** How many messages remain before the hard cap */
+    messagesRemaining: Math.max(0, MAX_MESSAGES - messages.filter(m => !m.isStreaming).length),
   };
 }

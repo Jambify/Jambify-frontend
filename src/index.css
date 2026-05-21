@@ -77,21 +77,98 @@
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    LIGHT THEME — applied via <html data-theme="light">
-   Brand / semantic colors are NOT overridden here.
+   ─────────────────────────────────────────────────────
+   Design principles:
+   • Warm off-white base — never harsh pure white on the page
+   • Pure white cards that lift off the background
+   • Dark gray text — never pure black, never eye-strain
+   • Borders are rgba-based so they work on any bg color
+   • Shadows are soft and layered, not flat or harsh
+   • Brand colors (#5B3BFF etc.) are IDENTICAL to dark mode
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 [data-theme="light"] {
-  --bg:             #F8F9FA;
-  --bgDeep:         #EDEEF0;
-  --bgMain:         #F8F9FA;
-  --bgSurface:      #F1F3F5;
-  --bgCard:         #FFFFFF;
-  --borderMuted:    #E5E8EB;
-  --textMain:       #1A1D23;
-  --textMuted:      #6B757D;
-  --textDim:        #9CA3AF;
-  --shadow-card-val: 0 2px 16px rgba(0,0,0,0.08);
-  --scrollbar-thumb: rgba(0,0,0,0.12);
-  --scrollbar-thumb-hover: rgba(0,0,0,0.22);
+
+  /* ── Backgrounds ──────────────────────────────────────
+     Page bg is warm off-white. Cards are pure white so
+     they visually "float" above the page. Surface is the
+     mid-layer used for sidebars, inputs, and code blocks.
+     bgDeep is the darkest well — used for hover states,
+     pressed states, and deeply nested surfaces.           */
+  --bg:             #F7F6F3;   /* warm off-white page bg — not cold    */
+  --bgDeep:         #EBEBEB;   /* pressed/hover well — visible depth   */
+  --bgMain:         #F7F6F3;   /* same as bg                           */
+  --bgSurface:      #F0EFF0;   /* sidebar, input bg, code blocks       */
+  --bgCard:         #FFFFFF;   /* pure white — cards pop off the page  */
+
+  /* ── Borders ──────────────────────────────────────────
+     rgba-based so they work on both white and off-white.
+     Slightly darker than the bg but never harsh.          */
+  --borderMuted:    rgba(0,0,0,0.08);   /* ~#CBCBCB on white — clean   */
+
+  /* ── Text ─────────────────────────────────────────────
+     Three-level hierarchy. None are pure black.
+     textMain: headings, labels, primary content
+     textMuted: body copy, descriptions, secondary labels
+     textDim: placeholders, timestamps, disabled states   */
+  --textMain:       #1A1D2B;   /* near-black with a hint of blue-gray  */
+  --textMuted:      #4B5563;   /* medium gray — comfortable body text  */
+  --textDim:        #9CA3AF;   /* light gray — hints, timestamps       */
+
+  /* ── Shadows ──────────────────────────────────────────
+     Two-layer shadow: a tight ambient layer + a wider
+     diffuse layer. Feels natural, not flat or harsh.      */
+  --shadow-card-val:
+    0 1px 3px  rgba(0,0,0,0.06),
+    0 4px 16px rgba(0,0,0,0.07);
+
+  /* ── Scrollbar ────────────────────────────────────────  */
+  --scrollbar-thumb:       rgba(0,0,0,0.14);
+  --scrollbar-thumb-hover: rgba(0,0,0,0.26);
+}
+
+/* ── Light mode component overrides ──────────────────────
+   These handle cases where Tailwind utility classes use
+   hardcoded colors that don't respond to CSS variables.   */
+
+/* Sidebar background in light mode */
+[data-theme="light"] aside.bg-bgSurface,
+[data-theme="light"] .bg-bgSurface {
+  background-color: var(--bgSurface);
+}
+
+/* Bottom nav in light mode — needs a white base */
+[data-theme="light"] .bg-bgSurface\/98 {
+  background-color: rgba(240,239,240,0.98);
+}
+
+/* Input fields — slightly off-white so they're distinct from cards */
+[data-theme="light"] input,
+[data-theme="light"] textarea,
+[data-theme="light"] select {
+  background-color: var(--bgSurface);
+  color:            var(--textMain);
+}
+
+/* Focus ring — brand purple, visible on light bg */
+[data-theme="light"] :focus-visible {
+  outline: 2px solid rgba(91,59,255,0.5);
+  outline-offset: 2px;
+}
+
+/* Selection highlight */
+[data-theme="light"] ::selection {
+  background: rgba(91,59,255,0.15);
+  color:      var(--textMain);
+}
+
+/* Backdrop blur elements (header, modals) */
+[data-theme="light"] .backdrop-blur-md {
+  background-color: rgba(247,246,243,0.88);
+}
+
+/* Scrollbar track in light mode */
+[data-theme="light"] ::-webkit-scrollbar-thumb {
+  border-color: var(--bgSurface);
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

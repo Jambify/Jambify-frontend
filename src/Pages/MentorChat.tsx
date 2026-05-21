@@ -115,7 +115,7 @@ Student profile:
 - Questions completed: ${questionsCompleted}
 - Weak subjects: ${weakSubjects.length > 0 ? weakSubjects.map((s) => `${s.name} (${s.accuracy}% accuracy)`).join(', ') : 'None identified yet'}`;
 
-  const { messages, isLoading, sendMessage, clearHistory } = useAIChat({
+  const { messages, isLoading, sendMessage, clearHistory, isNearLimit, isAtLimit, messagesRemaining } = useAIChat({
     systemPrompt,
     storageKey: `jambify-mentor-${name || 'guest'}`,
   });
@@ -360,7 +360,7 @@ Student profile:
           </div>
 
           {/* Suggested follow-ups (shown after AI responds) */}
-          {!isEmpty && !isLoading && messages[messages.length - 1]?.role === 'ai' && (
+          {!isEmpty && !isLoading && !isAtLimit && messages[messages.length - 1]?.role === 'ai' && (
             <div className="px-4 pb-2 flex gap-2 overflow-x-auto no-scrollbar shrink-0">
               {['Give me an example', 'Simplify that', 'Quiz me on this', 'What else should I know?'].map((s) => (
                 <button
@@ -374,9 +374,39 @@ Student profile:
             </div>
           )}
 
+          {/* Near-limit warning */}
+          {isNearLimit && !isAtLimit && (
+            <div className="mx-4 mb-2 px-3 py-2 bg-warn/10 border border-warn/20 rounded-brand flex items-center justify-between gap-2 shrink-0">
+              <p className="text-[11px] text-warn">
+                {messagesRemaining} message{messagesRemaining !== 1 ? 's' : ''} left in this session
+              </p>
+              <button onClick={clearHistory} className="text-[11px] text-warn font-semibold hover:underline shrink-0">
+                Start new
+              </button>
+            </div>
+          )}
+
+          {/* At-limit banner */}
+          {isAtLimit && (
+            <div className="mx-4 mb-2 px-3 py-3 bg-danger/10 border border-danger/20 rounded-brand flex items-center justify-between gap-2 shrink-0">
+              <p className="text-[11px] text-danger leading-snug">
+                Session limit reached. Start a new conversation to continue.
+              </p>
+              <button
+                onClick={clearHistory}
+                className="shrink-0 px-3 py-1.5 bg-danger text-white text-[11px] font-semibold rounded-brand hover:bg-danger/90 transition-colors"
+              >
+                New chat
+              </button>
+            </div>
+          )}
+
           {/* Input bar */}
           <div className="px-4 pb-4 pt-2 shrink-0 border-t border-borderMuted">
-            <div className="flex items-end gap-2 bg-bgSurface border border-borderMuted rounded-brand-lg p-2 focus-within:border-brand transition-colors">
+            <div className={cn(
+              "flex items-end gap-2 bg-bgSurface border rounded-brand-lg p-2 transition-colors",
+              isAtLimit ? "border-danger/30 opacity-60" : "border-borderMuted focus-within:border-brand"
+            )}>
               <textarea
                 ref={inputRef}
                 rows={1}
@@ -388,16 +418,16 @@ Student profile:
                   e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`;
                 }}
                 onKeyDown={handleKeyDown}
-                placeholder="Ask anything about JAMB…"
-                disabled={isLoading}
-                className="flex-1 bg-transparent border-none text-sm px-2 py-1.5 focus:ring-0 resize-none no-scrollbar placeholder:text-textDim text-textMain min-h-9 max-h-30 disabled:opacity-50"
+                placeholder={isAtLimit ? "Session limit reached — start a new chat" : "Ask anything about JAMB…"}
+                disabled={isLoading || isAtLimit}
+                className="flex-1 bg-transparent border-none text-sm px-2 py-1.5 focus:ring-0 resize-none no-scrollbar placeholder:text-textDim text-textMain min-h-9 max-h-30 disabled:opacity-50 disabled:cursor-not-allowed"
               />
               <button
                 onClick={handleSend}
-                disabled={!input.trim() || isLoading}
+                disabled={!input.trim() || isLoading || isAtLimit}
                 className={cn(
                   'p-2 rounded-brand transition-all shrink-0',
-                  input.trim() && !isLoading
+                  input.trim() && !isLoading && !isAtLimit
                     ? 'bg-brand text-white hover:bg-brand-light shadow-md shadow-brand/20 active:scale-95'
                     : 'bg-borderMuted text-textDim cursor-not-allowed',
                 )}
