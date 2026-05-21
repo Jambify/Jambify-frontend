@@ -112,7 +112,7 @@ const Quiz: React.FC = () => {
                       ? "var(--color-success, #00C896)"
                       : i === currentIndex
                         ? "#7B5FFF"
-                        : "rgba(255,255,255,0.12)",
+                        : "var(--borderMuted)",
                 }}
               />
             ))}
@@ -129,7 +129,7 @@ const Quiz: React.FC = () => {
         {/* ── Exit Modal Overlay ── */}
         {showExitModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
-            <div className="bg-bgCard border border-white/10 p-6 rounded-brand-xl max-w-sm w-full shadow-2xl animate-slideDown">
+            <div className="bg-bgCard border border-borderMuted p-6 rounded-brand-xl max-w-sm w-full shadow-2xl animate-slideDown">
               <h3 className="font-display text-xl font-bold text-textMain mb-2">
                 Quit Quiz?
               </h3>
@@ -140,7 +140,7 @@ const Quiz: React.FC = () => {
               <div className="flex gap-3">
                 <button
                   onClick={() => setShowExitModal(false)}
-                  className="flex-1 py-3 rounded-brand font-medium bg-white/5 hover:bg-white/10 text-textMain transition-colors touch-target no-double-tap active:scale-95"
+                  className="flex-1 py-3 rounded-brand font-medium bg-bgSurface hover:bg-bgDeep text-textMain transition-colors touch-target no-double-tap active:scale-95"
                 >
                   Stay
                 </button>
@@ -228,7 +228,7 @@ const Quiz: React.FC = () => {
       ${
         selectedSubject === s
           ? "bg-brand text-warning shadow-lg shadow-brand/30 scale-105"
-          : "bg-bgSurface text-textMuted hover:bg-white/5 hover:text-textMain hover:scale-[1.03] touch-target no-double-tap active:scale-95"
+          : "bg-bgSurface text-textMuted hover:bg-bgDeep hover:text-textMain hover:scale-[1.03] touch-target no-double-tap active:scale-95"
       }
       focus:outline-none focus:ring-2 focus:ring-brand/40 focus:ring-offset-2 focus:ring-offset-bgCard
     `}
@@ -243,8 +243,8 @@ const Quiz: React.FC = () => {
                 onClick={() => setShowAllSubjects((prev) => !prev)}
                 className="px-3 py-2 text-xs font-medium rounded-full cursor-pointer
   bg-bgSurface border border-borderMuted
-  text-textDim hover:text-textMain hover:border-white/20
-  hover:bg-white/5 transition-all duration-200
+  text-textDim hover:text-textMain hover:border-brand/20
+  hover:bg-bgDeep transition-all duration-200
   active:scale-95 touch-target no-double-tap"
               >
                 {showAllSubjects ? "Show less" : `+${SUBJECTS.length - 4} more`}
@@ -308,7 +308,7 @@ const Quiz: React.FC = () => {
             </svg>
           }
         >
-          <p className="text-black">Start Quiz</p>
+          Start Quiz
         </Button>
       </div>
     </AppLayout>

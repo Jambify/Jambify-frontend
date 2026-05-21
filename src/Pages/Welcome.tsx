@@ -46,7 +46,7 @@ const Welcome: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-bgMain text-white flex flex-col items-center justify-center p-4"
+    <div className="min-h-screen bg-bgMain text-textMain flex flex-col items-center justify-center p-4"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
 
       {showConfetti && (

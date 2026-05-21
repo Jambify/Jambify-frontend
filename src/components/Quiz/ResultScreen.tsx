@@ -102,7 +102,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ onRetry, onHome }) => {
                   wasCorrect
                     ? "bg-success/15 text-success"
                     : skipped
-                      ? "bg-white/5 text-textDim"
+                      ? "bg-bgSurface text-textDim"
                       : "bg-danger/15 text-danger",
                 )}
               >

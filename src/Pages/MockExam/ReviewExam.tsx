@@ -99,7 +99,7 @@ Keep responses under 300 words unless a detailed breakdown is needed.`,
         {/* Header */}
         <div className="px-5 py-4 border-b border-borderMuted flex items-center justify-between bg-brand text-white shrink-0">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-white/20 rounded-brand">
+            <div className="p-2 bg-brand-light/20 rounded-brand">
               <Sparkles className="w-4 h-4" />
             </div>
             <div>
@@ -111,7 +111,7 @@ Keep responses under 300 words unless a detailed breakdown is needed.`,
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-white/10 rounded-full transition-colors"
+            className="p-2 hover:bg-brand-light/10 rounded-full transition-colors"
           >
             <X className="w-5 h-5" />
           </button>

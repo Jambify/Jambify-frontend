@@ -48,7 +48,7 @@ const GuestLanding: React.FC = () => {
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                <div className="w-12 h-12 bg-brand-light/20 rounded-xl flex items-center justify-center">
                   <Zap className="w-6 h-6" />
                 </div>
                 <div>

@@ -187,7 +187,7 @@ const AppLayout: React.FC<LayoutProps> = ({
       </main>
 
       {/* MOBILE BOTTOM NAVIGATION */}
-      <div className="fixed bottom-0 left-0 right-0 lg:hidden z-100 bg-bgSurface/98 backdrop-blur-2xl border-t border-white/5 safe-area-bottom shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+      <div className="fixed bottom-0 left-0 right-0 lg:hidden z-100 bg-bgSurface/98 backdrop-blur-2xl border-t border-borderMuted/30 safe-area-bottom shadow-nav">
         <nav className="flex items-center justify-around h-18 px-1 relative">
           <Link
             to="/"

@@ -84,18 +84,20 @@ const QuotedMsg: React.FC<QuotedMsgProps> = ({ reply, isMe }) => (
   <div
     className={cn(
       "px-2.5 py-1.5 rounded mb-1 border-l-2 text-[11px] w-full max-w-full overflow-hidden",
-      isMe ? "bg-white/10 border-white/30" : "bg-bgMain border-brand/40",
+      isMe ? "bg-brand/10 border-brand/20" : "bg-bgMain border-borderMuted",
     )}
   >
     <p
       className={cn(
         "font-bold mb-0.5 truncate",
-        isMe ? "text-white/70" : "text-brand",
+        isMe ? "text-brand-light" : "text-brand",
       )}
     >
       {reply.author}
     </p>
-    <p className={cn("truncate", isMe ? "text-white/50" : "text-textDim")}>
+    <p
+      className={cn("truncate", isMe ? "text-brand-light/70" : "text-textDim")}
+    >
       {reply.message}
     </p>
   </div>
@@ -374,7 +376,7 @@ const GroupChat: React.FC<Props> = ({ group, onBack }) => {
             <div className="flex items-center gap-2 text-[10px] text-textDim mt-0.5 font-semibold">
               <Users className="w-3 h-3 text-brand" />
               <span>{group.member_count} members</span>
-              <span className="opacity-20 text-white">|</span>
+              <span className="opacity-20 text-textDim">|</span>
               <span
                 className={cn(
                   "flex items-center gap-1",
@@ -440,7 +442,7 @@ const GroupChat: React.FC<Props> = ({ group, onBack }) => {
               💬
             </div>
             <div className="text-center">
-              <p className="text-sm font-bold text-white">
+              <p className="text-sm font-bold text-textMain">
                 No conversation yet
               </p>
               <p className="text-xs mt-1">Be the first to break the ice!</p>
@@ -470,7 +472,7 @@ const GroupChat: React.FC<Props> = ({ group, onBack }) => {
               <div className="w-8 h-8 flex items-end justify-center shrink-0">
                 {isFirstInGroup ? (
                   <div
-                    className="w-8 h-8 rounded-xl flex items-center justify-center text-[11px] font-black text-white shadow-sm border border-white/10"
+                    className="w-8 h-8 rounded-xl flex items-center justify-center text-[11px] font-black text-white shadow-sm border border-borderMuted"
                     style={{ background: isMe ? color : "rgb(40,40,50)" }}
                   >
                     {(isMe ? name || "Me" : msg.author || "U")

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useUserStore } from "../../Store/UseUserStore";
 import Button from "../ui/Button";
-import { cn } from "../../lib/utils/utils";
+import { cn, toTitleCase } from "../../lib/utils/utils";
 import { Section, Field, inputCls } from "./Shared";
 import { Search, Loader2 } from "lucide-react"; // Added Loader2
 
@@ -95,7 +95,9 @@ const ProfileForm: React.FC = () => {
       setErrors({ name: "Name cannot be empty" });
       return;
     }
-    completeOnboarding(form);
+    const formattedForm = { ...form, name: toTitleCase(form.name.trim()) };
+    completeOnboarding(formattedForm);
+    setForm(formattedForm);
     setSaved(true);
     setTimeout(() => setSaved(false), 2500);
   };

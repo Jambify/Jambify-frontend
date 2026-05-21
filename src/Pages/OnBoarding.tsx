@@ -337,66 +337,63 @@ const Onboarding: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#0F1115] text-white flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-bgMain text-textMain flex flex-col items-center justify-center p-4">
       {/* Brand Header */}
       <div className="flex items-center gap-3 mb-10">
-        <div className="w-10 h-10 bg-brand rounded-xl flex items-center justify-center font-display font-black text-white text-xl shadow-[0_0_20px_rgba(var(--brand-rgb),0.5)]">
+        <div className="w-10 h-10 bg-brand rounded-xl flex items-center justify-center font-display font-black text-white text-xl shadow-lg shadow-brand/40">
           J
         </div>
-        <span className="font-display font-bold text-2xl tracking-tight text-white">
+        <span className="font-display font-bold text-2xl tracking-tight text-textMain">
           JAMB<span className="text-brand">IFY</span>
         </span>
       </div>
 
-      {/* Welcome message with user's name */}
-      <div className="text-center mb-6">
-        <p className="text-textDim">Welcome,</p>
-        <h2 className="text-2xl font-bold text-white">
-          {userName || "JAMB Champion"}!
-        </h2>
-        <p className="text-textDim text-sm mt-1">Let's set up your profile</p>
-      </div>
-
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-xl">
         <StepIndicator current={step} total={TOTAL_STEPS} />
 
-        <div className="bg-[#1A1D23] border border-white/5 rounded-4xl p-8 shadow-2xl backdrop-blur-md animate-fadeIn">
+        <div className="bg-bgCard border border-borderMuted rounded-[32px] p-6 md:p-10 shadow-2xl relative overflow-hidden">
+          {/* Subtle Glow */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-brand/5 rounded-full blur-[80px] -mr-32 -mt-32 pointer-events-none" />
+
           {/* STEP 1: University */}
           {step === 1 && (
-            <div className="space-y-6">
+            <div className="space-y-8 relative z-10">
               <header>
-                <h2 className="text-3xl font-bold text-white mb-2">
-                  Dream University
+                <h2 className="text-3xl font-bold text-textMain mb-2">
+                  Welcome!
                 </h2>
-                <p className="text-white/60">
-                  Search for any Federal, State, or Private school.
-                </p>
+                <p className="text-textMuted">Let's set up your profile.</p>
               </header>
-              <Field label="Search University" error={errors.university}>
-                <input
-                  type="text"
-                  value={uniSearch}
-                  onChange={(e) => setUniSearch(e.target.value)}
-                  placeholder="Start typing (e.g. Unilag, OAU, UNN...)"
-                  className={inputCls(!!errors.university)}
-                  autoFocus
-                />
 
-                {uniError && (
-                  <p className="text-xs text-yellow-500 mt-2">{uniError}</p>
-                )}
-
-                <div className="mt-4 space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
+              <Field label="Target University" error={errors.university}>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={uniSearch}
+                    onChange={(e) => setUniSearch(e.target.value)}
+                    placeholder="Search your school..."
+                    className={inputCls(!!errors.university)}
+                    autoFocus
+                  />
                   {loadingUnis && (
-                    <p className="text-xs text-brand animate-pulse">
-                      Searching universities...
+                    <div className="absolute right-4 top-4">
+                      <div className="w-5 h-5 border-2 border-brand/30 border-t-brand rounded-full animate-spin" />
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+                  {uniError && (
+                    <p className="text-xs text-orange-400 font-medium px-2">
+                      {uniError}
                     </p>
                   )}
 
-                  {!loadingUnis &&
+                  {uniSearch.length >= 2 &&
                     uniResults.length === 0 &&
-                    uniSearch.length >= 2 && (
-                      <p className="text-xs text-textDim text-center py-4">
+                    !loadingUnis &&
+                    !useFallback && (
+                      <p className="text-xs text-textDim px-2">
                         No universities found. Try a different search or type
                         the full name.
                       </p>
@@ -412,8 +409,8 @@ const Onboarding: React.FC = () => {
                       className={cn(
                         "w-full text-left px-4 py-3 rounded-xl border text-sm transition-all",
                         form.university === uni
-                          ? "bg-brand/20 border-brand text-white"
-                          : "bg-white/5 border-white/10 text-white/70 hover:bg-white/10",
+                          ? "bg-brand/10 border-brand text-brand-light"
+                          : "bg-bgSurface border-borderMuted text-textMuted hover:bg-bgDeep hover:text-textMain",
                       )}
                     >
                       {uni}
@@ -450,7 +447,7 @@ const Onboarding: React.FC = () => {
                         "py-3 rounded-xl border text-sm font-bold transition-all",
                         form.examYear === yr
                           ? "bg-brand border-brand text-white shadow-lg shadow-brand/20"
-                          : "bg-white/5 border-white/10 text-white/50 hover:bg-white/10",
+                          : "bg-bgSurface border-borderMuted text-textMuted hover:bg-bgDeep hover:text-textMain",
                       )}
                     >
                       JAMB {yr}
@@ -465,10 +462,10 @@ const Onboarding: React.FC = () => {
           {step === 2 && (
             <div className="space-y-6">
               <header>
-                <h2 className="text-3xl font-bold text-white mb-2">
+                <h2 className="text-3xl font-bold text-textMain mb-2">
                   Your Path
                 </h2>
-                <p className="text-white/60">Choose your area of study.</p>
+                <p className="text-textMuted">Choose your area of study.</p>
               </header>
               <div className="space-y-3">
                 {SUBJECT_COMBOS.map((combo) => (
@@ -478,14 +475,14 @@ const Onboarding: React.FC = () => {
                     className={cn(
                       "w-full flex items-center gap-4 p-4 rounded-2xl border transition-all text-left",
                       form.subjectCombo === combo.id
-                        ? "bg-brand/20 border-brand shadow-[0_0_15px_rgba(var(--brand-rgb),0.1)]"
-                        : "bg-white/5 border-white/10 opacity-70 hover:opacity-100",
+                        ? "bg-brand/10 border-brand shadow-sm"
+                        : "bg-bgSurface border-borderMuted opacity-70 hover:opacity-100",
                     )}
                   >
                     <span className="text-2xl">{combo.icon}</span>
                     <div>
-                      <p className="font-bold text-white">{combo.label}</p>
-                      <p className="text-xs text-white/40">
+                      <p className="font-bold text-textMain">{combo.label}</p>
+                      <p className="text-xs text-textDim">
                         {combo.subjects.join(" + ")}
                       </p>
                     </div>
@@ -499,8 +496,10 @@ const Onboarding: React.FC = () => {
           {step === 3 && (
             <div className="space-y-6">
               <header>
-                <h2 className="text-3xl font-bold text-white mb-2">Aim High</h2>
-                <p className="text-white/60">
+                <h2 className="text-3xl font-bold text-textMain mb-2">
+                  Aim High
+                </h2>
+                <p className="text-textMuted">
                   Set a target to keep you motivated.
                 </p>
               </header>
@@ -512,8 +511,8 @@ const Onboarding: React.FC = () => {
                     className={cn(
                       "w-full flex justify-between items-center p-5 rounded-2xl border transition-all",
                       form.targetScore === t.range
-                        ? "bg-white/10 border-white/20"
-                        : "bg-white/5 border-white/5",
+                        ? "bg-brand/10 border-brand/30"
+                        : "bg-bgSurface border-borderMuted",
                     )}
                   >
                     <div>
@@ -523,11 +522,11 @@ const Onboarding: React.FC = () => {
                       >
                         {t.range}
                       </p>
-                      <p className="text-xs font-bold text-white/80">
+                      <p className="text-xs font-bold text-textMain">
                         {t.label}
                       </p>
                     </div>
-                    <p className="text-[10px] text-white/40 text-right max-w-25">
+                    <p className="text-[10px] text-textDim text-right max-w-25">
                       {t.sub}
                     </p>
                   </button>
@@ -542,7 +541,7 @@ const Onboarding: React.FC = () => {
                 <Button
                   variant="secondary"
                   onClick={() => setStep((s) => s - 1)}
-                  className="bg-white/5 border-white/10"
+                  className="bg-bgSurface border-borderMuted"
                 >
                   Back
                 </Button>
@@ -584,7 +583,7 @@ const Field: React.FC<{
 }> = ({ label, error, children }) => (
   <div className="space-y-2">
     {label && (
-      <label className="text-xs font-bold uppercase tracking-widest text-white/40 ml-1">
+      <label className="text-xs font-bold uppercase tracking-widest text-textDim ml-1">
         {label}
       </label>
     )}
@@ -595,9 +594,9 @@ const Field: React.FC<{
 
 const inputCls = (hasError: boolean) =>
   cn(
-    "w-full px-5 py-4 bg-white/5 rounded-2xl border text-white font-medium transition-all",
-    "placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-brand/20",
-    hasError ? "border-red-500" : "border-white/10 focus:border-brand/50",
+    "w-full px-5 py-4 bg-bgSurface rounded-2xl border text-textMain font-medium transition-all",
+    "placeholder:text-textDim/50 focus:outline-none focus:ring-2 focus:ring-brand/20",
+    hasError ? "border-red-500" : "border-borderMuted focus:border-brand/50",
   );
 
 export default Onboarding;

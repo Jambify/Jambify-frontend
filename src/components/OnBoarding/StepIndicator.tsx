@@ -28,7 +28,7 @@ const StepIndicator: React.FC<StepIndicatorProps> = ({ current, total }) => (
                   ? "bg-green-500 border-green-500 text-white"
                   : isCurrent
                     ? "bg-brand border-brand text-white shadow-lg shadow-brand/30"
-                    : "bg-white/10 border-white/20 text-textDim",
+                    : "bg-bgSurface border-borderMuted text-textDim",
               )}
             >
               {isDone ? "✓" : stepNum}
@@ -39,7 +39,7 @@ const StepIndicator: React.FC<StepIndicatorProps> = ({ current, total }) => (
               <div
                 className={cn(
                   "flex-1 h-0.5 transition-all duration-500",
-                  stepNum < current ? "bg-green-500" : "bg-white/10",
+                  stepNum < current ? "bg-green-500" : "bg-borderMuted",
                 )}
               />
             )}

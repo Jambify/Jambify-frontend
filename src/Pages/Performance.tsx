@@ -46,7 +46,7 @@ useEffect(() => {
     return (
       <AppLayout currentPage="performance" isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen}>
         <div className="flex items-center justify-center h-64">
-          <div className="text-white text-center">
+          <div className="text-textMain text-center">
             <div className="w-12 h-12 border-4 border-brand border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
             <p>Loading performance data...</p>
           </div>

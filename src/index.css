@@ -9,70 +9,72 @@
 @theme {
   /* Fonts */
   --font-display: "Syne", sans-serif;
-  --font-body:    "DM Sans", sans-serif;
-  --font-mono:    "DM Mono", monospace;
+  --font-body: "DM Sans", sans-serif;
+  --font-mono: "DM Mono", monospace;
 
   /* Brand — identical in both themes */
-  --color-brand:       #5B3BFF;
-  --color-brand-light: #7B5FFF;
-  --color-brand-dim:   rgba(91,59,255,0.12);
+  --color-brand: #5b3bff;
+  --color-brand-light: #7b5fff;
+  --color-brand-dim: rgba(91, 59, 255, 0.12);
 
   /* Semantic — identical in both themes */
-  --color-success:     #00C896;
-  --color-success-dim: rgba(0,200,150,0.12);
-  --color-danger:      #FF4D6D;
-  --color-danger-dim:  rgba(255,77,109,0.12);
-  --color-warn:        #FFB020;
-  --color-warn-dim:    rgba(255,176,32,0.12);
+  --color-success: #00c896;
+  --color-success-dim: rgba(0, 200, 150, 0.12);
+  --color-danger: #ff4d6d;
+  --color-danger-dim: rgba(255, 77, 109, 0.12);
+  --color-warn: #ffb020;
+  --color-warn-dim: rgba(255, 176, 32, 0.12);
 
   /* Backgrounds — resolved from CSS vars so they switch with theme */
-  --color-bg:        var(--bg);
-  --color-bgDeep:    var(--bgDeep);
-  --color-bgMain:    var(--bgMain);
+  --color-bg: var(--bg);
+  --color-bgDeep: var(--bgDeep);
+  --color-bgMain: var(--bgMain);
   --color-bgSurface: var(--bgSurface);
-  --color-bgCard:    var(--bgCard);
+  --color-bgCard: var(--bgCard);
 
   /* Borders */
   --color-borderMuted: var(--borderMuted);
 
   /* Text */
-  --color-textMain:  var(--textMain);
+  --color-textMain: var(--textMain);
   --color-textMuted: var(--textMuted);
-  --color-textDim:   var(--textDim);
+  --color-textDim: var(--textDim);
 
   /* Border radius */
-  --radius-brand:    12px;
+  --radius-brand: 12px;
   --radius-brand-lg: 18px;
   --radius-brand-xl: 24px;
 
   /* Box shadows */
-  --shadow-brand:   0 4px 24px rgba(91,59,255,0.35);
-  --shadow-success: 0 4px 16px rgba(0,200,150,0.25);
-  --shadow-danger:  0 4px 16px rgba(255,77,109,0.25);
-  --shadow-card:    var(--shadow-card-val);
+  --shadow-brand: 0 4px 24px rgba(91, 59, 255, 0.35);
+  --shadow-success: 0 4px 16px rgba(0, 200, 150, 0.25);
+  --shadow-danger: 0 4px 16px rgba(255, 77, 109, 0.25);
+  --shadow-card: var(--shadow-card-val);
+  --shadow-nav: var(--shadow-nav-val);
 
   /* Animations */
-  --animate-fadeIn:    fadeIn 0.25s ease both;
+  --animate-fadeIn: fadeIn 0.25s ease both;
   --animate-slideDown: slideDown 0.2s ease both;
-  --animate-spin:      spin 0.75s linear infinite;
+  --animate-spin: spin 0.75s linear infinite;
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    DARK THEME — default (original values, untouched)
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 :root {
-  --bg:             #0A0A0F;
-  --bgDeep:         #070709;
-  --bgMain:         #0A0A0F;
-  --bgSurface:      #111118;
-  --bgCard:         #18181F;
-  --borderMuted:    rgba(255,255,255,0.07);
-  --textMain:       #F0EFF8;
-  --textMuted:      #9896B0;
-  --textDim:        #5C5A72;
-  --shadow-card-val: 0 4px 32px rgba(0,0,0,0.4);
-  --scrollbar-thumb: rgba(255,255,255,0.08);
-  --scrollbar-thumb-hover: rgba(255,255,255,0.15);
+  --bg: #0a0a0f;
+  --bgDeep: #070709;
+  --bgMain: #0a0a0f;
+  --bgSurface: #111118;
+  --bgCard: #18181f;
+  --borderMuted: rgba(255, 255, 255, 0.07);
+  --textMain: #f0eff8;
+  --textMuted: #9896b0;
+  --textDim: #5c5a72;
+  --shadow-card-val: 0 4px 32px rgba(0, 0, 0, 0.4);
+  --shadow-nav-val: 0 -10px 40px rgba(0, 0, 0, 0.5);
+  --scrollbar-thumb: rgba(255, 255, 255, 0.08);
+  --scrollbar-thumb-hover: rgba(255, 255, 255, 0.15);
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -87,43 +89,41 @@
    • Brand colors (#5B3BFF etc.) are IDENTICAL to dark mode
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 [data-theme="light"] {
-
   /* ── Backgrounds ──────────────────────────────────────
-     Page bg is warm off-white. Cards are pure white so
-     they visually "float" above the page. Surface is the
-     mid-layer used for sidebars, inputs, and code blocks.
-     bgDeep is the darkest well — used for hover states,
-     pressed states, and deeply nested surfaces.           */
-  --bg:             #F7F6F3;   /* warm off-white page bg — not cold    */
-  --bgDeep:         #EBEBEB;   /* pressed/hover well — visible depth   */
-  --bgMain:         #F7F6F3;   /* same as bg                           */
-  --bgSurface:      #F0EFF0;   /* sidebar, input bg, code blocks       */
-  --bgCard:         #FFFFFF;   /* pure white — cards pop off the page  */
+     Page bg is a bright, airy indigo-tinted white. This
+     gives it a "bright" energetic feel without being
+     sterile pure white. Cards are pure white to pop.     */
+  --bg: #f5f8ff; /* Very light Indigo-Blue — bright & airy */
+  --bgDeep: #e0e7ff; /* Indigo 100 — visible depth, hover     */
+  --bgMain: #f5f8ff; /* Same as bg                           */
+  --bgSurface: #eef2ff; /* Indigo 50 — sidebar, input bg        */
+  --bgCard: #fafbff; /* Slightly off-white Indigo — cards pop without glare */
 
   /* ── Borders ──────────────────────────────────────────
-     rgba-based so they work on both white and off-white.
-     Slightly darker than the bg but never harsh.          */
-  --borderMuted:    rgba(0,0,0,0.08);   /* ~#CBCBCB on white — clean   */
+     Subtle borders using a transparent indigo to blend
+     perfectly with the bright theme.                      */
+  --borderMuted: rgba(91, 59, 255, 0.08); /* clean & modern      */
 
   /* ── Text ─────────────────────────────────────────────
-     Three-level hierarchy. None are pure black.
-     textMain: headings, labels, primary content
-     textMuted: body copy, descriptions, secondary labels
-     textDim: placeholders, timestamps, disabled states   */
-  --textMain:       #1A1D2B;   /* near-black with a hint of blue-gray  */
-  --textMuted:      #4B5563;   /* medium gray — comfortable body text  */
-  --textDim:        #9CA3AF;   /* light gray — hints, timestamps       */
+     Modern Indigo-based hierarchy. Sharp but comfortable.
+     textMain: Indigo 950 — headings and primary labels
+     textMuted: Indigo 700 — body text and descriptions
+     textDim: Indigo 400 — timestamps and hints             */
+  --textMain: #1e1b4b; /* Deep Indigo 950                      */
+  --textMuted: #4338ca; /* Vibrant Indigo 700                   */
+  --textDim: #818cf8; /* Soft Indigo 400                      */
 
   /* ── Shadows ──────────────────────────────────────────
-     Two-layer shadow: a tight ambient layer + a wider
-     diffuse layer. Feels natural, not flat or harsh.      */
+     Crisp, multi-layered shadows with a hint of indigo. */
   --shadow-card-val:
-    0 1px 3px  rgba(0,0,0,0.06),
-    0 4px 16px rgba(0,0,0,0.07);
+    0 1px 2px rgba(91, 59, 255, 0.04), 0 4px 12px rgba(91, 59, 255, 0.06);
+
+  --shadow-nav-val:
+    0 -4px 12px rgba(91, 59, 255, 0.02), 0 -8px 24px rgba(91, 59, 255, 0.04);
 
   /* ── Scrollbar ────────────────────────────────────────  */
-  --scrollbar-thumb:       rgba(0,0,0,0.14);
-  --scrollbar-thumb-hover: rgba(0,0,0,0.26);
+  --scrollbar-thumb: rgba(91, 59, 255, 0.12);
+  --scrollbar-thumb-hover: rgba(91, 59, 255, 0.24);
 }
 
 /* ── Light mode component overrides ──────────────────────
@@ -138,7 +138,7 @@
 
 /* Bottom nav in light mode — needs a white base */
 [data-theme="light"] .bg-bgSurface\/98 {
-  background-color: rgba(240,239,240,0.98);
+  background-color: rgba(238, 242, 255, 0.98);
 }
 
 /* Input fields — slightly off-white so they're distinct from cards */
@@ -146,24 +146,24 @@
 [data-theme="light"] textarea,
 [data-theme="light"] select {
   background-color: var(--bgSurface);
-  color:            var(--textMain);
+  color: var(--textMain);
 }
 
 /* Focus ring — brand purple, visible on light bg */
 [data-theme="light"] :focus-visible {
-  outline: 2px solid rgba(91,59,255,0.5);
+  outline: 2px solid rgba(91, 59, 255, 0.5);
   outline-offset: 2px;
 }
 
 /* Selection highlight */
 [data-theme="light"] ::selection {
-  background: rgba(91,59,255,0.15);
-  color:      var(--textMain);
+  background: rgba(91, 59, 255, 0.15);
+  color: var(--textMain);
 }
 
 /* Backdrop blur elements (header, modals) */
 [data-theme="light"] .backdrop-blur-md {
-  background-color: rgba(247,246,243,0.88);
+  background-color: rgba(245, 248, 255, 0.88);
 }
 
 /* Scrollbar track in light mode */
@@ -183,11 +183,11 @@
 .theme-ready *::after {
   transition:
     background-color 200ms cubic-bezier(0.4, 0, 0.2, 1),
-    border-color     200ms cubic-bezier(0.4, 0, 0.2, 1),
-    color            200ms cubic-bezier(0.4, 0, 0.2, 1),
-    box-shadow       200ms cubic-bezier(0.4, 0, 0.2, 1),
-    fill             200ms cubic-bezier(0.4, 0, 0.2, 1),
-    stroke           200ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+    border-color 200ms cubic-bezier(0.4, 0, 0.2, 1),
+    color 200ms cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 200ms cubic-bezier(0.4, 0, 0.2, 1),
+    fill 200ms cubic-bezier(0.4, 0, 0.2, 1),
+    stroke 200ms cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 /* ── Preload guard — suppresses ALL transitions on first paint ── */
@@ -208,15 +208,29 @@
 
 /* ── Keyframes ────────────────────────────────────────── */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(6px);  }
-  to   { opacity: 1; transform: translateY(0);    }
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 @keyframes slideDown {
-  from { opacity: 0; transform: translateY(-6px); }
-  to   { opacity: 1; transform: translateY(0);    }
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ── Base resets ──────────────────────────────────────── */
@@ -227,9 +241,9 @@
 }
 
 html {
-  -webkit-font-smoothing:  antialiased;
+  -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-rendering:          optimizeLegibility;
+  text-rendering: optimizeLegibility;
 
   /* iOS Safari 100vh bug fix */
   height: 100%;
@@ -262,10 +276,15 @@ body {
 }
 
 /* ── Scrollbar ────────────────────────────────────────── */
-::-webkit-scrollbar       { width: 7px; height: 5px; }
-::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar {
+  width: 7px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
 ::-webkit-scrollbar-thumb {
-  background:    var(--scrollbar-thumb);
+  background: var(--scrollbar-thumb);
   border-radius: 99px;
   border: 2px solid var(--bgDeep);
 }
@@ -286,13 +305,21 @@ body {
 }
 
 /* Safe area utilities */
-.safe-area-top    { padding-top:    env(safe-area-inset-top);    }
-.safe-area-bottom { padding-bottom: env(safe-area-inset-bottom); }
-.safe-area-left   { padding-left:   env(safe-area-inset-left);   }
-.safe-area-right  { padding-right:  env(safe-area-inset-right);  }
-.safe-area-all    {
+.safe-area-top {
+  padding-top: env(safe-area-inset-top);
+}
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.safe-area-left {
+  padding-left: env(safe-area-inset-left);
+}
+.safe-area-right {
+  padding-right: env(safe-area-inset-right);
+}
+.safe-area-all {
   padding: env(safe-area-inset-top) env(safe-area-inset-right)
-           env(safe-area-inset-bottom) env(safe-area-inset-left);
+    env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
 /* Touch-friendly buttons */
@@ -303,17 +330,23 @@ body {
 }
 
 /* Prevent double-tap zoom */
-.no-double-tap { touch-action: manipulation; }
+.no-double-tap {
+  touch-action: manipulation;
+}
 
 /* Mobile scrollbar hiding */
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
-.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
 
 /* iOS momentum scrolling */
-.momentum-scroll { -webkit-overflow-scrolling: touch; }
+.momentum-scroll {
+  -webkit-overflow-scrolling: touch;
+}
 
 /* Prevent text selection on mobile */
 .no-select {
@@ -332,7 +365,8 @@ body {
 }
 
 /* Mobile input fixes */
-input, textarea {
+input,
+textarea {
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
@@ -361,7 +395,9 @@ button {
     -webkit-transform: translate3d(0, 0, 0);
     transform: translate3d(0, 0, 0);
   }
-  .scroll-ios { -webkit-overflow-scrolling: touch; }
+  .scroll-ios {
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 /* ── No scrollbar utility ───────────────────────────── */
@@ -369,34 +405,44 @@ button {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
-.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
 
 /* ── Focus ────────────────────────────────────────────── */
-:focus         { outline: none; }
+:focus {
+  outline: none;
+}
 :focus-visible {
-  outline:        2px solid rgba(91,59,255,0.6);
+  outline: 2px solid rgba(91, 59, 255, 0.6);
   outline-offset: 2px;
 }
 
 /* ── Selection ────────────────────────────────────────── */
 ::selection {
-  background: rgba(91,59,255,0.35);
-  color:      var(--textMain);
+  background: rgba(91, 59, 255, 0.35);
+  color: var(--textMain);
 }
 
 /* ── Line clamp utilities ─────────────────────────────── */
 .line-clamp-1,
 .line-clamp-2,
 .line-clamp-3 {
-  display:            -webkit-box;
+  display: -webkit-box;
   -webkit-box-orient: vertical;
-  overflow:           hidden;
-  line-clamp:         var(--lines);
+  overflow: hidden;
+  line-clamp: var(--lines);
   -webkit-line-clamp: var(--lines);
 }
-.line-clamp-1 { --lines: 1; }
-.line-clamp-2 { --lines: 2; }
-.line-clamp-3 { --lines: 3; }
+.line-clamp-1 {
+  --lines: 1;
+}
+.line-clamp-2 {
+  --lines: 2;
+}
+.line-clamp-3 {
+  --lines: 3;
+}
 
 /* ── Mobile viewport meta tag support ─────────────────── */
 @viewport {

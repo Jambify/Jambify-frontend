@@ -13,6 +13,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "../../lib/supabase";
 import ThemeToggle from "../../components/ui/ThemeToggle";
+import { toTitleCase } from "../../lib/utils/utils";
 
 type Step = "form" | "otp";
 
@@ -69,8 +70,9 @@ const SignUp: React.FC = () => {
         // If cleanup returned 'pending', the OTP may still be valid —
         // jump straight to the OTP step so they can try entering it
         if (cleanupData?.status === "pending") {
+          const formattedName = toTitleCase(fullName.trim());
           storeEmail(email);
-          setName(fullName);
+          setName(formattedName);
           setStep("otp");
           setCooldown(30);
           setLoading(false);
@@ -80,14 +82,15 @@ const SignUp: React.FC = () => {
       }
 
       // Step C: Send the OTP
+      const formattedName = toTitleCase(fullName.trim());
       storeEmail(email);
-      setName(fullName);
+      setName(formattedName);
 
       const { error: otpErr } = await supabase.auth.signInWithOtp({
         email: email.trim().toLowerCase(),
         options: {
           shouldCreateUser: true,
-          data: { full_name: fullName },
+          data: { full_name: formattedName },
         },
       });
 
@@ -186,7 +189,10 @@ const SignUp: React.FC = () => {
   if (step === "otp") {
     return (
       <div className="min-h-screen bg-bgMain flex items-center justify-center p-4 relative overflow-hidden">
-        <div className="absolute top-0 left-1/4 w-125 h-125 bg-brand/5 blur-[120px] rounded-full pointer-events-none" />
+        {/* Ambient Glows */}
+        <div className="absolute top-0 left-1/4 w-125 h-125 bg-brand/10 blur-[120px] rounded-full pointer-events-none" />
+        <div className="absolute bottom-0 right-1/4 w-125 h-125 bg-brand/5 blur-[120px] rounded-full pointer-events-none" />
+
         <motion.div
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -196,7 +202,7 @@ const SignUp: React.FC = () => {
             <div className="w-14 h-14 bg-brand rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-brand/40">
               <Key className="w-7 h-7 text-white" />
             </div>
-            <h1 className="text-3xl font-display font-bold text-white mb-2 tracking-tight">
+            <h1 className="text-3xl font-display font-bold text-textMain mb-2 tracking-tight">
               Check your Email
             </h1>
             <p className="text-textDim text-sm">
@@ -216,7 +222,7 @@ const SignUp: React.FC = () => {
               >
                 <div className="p-4 bg-danger/10 border border-danger/20 rounded-brand-lg flex gap-3">
                   <AlertCircle className="w-5 h-5 text-danger shrink-0 mt-0.5" />
-                  <p className="text-sm text-red-300">{error}</p>
+                  <p className="text-sm text-danger">{error}</p>
                 </div>
               </motion.div>
             )}
@@ -240,7 +246,7 @@ const SignUp: React.FC = () => {
                 }}
                 placeholder="000000"
                 style={{ fontSize: "16px" }}
-                className="w-full text-center text-2xl font-mono tracking-[0.5em] py-4 bg-bgDeep border border-borderMuted rounded-brand-lg text-white focus:ring-2 focus:ring-brand focus:border-transparent outline-none transition-all"
+                className="w-full text-center text-2xl font-mono tracking-[0.5em] py-4 bg-bgSurface border border-borderMuted rounded-brand-lg text-textMain focus:ring-2 focus:ring-brand/40 focus:border-transparent outline-none transition-all placeholder:text-textDim/30"
               />
             </div>
             <button
@@ -289,7 +295,10 @@ const SignUp: React.FC = () => {
   // ── Signup Form ───────────────────────────────────────
   return (
     <div className="min-h-screen bg-bgMain flex items-center justify-center p-4 relative overflow-hidden">
-      <div className="absolute top-0 left-1/4 w-125 h-125 bg-brand/5 blur-[120px] rounded-full pointer-events-none" />
+      {/* Ambient Glows */}
+      <div className="absolute top-0 left-1/4 w-125 h-125 bg-brand/10 blur-[120px] rounded-full pointer-events-none" />
+      <div className="absolute bottom-0 right-1/4 w-125 h-125 bg-brand/5 blur-[120px] rounded-full pointer-events-none" />
+
       <motion.div
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -330,7 +339,7 @@ const SignUp: React.FC = () => {
               <div className="p-4 bg-danger/10 border border-danger/20 rounded-brand-lg flex items-start gap-3">
                 <AlertCircle className="w-5 h-5 text-danger shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-sm text-red-300">{error}</p>
+                  <p className="text-sm text-danger">{error}</p>
                   {error.includes("already exists") && (
                     <Link
                       to="/signin"
@@ -360,7 +369,7 @@ const SignUp: React.FC = () => {
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 style={{ fontSize: "16px" }}
-                className="w-full pl-12 pr-4 py-3.5 bg-bgDeep border border-borderMuted rounded-brand-lg text-white focus:ring-2 focus:ring-brand focus:border-transparent outline-none transition-all placeholder:text-textDim/50"
+                className="w-full pl-12 pr-4 py-3.5 bg-bgSurface border border-borderMuted rounded-brand-lg text-textMain focus:ring-2 focus:ring-brand/40 focus:border-transparent outline-none transition-all placeholder:text-textDim/50"
                 placeholder="e.g. Adeola Okafor"
               />
             </div>
@@ -379,7 +388,7 @@ const SignUp: React.FC = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 style={{ fontSize: "16px" }}
-                className="w-full pl-12 pr-4 py-3.5 bg-bgDeep border border-borderMuted rounded-brand-lg text-white focus:ring-2 focus:ring-brand focus:border-transparent outline-none transition-all placeholder:text-textDim/50"
+                className="w-full pl-12 pr-4 py-3.5 bg-bgSurface border border-borderMuted rounded-brand-lg text-textMain focus:ring-2 focus:ring-brand/40 focus:border-transparent outline-none transition-all placeholder:text-textDim/50"
                 placeholder="e.g. adeola@example.com"
               />
             </div>
