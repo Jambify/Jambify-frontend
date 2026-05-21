@@ -82,7 +82,7 @@ const ExamPaywall: React.FC<ExamPaywallProps> = ({ onUpgrade, onBack }) => {
   if (step === "pending" || step === "verify") {
     return (
       <div className="min-h-screen bg-bgMain text-textMain flex items-center justify-center p-4">
-        <div className="bg-bgCard border border-borderMuted rounded-[32px] p-8 w-full max-w-md text-center shadow-2xl">
+        <div className="bg-bgCard border border-borderMuted rounded-4xl p-8 w-full max-w-md text-center shadow-2xl">
           <div className="w-16 h-16 bg-warn/10 rounded-full flex items-center justify-center mx-auto mb-5 border border-warn/20">
             <Crown className="w-8 h-8 text-warn" />
           </div>
@@ -165,7 +165,7 @@ const ExamPaywall: React.FC<ExamPaywallProps> = ({ onUpgrade, onBack }) => {
   // ── Default: paywall wall ─────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-bgMain text-textMain flex items-center justify-center p-4">
-      <div className="bg-bgCard border border-borderMuted rounded-[32px] p-8 w-full max-w-md text-center shadow-2xl backdrop-blur-md">
+      <div className="bg-bgCard border border-borderMuted rounded-4xl p-8 w-full max-w-md text-center shadow-2xl backdrop-blur-md">
 
         {/* Brand Header */}
         <div className="flex items-center gap-3 mb-8">

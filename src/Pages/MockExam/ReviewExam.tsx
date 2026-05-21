@@ -48,7 +48,7 @@ const AIDrawer: React.FC<AIDrawerProps> = ({ question, onClose }) => {
   const [input, setInput] = useState('');
 
   // Each question gets its own isolated chat session (no persistence needed)
-  const { messages, isLoading, sendMessage, clearHistory } = useAIChat({
+  const { messages, isLoading, sendMessage,  } = useAIChat({
     systemPrompt: `You are JAMBIFY AI, an expert JAMB tutor. 
 The student is reviewing a question they just answered in a mock exam.
 Explain clearly and concisely. Use step-by-step reasoning.
@@ -211,7 +211,7 @@ Keep responses under 300 words unless a detailed breakdown is needed.`,
               onKeyDown={handleKeyDown}
               placeholder="Ask a follow-up question…"
               disabled={isLoading}
-              className="flex-1 bg-transparent border-none text-sm px-2 py-1.5 focus:ring-0 resize-none no-scrollbar placeholder:text-textDim text-textMain min-h-[36px] max-h-[100px] disabled:opacity-50"
+              className="flex-1 bg-transparent border-none text-sm px-2 py-1.5 focus:ring-0 resize-none no-scrollbar placeholder:text-textDim text-textMain min-h-9 max-h-25 disabled:opacity-50"
             />
             <button
               onClick={handleSend}
@@ -360,7 +360,7 @@ const ReviewScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                       </div>
                       <div className="min-w-0 flex-1">
                         <span className="text-[10px] font-mono font-bold text-textDim uppercase">Q {idx + 1}</span>
-                        <p className="text-sm md:text-lg font-bold text-textMain mt-1 leading-snug break-words">
+                        <p className="text-sm md:text-lg font-bold text-textMain mt-1 leading-snug wrap-break-word">
                           {q.text}
                         </p>
                       </div>
@@ -380,7 +380,7 @@ const ReviewScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                               : "border-borderMuted text-textDim opacity-80",
                           )}
                         >
-                          <span className="pr-2 break-words flex-1 min-w-0">
+                          <span className="pr-2 wrap-break-word flex-1 min-w-0">
                             <span className="opacity-50 font-mono mr-1">{String.fromCharCode(65 + i)}.</span>
                             {opt}
                           </span>
@@ -396,7 +396,7 @@ const ReviewScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                         <div className="flex items-center gap-2 mb-2 text-brand font-black text-[10px] uppercase">
                           <BookOpen size={14} /> Explanation
                         </div>
-                        <p className="text-xs md:text-sm text-textMuted leading-relaxed break-words">
+                        <p className="text-xs md:text-sm text-textMuted leading-relaxed wrap-break-word">
                           {q.explanation || "No explanation provided."}
                         </p>
                       </div>

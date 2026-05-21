@@ -351,7 +351,7 @@ const Onboarding: React.FC = () => {
       <div className="w-full max-w-xl">
         <StepIndicator current={step} total={TOTAL_STEPS} />
 
-        <div className="bg-bgCard border border-borderMuted rounded-[32px] p-6 md:p-10 shadow-2xl relative overflow-hidden">
+        <div className="bg-bgCard border border-borderMuted rounded-4xl p-6 md:p-10 shadow-2xl relative overflow-hidden">
           {/* Subtle Glow */}
           <div className="absolute top-0 right-0 w-64 h-64 bg-brand/5 rounded-full blur-[80px] -mr-32 -mt-32 pointer-events-none" />
 
