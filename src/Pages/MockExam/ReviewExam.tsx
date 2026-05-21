@@ -1,90 +1,255 @@
+/**
+ * src/Pages/MockExam/ReviewExam.tsx
+ * ──────────────────────────────────
+ * Post-exam review screen with a real AI explanation drawer.
+ * The drawer uses the same useAIChat hook as MentorChat.
+ */
+
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import { useMockStore } from "../../Store/useMockStore";
 import AppLayout from "../../components/Layout/AppLayout";
 import { cn } from "../../lib/utils/utils";
+import { useAIChat, type ChatMessage } from "../../hooks/useAIChat";
+import { buildQuestionContext } from "../../lib/ai";
 import {
-  CheckCircle,
-  XCircle,
-  BookOpen,
-  MessageCircle,
-  ArrowLeft,
-  Filter,
-  Trophy,
-  X,
-  Sparkles,
+  CheckCircle, XCircle, BookOpen, Send,
+  ArrowLeft, Filter, Trophy, X, Sparkles,
 } from "lucide-react";
 import Button from "../../components/Layout/Button";
 
+// ── Typing dots ───────────────────────────────────────────────────────────────
+const TypingDots: React.FC = () => (
+  <div className="flex items-center gap-1 px-4 py-3">
+    {[0, 1, 2].map((i) => (
+      <span
+        key={i}
+        className="w-2 h-2 rounded-full bg-brand/60"
+        style={{ animation: "bounce 1.2s infinite", animationDelay: `${i * 0.2}s` }}
+      />
+    ))}
+    <style>{`
+      @keyframes bounce {
+        0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+        40%            { transform: translateY(-6px); opacity: 1; }
+      }
+    `}</style>
+  </div>
+);
+
+// ── AI Drawer ─────────────────────────────────────────────────────────────────
+interface AIDrawerProps {
+  question: any;
+  onClose:  () => void;
+}
+
+const AIDrawer: React.FC<AIDrawerProps> = ({ question, onClose }) => {
+  const inputRef        = useRef<HTMLTextAreaElement>(null);
+  const bottomRef       = useRef<HTMLDivElement>(null);
+  const [input, setInput] = useState('');
+
+  // Each question gets its own isolated chat session (no persistence needed)
+  const { messages, isLoading, sendMessage, clearHistory } = useAIChat({
+    systemPrompt: `You are JAMBIFY AI, an expert JAMB tutor. 
+The student is reviewing a question they just answered in a mock exam.
+Explain clearly and concisely. Use step-by-step reasoning.
+Keep responses under 300 words unless a detailed breakdown is needed.`,
+  });
+
+  // On open: auto-send the initial explanation request
+  const initialSentRef = useRef(false);
+  useEffect(() => {
+    if (initialSentRef.current) return;
+    initialSentRef.current = true;
+    const context = buildQuestionContext(question);
+    sendMessage(context);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Auto-scroll
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, isLoading]);
+
+  const handleSend = () => {
+    if (!input.trim() || isLoading) return;
+    // Pass the question as context for follow-up questions
+    const ctx = `(Context: This is about the question "${question.text}" — correct answer is option ${String.fromCharCode(65 + question.answer)}: "${question.options[question.answer]}")`;
+    sendMessage(input.trim(), ctx);
+    setInput('');
+    inputRef.current?.focus();
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex justify-end">
+      {/* Backdrop */}
+      <div
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        onClick={onClose}
+      />
+
+      {/* Drawer panel */}
+      <div className="relative w-full max-w-md bg-bgCard h-full shadow-2xl flex flex-col z-10 overflow-hidden animate-in slide-in-from-right duration-300">
+
+        {/* Header */}
+        <div className="px-5 py-4 border-b border-borderMuted flex items-center justify-between bg-brand text-white shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-white/20 rounded-brand">
+              <Sparkles className="w-4 h-4" />
+            </div>
+            <div>
+              <h2 className="font-bold text-sm">AI Tutor</h2>
+              <p className="text-[10px] opacity-80 uppercase tracking-widest font-mono">
+                Interactive Help
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-white/10 rounded-full transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Question context strip */}
+        <div className="px-5 py-3 bg-bgSurface border-b border-borderMuted shrink-0">
+          <p className="text-[10px] font-bold text-brand uppercase mb-1">The Question</p>
+          <p className="text-xs text-textMain leading-relaxed line-clamp-3">
+            {question.text}
+          </p>
+          <div className="flex items-center gap-2 mt-1.5">
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-success/10 text-success border border-success/20 font-medium">
+              ✓ {String.fromCharCode(65 + question.answer)}. {question.options[question.answer]}
+            </span>
+            {question.topic && (
+              <span className="text-[10px] text-textDim">{question.topic}</span>
+            )}
+          </div>
+        </div>
+
+        {/* Chat body */}
+        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4 scroll-smooth">
+
+          {/* Message bubbles */}
+          {messages.map((msg: ChatMessage) => {
+            const isUser = msg.role === 'user';
+            // Skip the initial context message from display
+            if (isUser && msg.content.startsWith('JAMB Question')) return null;
+            return (
+              <div
+                key={msg.id}
+                className={cn(
+                  'flex flex-col max-w-[90%]',
+                  isUser ? 'ml-auto items-end' : 'mr-auto items-start',
+                )}
+              >
+                <span className="text-[9px] font-bold text-textDim uppercase mb-1 px-1">
+                  {isUser ? 'You' : 'AI Tutor'}
+                </span>
+                <div
+                  className={cn(
+                    'px-3 py-2.5 rounded-2xl text-sm leading-relaxed',
+                    isUser
+                      ? 'bg-brand text-white rounded-tr-sm'
+                      : 'bg-bgSurface border border-borderMuted text-textMain rounded-tl-sm',
+                    msg.isStreaming && 'after:content-["▋"] after:animate-pulse after:text-brand after:ml-0.5',
+                  )}
+                  style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}
+                >
+                  {msg.content || (msg.isStreaming ? '' : '…')}
+                </div>
+              </div>
+            );
+          })}
+
+          {/* Typing indicator — only when first message is loading */}
+          {isLoading && messages.filter(m => m.role === 'ai').length === 0 && (
+            <div className="mr-auto">
+              <span className="text-[9px] font-bold text-textDim uppercase mb-1 block px-1">AI Tutor</span>
+              <div className="bg-bgSurface border border-borderMuted rounded-2xl rounded-tl-sm">
+                <TypingDots />
+              </div>
+            </div>
+          )}
+
+          {/* Follow-up suggestions */}
+          {!isLoading && messages.length > 1 && (
+            <div className="flex flex-wrap gap-1.5 pt-2">
+              {['Why are the other options wrong?', 'Give me a similar example', 'Explain more simply'].map((s) => (
+                <button
+                  key={s}
+                  onClick={() => sendMessage(s)}
+                  className="px-2.5 py-1 bg-bgSurface border border-borderMuted rounded-full text-[11px] text-textDim hover:text-textMain hover:border-brand/40 transition-all"
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          )}
+
+          <div ref={bottomRef} />
+        </div>
+
+        {/* Input footer */}
+        <div className="px-4 pb-4 pt-2 border-t border-borderMuted shrink-0 bg-bgCard">
+          <div className="flex items-end gap-2 bg-bgSurface border border-borderMuted rounded-brand-lg p-2 focus-within:border-brand transition-colors">
+            <textarea
+              ref={inputRef}
+              rows={1}
+              value={input}
+              onChange={(e) => {
+                setInput(e.target.value);
+                e.target.style.height = 'auto';
+                e.target.style.height = `${Math.min(e.target.scrollHeight, 100)}px`;
+              }}
+              onKeyDown={handleKeyDown}
+              placeholder="Ask a follow-up question…"
+              disabled={isLoading}
+              className="flex-1 bg-transparent border-none text-sm px-2 py-1.5 focus:ring-0 resize-none no-scrollbar placeholder:text-textDim text-textMain min-h-[36px] max-h-[100px] disabled:opacity-50"
+            />
+            <button
+              onClick={handleSend}
+              disabled={!input.trim() || isLoading}
+              className={cn(
+                'p-2 rounded-brand transition-all shrink-0',
+                input.trim() && !isLoading
+                  ? 'bg-brand text-white hover:bg-brand-light shadow-md shadow-brand/20 active:scale-95'
+                  : 'bg-borderMuted text-textDim cursor-not-allowed',
+              )}
+            >
+              <Send className="w-4 h-4" />
+            </button>
+          </div>
+          <p className="mt-1.5 text-[9px] text-center text-textDim uppercase tracking-tighter">
+            AI can make mistakes. Verify important information.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ── Main ReviewScreen ─────────────────────────────────────────────────────────
 const ReviewScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   const { questions, answers } = useMockStore();
 
-  // --- UI State ---
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [statusFilter, setStatusFilter] = useState<
-    "all" | "correct" | "incorrect"
-  >("all");
+  const [isSidebarOpen, setIsSidebarOpen]   = useState(false);
+  const [statusFilter, setStatusFilter]     = useState<"all" | "correct" | "incorrect">("all");
+  const [selectedAIQuestion, setSelectedAIQuestion] = useState<any | null>(null);
 
-  // --- AI Modal State ---
-  const [selectedAIQuestion, setSelectedAIQuestion] = useState<any | null>(
-    null,
-  );
-  const [isAILoading, setIsAILoading] = useState(false);
-  const [chatInput, setChatInput] = useState("");
-  const [chatHistory, setChatHistory] = useState<
-    { role: "user" | "ai"; content: string }[]
-  >([]);
-
-  // --- Scrolling Ref ---
-  const chatContainerRef = useRef<HTMLDivElement>(null);
-
-  // --- Scroll to Top on Mount ---
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
-
-  // --- Auto Scroll Logic for AI Chat ---
-  useEffect(() => {
-    if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTo({
-        top: chatContainerRef.current.scrollHeight,
-        behavior: "smooth",
-      });
-    }
-  }, [chatHistory, isAILoading]);
-
-  const handleAskAI = (question: any) => {
-    setSelectedAIQuestion(question);
-    setIsAILoading(true);
-    setTimeout(() => {
-      setIsAILoading(false);
-    }, 1500);
-  };
-
-  const handleSendMessage = () => {
-    if (!chatInput.trim()) return;
-    const userMessage = chatInput.trim();
-
-    setChatHistory((prev) => [...prev, { role: "user", content: userMessage }]);
-    setChatInput("");
-
-    setTimeout(() => {
-      setChatHistory((prev) => [
-        ...prev,
-        {
-          role: "ai",
-          content: "I'm processing that! (AI automation coming soon...)",
-        },
-      ]);
-    }, 1000);
-  };
+  useEffect(() => { window.scrollTo(0, 0); }, []);
 
   const subjectData = useMemo(() => {
     const uniqueSubjects = Array.from(new Set(questions.map((q) => q.subject)));
     return uniqueSubjects.map((sub) => {
-      const subQs = questions.filter((q) => q.subject === sub);
-      const score = subQs.filter(
-        (q) => answers[questions.indexOf(q)] === q.answer,
-      ).length;
+      const subQs  = questions.filter((q) => q.subject === sub);
+      const score  = subQs.filter((q) => answers[questions.indexOf(q)] === q.answer).length;
       return { name: sub, score, total: subQs.length };
     });
   }, [questions, answers]);
@@ -93,10 +258,8 @@ const ReviewScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
   const filteredQuestions = useMemo(() => {
     let res = questions.filter((q) => q.subject === activeTab);
-    if (statusFilter === "correct")
-      res = res.filter((q) => answers[questions.indexOf(q)] === q.answer);
-    if (statusFilter === "incorrect")
-      res = res.filter((q) => answers[questions.indexOf(q)] !== q.answer);
+    if (statusFilter === "correct")   res = res.filter((q) => answers[questions.indexOf(q)] === q.answer);
+    if (statusFilter === "incorrect") res = res.filter((q) => answers[questions.indexOf(q)] !== q.answer);
     return res;
   }, [activeTab, statusFilter, questions, answers]);
 
@@ -108,38 +271,29 @@ const ReviewScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     >
       <div className="w-full max-w-full overflow-x-hidden box-border relative">
         <div className="max-w-5xl mx-auto px-4 py-6 md:px-8 overflow-hidden">
-          {/* Header & Stats */}
+
+          {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-            <div className="flex items-center gap-3 min-w-0">
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={onBack}
-                // Added 'active:scale-95' for haptic-like visual feedback on tap
-                className="rounded-xl shrink-0 bg-brand/10 border-brand/10 text-brand hover:bg-brand/20 active:scale-95 transition-all px-4"
-              >
-                <div className="flex items-center gap-2 justify-center">
-                  <ArrowLeft size={18} />{" "}
-                  {/* Slightly larger icon for mobile readability */}
-                  <span className="font-medium">Back</span>
-                </div>
-              </Button>
-            </div>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={onBack}
+              className="rounded-xl shrink-0 bg-brand/10 border-brand/10 text-brand hover:bg-brand/20 active:scale-95 transition-all px-4 self-start"
+            >
+              <div className="flex items-center gap-2 justify-center">
+                <ArrowLeft size={18} />
+                <span className="font-medium">Back</span>
+              </div>
+            </Button>
             <div className="flex items-center gap-2 bg-brand/5 border border-brand/20 p-2.5 rounded-xl self-start sm:self-auto shrink-0">
               <Trophy className="text-brand w-4 h-4" />
               <span className="text-xs font-bold font-mono">
-                Total:{" "}
-                {
-                  Object.values(answers).filter(
-                    (a, i) => a === questions[i]?.answer,
-                  ).length
-                }
-                /{questions.length}
+                Total: {Object.values(answers).filter((a, i) => a === questions[i]?.answer).length}/{questions.length}
               </span>
             </div>
           </div>
 
-          {/* Sticky Nav */}
+          {/* Sticky nav */}
           <div className="sticky top-0 z-20 bg-bgPage py-2 mb-6 space-y-3 max-w-full">
             <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 max-w-full">
               {subjectData.map((sub) => (
@@ -147,16 +301,14 @@ const ReviewScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                   key={sub.name}
                   onClick={() => setActiveTab(sub.name)}
                   className={cn(
-                    "flex items-center sm:gap-4 gap-0.5  px-2 py-2 rounded-xl text-xs font-bold border transition-all whitespace-nowrap shrink-0",
+                    "flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-bold border transition-all whitespace-nowrap shrink-0",
                     activeTab === sub.name
                       ? "bg-brand border-brand text-white shadow-md"
                       : "bg-bgCard border-borderMuted text-textDim hover:border-brand/40",
                   )}
                 >
-                  {sub.name}{" "}
-                  <span className="opacity-70 text-[10px]">
-                    {sub.score}/{sub.total}
-                  </span>
+                  {sub.name}
+                  <span className="opacity-70 text-[10px]">{sub.score}/{sub.total}</span>
                 </button>
               ))}
             </div>
@@ -180,12 +332,13 @@ const ReviewScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             <div className="h-px bg-borderMuted w-full" />
           </div>
 
-          {/* Questions Feed */}
+          {/* Questions feed */}
           <div className="space-y-6 pb-20 max-w-full overflow-hidden">
             {filteredQuestions.map((q, idx) => {
-              const globalIdx = questions.indexOf(q);
+              const globalIdx  = questions.indexOf(q);
               const userAnswer = answers[globalIdx];
-              const isCorrect = userAnswer === q.answer;
+              const isCorrect  = userAnswer === q.answer;
+
               return (
                 <div
                   key={q.id}
@@ -197,32 +350,25 @@ const ReviewScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                   )}
                 >
                   <div className="p-4 md:p-8">
+                    {/* Question header */}
                     <div className="flex items-start gap-3 md:gap-5 mb-6 min-w-0">
-                      <div
-                        className={cn(
-                          "w-8 h-8 md:w-12 md:h-12 rounded-xl flex items-center justify-center shrink-0 shadow-sm mt-1",
-                          isCorrect
-                            ? "bg-success/10 text-success"
-                            : "bg-danger/10 text-danger",
-                        )}
-                      >
-                        {isCorrect ? (
-                          <CheckCircle size={20} />
-                        ) : (
-                          <XCircle size={20} />
-                        )}
+                      <div className={cn(
+                        "w-8 h-8 md:w-12 md:h-12 rounded-xl flex items-center justify-center shrink-0 shadow-sm mt-1",
+                        isCorrect ? "bg-success/10 text-success" : "bg-danger/10 text-danger",
+                      )}>
+                        {isCorrect ? <CheckCircle size={20} /> : <XCircle size={20} />}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <span className="text-[10px] font-mono font-bold text-textDim uppercase">
-                          Q {idx + 1}
-                        </span>
-                        <p className="text-sm md:text-lg font-bold text-textMain mt-1 leading-snug wrap-wrap-break-words">
+                        <span className="text-[10px] font-mono font-bold text-textDim uppercase">Q {idx + 1}</span>
+                        <p className="text-sm md:text-lg font-bold text-textMain mt-1 leading-snug break-words">
                           {q.text}
                         </p>
                       </div>
                     </div>
+
+                    {/* Options */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6 md:ml-16">
-                      {q.options.map((opt, i) => (
+                      {q.options.map((opt: string, i: number) => (
                         <div
                           key={i}
                           className={cn(
@@ -230,48 +376,43 @@ const ReviewScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                             i === q.answer
                               ? "border-success bg-success/5 text-success font-bold"
                               : i === userAnswer
-                                ? "border-danger bg-danger/5 text-danger"
-                                : "border-borderMuted text-textDim opacity-80",
+                              ? "border-danger bg-danger/5 text-danger"
+                              : "border-borderMuted text-textDim opacity-80",
                           )}
                         >
-                          <span className="pr-2 wrap-wrap-break-words flex-1 min-w-0">
-                            <span className="opacity-50 font-mono mr-1">
-                              {String.fromCharCode(65 + i)}.
-                            </span>{" "}
+                          <span className="pr-2 break-words flex-1 min-w-0">
+                            <span className="opacity-50 font-mono mr-1">{String.fromCharCode(65 + i)}.</span>
                             {opt}
                           </span>
-                          {i === q.answer && (
-                            <CheckCircle size={14} className="shrink-0 ml-2" />
-                          )}
-                          {i === userAnswer && i !== q.answer && (
-                            <XCircle size={14} className="shrink-0 ml-2" />
-                          )}
+                          {i === q.answer && <CheckCircle size={14} className="shrink-0 ml-2" />}
+                          {i === userAnswer && i !== q.answer && <XCircle size={14} className="shrink-0 ml-2" />}
                         </div>
                       ))}
                     </div>
+
+                    {/* Explanation + AI button */}
                     <div className="md:ml-16 space-y-4">
                       <div className="p-4 bg-bgSurface/50 rounded-2xl border border-borderMuted overflow-hidden">
                         <div className="flex items-center gap-2 mb-2 text-brand font-black text-[10px] uppercase">
                           <BookOpen size={14} /> Explanation
                         </div>
-                        <p className="text-xs md:text-sm text-textMuted leading-relaxed wrap-wrap-break-words">
+                        <p className="text-xs md:text-sm text-textMuted leading-relaxed break-words">
                           {q.explanation || "No explanation provided."}
                         </p>
                       </div>
+
                       <div className="flex items-center justify-between gap-4">
                         <button
-                          onClick={() => handleAskAI(q)}
-                          className="flex items-center gap-2 px-4 py-2.5 bg-brand text-white rounded-xl shadow-lg shadow-brand/20 hover:scale-105 transition-all shrink-0"
+                          onClick={() => setSelectedAIQuestion(q)}
+                          className="flex items-center gap-2 px-4 py-2.5 bg-brand text-white rounded-xl shadow-lg shadow-brand/20 hover:bg-brand-light hover:scale-105 transition-all shrink-0 active:scale-95"
                         >
-                          <MessageCircle size={14} />
+                          <Sparkles size={14} />
                           <span className="text-[11px] font-bold uppercase tracking-tight">
-                            Ask AI Helper
+                            Ask AI Tutor
                           </span>
                         </button>
                         <div className="text-right min-w-0">
-                          <p className="text-[9px] text-textDim font-mono uppercase">
-                            Topic
-                          </p>
+                          <p className="text-[9px] text-textDim font-mono uppercase">Topic</p>
                           <p className="text-[10px] font-bold text-textMain truncate">
                             {q.topic || "General"}
                           </p>
@@ -284,157 +425,16 @@ const ReviewScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             })}
           </div>
         </div>
-
-        {/* --- AI DRAWER MODAL --- */}
-        {selectedAIQuestion && (
-          <div className="fixed inset-0 z-100 flex justify-end">
-            <div
-              className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
-              onClick={() => {
-                setSelectedAIQuestion(null);
-                setChatInput("");
-                setChatHistory([]);
-              }}
-            />
-            <div className="relative w-full max-w-md bg-bgCard h-full shadow-2xl flex flex-col animate-in slide-in-from-right duration-300 z-10 overflow-hidden">
-              <div className="p-6 border-b border-borderMuted flex items-center justify-between bg-brand text-white shrink-0">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-white/20 rounded-lg">
-                    <Sparkles size={20} />
-                  </div>
-                  <div>
-                    <h2 className="font-bold">AI Tutor</h2>
-                    <p className="text-[10px] opacity-80 uppercase tracking-widest font-mono">
-                      Interactive Help
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => {
-                    setSelectedAIQuestion(null);
-                    setChatHistory([]);
-                  }}
-                  className="p-2 hover:bg-white/10 rounded-full transition-colors"
-                >
-                  <X size={24} />
-                </button>
-              </div>
-
-              {/* Chat Body */}
-              <div
-                ref={chatContainerRef}
-                className="flex-1 overflow-y-auto p-6 space-y-6 scroll-smooth pb-10"
-              >
-                <div className="space-y-2">
-                  <span className="text-[10px] font-bold text-brand uppercase">
-                    The Question
-                  </span>
-                  <p className="text-sm font-medium text-textMain bg-bgSurface p-4 rounded-xl border border-borderMuted wrap-wrap-break-words">
-                    {selectedAIQuestion.text}
-                  </p>
-                </div>
-                <div className="space-y-3">
-                  <span className="text-[10px] font-bold text-brand uppercase">
-                    AI Analysis
-                  </span>
-                  {isAILoading ? (
-                    <div className="space-y-3 animate-pulse">
-                      <div className="h-4 bg-bgSurface rounded w-full"></div>
-                      <div className="h-4 bg-bgSurface rounded w-5/6"></div>
-                      <div className="h-4 bg-bgSurface rounded w-4/6"></div>
-                    </div>
-                  ) : (
-                    <div className="prose prose-sm text-textMuted leading-relaxed bg-brand/5 p-4 rounded-2xl border border-brand/10 wrap-break-words">
-                      <p>
-                        Based on{" "}
-                        <strong>{selectedAIQuestion.topic || "General"}</strong>
-                        , option{" "}
-                        {String.fromCharCode(65 + selectedAIQuestion.answer)} is
-                        correct because:
-                      </p>
-                      <p className="mt-2">
-                        {selectedAIQuestion.explanation ||
-                          "No explanation provided."}
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                {chatHistory.length > 0 && (
-                  <div className="space-y-4 pt-4 border-t border-borderMuted/30">
-                    {chatHistory.map((msg, i) => (
-                      <div
-                        key={i}
-                        className={cn(
-                          "flex flex-col max-w-[85%] animate-in fade-in slide-in-from-bottom-2 duration-300",
-                          msg.role === "user"
-                            ? "ml-auto items-end"
-                            : "mr-auto items-start",
-                        )}
-                      >
-                        <span className="text-[9px] font-bold text-textDim uppercase mb-1 px-1">
-                          {msg.role === "user" ? "You" : "AI Tutor"}
-                        </span>
-                        <div
-                          className={cn(
-                            "p-3 rounded-2xl text-sm leading-relaxed wrap-break-words",
-                            msg.role === "user"
-                              ? "bg-brand text-white rounded-tr-none shadow-sm"
-                              : "bg-bgSurface border border-borderMuted text-textMain rounded-tl-none",
-                          )}
-                        >
-                          {msg.content}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                <div className="pt-4 text-center">
-                  <p className="text-[10px] text-textDim italic">
-                    {chatHistory.length === 0
-                      ? "Ask a follow-up question below."
-                      : "Keep the conversation going!"}
-                  </p>
-                </div>
-              </div>
-
-              {/* Chat Input Footer */}
-              <div className="p-4 md:pb-4 pb-24 bg-bgCard border-t border-borderMuted shrink-0">
-                <div className="relative flex items-center gap-2 bg-bgSurface border border-borderMuted rounded-2xl p-2 focus-within:border-brand transition-colors">
-                  <textarea
-                    rows={1}
-                    value={chatInput}
-                    onChange={(e) => setChatInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && !e.shiftKey) {
-                        e.preventDefault();
-                        handleSendMessage();
-                      }
-                    }}
-                    placeholder="Ask for a better explanation..."
-                    className="flex-1 bg-transparent border-none text-sm px-2 py-1 focus:ring-0 resize-none no-scrollbar placeholder:text-textDim text-textMain min-h-10 max-h-37.5"
-                  />
-                  <button
-                    onClick={handleSendMessage}
-                    disabled={!chatInput.trim()}
-                    className={cn(
-                      "p-2 rounded-xl transition-all shrink-0",
-                      chatInput.trim()
-                        ? "bg-brand text-white shadow-md shadow-brand/20 hover:scale-105 active:scale-95"
-                        : "bg-borderMuted text-textDim cursor-not-allowed",
-                    )}
-                  >
-                    <MessageCircle size={18} />
-                  </button>
-                </div>
-                <p className="mt-2 text-[9px] text-center text-textDim uppercase tracking-tighter">
-                  AI can make mistakes. Verify important information.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
+
+      {/* AI Drawer — mounts fresh per question so each gets its own chat */}
+      {selectedAIQuestion && (
+        <AIDrawer
+          key={selectedAIQuestion.id}
+          question={selectedAIQuestion}
+          onClose={() => setSelectedAIQuestion(null)}
+        />
+      )}
     </AppLayout>
   );
 };

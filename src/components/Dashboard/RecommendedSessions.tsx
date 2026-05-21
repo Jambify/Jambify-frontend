@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useSubjectStore } from "../../Store/useSubjectStore";
 import { useUserStore } from "../../Store/UseUserStore";
 import { cn } from "../../lib/utils/utils";
-import { Sparkles, Clock, BookOpen, Target, ArrowRight } from "lucide-react";
+import { Sparkles, Clock, BookOpen,  ArrowRight } from "lucide-react";
 
 interface Session {
   id: string;

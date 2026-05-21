@@ -60,7 +60,7 @@ const LeaderboardCard: React.FC = () => {
               key={t}
               onClick={() => handleTabChange(t)}
               className={cn(
-                "px-2.5 py-1 rounded-[8px] text-[11px] font-medium transition-all capitalize",
+                "px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all capitalize",
                 tab === t
                   ? "bg-bgCard text-textMain shadow-sm"
                   : "text-textDim hover:text-textMain"
@@ -80,7 +80,7 @@ const LeaderboardCard: React.FC = () => {
           </div>
           <div>
             <p className="text-sm font-semibold text-textMain">Your rank awaits</p>
-            <p className="text-xs text-textDim mt-1 max-w-[180px] mx-auto leading-relaxed">
+            <p className="text-xs text-textDim mt-1 max-w-45 mx-auto leading-relaxed">
               Complete a quiz to earn your spot on the leaderboard
             </p>
           </div>

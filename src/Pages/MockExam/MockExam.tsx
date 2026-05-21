@@ -247,6 +247,9 @@ const MockExam: React.FC = () => {
   };
 
   const handleStart = async () => {
+    // Guard: don't start if a previous exam is still being submitted
+    if (isSubmitting) return;
+
     setErrorMessage(null);
     setIsLoadingQuestions(true);
 
@@ -325,9 +328,25 @@ const MockExam: React.FC = () => {
         setIsSidebarOpen={setIsSidebarOpen}
       >
         <MockResultsScreen
-          onRetry={handleStart}
+          onRetry={() => {
+            // 1. Clear all Zustand exam state
+            resetExam();
+            // 2. Reset ALL local UI state that persists across renders
+            //    — showConfirmExit causes the modal to flash on the setup screen
+            //    — isSubmitting blocks handleStart if still true
+            setShowConfirmExit(false);
+            setIsSubmitting(false);
+            setIsLoadingQuestions(false);
+            setErrorMessage(null);
+            setJumpTo("");
+            setActiveSubject(selectedCombination[0] || "English");
+            // selectedCombination and selectedYear are intentionally kept
+            // so the user doesn't have to re-select their subjects
+          }}
           onHome={() => {
             resetExam();
+            setShowConfirmExit(false);
+            setIsSubmitting(false);
             navigate("/");
           }}
         />

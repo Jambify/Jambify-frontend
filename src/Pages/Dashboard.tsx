@@ -227,7 +227,7 @@ const Dashboard: React.FC = () => {
               </div>
             )}
             {cdMotivation && (
-              <p className="mt-3 text-[10px] text-textDim text-center leading-relaxed max-w-[140px]">
+              <p className="mt-3 text-[10px] text-textDim text-center leading-relaxed max-w-35">
                 {cdMotivation}
               </p>
             )}
