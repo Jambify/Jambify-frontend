@@ -32,7 +32,7 @@ const PageLoader: React.FC<PageLoaderProps> = ({
   }, []);
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[400px] w-full animate-fadeIn px-6">
+    <div className="flex flex-col items-center justify-center min-h-100 w-full animate-fadeIn px-6">
       {/* Unique Central Animation: The "Scanning Book" */}
       <div className="relative mb-8">
         {/* Glowing Background */}
