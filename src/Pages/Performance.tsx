@@ -7,140 +7,132 @@ import { useUserStore } from "../Store/UseUserStore";
 import WeeklyChart from "../components/Performance/WeeklyChart";
 import TopicStats from "../components/Performance/TopicStats";
 import MockScores from "../components/Performance/MockScores";
+import PageLoader from "../components/ui/PageLoader";
 
 const Performance: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const { accuracy, overallScore, questionsCompleted, streak } = useUserStore();
-  const { 
-    topicStats, 
-    totalQuestions, 
+  const {
+    topicStats,
+    totalQuestions,
     avgAccuracy,
-    isLoading, 
-    loadPerformanceData 
-  } = usePerformanceStore();  // Removed weeklyActivity, mockScores (not used directly)
+    isLoading,
+    loadPerformanceData,
+  } = usePerformanceStore();
+  const { questionsCompleted } = useUserStore();
 
-  // Load performance data on mount
- // In Performance.tsx, add this console log
+  useEffect(() => {
+    console.log("🔵 Loading performance data...");
+    loadPerformanceData();
+  }, [loadPerformanceData]);
 
-useEffect(() => {
-  console.log("🔵 Loading performance data...");
-  loadPerformanceData().then(() => {
-    console.log("✅ Performance data loaded:", {
-      weeklyActivity: usePerformanceStore.getState().weeklyActivity,
-      topicStats: usePerformanceStore.getState().topicStats,
-      mockScores: usePerformanceStore.getState().mockScores,
-      totalQuestions: usePerformanceStore.getState().totalQuestions,
-      avgAccuracy: usePerformanceStore.getState().avgAccuracy,
-    });
-  });
-}, [loadPerformanceData]);
-
-  // Use real data from Supabase, fallback to user store
-  const displayAccuracy = avgAccuracy > 0 ? avgAccuracy : accuracy;
-  const displayTotalQuestions = totalQuestions > 0 ? totalQuestions : questionsCompleted;
+  // Use questionsCompleted as fallback if totalQuestions is 0
+  const displayTotalQuestions =
+    totalQuestions > 0 ? totalQuestions : questionsCompleted;
 
   const weakCount = topicStats.filter((t) => t.accuracy < 60).length;
   const strongCount = topicStats.filter((t) => t.accuracy >= 75).length;
 
   if (isLoading) {
     return (
-      <AppLayout currentPage="performance" isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen}>
-        <div className="flex items-center justify-center h-64">
-          <div className="text-textMain text-center">
-            <div className="w-12 h-12 border-4 border-brand border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p>Loading performance data...</p>
-          </div>
-        </div>
+      <AppLayout
+        currentPage="performance"
+        isSidebarOpen={isSidebarOpen}
+        setIsSidebarOpen={setIsSidebarOpen}
+      >
+        <PageLoader message="Analyzing your performance..." />
       </AppLayout>
     );
   }
 
   return (
-    <AppLayout currentPage="performance" isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen}>
-      <div className="mb-6">
-        <h2 className="font-display text-2xl font-bold tracking-tight">
-          Performance
-        </h2>
-        <p className="text-sm text-textMuted mt-1">
-          Track your progress, spot weak areas, and see how your scores are
-          trending.
-        </p>
-      </div>
-
-      {/* Top stat cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-        <StatCard
-          label="Overall score"
-          value={overallScore.toString()}
-          sub="out of 400"
-          color="text-brand-light"
-          icon="🎯"
-          iconBg="bg-brand/10"
-        />
-        <StatCard
-          label="Accuracy"
-          value={`${displayAccuracy}%`}
-          sub="across all subjects"
-          color="text-success"
-          icon="✅"
-          iconBg="bg-success/10"
-        />
-        <StatCard
-          label="Questions done"
-          value={displayTotalQuestions.toLocaleString()}
-          sub="total answered"
-          color="text-warn"
-          icon="📚"
-          iconBg="bg-warn/10"
-        />
-        <StatCard
-          label="Study streak"
-          value={`${streak} days`}
-          sub="keep it going!"
-          color="text-warn"
-          icon="🔥"
-          iconBg="bg-warn/10"
-        />
-      </div>
-
-      {/* Weak / Strong summary pills */}
-      {(weakCount > 0 || strongCount > 0) && (
-        <div className="flex flex-wrap gap-2 mb-6">
-          {weakCount > 0 && (
-            <div className="flex items-center gap-2 px-3 py-2 bg-danger/10 border border-danger/20 rounded-brand text-xs text-danger">
-              ⚠️{" "}
-              <span>
-                {weakCount} weak topic{weakCount > 1 ? "s" : ""} need attention
-              </span>
-            </div>
-          )}
-          {strongCount > 0 && (
-            <div className="flex items-center gap-2 px-3 py-2 bg-success/10 border border-success/20 rounded-brand text-xs text-success">
-              ✓{" "}
-              <span>
-                {strongCount} strong topic{strongCount > 1 ? "s" : ""} — keep it
-                up!
-              </span>
-            </div>
-          )}
+    <AppLayout
+      currentPage="performance"
+      isSidebarOpen={isSidebarOpen}
+      setIsSidebarOpen={setIsSidebarOpen}
+    >
+      <div className="max-w-6xl mx-auto space-y-8 animate-fadeIn">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <h1 className="font-display text-3xl font-bold tracking-tight text-textMain">
+              Performance Insights
+            </h1>
+            <p className="text-textDim mt-1">
+              Detailed breakdown of your academic progress
+            </p>
+          </div>
+          <div className="flex items-center gap-2 text-xs font-bold text-textDim bg-bgCard border border-borderMuted px-3 py-1.5 rounded-full">
+            <span className="w-2 h-2 bg-success rounded-full" />
+            LIVE DATA SYNCED
+          </div>
         </div>
-      )}
 
-      {/* Weekly activity chart */}
-      <div className="mb-5">
-        <WeeklyChart />
-      </div>
+        {/* Top Stats Grid */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatCard
+            label="Total Questions"
+            value={displayTotalQuestions.toLocaleString()}
+            sub="questions answered"
+            color="text-brand"
+            icon="📊"
+            iconBg="bg-brand/10"
+          />
+          <StatCard
+            label="Average Accuracy"
+            value={`${Math.round(avgAccuracy)}%`}
+            sub="across all subjects"
+            color="text-success"
+            icon="🎯"
+            iconBg="bg-success/10"
+          />
+          <StatCard
+            label="Weak Topics"
+            value={weakCount.toString()}
+            sub="accuracy below 60%"
+            color="text-danger"
+            icon="⚠️"
+            iconBg="bg-danger/10"
+          />
+          <StatCard
+            label="Strong Topics"
+            value={strongCount.toString()}
+            sub="accuracy above 75%"
+            color="text-warn"
+            icon="🔥"
+            iconBg="bg-warn/10"
+          />
+        </div>
 
-      {/* Topic breakdown + Mock scores */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
-        <TopicStats />
-        <MockScores />
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* Weekly Activity */}
+          <div className="lg:col-span-2 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-display font-bold text-lg">
+                Weekly Activity
+              </h3>
+              <span className="text-xs text-textDim">Last 7 days</span>
+            </div>
+            <WeeklyChart />
+          </div>
+
+          {/* Mock Exam History */}
+          <div className="space-y-4">
+            <h3 className="font-display font-bold text-lg">Mock History</h3>
+            <MockScores />
+          </div>
+        </div>
+
+        {/* Topic Breakdown */}
+        <div className="space-y-4">
+          <h3 className="font-display font-bold text-lg">Subject Breakdown</h3>
+          <TopicStats />
+        </div>
       </div>
     </AppLayout>
   );
 };
 
-/* StatCard component */
+/* Internal StatCard component for Performance page */
 interface StatCardProps {
   label: string;
   value: string;
@@ -158,19 +150,31 @@ const StatCard: React.FC<StatCardProps> = ({
   icon,
   iconBg,
 }) => (
-  <div className="bg-bgCard border border-borderMuted rounded-brand-lg p-4 sm:p-5">
+  <div className="bg-bgCard border border-borderMuted rounded-3xl p-6 hover:border-brand/20 transition-all group relative overflow-hidden">
     <div
-      className={`w-9 h-9 ${iconBg} rounded-brand flex items-center justify-center text-lg mb-3`}
+      className={`w-12 h-12 rounded-2xl flex items-center justify-center text-xl mb-4 transition-transform group-hover:scale-110 ${iconBg}`}
     >
       {icon}
     </div>
-    <p className="text-[11px] text-textDim uppercase tracking-widest font-medium mb-1">
+    <p className="text-[11px] text-textDim uppercase tracking-widest font-bold mb-1">
       {label}
     </p>
-    <p className={`font-display text-2xl font-bold tracking-tight ${color}`}>
-      {value}
-    </p>
-    <p className="text-[11px] text-textDim mt-1">{sub}</p>
+    <div className="flex items-baseline gap-1">
+      <h4
+        className={`font-display text-3xl font-black tracking-tighter ${color}`}
+      >
+        {value}
+      </h4>
+    </div>
+    <p className="text-[10px] text-textDim mt-1 font-medium">{sub}</p>
+
+    {/* Decorative line */}
+    <div
+      className={`absolute bottom-0 left-0 h-1 w-0 group-hover:w-full transition-all duration-500 ${iconBg.replace(
+        "/10",
+        "/30",
+      )}`}
+    />
   </div>
 );
 

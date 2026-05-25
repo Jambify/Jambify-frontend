@@ -20,7 +20,7 @@ const SubjectProgress: React.FC = () => {
   const weakCount = subjects.filter((s) => s.accuracy < 55).length;
 
   return (
-    <div className="bg-bgCard border border-borderMuted rounded-brand-lg p-5 flex flex-col">
+    <div className="bg-bgCard border border-borderMuted rounded-brand-lg p-5 flex flex-col min-h-[300px]">
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <h3 className="font-display text-sm font-semibold tracking-tight">
@@ -54,8 +54,12 @@ const SubjectProgress: React.FC = () => {
 
       {/* Loading */}
       {isLoading && (
-        <div className="flex-1 flex items-center justify-center py-8">
-          <Loader2 className="w-5 h-5 text-brand animate-spin" />
+        <div className="flex-1 flex flex-col items-center justify-center py-8 space-y-3">
+          <div className="relative">
+            <Loader2 className="w-6 h-6 text-brand animate-spin" />
+            <div className="absolute inset-0 bg-brand/20 blur-xl rounded-full animate-pulse" />
+          </div>
+          <p className="text-[10px] text-textDim uppercase tracking-widest font-bold">Syncing data...</p>
         </div>
       )}
 

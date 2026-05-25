@@ -1,6 +1,6 @@
 // components/ui/LoadingScreen.tsx
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface LoadingScreenProps {
   message?: string;
@@ -9,27 +9,27 @@ interface LoadingScreenProps {
 }
 
 const LOADING_TIPS = [
-  { icon: '🎯', text: 'AI is personalizing your questions' },
-  { icon: '📚', text: 'Loading the latest JAMB syllabus' },
-  { icon: '⚡', text: 'Preparing your study plan' },
-  { icon: '🏆', text: 'Setting up your leaderboard' },
-  { icon: '🧠', text: 'Calibrating difficulty levels' },
-  { icon: '📊', text: 'Analyzing past performance data' },
+  { icon: "🎯", text: "AI is personalizing your questions" },
+  { icon: "📚", text: "Loading the latest JAMB syllabus" },
+  { icon: "⚡", text: "Preparing your study plan" },
+  { icon: "🏆", text: "Setting up your leaderboard" },
+  { icon: "🧠", text: "Calibrating difficulty levels" },
+  { icon: "📊", text: "Analyzing past performance data" },
 ];
 
-const LoadingScreen: React.FC<LoadingScreenProps> = ({ 
-  message = 'Setting up your account', 
-  submessage = 'This will just take a moment',
-  estimatedTime = 3 
+const LoadingScreen: React.FC<LoadingScreenProps> = ({
+  message = "Setting up your account",
+  submessage = "Preparing your personalized study experience",
+  estimatedTime = 3,
 }) => {
   const [tipIndex, setTipIndex] = useState(0);
   const [progress, setProgress] = useState(0);
 
-  // Rotate tips every 2 seconds
+  // Rotate tips every 3 seconds for better readability
   useEffect(() => {
     const tipInterval = setInterval(() => {
       setTipIndex((prev) => (prev + 1) % LOADING_TIPS.length);
-    }, 2500);
+    }, 3000);
     return () => clearInterval(tipInterval);
   }, []);
 
@@ -37,118 +37,116 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
   useEffect(() => {
     const startTime = Date.now();
     const duration = estimatedTime * 1000;
-    
+
     const interval = setInterval(() => {
       const elapsed = Date.now() - startTime;
       const newProgress = Math.min((elapsed / duration) * 100, 100);
       setProgress(newProgress);
-      
+
       if (newProgress >= 100) {
         clearInterval(interval);
       }
     }, 50);
-    
+
     return () => clearInterval(interval);
   }, [estimatedTime]);
 
   return (
-    <div className="min-h-screen bg-bgMain flex flex-col items-center justify-center p-4">
-      {/* Animated background particles */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        {[...Array(20)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute w-1 h-1 bg-brand/30 rounded-full"
-            initial={{ 
-              x: Math.random() * window.innerWidth,
-              y: Math.random() * window.innerHeight,
-              scale: 0
-            }}
-            animate={{ 
-              y: [null, -100, -200],
-              scale: [0, 1, 0],
-              opacity: [0, 0.5, 0]
-            }}
-            transition={{ 
-              duration: 3 + Math.random() * 2,
-              repeat: Infinity,
-              delay: Math.random() * 3
-            }}
-          />
-        ))}
+    <div className="min-h-screen bg-bgMain flex flex-col items-center justify-center p-4 relative overflow-hidden">
+      {/* Dynamic Background Elements */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-brand/5 blur-[120px] rounded-full animate-pulse" />
+        <div
+          className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-brand/10 blur-[120px] rounded-full animate-pulse"
+          style={{ animationDelay: "1s" }}
+        />
       </div>
 
-      {/* Main loading card */}
+      {/* Main Content */}
       <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.3 }}
-        className="bg-bgCard backdrop-blur-xl border border-borderMuted rounded-2xl p-8 max-w-md w-full shadow-2xl"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative z-10 w-full max-w-sm"
       >
-        {/* Brand */}
-        <div className="flex items-center justify-center gap-3 mb-8">
-          <div className="w-12 h-12 bg-brand rounded-xl flex items-center justify-center shadow-lg shadow-brand/30">
-            <span className="text-white text-2xl font-black">J</span>
-          </div>
-          <span className="font-display font-bold text-2xl text-textMain">
-            JAMB<span className="text-brand">IFY</span>
-          </span>
-        </div>
-
-        {/* Animated loader */}
-        <div className="relative w-20 h-20 mx-auto mb-6">
-          <div className="absolute inset-0 border-4 border-borderMuted rounded-full"></div>
+        {/* Logo Animation */}
+        <div className="flex flex-col items-center mb-12">
           <motion.div
-            className="absolute inset-0 border-4 border-brand rounded-full"
-            style={{ borderTopColor: 'transparent', borderRightColor: 'transparent' }}
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-          />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <motion.div
-              animate={{ scale: [1, 1.2, 1] }}
-              transition={{ duration: 1, repeat: Infinity }}
-              className="w-3 h-3 bg-brand rounded-full"
-            />
-          </div>
-        </div>
-
-        {/* Message */}
-        <h3 className="text-xl font-bold text-textMain text-center mb-2">
-          {message}
-          <motion.span
-            animate={{ opacity: [0, 1, 0] }}
-            transition={{ duration: 1.5, repeat: Infinity }}
-          >...</motion.span>
-        </h3>
-        <p className="text-textDim text-sm text-center mb-6">{submessage}</p>
-
-        {/* Progress bar */}
-        <div className="w-full bg-bgSurface rounded-full h-1 mb-6 overflow-hidden">
-          <motion.div
-            className="h-full bg-linear-to-r from-brand to-brand-light rounded-full"
-            style={{ width: `${progress}%` }}
-            transition={{ duration: 0.1 }}
-          />
-        </div>
-
-        {/* Rotating tips */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={tipIndex}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="bg-bgSurface rounded-lg p-3 text-center"
+            className="w-20 h-20 bg-brand rounded-3xl flex items-center justify-center shadow-2xl shadow-brand/40 mb-6 relative overflow-hidden group"
+            animate={{
+              rotate: [0, 5, -5, 0],
+              scale: [1, 1.05, 1],
+            }}
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
           >
-            <span className="text-2xl mr-2">{LOADING_TIPS[tipIndex].icon}</span>
-            <span className="text-textMuted text-sm">{LOADING_TIPS[tipIndex].text}</span>
+            <div className="absolute inset-0 bg-linear-to-tr from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <span className="text-white text-4xl font-black tracking-tighter">
+              J
+            </span>
           </motion.div>
-        </AnimatePresence>
 
-        {/* Estimated time */}
-        <p className="text-textDim text-xs text-center mt-4">
-          Estimated time: {estimatedTime} seconds
+          <h1 className="font-display text-3xl font-bold tracking-tight text-textMain">
+            JAMB<span className="text-brand">IFY</span>
+          </h1>
+          <div className="h-1 w-12 bg-brand/30 rounded-full mt-2" />
+        </div>
+
+        {/* Loading Card */}
+        <div className="bg-bgCard border border-borderMuted rounded-3xl p-8 shadow-2xl backdrop-blur-md relative overflow-hidden">
+          {/* Shimmer line */}
+          <motion.div
+            className="absolute top-0 left-0 w-full h-0.5 bg-linear-to-r from-transparent via-brand to-transparent"
+            animate={{ left: ["-100%", "100%"] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+          />
+
+          <div className="space-y-6">
+            <div className="text-center">
+              <h3 className="text-lg font-bold text-textMain mb-1 capitalize">
+                {message}
+              </h3>
+              <p className="text-xs text-textDim font-medium tracking-wide uppercase">
+                {submessage}
+              </p>
+            </div>
+
+            {/* Progress Container */}
+            <div className="space-y-2">
+              <div className="flex justify-between text-[10px] font-bold text-textDim uppercase tracking-widest">
+                <span>Progress</span>
+                <span>{Math.round(progress)}%</span>
+              </div>
+              <div className="h-2 bg-bgSurface rounded-full overflow-hidden border border-borderMuted p-0.5">
+                <motion.div
+                  className="h-full bg-brand rounded-full relative"
+                  style={{ width: `${progress}%` }}
+                >
+                  <div className="absolute inset-0 bg-linear-to-r from-white/20 to-transparent" />
+                </motion.div>
+              </div>
+            </div>
+
+            {/* Tip Section */}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={tipIndex}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="bg-bgSurface/50 border border-borderMuted rounded-2xl p-4 flex items-center gap-4"
+              >
+                <div className="w-10 h-10 bg-bgCard rounded-xl flex items-center justify-center text-xl shadow-sm">
+                  {LOADING_TIPS[tipIndex].icon}
+                </div>
+                <p className="text-xs text-textMuted leading-relaxed font-medium">
+                  {LOADING_TIPS[tipIndex].text}
+                </p>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        </div>
+
+        <p className="text-center text-[10px] text-textDim font-bold uppercase tracking-[0.2em] mt-8 opacity-50">
+          Powered by JAMBIFY AI
         </p>
       </motion.div>
     </div>
