@@ -1,105 +1,160 @@
+// src/Store/useMockStore.ts
+
 import { create } from 'zustand';
 import type { Question } from '../Types';
+import { calculateExamResults, type ExamResult } from '../utils/examCalculations';
 
 export interface MockAttempt {
-  id:            string;
-  date:          string;
-  score:         number;
-  total:         number;
-  timeTaken:     number;   // seconds
-  subjectScores: Record<string, { correct: number; total: number }>;
+  id: string;
+  date: string;
+  results: ExamResult;
+  timeTaken: number; // seconds
 }
 
 interface MockState {
-  // Active exam
-  questions:    Question[];
+  // Active exam state
+  questions: Question[];
   currentIndex: number;
-  answers:      Record<number, number>;
-  timeLeft:     number;
-  isStarted:    boolean;
-  isFinished:   boolean;
-  // History
-  attempts:     MockAttempt[];
+  answers: Record<number, number>; // index -> optionIndex
+  visitedQuestions: Set<number>;
+  markedForReview: Set<number>;
+  timeLeft: number;
+  isStarted: boolean;
+  isFinished: boolean;
+  
+  // Results
+  lastResult: ExamResult | null;
+  attempts: MockAttempt[];
+
   // Actions
-  startExam:      (questions: Question[], duration: number) => void;
-  submitAnswer:   (qi: number, opt: number) => void;
-  nextQuestion:   (index: number) => void;
-  prevQuestion:   () => void;
-  finishExam:     () => void;
-  resetExam:      () => void;
-  tickTimer:      () => void;
+  startExam: (questions: Question[], duration: number) => void;
+  submitAnswer: (index: number, optionIndex: number | null) => void;
+  markForReview: (index: number) => void;
+  setVisited: (index: number) => void;
+  setCurrentIndex: (index: number) => void;
+  nextQuestion: () => void;
+  prevQuestion: () => void;
+  finishExam: (timeTaken: number) => void;
+  resetExam: () => void;
+  tickTimer: () => void;
+  clearResponse: (index: number) => void;
 }
 
-const buildSubjectScores = (
-  questions: Question[],
-  answers:   Record<number, number>,
-) => {
-  const map: Record<string, { correct: number; total: number }> = {};
-  questions.forEach((q, i) => {
-    if (!map[q.subject]) map[q.subject] = { correct: 0, total: 0 };
-    map[q.subject].total++;
-    if (answers[i] === q.answer) map[q.subject].correct++;
-  });
-  return map;
-};
-
 export const useMockStore = create<MockState>()((set, get) => ({
-  questions:    [],
+  questions: [],
   currentIndex: 0,
-  answers:      {},
-  timeLeft:     0,
-  isStarted:    false,
-  isFinished:   false,
-  attempts:     [],
+  answers: {},
+  visitedQuestions: new Set(),
+  markedForReview: new Set(),
+  timeLeft: 0,
+  isStarted: false,
+  isFinished: false,
+  lastResult: null,
+  attempts: [],
 
   startExam: (questions, duration) =>
     set({
       questions,
       currentIndex: 0,
-      answers:      {},
-      timeLeft:     duration,
-      isStarted:    true,
-      isFinished:   false,
+      answers: {},
+      visitedQuestions: new Set([0]),
+      markedForReview: new Set(),
+      timeLeft: duration,
+      isStarted: true,
+      isFinished: false,
+      lastResult: null,
     }),
 
-  submitAnswer: (qi, opt) =>
-    set((s) => ({ answers: { ...s.answers, [qi]: opt } })),
+  submitAnswer: (index, optionIndex) =>
+    set((state) => {
+      const newAnswers = { ...state.answers };
+      if (optionIndex === null) {
+        delete newAnswers[index];
+      } else {
+        newAnswers[index] = optionIndex;
+      }
+      return { answers: newAnswers };
+    }),
 
-  nextQuestion: (index) =>
-    set({ currentIndex: index }),
+  markForReview: (index) =>
+    set((state) => {
+      const newMarked = new Set(state.markedForReview);
+      if (newMarked.has(index)) {
+        newMarked.delete(index);
+      } else {
+        newMarked.add(index);
+      }
+      return { markedForReview: newMarked };
+    }),
+
+  setVisited: (index) =>
+    set((state) => ({
+      visitedQuestions: new Set(state.visitedQuestions).add(index),
+    })),
+
+  setCurrentIndex: (index) =>
+    set((state) => {
+      const newVisited = new Set(state.visitedQuestions).add(index);
+      return { currentIndex: index, visitedQuestions: newVisited };
+    }),
+
+  nextQuestion: () =>
+    set((state) => {
+      const nextIndex = Math.min(state.currentIndex + 1, state.questions.length - 1);
+      const newVisited = new Set(state.visitedQuestions).add(nextIndex);
+      return { currentIndex: nextIndex, visitedQuestions: newVisited };
+    }),
 
   prevQuestion: () =>
-    set((s) => ({ currentIndex: Math.max(0, s.currentIndex - 1) })),
+    set((state) => {
+      const prevIndex = Math.max(state.currentIndex - 1, 0);
+      const newVisited = new Set(state.visitedQuestions).add(prevIndex);
+      return { currentIndex: prevIndex, visitedQuestions: newVisited };
+    }),
 
   tickTimer: () =>
-    set((s) => ({ timeLeft: Math.max(0, s.timeLeft - 1) })),
+    set((state) => ({ timeLeft: Math.max(0, state.timeLeft - 1) })),
 
-  finishExam: () => {
-    const { questions, answers, timeLeft } = get();
-    const score    = questions.filter((q, i) => answers[i] === q.answer).length;
+  finishExam: (timeTaken) => {
+    const { questions, answers } = get();
+    const results = calculateExamResults(questions, answers);
+    
     const attempt: MockAttempt = {
-      id:            Date.now().toString(),
-      date:          new Date().toLocaleDateString('en-GB', {
-                       day: 'numeric', month: 'short', year: 'numeric'
-                     }),
-      score,
-      total:         questions.length,
-      timeTaken:     7200 - timeLeft,
-      subjectScores: buildSubjectScores(questions, answers),
+      id: Date.now().toString(),
+      date: new Date().toLocaleDateString('en-GB', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+      }),
+      results,
+      timeTaken,
     };
-    set((s) => ({
+
+    set((state) => ({
       isFinished: true,
-      attempts:   [...s.attempts, attempt],
+      isStarted: false,
+      lastResult: results,
+      attempts: [attempt, ...state.attempts],
     }));
   },
 
   resetExam: () =>
     set({
-      questions:    [],
+      questions: [],
       currentIndex: 0,
-      answers:      {},
-      timeLeft:     0,
-      isStarted:    false,
-      isFinished:   false,
+      answers: {},
+      visitedQuestions: new Set(),
+      markedForReview: new Set(),
+      timeLeft: 0,
+      isStarted: false,
+      isFinished: false,
+      lastResult: null,
+    }),
+
+  clearResponse: (index) =>
+    set((state) => {
+      const newAnswers = { ...state.answers };
+      delete newAnswers[index];
+      return { answers: newAnswers };
     }),
 }));

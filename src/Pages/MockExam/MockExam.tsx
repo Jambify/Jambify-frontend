@@ -1,99 +1,48 @@
-// src/Pages/MockExam/MockExam.tsx (FIXED - removed unused SUBJECT_CONFIG)
+// src/Pages/MockExam/MockExam.tsx
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import AppLayout from "../../components/Layout/AppLayout";
 import { useMockStore } from "../../Store/useMockStore";
+import { useUserStore } from "../../Store/UseUserStore";
 import { usePerformanceStore } from "../../Store/usePerformanceStore";
 import { SAMPLE_QUESTIONS } from "../../Data/Question";
 import OptionButton from "../../components/Quiz/OptionButton";
 import MockResultsScreen from "../../components/MockExam/MockResultScreen";
+import QuestionPalette from "../../components/MockExam/QuestionPalette";
+import SubjectSidebar from "../../components/MockExam/SubjectSidebar";
 import Button from "../../components/ui/Button";
+import { useExamTimer } from "../../hooks/useExamTimer";
 import { cn } from "../../lib/utils/utils";
+import { 
+  Menu, 
+  X, 
+  ChevronLeft, 
+  ChevronRight, 
+  CheckCircle, 
+  Flag, 
+  Trash2, 
+  AlertTriangle,
+  Clock
+} from "lucide-react";
 
 const MOCK_DURATION = 7200; // 2 hours in seconds
 
 const AVAILABLE_SUBJECTS = [
-  { id: "English", name: "English" },
-  { id: "Mathematics", name: "Mathematics" },
-  { id: "Physics", name: "Physics" },
-  { id: "Chemistry", name: "Chemistry" },
-  { id: "Biology", name: "Biology" },
-  { id: "Economics", name: "Economics" },
-  { id: "Government", name: "Government" },
-  { id: "Literature", name: "Literature" },
-  { id: "History", name: "History" },
-  { id: "Geography", name: "Geography" },
-  { id: "CRS", name: "CRS" },
+  { id: "English", name: "English", required: 60 },
+  { id: "Mathematics", name: "Mathematics", required: 40 },
+  { id: "Physics", name: "Physics", required: 40 },
+  { id: "Chemistry", name: "Chemistry", required: 40 },
+  { id: "Biology", name: "Biology", required: 40 },
+  { id: "Economics", name: "Economics", required: 40 },
+  { id: "Government", name: "Government", required: 40 },
+  { id: "Literature", name: "Literature", required: 40 },
+  { id: "History", name: "History", required: 40 },
+  { id: "Geography", name: "Geography", required: 40 },
+  { id: "CRS", name: "CRS", required: 40 },
 ];
 
-const AVAILABLE_YEARS = Array.from({ length: 11 }, (_, i) =>
-  (2016 + i).toString(),
-);
-
-// API Configuration
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "https://your-api.com";
-
-// Function to fetch questions from API
-const fetchQuestionsFromAPI = async (
-  subject: string,
-  year: string,
-): Promise<any[]> => {
-  try {
-    const response = await fetch(
-      `${API_BASE_URL}/questions?subject=${subject}&year=${year}`,
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      },
-    );
-
-    if (!response.ok) {
-      throw new Error(`API error: ${response.status}`);
-    }
-
-    const data = await response.json();
-    return data.questions || [];
-  } catch (error) {
-    console.error(`Failed to fetch ${subject} questions:`, error);
-    return [];
-  }
-};
-
-// Function to fetch all selected subjects' questions
-const fetchAllQuestions = async (
-  subjects: string[],
-  year: string,
-): Promise<Record<string, any[]>> => {
-  const results: Record<string, any[]> = {};
-
-  await Promise.all(
-    subjects.map(async (subject) => {
-      const questions = await fetchQuestionsFromAPI(subject, year);
-      results[subject] = questions;
-    }),
-  );
-
-  return results;
-};
-
-// Calculate JAMB score (out of 400)
-const calculateJambScore = (
-  correctBySubject: Record<string, number>,
-  totalQuestionsBySubject: Record<string, number>,
-): number => {
-  let totalCorrect = 0;
-  let totalQuestions = 0;
-
-  Object.keys(correctBySubject).forEach((subject) => {
-    totalCorrect += correctBySubject[subject];
-    totalQuestions += totalQuestionsBySubject[subject];
-  });
-
-  return Math.round((totalCorrect / totalQuestions) * 400);
-};
+const AVAILABLE_YEARS = Array.from({ length: 11 }, (_, i) => (2016 + i).toString());
 
 const shuffleArray = <T,>(array: T[]): T[] => {
   const shuffled = [...array];
@@ -104,16 +53,23 @@ const shuffleArray = <T,>(array: T[]): T[] => {
   return shuffled;
 };
 
-const formatTime = (s: number) => {
-  const h = Math.floor(s / 3600);
-  const m = Math.floor((s % 3600) / 60);
-  const sec = s % 60;
-  return `${h}:${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
+const ALOC_SUBJECT_MAP: Record<string, string> = {
+  "English": "english",
+  "Mathematics": "mathematics",
+  "Physics": "physics",
+  "Chemistry": "chemistry",
+  "Biology": "biology",
+  "Economics": "economics",
+  "Government": "government",
+  "Literature": "englishlit",
+  "History": "history",
+  "Geography": "geography",
+  "CRS": "crk",
 };
 
 const MockExam: React.FC = () => {
   const navigate = useNavigate();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const { user } = useUserStore();
   const { addQuizResult } = usePerformanceStore();
   const {
     isStarted,
@@ -121,195 +77,174 @@ const MockExam: React.FC = () => {
     questions,
     currentIndex,
     answers,
-    timeLeft,
+    markedForReview,
     startExam,
     submitAnswer,
+    markForReview,
+    setCurrentIndex,
     nextQuestion,
     prevQuestion,
     finishExam,
     resetExam,
-    tickTimer,
+    clearResponse,
   } = useMockStore();
 
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showConfirmExit, setShowConfirmExit] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showConfirmSubmit, setShowConfirmSubmit] = useState(false);
   const [isLoadingQuestions, setIsLoadingQuestions] = useState(false);
-  const [jumpTo, setJumpTo] = useState("");
-  const [selectedYear, setSelectedYear] = useState("2025");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [selectedCombination, setSelectedCombination] = useState<string[]>([
-    "English",
-    "",
-    "",
-    "",
-  ]);
-  const [useApi, setUseApi] = useState(false);
+  const [selectedYear, setSelectedYear] = useState("2025");
+  const [selectedCombination, setSelectedCombination] = useState<string[]>(["English", "", "", ""]);
+  const [jumpTo, setJumpTo] = useState("");
   const [activeSubject, setActiveSubject] = useState("English");
 
-  useEffect(() => {
-    if (!isStarted || isFinished) {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-      return;
-    }
-    intervalRef.current = setInterval(() => tickTimer(), 1000);
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, [isStarted, isFinished, tickTimer]);
+  // Timer logic
+  const handleTimeUp = useCallback(() => {
+    finishExam(MOCK_DURATION);
+  }, [finishExam]);
 
-  useEffect(() => {
-    if (isStarted && !isFinished && timeLeft === 0) {
-      handleFinishExam();
-    }
-  }, [timeLeft, isStarted, isFinished]);
+  const { timeLeft, formattedTime, status } = useExamTimer({
+    initialTime: MOCK_DURATION,
+    onTimeUp: handleTimeUp,
+    isActive: isStarted && !isFinished,
+  });
 
+  // Effect to update active subject when current index changes
   useEffect(() => {
     if (isStarted && questions[currentIndex]) {
       setActiveSubject(questions[currentIndex].subject);
     }
   }, [currentIndex, isStarted, questions]);
 
-  const handleFinishExam = async () => {
-    setIsSubmitting(true);
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!isStarted || isFinished) return;
+
+      if (e.altKey && e.key === 'n') {
+        nextQuestion();
+      } else if (e.altKey && e.key === 'p') {
+        prevQuestion();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isStarted, isFinished, nextQuestion, prevQuestion]);
+
+  const handleStart = async () => {
+    setIsLoadingQuestions(true);
+    setErrorMessage(null);
 
     try {
-      const timeTakenSeconds = MOCK_DURATION - timeLeft;
-
-      const correctBySubject: Record<string, number> = {};
-      const totalBySubject: Record<string, number> = {};
-
-      questions.forEach((q, idx) => {
-        if (!totalBySubject[q.subject]) {
-          totalBySubject[q.subject] = 0;
-          correctBySubject[q.subject] = 0;
-        }
-        totalBySubject[q.subject]++;
-        if (answers[idx] === q.answer) {
-          correctBySubject[q.subject]++;
-        }
-      });
-
-      const jambScore = calculateJambScore(correctBySubject, totalBySubject);
-
-      const subjectResults = new Map<
-        string,
-        {
-          questionIds: string[];
-          answers: Record<number, number>;
-          startIndex: number;
-        }
-      >();
-
-      questions.forEach((q, idx) => {
-        if (!subjectResults.has(q.subject)) {
-          subjectResults.set(q.subject, {
-            questionIds: [],
-            answers: {},
-            startIndex: idx,
+      const finalQuestions: any[] = [];
+      
+      // ALOC API Integration
+      const fetchFromALOC = async (subject: string, year: string, count: number) => {
+        try {
+          // Normalize subject name for ALOC
+          const alocSubject = ALOC_SUBJECT_MAP[subject] || subject.toLowerCase().replace(/\s+/g, '');
+          
+          // ALOC API requires AccessToken and Accept headers to avoid 406 error
+          const response = await fetch(`https://questions.aloc.com.ng/api/v2/q/${count}?subject=${alocSubject}&year=${year}`, {
+            method: 'GET',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+              'AccessToken': 'ALOC-78bfe77b49fb3e407bf8' // Using sample token from documentation
+            }
           });
-        }
-        const subjectData = subjectResults.get(q.subject)!;
-        subjectData.questionIds.push(q.id);
-        if (answers[idx] !== undefined) {
-          const answerIndex = idx - subjectData.startIndex;
-          subjectData.answers[answerIndex] = answers[idx];
-        }
-      });
-
-      console.log("🔵 JAMB Score Calculation:", {
-        correctBySubject,
-        totalBySubject,
-        jambScore,
-      });
-
-      for (const [subject, data] of subjectResults) {
-        if (Object.keys(data.answers).length > 0) {
-          try {
-            await addQuizResult(
-              "mock",
-              subject,
-              data.questionIds,
-              data.answers,
-              timeTakenSeconds,
-            );
-          } catch (err) {
-            console.error(`❌ Failed to submit ${subject}:`, err);
+          
+          if (!response.ok) {
+            throw new Error(`API responded with status: ${response.status}`);
           }
+          
+          const data = await response.json();
+          
+          if (data && data.status === 200 && data.data) {
+            return data.data.map((q: any) => ({
+              id: q.id.toString(),
+              subject: subject,
+              year: parseInt(year),
+              text: q.question,
+              // Comprehensive instruction mapping for English/Comprehension
+              instruction: q.section || q.instruction || q.passage || "", 
+              options: [q.option.a, q.option.b, q.option.c, q.option.d],
+              answer: ["a", "b", "c", "d"].indexOf(q.answer.toLowerCase()),
+              explanation: q.solution || ""
+            }));
+          }
+          return [];
+        } catch (err) {
+          console.error(`ALOC Fetch Error for ${subject}:`, err);
+          return [];
         }
+      };
+
+      // Fetch all subjects in parallel
+      const subjectResults = await Promise.all(
+        selectedCombination.map(async (subjectId) => {
+          const config = AVAILABLE_SUBJECTS.find(s => s.id === subjectId);
+          if (!config) return [];
+
+          // Try ALOC API first
+          let fetched = await fetchFromALOC(subjectId, selectedYear, config.required);
+          
+          // Fallback to sample data if API fails or returns nothing
+          if (fetched.length === 0) {
+            const sample = SAMPLE_QUESTIONS.filter(q => q.subject === subjectId);
+            // Shuffle and slice sample to match required count
+            let duplicated = [...sample];
+            while (duplicated.length < config.required && sample.length > 0) {
+              duplicated = [...duplicated, ...sample];
+            }
+            fetched = shuffleArray(duplicated).slice(0, config.required).map(q => ({
+              ...q,
+              id: q.id || Math.random().toString()
+            }));
+          }
+
+          // Randomize options for each question
+          return fetched.map(q => {
+            const correctOptionText = q.options[q.answer];
+            const shuffledOptions = shuffleArray(q.options);
+            const newCorrectIndex = shuffledOptions.indexOf(correctOptionText);
+            return { ...q, options: shuffledOptions, answer: newCorrectIndex };
+          });
+        })
+      );
+
+      const allFetchedQuestions = subjectResults.flat();
+      
+      if (allFetchedQuestions.length === 0) {
+        throw new Error("Could not load questions. Please check your internet connection.");
       }
-    } catch (error) {
-      console.error("Failed to submit mock exam results:", error);
+
+      startExam(allFetchedQuestions, MOCK_DURATION);
+      setActiveSubject(selectedCombination[0]);
+    } catch (error: any) {
+      console.error("Error starting exam:", error);
+      setErrorMessage(error.message || "Failed to load questions. Please try again.");
     } finally {
-      setIsSubmitting(false);
-      finishExam();
+      setIsLoadingQuestions(false);
     }
   };
 
-  const handleStart = async () => {
-    // Guard: don't start if a previous exam is still being submitted
-    if (isSubmitting) return;
+  const handleFinishExam = () => {
+    const timeTaken = MOCK_DURATION - timeLeft;
+    finishExam(timeTaken);
+    setShowConfirmSubmit(false);
 
-    setErrorMessage(null);
-    setIsLoadingQuestions(true);
-
-    try {
-      let allQuestions: any[] = [];
-
-      if (useApi) {
-        const questionsBySubject = await fetchAllQuestions(
-          selectedCombination,
-          selectedYear,
-        );
-
-        for (const subject of selectedCombination) {
-          const subjectQuestions = questionsBySubject[subject] || [];
-          if (subjectQuestions.length === 0) {
-            setErrorMessage(
-              `No questions found for ${subject} in ${selectedYear}. Using sample data.`,
-            );
-            const sampleFiltered = SAMPLE_QUESTIONS.filter(
-              (q) => q.subject === subject,
-            );
-            allQuestions.push(...sampleFiltered);
-          } else {
-            allQuestions.push(...subjectQuestions);
-          }
-        }
-      } else {
-        const filtered = SAMPLE_QUESTIONS.filter(
-          (q) =>
-            selectedCombination.includes(q.subject) &&
-            String(q.year) === selectedYear,
-        );
-
-        if (filtered.length === 0) {
-          setErrorMessage(
-            `Questions for the year ${selectedYear} are currently being uploaded.`,
-          );
-          setIsLoadingQuestions(false);
-          return;
-        }
-        allQuestions = filtered;
-      }
-
-      const finalOrderedQuestions = selectedCombination.flatMap((sub) => {
-        const subjectQuestions = allQuestions.filter((q) => q.subject === sub);
-        return shuffleArray(subjectQuestions).map((q) => {
-          const correctOptionText = q.options[q.answer];
-          const shuffledOptions = shuffleArray(q.options);
-          const newCorrectIndex = shuffledOptions.indexOf(correctOptionText);
-          return { ...q, options: shuffledOptions, answer: newCorrectIndex };
-        });
+    // Save result if logged in
+    const { lastResult } = useMockStore.getState();
+    if (user && lastResult) {
+      addQuizResult({
+        subject: "Full Mock Exam",
+        score: lastResult.jambScore,
+        total: 400,
+        date: new Date().toISOString(),
       });
-
-      startExam(finalOrderedQuestions, MOCK_DURATION);
-      setActiveSubject(selectedCombination[0]);
-    } catch (error) {
-      console.error("Error starting exam:", error);
-      setErrorMessage("Failed to load questions. Please try again.");
-    } finally {
-      setIsLoadingQuestions(false);
     }
   };
 
@@ -320,33 +255,162 @@ const MockExam: React.FC = () => {
     setSelectedCombination(newComb);
   };
 
+  const jumpToQuestion = (n: number) => {
+    if (n >= 0 && n < questions.length) {
+      setCurrentIndex(n);
+      setIsSidebarOpen(false);
+    }
+  };
+
+  const handleJumpSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const n = parseInt(jumpTo) - 1;
+    if (!isNaN(n)) {
+      jumpToQuestion(n);
+      setJumpTo("");
+    }
+  };
+
+  // Setup Screen
+  if (!isStarted && !isFinished) {
+    return (
+      <AppLayout currentPage="mock">
+        <div className="max-w-4xl mx-auto py-8 px-4">
+          <div className="bg-bgCard border border-borderMuted rounded-brand-xl p-8 shadow-sm">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-display font-black text-brand mb-2">JAMB Mock Exam</h2>
+              <p className="text-textDim text-sm">Professional CBT simulation for JAMB 2026</p>
+            </div>
+
+            {errorMessage && (
+              <div className="mb-6 p-4 bg-danger/10 border border-danger/20 text-danger text-sm rounded-brand flex items-center gap-3">
+                <AlertTriangle size={18} />
+                {errorMessage}
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+              <div className="space-y-6">
+                <div>
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-brand mb-2 block">
+                    Examination Year
+                  </label>
+                  <select
+                    className="w-full bg-bgSurface border border-borderMuted p-3 rounded-brand text-sm focus:border-brand outline-none transition-colors"
+                    value={selectedYear}
+                    onChange={(e) => setSelectedYear(e.target.value)}
+                  >
+                    {AVAILABLE_YEARS.map((year) => (
+                      <option key={year} value={year}>{year}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-4">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-brand mb-2 block">
+                    Subject Combination
+                  </label>
+                  
+                  {/* Subject 1: English (Locked) */}
+                  <div className="bg-bgSurface/50 border border-borderMuted p-3 rounded-brand text-sm text-textDim flex items-center justify-between">
+                    <span>English Language</span>
+                    <span className="text-[10px] font-bold bg-brand/10 text-brand px-2 py-0.5 rounded">Compulsory</span>
+                  </div>
+
+                  {/* Subjects 2-4 */}
+                  {[1, 2, 3].map((idx) => (
+                    <select
+                      key={idx}
+                      className="w-full bg-bgSurface border border-borderMuted p-3 rounded-brand text-sm focus:border-brand outline-none transition-colors"
+                      value={selectedCombination[idx]}
+                      onChange={(e) => updateSubject(idx, e.target.value)}
+                    >
+                      <option value="">Select Subject {idx + 1}</option>
+                      {AVAILABLE_SUBJECTS.filter(s => s.id !== "English").map((sub) => (
+                        <option
+                          key={sub.id}
+                          value={sub.id}
+                          disabled={selectedCombination.includes(sub.id)}
+                        >
+                          {sub.name}
+                        </option>
+                      ))}
+                    </select>
+                  ))}
+                </div>
+              </div>
+
+              <div className="bg-bgSurface/30 rounded-brand-xl p-6 border border-borderMuted">
+                <h3 className="text-sm font-bold uppercase tracking-widest text-textDim mb-4">Exam Structure</h3>
+                <ul className="space-y-4">
+                  <li className="flex items-start gap-3 text-sm">
+                    <CheckCircle size={18} className="text-brand shrink-0" />
+                    <span>English: 60 questions (Compulsory)</span>
+                  </li>
+                  <li className="flex items-start gap-3 text-sm">
+                    <CheckCircle size={18} className="text-brand shrink-0" />
+                    <span>Other Subjects: 40 questions each</span>
+                  </li>
+                  <li className="flex items-start gap-3 text-sm">
+                    <CheckCircle size={18} className="text-brand shrink-0" />
+                    <span>Total Questions: 180</span>
+                  </li>
+                  <li className="flex items-start gap-3 text-sm">
+                    <CheckCircle size={18} className="text-brand shrink-0" />
+                    <span>Duration: 2 Hours (120 Minutes)</span>
+                  </li>
+                  <li className="flex items-start gap-3 text-sm">
+                    <CheckCircle size={18} className="text-brand shrink-0" />
+                    <span>Real-time JAMB scoring (0-400)</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <Button
+              variant="primary"
+              size="lg"
+              fullWidth
+              disabled={selectedCombination.some((s) => s === "") || isLoadingQuestions}
+              onClick={handleStart}
+              className="py-4 text-lg font-bold relative overflow-hidden group"
+            >
+              {isLoadingQuestions ? (
+                <div className="flex items-center justify-center gap-3">
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  <span>Fetching Questions...</span>
+                </div>
+              ) : (
+                <>
+                  <span className="relative z-10">Start Mock Exam</span>
+                  <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+                </>
+              )}
+            </Button>
+            
+            {isLoadingQuestions && (
+              <p className="text-[10px] text-center text-textDim mt-4 animate-pulse font-bold uppercase tracking-widest">
+                Connecting to ALOC API for real JAMB past questions...
+              </p>
+            )}
+          </div>
+        </div>
+      </AppLayout>
+    );
+  }
+
+  // Result Screen
   if (isFinished) {
     return (
-      <AppLayout
-        currentPage="mock"
-        isSidebarOpen={isSidebarOpen}
-        setIsSidebarOpen={setIsSidebarOpen}
-      >
+      <AppLayout currentPage="mock">
         <MockResultsScreen
           onRetry={() => {
-            // 1. Clear all Zustand exam state
             resetExam();
-            // 2. Reset ALL local UI state that persists across renders
-            //    — showConfirmExit causes the modal to flash on the setup screen
-            //    — isSubmitting blocks handleStart if still true
-            setShowConfirmExit(false);
-            setIsSubmitting(false);
-            setIsLoadingQuestions(false);
             setErrorMessage(null);
-            setJumpTo("");
-            setActiveSubject(selectedCombination[0] || "English");
-            // selectedCombination and selectedYear are intentionally kept
-            // so the user doesn't have to re-select their subjects
+            setActiveSubject("English");
           }}
           onHome={() => {
             resetExam();
-            setShowConfirmExit(false);
-            setIsSubmitting(false);
             navigate("/");
           }}
         />
@@ -354,340 +418,324 @@ const MockExam: React.FC = () => {
     );
   }
 
-  if (isStarted && questions[currentIndex]) {
-    const q = questions[currentIndex];
-    const chosen = answers[currentIndex] ?? -1;
-    const answeredCount = Object.keys(answers).length;
-
-    const examSubjects = Array.from(
-      new Set(questions.map((quest) => quest.subject)),
-    );
-    const subjectQuestions = questions.filter(
-      (quest) => quest.subject === activeSubject,
-    );
-
-    return (
-      <AppLayout
-        currentPage="mock"
-        isSidebarOpen={isSidebarOpen}
-        setIsSidebarOpen={setIsSidebarOpen}
-      >
-        <div className="flex items-center justify-between gap-3 mb-5 flex-wrap">
-          <div className="flex items-center gap-3">
-            <div
-              className={cn(
-                "font-mono text-lg font-bold tabular-nums px-3 py-1.5 rounded-brand border",
-                timeLeft <= 120
-                  ? "text-danger border-danger/30 bg-danger/10"
-                  : "text-textMain border-borderMuted bg-bgSurface",
-              )}
-            >
-              ⏱ {formatTime(timeLeft)}
-            </div>
-            <span className="text-xs text-textDim">
-              {answeredCount} / {questions.length} total
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <input
-              type="number"
-              value={jumpTo}
-              onChange={(e) => setJumpTo(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  const n = parseInt(jumpTo) - 1;
-                  if (n >= 0 && n < questions.length) nextQuestion(n);
-                  setJumpTo("");
-                }
-              }}
-              placeholder="Jump to..."
-              className="w-24 px-2.5 py-1.5 bg-bgSurface border border-borderMuted rounded-brand text-xs focus:outline-none"
-            />
-            <Button
-              variant="danger"
-              size="sm"
-              onClick={() => setShowConfirmExit(true)}
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? "Submitting..." : "Finish"}
-            </Button>
-          </div>
-        </div>
-
-        <div className="flex gap-2 mb-4 overflow-x-auto pb-2 scrollbar-hide momentum-scroll">
-          {examSubjects.map((sub) => (
-            <button
-              key={sub}
-              onClick={() => {
-                setActiveSubject(sub);
-                const firstIdx = questions.findIndex(
-                  (quest) => quest.subject === sub,
-                );
-                if (firstIdx !== -1) nextQuestion(firstIdx);
-              }}
-              className={cn(
-                "px-4 py-2 rounded-full text-xs font-bold transition-all whitespace-nowrap border touch-target no-double-tap",
-                activeSubject === sub
-                  ? "bg-brand text-white border-brand"
-                  : "bg-bgSurface text-textDim border-borderMuted hover:border-brand/50",
-              )}
-              aria-label={`Select ${sub} subject`}
-            >
-              {sub}
-            </button>
-          ))}
-        </div>
-
-        <div className="mb-6 overflow-x-auto">
-          <div className="flex gap-1.5 pb-2 min-w-max">
-            {subjectQuestions.map((quest, i) => {
-              const globalIdx = questions.findIndex((g) => g.id === quest.id);
-              return (
-                <button
-                  key={quest.id}
-                  onClick={() => nextQuestion(globalIdx)}
-                  className={cn(
-                    "w-8 h-8 rounded-md text-xs font-mono transition-all shrink-0 border touch-target no-double-tap",
-                    globalIdx === currentIndex
-                      ? "bg-brand text-white border-brand shadow-lg scale-110 z-10"
-                      : answers[globalIdx] !== undefined &&
-                          answers[globalIdx] !== -1
-                        ? "bg-success/10 text-success border-success/30"
-                        : "bg-bgSurface text-textDim border-borderMuted",
-                  )}
-                  aria-label={`Go to question ${i + 1}`}
-                >
-                  {i + 1}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="bg-bgCard border border-borderMuted rounded-brand-xl p-4 sm:p-6 mb-6 shadow-sm">
-          <div className="flex items-center gap-2 mb-4">
-            <span className="text-[10px] uppercase tracking-widest font-bold px-2 py-1 rounded bg-brand/10 text-brand">
-              {q.subject} ({q.year})
-            </span>
-            <span className="text-[10px] font-mono text-textDim">
-              Question {subjectQuestions.findIndex((sq) => sq.id === q.id) + 1}{" "}
-              of {subjectQuestions.length}
-            </span>
-          </div>
-
-          <p className="text-base sm:text-lg text-textMain mb-6 sm:mb-8 leading-relaxed wrap-break-word select-text">
-            {q.text}
-          </p>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {q.options.map((opt, i) => (
-              <OptionButton
-                key={`${currentIndex}-${i}`}
-                index={i}
-                text={opt}
-                chosen={chosen}
-                correct={-1}
-                answered={false}
-                onSelect={() => submitAnswer(currentIndex, i)}
-              />
-            ))}
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between gap-4">
-          <Button
-            variant="secondary"
-            size="md"
-            disabled={currentIndex === 0}
-            onClick={() => prevQuestion()}
-            className="touch-target no-double-tap"
-            aria-label="Previous question"
-          >
-            Previous
-          </Button>
-
-          <Button
-            variant="primary"
-            size="md"
-            onClick={() => {
-              if (currentIndex === questions.length - 1) {
-                setShowConfirmExit(true);
-              } else {
-                nextQuestion(currentIndex + 1);
-              }
-            }}
-            className="touch-target no-double-tap"
-            aria-label={
-              currentIndex === questions.length - 1
-                ? "Finish exam"
-                : "Next question"
-            }
-          >
-            {currentIndex === questions.length - 1 ? "Finish" : "Next"}
-          </Button>
-        </div>
-
-        {showConfirmExit && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-bgCard border border-borderMuted rounded-brand-xl p-6 max-w-sm w-full shadow-2xl">
-              <h3 className="text-xl font-bold mb-2">Submit Exam?</h3>
-              <p className="text-sm text-textMuted mb-6">
-                You've answered {answeredCount} out of {questions.length}{" "}
-                questions. You cannot change your answers after submitting.
-              </p>
-              <div className="flex gap-3">
-                <Button
-                  variant="secondary"
-                  size="md"
-                  fullWidth
-                  onClick={() => setShowConfirmExit(false)}
-                >
-                  Review
-                </Button>
-                <Button
-                  variant="primary"
-                  size="md"
-                  fullWidth
-                  onClick={handleFinishExam}
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? "Submitting..." : "Yes, Submit"}
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
-      </AppLayout>
-    );
-  }
+  // Active Exam Screen
+  const q = questions[currentIndex];
+  const chosen = answers[currentIndex] ?? -1;
+  const answeredCount = Object.keys(answers).length;
+  const isMarked = markedForReview.has(currentIndex);
 
   return (
-    <AppLayout
-      currentPage="mock"
-      isSidebarOpen={isSidebarOpen}
-      setIsSidebarOpen={setIsSidebarOpen}
+    <AppLayout 
+      currentPage="mock" 
+      hideSidebar 
+      className="bg-bgMain"
     >
-      <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-        <div className="bg-bgCard border border-borderMuted rounded-brand-xl p-8 text-center shadow-sm">
-          <h2 className="text-2xl font-bold mb-2">CBT Mock Exam</h2>
-          <p className="text-textDim text-sm mb-8">
-            Select your year and 4 subjects to begin.
-          </p>
-
-          <div className="flex items-center justify-center gap-4 mb-6">
-            <label className="flex items-center gap-2 text-xs text-textDim">
-              <input
-                type="checkbox"
-                checked={useApi}
-                onChange={(e) => setUseApi(e.target.checked)}
-                className="w-4 h-4 rounded border-borderMuted bg-bgSurface text-brand focus:ring-brand"
-              />
-              Use API for questions
-            </label>
-          </div>
-
-          {errorMessage && (
-            <div className="mb-6 p-3 bg-danger/10 border border-danger/20 text-danger text-xs rounded-brand animate-in fade-in slide-in-from-top-1">
-              ⚠️ {errorMessage}
+      <div className="flex h-screen overflow-hidden bg-bgMain">
+        {/* Desktop Sidebar (Internal to Mock Exam) */}
+        <div className="hidden lg:flex flex-col w-72 bg-bgCard border-r border-borderMuted overflow-y-auto">
+          <div className="p-5 border-b border-borderMuted bg-bgSurface/50">
+            <div className="flex items-center gap-2 mb-6">
+              <div className="w-8 h-8 bg-brand rounded-lg flex items-center justify-center font-display font-black text-white text-sm shadow-brand/20 shadow-lg">J</div>
+              <span className="font-display font-bold text-sm tracking-tight">JAMBIFY <span className="text-textDim font-medium text-[10px] uppercase ml-1">Mock Engine</span></span>
             </div>
-          )}
-
-          <div className="flex flex-col text-left mb-6">
-            <label className="text-[10px] font-bold uppercase text-brand mb-1">
-              Examination Year
-            </label>
-            <select
-              className="bg-bgSurface border border-borderMuted p-3 rounded-brand text-sm text-textMain focus:border-brand outline-none"
-              value={selectedYear}
-              onChange={(e) => {
-                setSelectedYear(e.target.value);
-                setErrorMessage(null);
+            <h3 className="text-[10px] font-bold uppercase tracking-widest text-brand mb-4 flex items-center gap-2">
+              <div className="w-1 h-3 bg-brand rounded-full"></div>
+              Subjects
+            </h3>
+            <SubjectSidebar 
+              activeSubject={activeSubject}
+              onSubjectChange={(sub) => {
+                const idx = questions.findIndex(quest => quest.subject === sub);
+                if (idx !== -1) setCurrentIndex(idx);
               }}
-            >
-              {AVAILABLE_YEARS.map((year) => (
-                <option key={year} value={year}>
-                  {year}
-                </option>
-              ))}
-            </select>
+            />
           </div>
-
-          <div className="grid grid-cols-2 gap-4 mb-8 text-left">
-            <div className="flex flex-col">
-              <label className="text-[10px] font-bold uppercase text-brand mb-1">
-                Subject 1
-              </label>
-              <div className="bg-bgSurface border border-borderMuted p-3 rounded-brand text-sm text-textMain">
-                English
-              </div>
-            </div>
-            {[1, 2, 3].map((idx) => (
-              <div key={idx} className="flex flex-col">
-                <label className="text-[10px] font-bold uppercase text-textDim mb-1">
-                  Subject {idx + 1}
-                </label>
-                <select
-                  className="bg-bgSurface border border-borderMuted p-3 rounded-brand text-sm text-textMain focus:border-brand outline-none"
-                  value={selectedCombination[idx]}
-                  onChange={(e) => updateSubject(idx, e.target.value)}
-                >
-                  <option value="">Select</option>
-                  {AVAILABLE_SUBJECTS.map((sub) => (
-                    <option
-                      key={sub.id}
-                      value={sub.id}
-                      disabled={
-                        selectedCombination.includes(sub.id) ||
-                        sub.id === "English"
-                      }
-                    >
-                      {sub.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            ))}
+          <div className="p-5">
+            <h3 className="text-[10px] font-bold uppercase tracking-widest text-brand mb-4 flex items-center gap-2">
+              <div className="w-1 h-3 bg-brand rounded-full"></div>
+              Navigation
+            </h3>
+            <QuestionPalette onJumpToQuestion={jumpToQuestion} />
           </div>
-          <Button
-            variant="primary"
-            size="lg"
-            fullWidth
-            disabled={
-              selectedCombination.some((s) => s === "") || isLoadingQuestions
-            }
-            onClick={handleStart}
-          >
-            {isLoadingQuestions ? "Loading Questions..." : "Start Mock Exam"}
-          </Button>
         </div>
 
-        <div className="space-y-8 py-4">
-          <div>
-            <h3 className="text-sm font-bold uppercase tracking-widest text-brand mb-4">
-              Exam Guidelines
-            </h3>
-            <ul className="space-y-3 text-sm text-textMain">
-              <li className="flex gap-3">
-                <span>•</span> English: <strong>60 questions</strong>
-              </li>
-              <li className="flex gap-3">
-                <span>•</span> Each other subject: <strong>40 questions</strong>
-              </li>
-              <li className="flex gap-3">
-                <span>•</span> Total: <strong>220 questions</strong>
-              </li>
-              <li className="flex gap-3">
-                <span>•</span> Time: <strong>2 hours (120 minutes)</strong>
-              </li>
-              <li className="flex gap-3">
-                <span>•</span> Score calculation:{" "}
-                <strong>(Correct/Total) × 400</strong>
-              </li>
-            </ul>
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-bgMain">
+          {/* Header */}
+          <header className="z-30 bg-bgCard border-b border-borderMuted px-4 py-3 sm:px-6 flex items-center justify-between shadow-sm shrink-0">
+            <div className="flex items-center gap-4">
+              <button 
+                onClick={() => setShowConfirmExit(true)}
+                className="p-2 hover:bg-bgSurface rounded-full transition-all text-textDim hover:text-danger active:scale-90"
+                title="Exit Exam"
+              >
+                <ChevronLeft size={24} />
+              </button>
+              <div className="h-8 w-px bg-borderMuted hidden sm:block"></div>
+              <div>
+                <h1 className="text-sm font-bold text-textMain">{activeSubject}</h1>
+                <p className="text-[10px] text-textDim uppercase font-bold tracking-tighter">
+                  Question {questions.filter(quest => quest.subject === activeSubject).findIndex(quest => quest.id === q.id) + 1} of {questions.filter(quest => quest.subject === activeSubject).length}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 sm:gap-6">
+              <div className={cn(
+                "flex items-center gap-2 px-4 py-2 rounded-full border font-mono font-black tabular-nums shadow-sm transition-colors",
+                status === 'red' ? "bg-danger/10 border-danger/30 text-danger animate-pulse" :
+                status === 'orange' ? "bg-warning/10 border-warning/30 text-warning" :
+                status === 'yellow' ? "bg-warning/10 border-warning/20 text-warning" :
+                "bg-success/10 border-success/20 text-success"
+              )}>
+                <Clock size={18} />
+                <span className="text-sm sm:text-base">{formattedTime}</span>
+              </div>
+              
+              <Button 
+                variant="primary" 
+                size="md" 
+                onClick={() => setShowConfirmSubmit(true)}
+                className="shadow-brand/20 shadow-lg px-6 font-bold"
+              >
+                Submit
+              </Button>
+
+              <button 
+                className="lg:hidden p-2 hover:bg-bgSurface rounded-full active:scale-90 text-textDim"
+                onClick={() => setIsSidebarOpen(true)}
+              >
+                <Menu size={24} />
+              </button>
+            </div>
+          </header>
+
+          {/* Progress Indicator */}
+          <div className="w-full h-1 bg-bgSurface shrink-0">
+            <div 
+              className="h-full bg-brand transition-all duration-500 ease-out"
+              style={{ width: `${(answeredCount / questions.length) * 100}%` }}
+            />
           </div>
+
+          {/* Question Content */}
+          <main className="flex-1 overflow-y-auto p-4 sm:p-8 lg:p-12 scrollbar-thin scrollbar-thumb-borderMuted">
+            <div className="max-w-3xl mx-auto w-full">
+              <div className="bg-bgCard border border-borderMuted rounded-brand-2xl p-6 sm:p-10 shadow-xl mb-10 transition-all">
+                <div className="flex items-center justify-between mb-8">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full bg-brand/10 text-brand border border-brand/10">
+                      {q.subject}
+                    </span>
+                    <span className="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full bg-bgSurface text-textDim border border-borderMuted">
+                      {q.year}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-[10px] font-bold text-textDim uppercase">Jump to:</span>
+                    <form onSubmit={handleJumpSubmit}>
+                      <input 
+                        type="number" 
+                        value={jumpTo}
+                        onChange={(e) => setJumpTo(e.target.value)}
+                        placeholder="#"
+                        className="w-12 h-8 px-2 bg-bgSurface border border-borderMuted rounded-lg text-xs font-bold focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all text-center"
+                      />
+                    </form>
+                  </div>
+                </div>
+
+                {/* English Instructions / Section */}
+                {q.instruction && (
+                  <div className="mb-6 p-4 bg-bgSurface/50 border-l-4 border-brand rounded-r-xl text-xs sm:text-sm text-textMain italic leading-relaxed whitespace-pre-line">
+                    <div className="flex items-center gap-2 mb-2 not-italic">
+                      <div className="w-1.5 h-1.5 rounded-full bg-brand"></div>
+                      <span className="font-black uppercase tracking-widest text-[10px] text-brand">Instructions</span>
+                    </div>
+                    {q.instruction.replace(/<[^>]*>/g, '')} {/* Strip HTML tags if any */}
+                  </div>
+                )}
+
+                <p className="text-xl sm:text-2xl text-textMain mb-10 leading-relaxed font-semibold tracking-tight">
+                  {q.text}
+                </p>
+
+                <div className="grid grid-cols-1 gap-4">
+                  {q.options.map((opt, i) => (
+                    <OptionButton
+                      key={`${currentIndex}-${i}`}
+                      index={i}
+                      text={opt}
+                      chosen={chosen}
+                      correct={-1}
+                      answered={false}
+                      onSelect={() => submitAnswer(currentIndex, i)}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Action Bar - Cleaned up */}
+              <div className="flex flex-wrap items-center justify-between gap-4 mb-12">
+                <div className="flex items-center gap-3 w-full sm:w-auto">
+                  <button 
+                    onClick={() => markForReview(currentIndex)}
+                    className={cn(
+                      "flex flex-col items-center justify-center gap-1 min-w-[70px] h-14 rounded-xl border transition-all active:scale-95 shadow-sm",
+                      isMarked 
+                        ? "bg-orange-500 text-white border-orange-600" 
+                        : "bg-bgCard text-textDim border-borderMuted hover:border-orange-500/50 hover:text-orange-500"
+                    )}
+                  >
+                    <Flag size={18} className={cn(!isMarked && "text-orange-500")} />
+                    <span className="text-[10px] font-black uppercase tracking-widest">Review</span>
+                  </button>
+
+                  <button 
+                    onClick={() => clearResponse(currentIndex)}
+                    className="flex flex-col items-center justify-center gap-1 min-w-[70px] h-14 rounded-xl bg-bgCard text-textDim border border-borderMuted transition-all active:scale-95 hover:border-danger/50 hover:text-danger shadow-sm"
+                  >
+                    <Trash2 size={18} className="text-danger" />
+                    <span className="text-[10px] font-black uppercase tracking-widest">Clear</span>
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-3 w-full sm:w-auto">
+                  <Button 
+                    variant="secondary" 
+                    disabled={currentIndex === 0}
+                    onClick={prevQuestion}
+                    className="flex-1 sm:flex-none font-bold text-xs h-14 px-6 bg-bgCard shadow-sm"
+                  >
+                    <ChevronLeft size={18} className="mr-1" />
+                    Prev
+                  </Button>
+                  <Button 
+                    variant="primary" 
+                    onClick={nextQuestion}
+                    disabled={currentIndex === questions.length - 1}
+                    className="flex-1 sm:flex-none font-black text-sm h-14 px-10 shadow-brand/30 shadow-lg"
+                  >
+                    Save & Next
+                    <ChevronRight size={18} className="ml-1" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </main>
         </div>
       </div>
+
+      {/* Mobile Sidebar/Drawer */}
+      {isSidebarOpen && (
+        <div className="fixed inset-0 z-50 flex lg:hidden">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsSidebarOpen(false)} />
+          <div className="relative w-80 max-w-[80%] bg-bgCard h-full flex flex-col animate-in slide-in-from-right duration-300">
+            <div className="p-4 border-b border-borderMuted flex items-center justify-between">
+              <h2 className="font-bold">Exam Navigator</h2>
+              <button onClick={() => setIsSidebarOpen(false)} className="p-1 hover:bg-bgSurface rounded-full">
+                <X size={24} />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 space-y-8">
+              <div>
+                <h3 className="text-[10px] font-bold uppercase tracking-widest text-brand mb-4">Subjects</h3>
+                <SubjectSidebar 
+                  activeSubject={activeSubject}
+                  onSubjectChange={(sub) => {
+                    const idx = questions.findIndex(quest => quest.subject === sub);
+                    if (idx !== -1) jumpToQuestion(idx);
+                  }}
+                />
+              </div>
+              <div>
+                <h3 className="text-[10px] font-bold uppercase tracking-widest text-brand mb-4">Question Palette</h3>
+                <QuestionPalette onJumpToQuestion={jumpToQuestion} />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmation Modals */}
+      {showConfirmExit && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-bgCard border border-borderMuted rounded-brand-xl p-8 max-w-sm w-full shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="w-16 h-16 bg-danger/10 text-danger rounded-full flex items-center justify-center mx-auto mb-6">
+              <AlertTriangle size={32} />
+            </div>
+            <h3 className="text-xl font-bold mb-2 text-center">Exit Exam?</h3>
+            <p className="text-sm text-textMuted mb-8 text-center">
+              Are you sure you want to exit? Your progress will not be saved and this attempt will be lost.
+            </p>
+            <div className="flex flex-col gap-3">
+              <Button
+                variant="primary"
+                size="lg"
+                fullWidth
+                onClick={() => setShowConfirmExit(false)}
+              >
+                Continue Exam
+              </Button>
+              <Button
+                variant="danger"
+                size="lg"
+                fullWidth
+                onClick={() => {
+                  resetExam();
+                  navigate("/");
+                }}
+              >
+                Exit Exam
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showConfirmSubmit && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-bgCard border border-borderMuted rounded-brand-xl p-8 max-w-sm w-full shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="w-16 h-16 bg-brand/10 text-brand rounded-full flex items-center justify-center mx-auto mb-6">
+              <CheckCircle size={32} />
+            </div>
+            <h3 className="text-xl font-bold mb-2 text-center">Submit Exam?</h3>
+            <div className="bg-bgSurface rounded-brand p-4 mb-6 space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-textDim">Answered:</span>
+                <span className="font-bold text-success">{answeredCount}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-textDim">Unanswered:</span>
+                <span className="font-bold text-danger">{questions.length - answeredCount}</span>
+              </div>
+            </div>
+            {questions.length - answeredCount > 0 && (
+              <p className="text-xs text-warning font-medium mb-6 text-center">
+                ⚠️ You still have unanswered questions.
+              </p>
+            )}
+            <div className="flex flex-col gap-3">
+              <Button
+                variant="primary"
+                size="lg"
+                fullWidth
+                onClick={handleFinishExam}
+              >
+                Yes, Submit
+              </Button>
+              <Button
+                variant="secondary"
+                size="lg"
+                fullWidth
+                onClick={() => setShowConfirmSubmit(false)}
+              >
+                Go Back
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </AppLayout>
   );
 };
