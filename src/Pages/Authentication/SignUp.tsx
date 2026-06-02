@@ -428,6 +428,36 @@ const SignUp: React.FC = () => {
           </div>
         </div>
       </motion.div>
+
+      {/* Professional Guest CTA - Outside the main card */}
+      <motion.div
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.3 }}
+        className="fixed bottom-10 left-1/2 -translate-x-1/2 w-full max-w-md px-4 z-20"
+      >
+        <button
+          onClick={() => navigate("/guest")}
+          className="w-full bg-bgCard/40 backdrop-blur-xl border border-brand/20 hover:border-brand/50 rounded-4xl p-4 lg:p-5 flex items-center justify-between group transition-all shadow-2xl shadow-brand/5 hover:shadow-brand/10 active:scale-[0.98]"
+        >
+          <div className="flex items-center gap-4 text-left">
+            <div className="w-12 h-12 bg-brand/10 rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform shadow-inner">
+              🎯
+            </div>
+            <div>
+              <p className="text-xs font-black uppercase tracking-widest text-brand leading-none mb-1">
+                Just Exploring?
+              </p>
+              <p className="text-sm font-bold text-textMain">
+                Take a free practice test
+              </p>
+            </div>
+          </div>
+          <div className="w-10 h-10 bg-brand/10 rounded-full flex items-center justify-center text-brand group-hover:translate-x-1 transition-all">
+            <ArrowRight size={18} />
+          </div>
+        </button>
+      </motion.div>
     </div>
   );
 };
