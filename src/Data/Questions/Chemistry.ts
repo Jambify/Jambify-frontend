@@ -1,0 +1,60 @@
+// src/Data/Questions/Chemistry.ts
+import type { Question } from '../../Types';
+
+export const CHEMISTRY_QUESTIONS: Question[] = [
+  {
+    id: 'chem-001', 
+    subject: 'Chemistry', 
+    year: 2023,
+    difficulty: 'Medium', 
+    topic: 'Atomic Structure',
+    text: 'Which of the following is the correct electronic configuration of Sodium (Na) with atomic number 11?',
+    options: ['2, 8, 1', '2, 8, 3', '2, 9, 0', '1, 8, 2'],
+    answer: 0,
+    explanation: 'Sodium has 11 electrons distributed as 2 in the first shell, 8 in the second, and 1 in the third — giving 2, 8, 1.',
+  },
+  {
+    id: 'chem-002', 
+    subject: 'Chemistry', 
+    year: 2023,
+    difficulty: 'Hard', 
+    topic: 'Acid-Base Chemistry',
+    text: 'What is the pH of a solution with hydrogen ion concentration [H⁺] = 1 × 10⁻³ mol/L?',
+    options: ['1', '3', '7', '11'],
+    answer: 1,
+    explanation: 'pH = −log[H⁺] = −log(10⁻³) = 3.',
+  },
+  {
+    id: 'chem-003',
+    subject: 'Chemistry',
+    year: 2022,
+    difficulty: 'Medium',
+    topic: 'Organic Chemistry',
+    text: 'What is the general formula for Alkanes?',
+    options: ['CnH2n', 'CnH2n+2', 'CnH2n-2', 'CnHn'],
+    answer: 1,
+    explanation: 'Alkanes are saturated hydrocarbons with the general formula CnH2n+2.',
+  },
+  {
+    id: 'chem-004',
+    subject: 'Chemistry',
+    year: 2022,
+    difficulty: 'Easy',
+    topic: 'States of Matter',
+    text: 'The process of a solid changing directly into a gas is called:',
+    options: ['Evaporation', 'Sublimation', 'Condensation', 'Melting'],
+    answer: 1,
+    explanation: 'Sublimation is the transition of a substance directly from the solid to the gas phase.',
+  },
+  {
+    id: 'chem-005',
+    subject: 'Chemistry',
+    year: 2021,
+    difficulty: 'Hard',
+    topic: 'Stoichiometry',
+    text: 'How many moles are in 22g of Carbon Dioxide (CO₂)? [C=12, O=16]',
+    options: ['0.5 moles', '1.0 mole', '2.0 moles', '44 moles'],
+    answer: 0,
+    explanation: 'Molar mass of CO₂ = 12 + (16x2) = 44g/mol. Moles = mass / molar mass = 22 / 44 = 0.5 moles.',
+  }
+];

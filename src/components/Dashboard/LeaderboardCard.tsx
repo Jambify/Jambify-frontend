@@ -1,16 +1,24 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useLeaderboardStore } from "../../Store/useLeaderboard";
 import { useUserStore } from "../../Store/UseUserStore";
 import { cn } from "../../lib/utils/utils";
-import { Trophy, TrendingUp, TrendingDown, Minus, Users } from "lucide-react";
+import {
+  Trophy,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  Users,
+  Loader2,
+} from "lucide-react";
 
 type Tab = "school" | "national";
 
-const RANK_STYLES: Record<number, { text: string; bg: string; label: string }> = {
-  1: { text: "text-yellow-400", bg: "bg-yellow-400/10", label: "🥇" },
-  2: { text: "text-gray-300",   bg: "bg-gray-400/10",   label: "🥈" },
-  3: { text: "text-orange-400", bg: "bg-orange-400/10", label: "🥉" },
-};
+const RANK_STYLES: Record<number, { text: string; bg: string; label: string }> =
+  {
+    1: { text: "text-yellow-400", bg: "bg-yellow-400/10", label: "🥇" },
+    2: { text: "text-gray-300", bg: "bg-gray-400/10", label: "🥈" },
+    3: { text: "text-orange-400", bg: "bg-orange-400/10", label: "🥉" },
+  };
 
 function ChangeIndicator({ change }: { change: number }) {
   if (change === 0) return <Minus className="w-3 h-3 text-textDim" />;
@@ -30,14 +38,18 @@ function ChangeIndicator({ change }: { change: number }) {
 }
 
 const LeaderboardCard: React.FC = () => {
-  const { schoolEntries, nationalEntries, scope, setScope } = useLeaderboardStore();
+  const { entries, scope, setScope, fetchLeaderboard, isLoading } =
+    useLeaderboardStore();
   const { name, schoolRank, overallScore } = useUserStore();
   const [tab, setTab] = useState<Tab>(scope as Tab);
 
-  const entries = tab === "school" ? schoolEntries : nationalEntries;
-  const top3    = entries.slice(0, 3);
+  useEffect(() => {
+    fetchLeaderboard();
+  }, [fetchLeaderboard]);
+
+  const top3 = entries.slice(0, 3);
   const hasData = entries.length > 0;
-  const isNewUser = overallScore === 0;
+  const isNewUser = overallScore === 0 && !isLoading;
 
   const handleTabChange = (t: Tab) => {
     setTab(t);
@@ -63,7 +75,7 @@ const LeaderboardCard: React.FC = () => {
                 "px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all capitalize",
                 tab === t
                   ? "bg-bgCard text-textMain shadow-sm"
-                  : "text-textDim hover:text-textMain"
+                  : "text-textDim hover:text-textMain",
               )}
             >
               {t}
@@ -72,14 +84,26 @@ const LeaderboardCard: React.FC = () => {
         </div>
       </div>
 
+      {/* Loading state */}
+      {isLoading && (
+        <div className="flex-1 flex flex-col items-center justify-center py-12">
+          <Loader2 className="w-8 h-8 text-brand animate-spin mb-2" />
+          <p className="text-xs text-textDim font-medium">
+            Fetching champions...
+          </p>
+        </div>
+      )}
+
       {/* Empty / new-user state */}
-      {isNewUser && (
+      {!isLoading && isNewUser && (
         <div className="flex-1 flex flex-col items-center justify-center py-6 text-center gap-3">
           <div className="w-14 h-14 rounded-full bg-yellow-400/10 border border-yellow-400/20 flex items-center justify-center">
             <Trophy className="w-6 h-6 text-yellow-400" />
           </div>
           <div>
-            <p className="text-sm font-semibold text-textMain">Your rank awaits</p>
+            <p className="text-sm font-semibold text-textMain">
+              Your rank awaits
+            </p>
             <p className="text-xs text-textDim mt-1 max-w-45 mx-auto leading-relaxed">
               Complete a quiz to earn your spot on the leaderboard
             </p>
@@ -97,7 +121,7 @@ const LeaderboardCard: React.FC = () => {
       )}
 
       {/* Leaderboard list */}
-      {!isNewUser && hasData && (
+      {!isLoading && hasData && (
         <div className="space-y-0.5 flex-1">
           {top3.map((entry) => {
             const rankStyle = RANK_STYLES[entry.rank];
@@ -107,7 +131,12 @@ const LeaderboardCard: React.FC = () => {
                 className="flex items-center gap-2 sm:gap-2.5 px-2 sm:px-2.5 py-2 rounded-brand hover:bg-bgSurface transition-colors"
               >
                 {/* Rank medal or number */}
-                <div className={cn("w-6 text-center shrink-0", rankStyle?.text ?? "text-textDim")}>
+                <div
+                  className={cn(
+                    "w-6 text-center shrink-0",
+                    rankStyle?.text ?? "text-textDim",
+                  )}
+                >
                   {rankStyle ? (
                     <span className="text-sm">{rankStyle.label}</span>
                   ) : (
@@ -118,15 +147,22 @@ const LeaderboardCard: React.FC = () => {
                 {/* Avatar */}
                 <div
                   className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0"
-                  style={{ background: entry.avatarBg, color: entry.avatarColor }}
+                  style={{
+                    background: entry.avatarBg,
+                    color: entry.avatarColor,
+                  }}
                 >
                   {entry.initials}
                 </div>
 
                 {/* Name + school */}
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate leading-tight">{entry.name}</p>
-                  <p className="text-[10px] text-textDim truncate">{entry.school}</p>
+                  <p className="text-sm font-medium truncate leading-tight">
+                    {entry.name}
+                  </p>
+                  <p className="text-[10px] text-textDim truncate">
+                    {entry.school}
+                  </p>
                 </div>
 
                 {/* Change indicator */}
@@ -147,7 +183,9 @@ const LeaderboardCard: React.FC = () => {
           <div className="flex items-center gap-2 sm:gap-2.5 px-2 sm:px-2.5 py-2 rounded-brand bg-brand/10 border border-brand/20">
             {/* Rank */}
             <div className="w-6 text-center shrink-0">
-              <span className="text-xs font-mono text-brand-light">{schoolRank || "—"}</span>
+              <span className="text-xs font-mono text-brand-light">
+                {schoolRank || "—"}
+              </span>
             </div>
 
             {/* Avatar */}
@@ -168,6 +206,25 @@ const LeaderboardCard: React.FC = () => {
               {overallScore}
             </span>
           </div>
+        </div>
+      )}
+
+      {/* No Data State (Not loading, but no entries) */}
+      {!isLoading && !hasData && !isNewUser && (
+        <div className="flex-1 flex flex-col items-center justify-center py-8 text-center">
+          <div className="w-12 h-12 bg-bgSurface rounded-full flex items-center justify-center mb-3">
+            <Users className="w-6 h-6 text-textDim" />
+          </div>
+          <p className="text-sm font-semibold text-textMain">No rankings yet</p>
+          <p className="text-xs text-textDim mt-1 max-w-40">
+            Be the first to join the leaderboard!
+          </p>
+          <button
+            onClick={() => fetchLeaderboard()}
+            className="mt-4 text-[10px] font-bold uppercase tracking-widest text-brand hover:text-brand-light transition-colors"
+          >
+            Refresh
+          </button>
         </div>
       )}
     </div>

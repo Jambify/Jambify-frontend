@@ -1,50 +1,124 @@
 import { create } from 'zustand';
+import { supabase } from '../lib/supabase';
 
 export interface LeaderboardEntry {
-  id:          string;
-  rank:        number;
-  name:        string;
-  school:      string;
-  score:       number;
-  initials:    string;
-  avatarBg:    string;  // dark bg colour for avatar circle
+  id: string;
+  rank: number;
+  name: string;
+  school: string;
+  score: number;
+  initials: string;
+  avatarBg: string;  // dark bg colour for avatar circle
   avatarColor: string;  // text colour inside avatar circle
-  change:      number;  // rank change this week (+/- positions)
+  change: number;  // rank change this week (+/- positions)
 }
 
 type Scope = 'school' | 'national';
 
 interface LeaderboardState {
-  scope:            Scope;
-  schoolEntries:    LeaderboardEntry[];
-  nationalEntries:  LeaderboardEntry[];
-  setScope:         (scope: Scope) => void;
-  /** Returns the active list based on current scope */
-  getEntries:       () => LeaderboardEntry[];
+  scope: Scope;
+  entries: LeaderboardEntry[];
+  isLoading: boolean;
+  setScope: (scope: Scope) => void;
+  fetchLeaderboard: () => Promise<void>;
 }
 
+// Helper to generate a random dark background color for avatars
+const getRandomColor = () => {
+  const colors = [
+    { bg: '#2A2000', text: '#F5C842' }, // Gold/Dark
+    { bg: '#001A12', text: '#00C896' }, // Emerald/Dark
+    { bg: '#1E0E00', text: '#C8814A' }, // Bronze/Dark
+    { bg: '#200008', text: '#FF7090' }, // Pink/Dark
+    { bg: '#001420', text: '#4B9FD6' }, // Blue/Dark
+    { bg: '#1A002A', text: '#A855F7' }, // Purple/Dark
+  ];
+  return colors[Math.floor(Math.random() * colors.length)];
+};
+
 export const useLeaderboardStore = create<LeaderboardState>()((set, get) => ({
-  scope: 'school',
+  scope: 'national', // Default to national as it's more common
+  entries: [],
+  isLoading: false,
 
-  schoolEntries: [
-    { id: 's1', rank: 1,  name: 'Tunde Kola',       school: 'Kings College',   score: 291, initials: 'TK', avatarBg: '#2A2000', avatarColor: '#F5C842', change: 0  },
-    { id: 's2', rank: 2,  name: 'Ngozi Nwosu',      school: "Queen's College", score: 285, initials: 'NN', avatarBg: '#001A12', avatarColor: '#00C896', change: 1  },
-    { id: 's3', rank: 3,  name: 'Fatima Abdullahi', school: 'FGC Abuja',       score: 278, initials: 'FA', avatarBg: '#1E0E00', avatarColor: '#C8814A', change: -1 },
-    { id: 's4', rank: 37, name: 'Emeka Bright',     school: 'Loyola Jesuit',   score: 268, initials: 'EB', avatarBg: '#200008', avatarColor: '#FF7090', change: 2  },
-    { id: 's5', rank: 39, name: 'Amara Obi',        school: 'FGGC Benin',      score: 263, initials: 'AO', avatarBg: '#001420', avatarColor: '#4B9FD6', change: -2 },
-  ],
-
-  nationalEntries: [
-    { id: 'n1', rank: 1,   name: 'Chidi Eze',       school: 'FGSC Lagos',      score: 315, initials: 'CE', avatarBg: '#001A12', avatarColor: '#00C896', change: 0   },
-    { id: 'n2', rank: 2,   name: 'Zara Mohammed',  school: 'GHS Kano',        score: 309, initials: 'ZM', avatarBg: '#1E0E00', avatarColor: '#C8814A', change: 3   },
-    { id: 'n3', rank: 3,   name: 'Tunde Kola',     school: 'Kings College',   score: 291, initials: 'TK', avatarBg: '#2A2000', avatarColor: '#F5C842', change: 0   },
-    { id: 'n4', rank: 284, name: 'Amara Obi',      school: 'FGGC Benin',      score: 263, initials: 'AO', avatarBg: '#001420', avatarColor: '#4B9FD6', change: 12  },
-  ],
-
-  setScope: (scope) => set({ scope }),
-
-  getEntries: () => {
-    const { scope, schoolEntries, nationalEntries } = get();
-    return scope === 'school' ? schoolEntries : nationalEntries;
+  setScope: (scope) => {
+    set({ scope });
+    get().fetchLeaderboard();
   },
+
+  fetchLeaderboard: async () => {
+    set({ isLoading: true });
+    try {
+      console.log('🔵 Fetching leaderboard...');
+
+      // Step 1: Try to fetch with the ideal schema (overall_score)
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, name, university, overall_score')
+        .order('overall_score', { ascending: false })
+        .limit(20);
+
+      // If we get a column missing error (42703), immediately trigger the safe fallback
+      if (error) {
+        if (error.code === '42703') {
+          console.warn('⚠️ Supabase: "overall_score" column missing. Using safe fallback.');
+          return await get().fetchSafeFallback();
+        }
+        throw error;
+      }
+
+      if (data) {
+        console.log(`✅ Leaderboard fetched: ${data.length} users.`);
+        set({ entries: mapProfilesToEntries(data) });
+      }
+    } catch (err) {
+      console.error('❌ Leaderboard fetch failed:', err);
+      await get().fetchSafeFallback();
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+
+  /**
+   * Safe fallback that only fetches columns we are 100% sure exist.
+   * Useful when the user hasn't added performance columns to Supabase yet.
+   */
+  fetchSafeFallback: async () => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, name, university')
+        .limit(20);
+
+      if (error) throw error;
+
+      if (data) {
+        console.log('✅ Safe leaderboard fallback loaded.');
+        set({ entries: mapProfilesToEntries(data) });
+      }
+    } catch (err) {
+      console.error('Ultimate leaderboard fallback failed:', err);
+    }
+  }
 }));
+
+/** Helper to map raw profile data to LeaderboardEntry format */
+const mapProfilesToEntries = (data: any[]): LeaderboardEntry[] => {
+  return data.map((profile, index) => {
+    const name = profile.name || 'Anonymous User';
+    const initials = name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
+    const colors = getRandomColor();
+
+    return {
+      id: profile.id,
+      rank: index + 1,
+      name: name,
+      school: profile.university || 'No School Set',
+      score: profile.overall_score || 0,
+      initials: initials,
+      avatarBg: colors.bg,
+      avatarColor: colors.text,
+      change: 0
+    };
+  });
+};

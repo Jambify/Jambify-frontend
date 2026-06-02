@@ -171,6 +171,11 @@ export const useUserStore = create<UserState>()(
                                   ? getSubjectComboId(data.subject_combo) : '',
             email:              data.email               || get().email,
             isPro:              data.is_pro              ?? false,
+            overallScore:       data.overall_score       || 0,
+            accuracy:           data.accuracy            || 0,
+            streak:             data.streak              || 0,
+            questionsCompleted: data.questions_completed || 0,
+            totalQuestions:     data.total_questions     || 0,
             onboardingComplete,
             isLoading:          false,
           });

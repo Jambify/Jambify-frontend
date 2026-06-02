@@ -1,0 +1,65 @@
+// src/Data/Questions/Physics.ts
+import type { Question } from '../../Types';
+
+export const PHYSICS_QUESTIONS: Question[] = [
+  {
+    id: 'phy-001', 
+    subject: 'Physics', 
+    year: 2023,
+    difficulty: 'Hard', 
+    topic: 'Kinematics',
+    text: 'A car accelerates uniformly from rest to 20 m/s in 4 seconds. What is the distance covered?',
+    options: ['40 m', '80 m', '160 m', '20 m'],
+    answer: 0,
+    explanation: 'Using s = ½(u + v)t = ½(0 + 20) × 4 = 40 m.',
+  },
+  {
+    id: 'phy-002', 
+    subject: 'Physics', 
+    year: 2023,
+    difficulty: 'Easy', 
+    topic: "Newton's Laws",
+    text: "Which statement correctly describes Newton's First Law of Motion?",
+    options: [
+      'Force equals mass times acceleration',
+      'An object remains at rest or in uniform motion unless acted on by an external force',
+      'For every action there is an equal and opposite reaction',
+      'Energy can neither be created nor destroyed',
+    ],
+    answer: 1,
+    explanation: "Newton's First Law (Law of Inertia) states that an object at rest stays at rest, and an object in motion stays in motion at the same speed and direction, unless acted on by an unbalanced force.",
+  },
+  {
+    id: 'phy-003',
+    subject: 'Physics',
+    year: 2022,
+    difficulty: 'Medium',
+    topic: 'Waves',
+    text: 'The speed of sound in air is approximately:',
+    options: ['3.0 x 10⁸ m/s', '340 m/s', '1500 m/s', '3 x 10³ m/s'],
+    answer: 1,
+    explanation: 'The speed of sound in air at room temperature is roughly 340 m/s. 3.0 x 10⁸ m/s is the speed of light.',
+  },
+  {
+    id: 'phy-004',
+    subject: 'Physics',
+    year: 2022,
+    difficulty: 'Hard',
+    topic: 'Electricity',
+    text: 'Two resistors of 4Ω and 6Ω are connected in parallel. What is the effective resistance?',
+    options: ['10Ω', '2.4Ω', '5Ω', '24Ω'],
+    answer: 1,
+    explanation: '1/Rt = 1/4 + 1/6 = (3+2)/12 = 5/12. Rt = 12/5 = 2.4Ω.',
+  },
+  {
+    id: 'phy-005',
+    subject: 'Physics',
+    year: 2021,
+    difficulty: 'Medium',
+    topic: 'Optics',
+    text: 'The focal length of a concave mirror is 10 cm. What is its radius of curvature?',
+    options: ['5 cm', '10 cm', '20 cm', '40 cm'],
+    answer: 2,
+    explanation: 'Radius of curvature (R) = 2 x Focal length (f) = 2 x 10 = 20 cm.',
+  }
+];

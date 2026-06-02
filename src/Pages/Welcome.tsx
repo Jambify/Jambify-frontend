@@ -18,10 +18,12 @@ const Welcome: React.FC = () => {
 
   const [showConfetti, setShowConfetti] = useState(false);
 
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   // ── FIX: call markWelcomeAsSeen before every navigate('/') ─
   const goToDashboard = () => {
-    markWelcomeAsSeen();   // sets onboardingComplete: true, hasSeenWelcome: true
-    navigate('/', { replace: true });
+    markWelcomeAsSeen(); // sets onboardingComplete: true, hasSeenWelcome: true
+    navigate("/", { replace: true });
   };
 
   useEffect(() => {

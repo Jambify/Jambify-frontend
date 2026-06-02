@@ -4,16 +4,7 @@ export interface Question {
   year: number;
   difficulty: 'Easy' | 'Medium' | 'Hard';
   text: string;
-  options: string[];
-  answer: number;        // index of correct option
-  explanation: string;
-  topic: string;
-}
-
-export interface QuizSession {
-  year: number;
-  difficulty: 'Easy' | 'Medium' | 'Hard';
-  text: string;
+  instruction?: string;
   options: string[];
   answer: number;        // index of correct option
   explanation: string;

@@ -3,57 +3,63 @@ import type { Question } from '../Types';
 
 interface QuizState {
   // Data
-  questions:       Question[];
-  currentIndex:    number;
-  answers:         Record<number, number>;  // questionIndex → chosen option (-1 = timed out)
+  questions: Question[];
+  currentIndex: number;
+  answers: Record<number, number>;  // questionIndex → chosen option (-1 = timed out)
   // Flags
-  isStarted:       boolean;
-  isFinished:      boolean;
-  hasAnswered:     boolean;               // true once current Q is answered
+  isStarted: boolean;
+  isFinished: boolean;
+  hasAnswered: boolean;               // true once current Q is answered
   // Filter
   selectedSubject: string;
-  isFinishedQuiz:   boolean;
-  finishQuiz:      () => void;           // Action to mark quiz as finished when time expires
+  selectedTopic: string;
+  selectedDifficulty: 'Easy' | 'Medium' | 'Hard' | 'All';
+  isFinishedQuiz: boolean;
+  finishQuiz: () => void;           // Action to mark quiz as finished when time expires
   // Actions
-  loadQuestions:     (qs: Question[]) => void;
-  submitAnswer:      (qi: number, opt: number) => void;
-  next:              () => void;
-  reset:             () => void;
-  setSelectedSubject:(s: string) => void;
+  loadQuestions: (qs: Question[]) => void;
+  submitAnswer: (qi: number, opt: number) => void;
+  next: () => void;
+  reset: () => void;
+  setSelectedSubject: (s: string) => void;
+  setSelectedTopic: (t: string) => void;
+  setSelectedDifficulty: (d: 'Easy' | 'Medium' | 'Hard' | 'All') => void;
 }
 
 
 export const useQuizStore = create<QuizState>()((set, get) => ({
-  questions:       [],
-  currentIndex:    0,
-  answers:         {},
-  isStarted:       false,
-  isFinished:      false,
-  hasAnswered:     false,
-  selectedSubject: 'All',
-  isFinishedQuiz:   false,
+  questions: [],
+  currentIndex: 0,
+  answers: {},
+  isStarted: false,
+  isFinished: false,
+  hasAnswered: false,
+  selectedSubject: 'English',
+  selectedTopic: 'All',
+  selectedDifficulty: 'All',
+  isFinishedQuiz: false,
   // Inside useQuizStore create block:
-finishQuiz: () => set({ 
-  isFinished: true, 
-  isStarted: false, 
-  isFinishedQuiz: true 
-}),
+  finishQuiz: () => set({
+    isFinished: true,
+    isStarted: false,
+    isFinishedQuiz: true
+  }),
 
   loadQuestions: (qs) =>
     set({
-      questions:    qs,
+      questions: qs,
       currentIndex: 0,
-      answers:      {},
-      isStarted:    true,
-      isFinished:   false,
-      hasAnswered:  false,
+      answers: {},
+      isStarted: true,
+      isFinished: false,
+      hasAnswered: false,
     }),
-    // Inside useQuizStore create block:
+  // Inside useQuizStore create block:
 
 
   submitAnswer: (qi, opt) =>
     set((s) => ({
-      answers:     { ...s.answers, [qi]: opt },
+      answers: { ...s.answers, [qi]: opt },
       hasAnswered: true,
     })),
 
@@ -66,19 +72,22 @@ finishQuiz: () => set({
       set({ currentIndex: nextIndex, hasAnswered: false });
     }
   },
-  
+
 
   reset: () =>
     set({
-      questions:    [],
+      questions: [],
       currentIndex: 0,
-      answers:      {},
-      isStarted:    false,
-      isFinished:   false,
-      hasAnswered:  false,
-      isFinishedQuiz:   false,
-
+      answers: {},
+      isStarted: false,
+      isFinished: false,
+      hasAnswered: false,
+      isFinishedQuiz: false,
+      selectedTopic: 'All',
+      selectedDifficulty: 'All',
     }),
 
-  setSelectedSubject: (s) => set({ selectedSubject: s }),
+  setSelectedSubject: (s) => set({ selectedSubject: s, selectedTopic: 'All', selectedDifficulty: 'All' }),
+  setSelectedTopic: (t) => set({ selectedTopic: t }),
+  setSelectedDifficulty: (d) => set({ selectedDifficulty: d }),
 }));

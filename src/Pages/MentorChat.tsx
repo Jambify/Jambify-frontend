@@ -88,13 +88,19 @@ const MessageBubble: React.FC<{ msg: ChatMessage }> = ({ msg }) => {
 // ── Main component ────────────────────────────────────────────────────────────
 const MentorChat: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [input, setInput]                 = useState('');
-  const [showContext, setShowContext]     = useState(false);
-  const inputRef                          = useRef<HTMLTextAreaElement>(null);
-  const bottomRef                         = useRef<HTMLDivElement>(null);
+  const [input, setInput] = useState("");
+  const [showContext, setShowContext] = useState(false);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
 
-  const { name, targetScore, examDate, examYear, questionsCompleted } = useUserStore();
-  const { subjects, loadSubjects, isInitialized }                     = useSubjectStore();
+  const {
+    name,
+    targetScore,
+    examDate,
+    examYear,
+    questionsCompleted,
+  } = useUserStore();
+  const { subjects, loadSubjects, isInitialized } = useSubjectStore();
 
   useEffect(() => {
     if (!isInitialized) loadSubjects();
@@ -109,28 +115,42 @@ const MentorChat: React.FC = () => {
   const systemPrompt = `${MENTOR_SYSTEM}
 
 Student profile:
-- Name: ${name || 'Student'}
-- Target score: ${targetScore || 'Not set'}
+- Name: ${name || "Student"}
+- Target score: ${targetScore || "Not set"}
 - Exam: JAMB ${examYear} (${examDate})
 - Questions completed: ${questionsCompleted}
-- Weak subjects: ${weakSubjects.length > 0 ? weakSubjects.map((s) => `${s.name} (${s.accuracy}% accuracy)`).join(', ') : 'None identified yet'}`;
+- Weak subjects: ${
+    weakSubjects.length > 0
+      ? weakSubjects
+          .map((s) => `${s.name} (${s.accuracy}% accuracy)`)
+          .join(", ")
+      : "None identified yet"
+  }`;
 
-  const { messages, isLoading, sendMessage, clearHistory, isNearLimit, isAtLimit, messagesRemaining } = useAIChat({
+  const {
+    messages,
+    isLoading,
+    sendMessage,
+    clearHistory,
+    isNearLimit,
+    isAtLimit,
+    messagesRemaining,
+  } = useAIChat({
     systemPrompt,
-    storageKey: `jambify-mentor-${name || 'guest'}`,
+    storageKey: `jambify-mentor-${name || "guest"}`,
   });
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isLoading]);
 
   // Build personalized starters based on weak subjects
   const starters = [
     ...BASE_STARTERS,
     ...weakSubjects.slice(0, 2).map((s) => ({
-      icon:   s.icon,
-      label:  `Help with ${s.name}`,
+      icon: s.icon,
+      label: `Help with ${s.name}`,
       prompt: `I'm struggling with ${s.name} — my accuracy is only ${s.accuracy}%. What are the most important topics to focus on and how should I study them for JAMB?`,
     })),
   ];
@@ -138,12 +158,12 @@ Student profile:
   const handleSend = () => {
     if (!input.trim() || isLoading) return;
     sendMessage(input.trim());
-    setInput('');
+    setInput("");
     inputRef.current?.focus();
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
     }
@@ -152,7 +172,11 @@ Student profile:
   const isEmpty = messages.length === 0;
 
   return (
-    <AppLayout currentPage="mentor" isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen}>
+    <AppLayout
+      currentPage="mentor"
+      isSidebarOpen={isSidebarOpen}
+      setIsSidebarOpen={setIsSidebarOpen}
+    >
       {/*
         Escape the AppLayout's p-4 lg:p-7 padding so we can fill the
         full available height. We use -mx and -mt to pull back to the
