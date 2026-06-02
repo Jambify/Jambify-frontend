@@ -14,6 +14,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import GuestLayout from "../../components/Layout/GuestLayout";
 
 type Screen = "subject" | "quiz" | "results";
 
@@ -107,13 +108,7 @@ const GuestQuiz: React.FC = () => {
   // ── Subject picker ────────────────────────────────────────────────────
   if (screen === "subject") {
     return (
-      <div className="min-h-screen bg-bgMain text-textMain flex flex-col items-center justify-center p-4 relative overflow-hidden">
-        {/* Decorative Background */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-brand/5 blur-[120px] rounded-full" />
-          <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-brand/10 blur-[120px] rounded-full" />
-        </div>
-
+      <GuestLayout className="flex flex-col items-center justify-center p-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -199,7 +194,7 @@ const GuestQuiz: React.FC = () => {
             </div>
           </div>
         </motion.div>
-      </div>
+      </GuestLayout>
     );
   }
 
@@ -207,13 +202,7 @@ const GuestQuiz: React.FC = () => {
   if (screen === "results") {
     const pct = Math.round((score / questions.length) * 100);
     return (
-      <div className="min-h-screen bg-bgMain text-textMain flex flex-col items-center justify-center p-4 relative overflow-hidden">
-        {/* Decorative Background */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-success/5 blur-[120px] rounded-full" />
-          <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-brand/5 blur-[120px] rounded-full" />
-        </div>
-
+      <GuestLayout className="flex flex-col items-center justify-center p-4">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -305,23 +294,37 @@ const GuestQuiz: React.FC = () => {
             </button>
           </div>
         </motion.div>
-      </div>
+      </GuestLayout>
     );
   }
 
   // ── Quiz ──────────────────────────────────────────────────────────────
-  if (!q) return null;
+  if (!q && screen === "quiz") {
+    return (
+      <GuestLayout className="flex flex-col items-center justify-center p-6 text-center">
+        <div className="w-16 h-16 bg-brand/10 rounded-2xl flex items-center justify-center mb-6">
+          <Sparkles className="w-8 h-8 text-brand" />
+        </div>
+        <h2 className="text-2xl font-display font-black mb-2">
+          Session Expired
+        </h2>
+        <p className="text-textDim text-sm max-w-xs mb-8">
+          Your practice session was reset because of a page refresh.
+        </p>
+        <button
+          onClick={() => setScreen("subject")}
+          className="px-8 py-4 bg-brand text-white rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl shadow-brand/20 active:scale-[0.98] transition-all"
+        >
+          Start New Session
+        </button>
+      </GuestLayout>
+    );
+  }
+
+  if (!q) return null; // Fallback for safety
 
   return (
-    <div
-      className="min-h-screen bg-bgMain text-textMain flex flex-col p-4 relative overflow-hidden"
-      style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
-    >
-      {/* Decorative Background */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-brand/5 blur-[120px] rounded-full" />
-      </div>
-
+    <GuestLayout className="flex flex-col p-4">
       {/* <Top bar */}
       <div className="flex items-center justify-between mb-6 pt-2 max-w-2xl mx-auto w-full relative z-10">
         <button
@@ -501,7 +504,7 @@ const GuestQuiz: React.FC = () => {
           </motion.div>
         </AnimatePresence>
       </div>
-    </div>
+    </GuestLayout>
   );
 };
 

@@ -22,6 +22,7 @@ import {
   Layers,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import GuestLayout from "../../components/Layout/GuestLayout";
 
 const MOCK_DURATION = 7200; // 2 hours in seconds
 
@@ -225,7 +226,6 @@ const GuestMockExam: React.FC = () => {
   const jambScore = Math.round((score / questions.length) * 400);
 
   // ── Results Screen ──────────────────────────────────────────────
-  // ── Results Screen ──────────────────────────────────────────────
   if (isFinished) {
     const pct = Math.round((score / questions.length) * 100);
 
@@ -243,13 +243,7 @@ const GuestMockExam: React.FC = () => {
     });
 
     return (
-      <div className="min-h-screen bg-bgMain text-textMain flex flex-col items-center justify-center p-4 relative overflow-hidden">
-        {/* Decorative Background */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-success/5 blur-[120px] rounded-full" />
-          <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-brand/5 blur-[120px] rounded-full" />
-        </div>
-
+      <GuestLayout className="flex flex-col items-center justify-center p-4">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -423,7 +417,7 @@ const GuestMockExam: React.FC = () => {
             </button>
           </div>
         </motion.div>
-      </div>
+      </GuestLayout>
     );
   }
 
@@ -439,12 +433,7 @@ const GuestMockExam: React.FC = () => {
     );
 
     return (
-      <div className="min-h-screen bg-bgMain text-textMain flex flex-col p-4 sm:p-6 relative overflow-hidden">
-        {/* Decorative Background */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-[-5%] left-[-5%] w-[30%] h-[30%] bg-brand/5 blur-[100px] rounded-full" />
-        </div>
-
+      <GuestLayout className="flex flex-col p-4 sm:p-6">
         {/* Top bar */}
         <div className="flex items-center justify-between gap-4 mb-8 relative z-10 max-w-7xl mx-auto w-full bg-bgCard/50 backdrop-blur-md border border-borderMuted p-3 sm:p-4 rounded-3xl shadow-xl shadow-black/10">
           <div className="flex items-center gap-3">
@@ -762,19 +751,13 @@ const GuestMockExam: React.FC = () => {
             </div>
           )}
         </AnimatePresence>
-      </div>
+      </GuestLayout>
     );
   }
 
   // ── Setup Screen ────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-bgMain text-textMain flex flex-col items-center justify-center p-4 relative overflow-hidden">
-      {/* Decorative Background */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-brand/5 blur-[120px] rounded-full" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-brand/10 blur-[120px] rounded-full" />
-      </div>
-
+    <GuestLayout className="flex flex-col items-center justify-center p-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -995,7 +978,7 @@ const GuestMockExam: React.FC = () => {
           </div>
         </div>
       </motion.div>
-    </div>
+    </GuestLayout>
   );
 };
 

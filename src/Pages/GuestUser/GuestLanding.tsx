@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate }  from 'react-router-dom';
 import { motion }       from 'framer-motion';
 import { BookOpen, Trophy, ArrowRight, LogIn, Zap } from 'lucide-react';
+import GuestLayout from '../../components/Layout/GuestLayout';
 
 /**
  * GuestLanding.tsx
@@ -16,16 +17,8 @@ const GuestLanding: React.FC = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-bgMain text-textMain flex flex-col items-center justify-center p-4"
-      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
-
-      {/* <Ambient glow */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-0 left-1/3 w-125 h-125 bg-brand/5 blur-[120px] rounded-full" />
-      </div>
-
+    <GuestLayout className="flex flex-col items-center justify-center p-4">
       <div className="relative z-10 w-full max-w-md">
-
         {/* <Logo */}
         <div className="text-center mb-10">
           <div className="w-14 h-14 bg-brand rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-brand/40">
@@ -126,9 +119,8 @@ const GuestLanding: React.FC = () => {
             </button>
           </div>
         </div>
-
       </div>
-    </div>
+    </GuestLayout>
   );
 };
 

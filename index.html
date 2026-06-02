@@ -3,7 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/JAMBIFY.LOGO.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
     <title>JAMBIFY</title>
 
     <!-- Google Fonts: load here so they are available before first paint -->
@@ -14,8 +17,27 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="/src/index.css" />
+    <script>
+      (function () {
+        try {
+          var theme = localStorage.getItem("jambify-theme");
+          var supportDarkMode =
+            window.matchMedia("(prefers-color-scheme: dark)").matches === true;
+          if (!theme && supportDarkMode) theme = "dark";
+          if (!theme && !supportDarkMode) theme = "light";
+
+          if (theme === "light") {
+            document.documentElement.setAttribute("data-theme", "light");
+            document.body.style.backgroundColor = "#f5f8ff";
+          } else {
+            document.documentElement.removeAttribute("data-theme");
+            document.body.style.backgroundColor = "#0a0a0f";
+          }
+        } catch (e) {}
+      })();
+    </script>
   </head>
-  <body>
+  <body style="background-color: #0a0a0f; margin: 0">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
