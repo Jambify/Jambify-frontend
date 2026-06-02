@@ -21,6 +21,7 @@ interface LeaderboardState {
   isLoading: boolean;
   setScope: (scope: Scope) => void;
   fetchLeaderboard: () => Promise<void>;
+  fetchSafeFallback: () => Promise<void>;
 }
 
 // Helper to generate a random dark background color for avatars

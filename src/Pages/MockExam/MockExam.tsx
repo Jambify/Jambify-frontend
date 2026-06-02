@@ -25,6 +25,7 @@ import { useExamTimer } from "../../hooks/useExamTimer";
 import { cn } from "../../lib/utils/utils";
 
 import { fetchQuestionsWithFallback } from "../../Services/questionService";
+import LoadingScreen from "../../components/ui/LoadingScreen";
 import {
   Menu,
   X,
@@ -75,21 +76,6 @@ const shuffleArray = <T,>(array: T[]): T[] => {
   }
   return shuffled;
 };
-
-const ALOC_SUBJECT_MAP: Record<string, string> = {
-  English: "english",
-  Mathematics: "mathematics",
-  Physics: "physics",
-  Chemistry: "chemistry",
-  Biology: "biology",
-  Economics: "economics",
-  Government: "government",
-  Literature: "englishlit",
-  History: "history",
-  Geography: "geography",
-  CRS: "crk",
-};
-
 const MockExam: React.FC = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useUserStore();
@@ -161,9 +147,22 @@ const MockExam: React.FC = () => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isStarted, isFinished, nextQuestion, prevQuestion]);
 
+  if (isLoadingQuestions) {
+    return (
+      <LoadingScreen
+        message="Preparing Mock Exam"
+        submessage="Gathering questions for all selected subjects..."
+        estimatedTime={4}
+      />
+    );
+  }
+
   const handleStart = async () => {
     setIsLoadingQuestions(true);
     setErrorMessage(null);
+
+    // Wait for loader to mount
+    await new Promise((r) => setTimeout(r, 100));
 
     try {
       const finalQuestionsList: any[] = [];
@@ -401,7 +400,7 @@ const MockExam: React.FC = () => {
 
             {isLoadingQuestions && (
               <p className="text-[10px] text-center text-textDim mt-4 animate-pulse font-bold uppercase tracking-widest">
-                Connecting to ALOC API for real JAMB past questions...
+                Please wait while we prepare your exam...
               </p>
             )}
           </div>

@@ -11,6 +11,7 @@ import {
   fetchQuestionsByTopic,
   fetchQuestionsWithFallback,
 } from "../Services/questionService";
+import LoadingScreen from "../components/ui/LoadingScreen";
 import {
   Loader2,
   BookOpen,
@@ -89,11 +90,24 @@ const Quiz: React.FC = () => {
     [],
   );
 
+  if (isLoadingQuestions) {
+    return (
+      <LoadingScreen
+        message="Preparing your quiz"
+        submessage={`Fetching ${selectedSubject} questions for your practice session...`}
+        estimatedTime={2}
+      />
+    );
+  }
+
   const handleStart = async () => {
     if (selectedSubject === "All") return;
 
     setShowExitModal(false);
     setIsLoadingQuestions(true);
+
+    // Wait a tiny bit for the loader to mount smoothly
+    await new Promise((r) => setTimeout(r, 100));
 
     try {
       let qs: any[] = [];
@@ -275,7 +289,7 @@ const Quiz: React.FC = () => {
               <button
                 key={s.name}
                 onClick={() => setSelectedSubject(s.name)}
-                className={`flex-shrink-0 px-5 py-3 rounded-xl border transition-all active:scale-95 text-xs font-bold flex items-center gap-2 ${
+                className={`shrink-0 px-5 py-3 rounded-xl border transition-all active:scale-95 text-xs font-bold flex items-center gap-2 ${
                   selectedSubject === s.name
                     ? "bg-brand text-white border-brand shadow-lg shadow-brand/20"
                     : "bg-bgCard text-textMain border-borderMuted hover:border-brand/40"
@@ -302,7 +316,7 @@ const Quiz: React.FC = () => {
                 {/* Background Gradient on Select */}
                 {selectedSubject === s.name && (
                   <div
-                    className={`absolute inset-0 opacity-20 bg-gradient-to-br ${s.color}`}
+                    className={`absolute inset-0 opacity-20 bg-linear-to-br ${s.color}`}
                   />
                 )}
 
@@ -350,7 +364,7 @@ const Quiz: React.FC = () => {
                 </p>
               </div>
             ) : availableTopics.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-75 overflow-y-auto pr-2 custom-scrollbar">
                 <button
                   onClick={() => setSelectedTopic("All")}
                   className={`relative overflow-hidden px-4 py-4 rounded-xl border text-xs font-bold text-left transition-all ${
