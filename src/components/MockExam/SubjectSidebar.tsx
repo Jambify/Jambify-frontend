@@ -3,6 +3,7 @@
 import React from 'react';
 import { useMockStore } from '../../Store/useMockStore';
 import { cn } from '../../lib/utils/utils';
+import { CheckCircle } from 'lucide-react';
 
 interface SubjectSidebarProps {
   activeSubject: string;
