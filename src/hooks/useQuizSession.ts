@@ -1,8 +1,8 @@
-import { useQuizStore }        from '../Store/useQuizStore';
-import { useUserStore }        from '../Store/UseUserStore';
-import { useSubjectStore }     from '../Store/useSubjectStore';
+import { useQuizStore } from '../Store/useQuizStore';
+import { useUserStore } from '../Store/UseUserStore';
+import { useSubjectStore } from '../Store/useSubjectStore';
 import { usePerformanceStore } from '../Store/usePerformanceStore';
-import type { Question }         from '../Types';
+import type { Question } from '../Types';
 
 /**
  * useQuizSession
@@ -17,11 +17,10 @@ import type { Question }         from '../Types';
 export function useQuizSession() {
   const { questions, answers, timeLeft, quizDuration, selectedSubject } = useQuizStore();
   const { isAuthenticated } = useUserStore();
-  const { incrementScore,
-          incrementQuestions,
-          updateAccuracy }              = useUserStore();
+  const { incrementQuestions,
+    updateAccuracy } = useUserStore();
   const { updateAccuracy: updateSubj,
-          incrementCompleted }          = useSubjectStore();
+    incrementCompleted } = useSubjectStore();
   const { addActivity, updateTopic, addQuizResult } = usePerformanceStore();
 
   const commitSession = async () => {
@@ -29,8 +28,8 @@ export function useQuizSession() {
 
     /* ── 1. Score totals ─────────────────────────────── */
     const correct = questions.filter((q, i) => answers[i] === q.answer).length;
-    const total   = questions.length;
-    const newAcc  = Math.round((correct / total) * 100);
+    const total = questions.length;
+    const newAcc = Math.round((correct / total) * 100);
     const timeTaken = quizDuration - timeLeft;
 
     /* ── 2. Save to Database if Authenticated ────────── */
@@ -68,7 +67,7 @@ export function useQuizSession() {
     });
 
     /* ── 4. Update useUserStore ──────────────────────── */
-    incrementScore(correct);
+    // Practice quizzes don't update JAMB best score, just stats
     incrementQuestions(total);
     updateAccuracy(newAcc);
 

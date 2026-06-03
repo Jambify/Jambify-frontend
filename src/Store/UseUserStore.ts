@@ -66,7 +66,7 @@ interface UserState {
   markWelcomeAsSeen: () => void;
   setName: (name: string) => void;
   setEmail: (email: string) => void;
-  incrementScore: (pts: number) => void;
+  updateBestScore: (score: number) => Promise<void>;
   incrementQuestions: (n: number) => void;
   updateAccuracy: (acc: number) => void;
   upgradeToPro: () => void;
@@ -357,7 +357,25 @@ export const useUserStore = create<UserState>()(
       // ── Simple setters ────────────────────────────────
       setName: n => set({ name: n }),
       setEmail: e => set({ email: e }),
-      incrementScore: pts => set(s => ({ bestScore: Math.max(s.bestScore, s.bestScore + pts) })),
+      updateBestScore: async (score) => {
+        const { bestScore, id } = get();
+        if (score > bestScore) {
+          set({ bestScore: score }); // Optimistic update
+          if (id) {
+            // Use RPC to bypass RLS restrictions
+            const { error } = await supabase.rpc('update_best_score', {
+              p_user_id: id,
+              p_new_score: score
+            });
+
+            if (error) {
+              console.error('❌ Failed to update overall_score via RPC:', error);
+            } else {
+              console.log('✅ overall_score updated via RPC to:', score);
+            }
+          }
+        }
+      },
       incrementQuestions: n => set(s => ({ questionsCompleted: s.questionsCompleted + n })),
       updateAccuracy: acc => set(s => ({ previousAccuracy: s.accuracy, accuracy: acc })),
       upgradeToPro: () => set({ isPro: true }),

@@ -7,8 +7,9 @@ export type ButtonVariant =
   | "ghost"
   | "danger"
   | "success"
-  | "warn";
-export type ButtonSize = "xs" | "sm" | "md" | "lg";
+  | "warn"
+  | "pro";
+export type ButtonSize = "xs" | "sm" | "md" | "lg" | "xl";
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
@@ -69,14 +70,23 @@ const VARIANTS: Record<ButtonVariant, string> = {
     "active:bg-warn/30",
     "focus-visible:ring-2 focus-visible:ring-warn/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bgCard",
   ].join(" "),
+
+  pro: [
+    "bg-gradient-to-r from-brand to-brand-light text-white",
+    "border-none",
+    "hover:brightness-110",
+    "active:scale-95",
+    "shadow-lg shadow-brand/20",
+  ].join(" "),
 };
 
 /* ── Size styles ────────────────────────────────────────────── */
 const SIZES: Record<ButtonSize, string> = {
-  xs: "h-7  px-2.5 text-[11px] gap-1   rounded-lg",
-  sm: "h-8  px-3.5 text-xs     gap-1.5 rounded-[10px]",
+  xs: "h-7  px-2.5 text-[11px] gap-1.5 rounded-lg",
+  sm: "h-8  px-3.5 text-xs     gap-2   rounded-[10px]",
   md: "h-10 px-5   text-sm     gap-2   rounded-brand",
   lg: "h-12 px-6   text-[15px] gap-2.5 rounded-brand",
+  xl: "h-14 px-8   text-base   gap-3   rounded-brand",
 };
 
 const Button: React.FC<ButtonProps> = ({
@@ -118,7 +128,7 @@ const Button: React.FC<ButtonProps> = ({
       ) : (
         <>
           {icon && <span className="shrink-0 leading-none">{icon}</span>}
-          {children && <span>{children}</span>}
+          {children}
           {iconRight && (
             <span className="shrink-0 leading-none">{iconRight}</span>
           )}
@@ -134,6 +144,7 @@ const SPINNER_SIZE: Record<ButtonSize, string> = {
   sm: "w-3.5 h-3.5",
   md: "w-4 h-4",
   lg: "w-5 h-5",
+  xl: "w-6 h-6",
 };
 
 const Spinner: React.FC<{ size: ButtonSize }> = ({ size }) => (

@@ -44,8 +44,9 @@ export const calculateExamResults = (
     }
   });
 
-  const jambScore = Math.round((totalCorrect / totalQuestions) * 400);
-  const percentageScore = Math.round((totalCorrect / totalQuestions) * 100);
+  // Scale JAMB score relative to a full 180-question exam for realism
+  const jambScore = totalQuestions > 0 ? Math.round((totalCorrect / 180) * 400) : 0;
+  const percentageScore = totalQuestions > 0 ? Math.round((totalCorrect / totalQuestions) * 100) : 0;
 
   const subjectBreakdown: SubjectScore[] = Object.entries(subjectMap).map(
     ([subject, data]) => {

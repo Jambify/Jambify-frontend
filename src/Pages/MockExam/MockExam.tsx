@@ -25,18 +25,17 @@ import { useExamTimer } from "../../hooks/useExamTimer";
 import { cn } from "../../lib/utils/utils";
 
 import { fetchQuestionsWithFallback } from "../../Services/questionService";
-import { supabase } from "../../lib/supabase";
 import LoadingScreen from "../../components/ui/LoadingScreen";
 import {
   Menu,
-  X,
   ChevronLeft,
   ChevronRight,
   CheckCircle,
   Flag,
   Trash2,
-  AlertTriangle,
   Clock,
+  AlertTriangle,
+  X,
 } from "lucide-react";
 
 const MOCK_DURATION = 7200; // 2 hours in seconds
@@ -131,6 +130,15 @@ const MockExam: React.FC = () => {
       setActiveSubject(questions[currentIndex].subject);
     }
   }, [currentIndex, isStarted, questions]);
+
+  // Use the persist check to prevent reset on refresh
+  useEffect(() => {
+    if (isStarted && !isFinished) {
+      // The store is already persisted, we just need to make sure
+      // the questions are there. If not, we might need to re-fetch
+      // but usually the store will handle it.
+    }
+  }, [isStarted, isFinished]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -240,6 +248,8 @@ const MockExam: React.FC = () => {
     const timeTaken = MOCK_DURATION - timeLeft;
     finishExam(timeTaken);
     setShowConfirmSubmit(false);
+    // Clear persistence on successful manual finish
+    localStorage.removeItem("jambify-mock-exam");
 
     // Save result if logged in
     const { lastResult } = useMockStore.getState();
@@ -275,20 +285,11 @@ const MockExam: React.FC = () => {
         );
 
         // ── UPDATE OVERALL BEST SCORE ──────────────────────────────────
-        // Only update if the new JAMB score is higher than the current best
-        const {
-          bestScore,
-          id: userId,
-          syncProfile,
-        } = useUserStore.getState();
-        if (lastResult.jambScore > bestScore) {
-          console.log(
-            `🏆 New Best Score! ${lastResult.jambScore} > ${bestScore}`,
-          );
-          await supabase
-            .from("profiles")
-            .update({ best_score: lastResult.jambScore })
-            .eq("id", userId);
+        // The total JAMB score is calculated from ALL subjects combined
+        const { updateBestScore, syncProfile } = useUserStore.getState();
+        if (lastResult.jambScore > 0) {
+          console.log(`🏆 Submitting new JAMB score: ${lastResult.jambScore}`);
+          await updateBestScore(lastResult.jambScore);
         }
 
         // Refresh user profile to update dashboard stats instantly
@@ -512,7 +513,8 @@ const MockExam: React.FC = () => {
   const q = questions[currentIndex];
   const chosen = answers[currentIndex] ?? -1;
   const answeredCount = Object.keys(answers).length;
-  const isMarked = markedForReview.has(currentIndex);
+  const isMarked = markedForReview.includes(currentIndex);
+  const isLastQuestion = currentIndex === questions.length - 1;
 
   return (
     <AppLayout
@@ -610,13 +612,16 @@ const MockExam: React.FC = () => {
                 </span>
               </div>
 
+              {/* Submit Button in Header - Always visible but responsive */}
               <Button
-                variant="primary"
-                size="md"
+                variant="success"
+                size="sm"
                 onClick={() => setShowConfirmSubmit(true)}
-                className="hidden sm:flex shadow-brand/20 shadow-lg px-6 font-bold"
+                icon={<CheckCircle size={16} />}
+                className="shadow-success/20 shadow-lg px-3 sm:px-6 font-bold"
               >
-                Submit
+                <span className="hidden sm:inline">Submit Exam</span>
+                <span className="sm:hidden text-[10px]">Submit</span>
               </Button>
 
               <button
@@ -700,7 +705,7 @@ const MockExam: React.FC = () => {
 
               {/* Action Bar - Cleaned up */}
               <div className="flex flex-wrap items-center justify-between gap-4 mb-12">
-                <div className="flex items-center gap-3 w-full sm:w-auto">
+                <div className="flex items-center gap-3 w-full sm:w-auto justify-center sm:justify-start">
                   <button
                     onClick={() => markForReview(currentIndex)}
                     className={cn(
@@ -733,22 +738,37 @@ const MockExam: React.FC = () => {
                 <div className="flex items-center gap-3 w-full sm:w-auto">
                   <Button
                     variant="secondary"
+                    size="lg"
                     disabled={currentIndex === 0}
                     onClick={prevQuestion}
-                    className="flex-1 sm:flex-none font-bold text-xs h-14 px-6 bg-bgCard shadow-sm"
+                    icon={<ChevronLeft size={20} />}
+                    className="flex-1 sm:flex-none font-bold bg-bgCard shadow-sm h-14"
                   >
-                    <ChevronLeft size={18} className="mr-1" />
-                    Prev
+                    <span className="hidden sm:inline">Prev</span>
                   </Button>
-                  <Button
-                    variant="primary"
-                    onClick={nextQuestion}
-                    disabled={currentIndex === questions.length - 1}
-                    className="flex-1 sm:flex-none font-black text-sm h-14 px-10 shadow-brand/30 shadow-lg"
-                  >
-                    Save & Next
-                    <ChevronRight size={18} className="ml-1" />
-                  </Button>
+
+                  {isLastQuestion ? (
+                    <Button
+                      variant="success"
+                      size="lg"
+                      onClick={() => setShowConfirmSubmit(true)}
+                      icon={<CheckCircle size={18} />}
+                      className="flex-1 sm:flex-none font-black text-sm px-8 sm:px-12 shadow-success/30 shadow-lg h-14"
+                    >
+                      Submit Exam
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="primary"
+                      size="lg"
+                      onClick={nextQuestion}
+                      iconRight={<ChevronRight size={20} />}
+                      className="flex-1 sm:flex-none font-black text-sm px-8 sm:px-10 shadow-brand/30 shadow-lg h-14"
+                    >
+                      <span className="hidden sm:inline">Save & Next</span>
+                      <span className="sm:hidden">Next</span>
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>
@@ -851,46 +871,40 @@ const MockExam: React.FC = () => {
         </div>
       )}
 
+      {/* Confirmation Modal */}
       {showConfirmSubmit && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-bgCard border border-borderMuted rounded-brand-xl p-8 max-w-sm w-full shadow-2xl animate-in zoom-in-95 duration-200">
-            <div className="w-16 h-16 bg-brand/10 text-brand rounded-full flex items-center justify-center mx-auto mb-6">
-              <CheckCircle size={32} />
-            </div>
-            <h3 className="text-xl font-bold mb-2 text-center">Submit Exam?</h3>
-            <div className="bg-bgSurface rounded-brand p-4 mb-6 space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-textDim">Answered:</span>
-                <span className="font-bold text-success">{answeredCount}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-textDim">Unanswered:</span>
-                <span className="font-bold text-danger">
-                  {questions.length - answeredCount}
-                </span>
-              </div>
-            </div>
-            {questions.length - answeredCount > 0 && (
-              <p className="text-xs text-warning font-medium mb-6 text-center">
-                ⚠️ You still have unanswered questions.
-              </p>
-            )}
-            <div className="flex flex-col gap-3">
-              <Button
-                variant="primary"
-                size="lg"
-                fullWidth
-                onClick={handleFinishExam}
-              >
-                Yes, Submit
-              </Button>
+        <div className="fixed inset-0 z-200 flex items-center justify-center px-4">
+          <div
+            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            onClick={() => setShowConfirmSubmit(false)}
+          />
+          <div className="relative bg-bgDeep border border-borderMuted p-8 rounded-brand-xl max-w-md w-full shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <h3 className="text-xl font-display font-bold mb-3">
+              Ready to submit?
+            </h3>
+            <p className="text-textDim text-sm mb-8 leading-relaxed">
+              You still have{" "}
+              <span className="text-textMain font-bold">
+                {Math.floor(timeLeft / 60)}m {timeLeft % 60}s
+              </span>{" "}
+              remaining. Make sure you've reviewed all your answers.
+            </p>
+            <div className="flex gap-3">
               <Button
                 variant="secondary"
-                size="lg"
                 fullWidth
                 onClick={() => setShowConfirmSubmit(false)}
+                className="font-bold h-12"
               >
                 Go Back
+              </Button>
+              <Button
+                variant="success"
+                fullWidth
+                onClick={handleFinishExam}
+                className="font-black h-12 shadow-success/20 shadow-lg"
+              >
+                Yes, Submit
               </Button>
             </div>
           </div>

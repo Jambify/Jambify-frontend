@@ -340,12 +340,10 @@ const ReviewScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
               variant="secondary"
               size="sm"
               onClick={onBack}
+              icon={<ArrowLeft size={18} />}
               className="rounded-xl shrink-0 bg-brand/10 border-brand/10 text-brand hover:bg-brand/20 active:scale-95 transition-all px-4 self-start"
             >
-              <div className="flex items-center gap-2 justify-center">
-                <ArrowLeft size={18} />
-                <span className="font-medium">Back</span>
-              </div>
+              Back
             </Button>
             <div className="flex items-center gap-2 bg-brand/5 border border-brand/20 p-2.5 rounded-xl self-start sm:self-auto shrink-0">
               <Trophy className="text-brand w-4 h-4" />

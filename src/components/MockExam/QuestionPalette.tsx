@@ -1,41 +1,48 @@
 // src/components/MockExam/QuestionPalette.tsx
 
-import React from 'react';
-import { useMockStore } from '../../Store/useMockStore';
-import { cn } from '../../lib/utils/utils';
+import React from "react";
+import { useMockStore } from "../../Store/useMockStore";
+import { cn } from "../../lib/utils/utils";
 
 interface QuestionPaletteProps {
   onJumpToQuestion: (index: number) => void;
   className?: string;
 }
 
-const QuestionPalette: React.FC<QuestionPaletteProps> = ({ onJumpToQuestion, className }) => {
-  const { 
-    questions, 
-    currentIndex, 
-    answers, 
-    visitedQuestions, 
-    markedForReview 
+const QuestionPalette: React.FC<QuestionPaletteProps> = ({
+  onJumpToQuestion,
+  className,
+}) => {
+  const {
+    questions,
+    currentIndex,
+    answers,
+    visitedQuestions,
+    markedForReview,
   } = useMockStore();
 
   const getStatusColor = (index: number) => {
-    if (index === currentIndex) return 'bg-brand text-white border-brand ring-2 ring-brand/20 ring-offset-2';
-    
-    if (markedForReview.has(index)) return 'bg-orange-500 text-white border-orange-600 shadow-sm shadow-orange-500/20';
-    if (answers[index] !== undefined) return 'bg-success text-white border-success-dark shadow-sm shadow-success/20';
-    if (visitedQuestions.has(index)) return 'bg-blue-500 text-white border-blue-600 shadow-sm shadow-blue-500/20';
-    
-    return 'bg-bgSurface text-textDim border-borderMuted hover:border-brand/50';
+    if (index === currentIndex)
+      return "bg-brand text-white border-brand ring-2 ring-brand/20 ring-offset-2";
+
+    if (markedForReview.includes(index))
+      return "bg-orange-500 text-white border-orange-600 shadow-sm shadow-orange-500/20";
+    if (answers[index] !== undefined)
+      return "bg-success text-white border-success-dark shadow-sm shadow-success/20";
+    if (visitedQuestions.includes(index))
+      return "bg-blue-500 text-white border-blue-600 shadow-sm shadow-blue-500/20";
+
+    return "bg-bgSurface text-textDim border-borderMuted hover:border-brand/50";
   };
 
-  const subjects = Array.from(new Set(questions.map(q => q.subject)));
+  const subjects = Array.from(new Set(questions.map((q) => q.subject)));
 
   return (
     <div className={cn("flex flex-col gap-8", className)}>
-      {subjects.map(subject => {
+      {subjects.map((subject) => {
         const subjectQuestions = questions
           .map((q, i) => ({ ...q, globalIndex: i }))
-          .filter(q => q.subject === subject);
+          .filter((q) => q.subject === subject);
 
         return (
           <div key={subject} className="space-y-3">
@@ -52,7 +59,7 @@ const QuestionPalette: React.FC<QuestionPaletteProps> = ({ onJumpToQuestion, cla
                   onClick={() => onJumpToQuestion(q.globalIndex)}
                   className={cn(
                     "h-8 w-8 rounded-lg text-[10px] font-black transition-all border flex items-center justify-center active:scale-90",
-                    getStatusColor(q.globalIndex)
+                    getStatusColor(q.globalIndex),
                   )}
                 >
                   {subjectQuestions.indexOf(q) + 1}

@@ -199,14 +199,9 @@ const MockResultsScreen: React.FC<MockResultsScreenProps> = ({
             size="sm"
             onClick={() => navigate("/review")}
             className="rounded-full px-4 py-2 text-[10px] font-black uppercase tracking-widest"
+            icon={!isPro ? <Lock size={12} /> : undefined}
           >
-            {isPro ? (
-              "Open Full Review"
-            ) : (
-              <span className="flex items-center gap-1.5">
-                <Lock size={12} /> Unlock Review
-              </span>
-            )}
+            {isPro ? "Open Full Review" : "Unlock Review"}
           </Button>
         </div>
 

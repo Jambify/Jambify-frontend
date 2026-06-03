@@ -253,14 +253,13 @@ const ExamPaywall: React.FC<ExamPaywallProps> = ({ onUpgrade, onBack }) => {
             fullWidth
             onClick={() => handleVerify()}
             disabled={isVerifying || !txRef.trim()}
+            icon={
+              isVerifying ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : undefined
+            }
           >
-            {isVerifying ? (
-              <span className="flex items-center gap-2 justify-center">
-                <Loader2 className="w-4 h-4 animate-spin" /> Verifying…
-              </span>
-            ) : (
-              "Verify & Activate Pro"
-            )}
+            {isVerifying ? "Verifying…" : "Verify & Activate Pro"}
           </Button>
 
           <button

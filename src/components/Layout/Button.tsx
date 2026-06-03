@@ -57,8 +57,8 @@ const Button: React.FC<ButtonProps> = ({
         <Spinner size={size} />
       ) : (
         <>
-          {icon && <span className="-shrink-0">{icon}</span>}
-          {children && <span>{children}</span>}
+          {icon && <span className="shrink-0">{icon}</span>}
+          {children}
           {iconRight && <span className="shrink-0">{iconRight}</span>}
         </>
       )}
