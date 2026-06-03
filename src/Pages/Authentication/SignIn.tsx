@@ -283,7 +283,7 @@ const SignIn: React.FC = () => {
   // ── Sign In Form ──────────────────────────────────────
   return (
     <div
-      className="min-h-screen bg-bgMain flex items-center justify-center p-4 relative overflow-hidden"
+      className="min-h-screen bg-bgMain flex flex-col items-center justify-center p-4 relative overflow-hidden"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
       {/* Ambient Glows */}
@@ -416,7 +416,7 @@ const SignIn: React.FC = () => {
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.3 }}
-        className="fixed bottom-10 left-1/2 -translate-x-1/2 w-full max-w-md px-4 z-20"
+        className="lg:relative lg:bottom-auto lg:left-auto lg:translate-x-0 lg:mt-8 lg:z-10 fixed bottom-10 left-1/2 -translate-x-1/2 w-full max-w-md px-4 z-20"
       >
         <button
           onClick={() => navigate("/guest")}

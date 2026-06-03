@@ -11,9 +11,9 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 
 
-export const supabase = createClient
-// Add this after creating supabase client
-(supabaseUrl, supabaseAnonKey);supabase.auth.onAuthStateChange((event, session) => {
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+supabase.auth.onAuthStateChange((event, session) => {
   console.log("🔵 Auth state changed:", event, session?.user?.id);
   const { syncProfile } = useUserStore.getState();
   

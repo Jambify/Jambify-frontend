@@ -15,23 +15,42 @@ import type { Question }         from '../Types';
  * NOT called from: MockResultsScreen — mock has its own commit
  */
 export function useQuizSession() {
-  const { questions, answers }         = useQuizStore();
+  const { questions, answers, timeLeft, quizDuration, selectedSubject } = useQuizStore();
+  const { isAuthenticated } = useUserStore();
   const { incrementScore,
           incrementQuestions,
           updateAccuracy }              = useUserStore();
   const { updateAccuracy: updateSubj,
           incrementCompleted }          = useSubjectStore();
-  const { addActivity, updateTopic }   = usePerformanceStore();
+  const { addActivity, updateTopic, addQuizResult } = usePerformanceStore();
 
-  const commitSession = () => {
+  const commitSession = async () => {
     if (questions.length === 0) return;
 
     /* ── 1. Score totals ─────────────────────────────── */
     const correct = questions.filter((q, i) => answers[i] === q.answer).length;
     const total   = questions.length;
     const newAcc  = Math.round((correct / total) * 100);
+    const timeTaken = quizDuration - timeLeft;
 
-    /* ── 2. Per-subject breakdown ────────────────────── */
+    /* ── 2. Save to Database if Authenticated ────────── */
+    if (isAuthenticated) {
+      try {
+        await addQuizResult(
+          "practice",
+          selectedSubject,
+          questions.map((q) => q.id),
+          answers,
+          timeTaken,
+          correct,
+          total
+        );
+      } catch (err) {
+        console.error("Failed to save quiz results to DB:", err);
+      }
+    }
+
+    /* ── 3. Per-subject breakdown ────────────────────── */
     type SubMap = Record<string, { correct: number; total: number; id: string }>;
     const subjMap: SubMap = {};
 

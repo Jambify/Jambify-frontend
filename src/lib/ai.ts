@@ -16,10 +16,10 @@ export interface GeminiMessage {
   parts: { text: string }[];
 }
 
-const API_KEY  = import.meta.env.VITE_GEMINI_API_KEY as string | undefined;
+const API_KEY = import.meta.env.VITE_GEMINI_API_KEY as string | undefined;
 // gemini-2.5-flash: free tier on v1beta, best price-performance model
 // Model code confirmed at: https://ai.google.dev/gemini-api/docs/models/gemini-2.5-flash
-const MODEL    = 'gemini-2.5-flash';
+const MODEL = 'gemini-2.5-flash';
 const BASE_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}`;
 
 // ── System instruction injected into every request ────────────────────────────
@@ -47,14 +47,14 @@ function buildBody(history: GeminiMessage[], systemPrompt?: string) {
     },
     contents: history,
     generationConfig: {
-      temperature:     0.7,
-      topK:            40,
-      topP:            0.95,
+      temperature: 0.7,
+      topK: 40,
+      topP: 0.95,
       maxOutputTokens: 1024,
     },
     safetySettings: [
-      { category: 'HARM_CATEGORY_HARASSMENT',        threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-      { category: 'HARM_CATEGORY_HATE_SPEECH',       threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+      { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+      { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
       { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
       { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
     ],
@@ -74,9 +74,9 @@ export async function askAI(
   const res = await fetch(
     `${BASE_URL}:generateContent?key=${API_KEY}`,
     {
-      method:  'POST',
+      method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body:    buildBody(history, systemPrompt),
+      body: buildBody(history, systemPrompt),
     },
   );
 
@@ -93,10 +93,10 @@ export async function askAI(
 // ── Streaming: calls onChunk with each text delta ─────────────────────────────
 
 export async function streamAI(
-  history:   GeminiMessage[],
-  onChunk:   (delta: string) => void,
-  onDone:    () => void,
-  onError:   (err: Error) => void,
+  history: GeminiMessage[],
+  onChunk: (delta: string) => void,
+  onDone: () => void,
+  onError: (err: Error) => void,
   systemPrompt?: string,
 ): Promise<void> {
   if (!API_KEY) {
@@ -109,9 +109,9 @@ export async function streamAI(
     const res = await fetch(
       `${BASE_URL}:streamGenerateContent?alt=sse&key=${API_KEY}`,
       {
-        method:  'POST',
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    buildBody(history, systemPrompt),
+        body: buildBody(history, systemPrompt),
       },
     );
 
@@ -120,9 +120,9 @@ export async function streamAI(
       throw new Error((err as any)?.error?.message ?? `HTTP ${res.status}`);
     }
 
-    const reader  = res.body.getReader();
+    const reader = res.body.getReader();
     const decoder = new TextDecoder();
-    let   buffer  = '';
+    let buffer = '';
 
     while (true) {
       const { done, value } = await reader.read();
@@ -138,7 +138,7 @@ export async function streamAI(
         if (json === '[DONE]') continue;
         try {
           const parsed = JSON.parse(json);
-          const delta  = parsed?.candidates?.[0]?.content?.parts?.[0]?.text;
+          const delta = parsed?.candidates?.[0]?.content?.parts?.[0]?.text;
           if (delta) onChunk(delta);
         } catch {
           // malformed chunk — skip
@@ -155,25 +155,20 @@ export async function streamAI(
 // ── Convenience: build a question-explanation prompt ─────────────────────────
 
 export function buildQuestionContext(q: {
-  text:        string;
-  options:     string[];
-  answer:      number;
+  text: string;
+  options: string[];
+  answer: number;
   explanation?: string;
-  subject?:    string;
-  topic?:      string;
-  year?:       number | string;
+  subject?: string;
+  topic?: string;
+  year?: number | string;
 }): string {
   const correctOption = q.options[q.answer];
-  return `JAMB Question (${q.subject ?? 'General'}${q.topic ? ` — ${q.topic}` : ''}${q.year ? `, ${q.year}` : ''}):
+  // More aggressive truncation for extremely long questions
+  const truncatedText = q.text.length > 500 ? q.text.substring(0, 500) + "..." : q.text;
 
-"${q.text}"
-
-Options:
-${q.options.map((o, i) => `${String.fromCharCode(65 + i)}. ${o}`).join('\n')}
-
-Correct Answer: ${String.fromCharCode(65 + q.answer)}. ${correctOption}
-
-${q.explanation ? `Provided explanation: ${q.explanation}` : ''}
-
-Please give a clear, step-by-step explanation of why this answer is correct and why the other options are wrong. Be concise but thorough.`;
+  return `Analyze this JAMB ${q.subject ?? ''} question:
+"${truncatedText}"
+Answer is ${String.fromCharCode(65 + q.answer)}. ${correctOption}
+Briefly verify accuracy and explain why it's correct.`;
 }

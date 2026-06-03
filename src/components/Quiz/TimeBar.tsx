@@ -8,15 +8,20 @@ const TOTAL_SECONDS = 30 * 60;
 
 const TimerBar: React.FC = () => {
   const isFinished = useQuizStore((s) => s.isFinished);
-  const finishQuiz = useQuizStore((s) => s.finishQuiz); // Ensure this action exists in your store
+  const finishQuiz = useQuizStore((s) => s.finishQuiz);
+  const updateTime = useQuizStore((s) => s.updateTime);
 
   const { timeLeft, formatted } = useTimer({
     initialSeconds: TOTAL_SECONDS,
     onExpire: () => {
-      // Force finish the quiz when total time runs out
       finishQuiz();
     },
   });
+
+  // Sync timer with store for submission logic
+  React.useEffect(() => {
+    updateTime(timeLeft);
+  }, [timeLeft, updateTime]);
 
   const pct = (timeLeft / TOTAL_SECONDS) * 100;
 

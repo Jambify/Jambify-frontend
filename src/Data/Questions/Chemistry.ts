@@ -1,12 +1,11 @@
-// src/Data/Questions/Chemistry.ts
 import type { Question } from '../../Types';
 
 export const CHEMISTRY_QUESTIONS: Question[] = [
   {
-    id: 'chem-001', 
-    subject: 'Chemistry', 
+    id: 'a1b2c3d4-e5f6-4789-8012-34567890abcd',
+    subject: 'Chemistry',
     year: 2023,
-    difficulty: 'Medium', 
+    difficulty: 'Medium',
     topic: 'Atomic Structure',
     text: 'Which of the following is the correct electronic configuration of Sodium (Na) with atomic number 11?',
     options: ['2, 8, 1', '2, 8, 3', '2, 9, 0', '1, 8, 2'],
@@ -14,10 +13,10 @@ export const CHEMISTRY_QUESTIONS: Question[] = [
     explanation: 'Sodium has 11 electrons distributed as 2 in the first shell, 8 in the second, and 1 in the third — giving 2, 8, 1.',
   },
   {
-    id: 'chem-002', 
-    subject: 'Chemistry', 
+    id: 'f9e8d7c6-b5a4-4321-9876-543210fedcba',
+    subject: 'Chemistry',
     year: 2023,
-    difficulty: 'Hard', 
+    difficulty: 'Hard',
     topic: 'Acid-Base Chemistry',
     text: 'What is the pH of a solution with hydrogen ion concentration [H⁺] = 1 × 10⁻³ mol/L?',
     options: ['1', '3', '7', '11'],
@@ -25,7 +24,7 @@ export const CHEMISTRY_QUESTIONS: Question[] = [
     explanation: 'pH = −log[H⁺] = −log(10⁻³) = 3.',
   },
   {
-    id: 'chem-003',
+    id: '7d6c5b4a-3e2f-4a01-9c87-6543210fedcb',
     subject: 'Chemistry',
     year: 2022,
     difficulty: 'Medium',
@@ -36,7 +35,7 @@ export const CHEMISTRY_QUESTIONS: Question[] = [
     explanation: 'Alkanes are saturated hydrocarbons with the general formula CnH2n+2.',
   },
   {
-    id: 'chem-004',
+    id: 'bc123456-7890-4abc-def0-abcd12345678',
     subject: 'Chemistry',
     year: 2022,
     difficulty: 'Easy',
@@ -47,7 +46,7 @@ export const CHEMISTRY_QUESTIONS: Question[] = [
     explanation: 'Sublimation is the transition of a substance directly from the solid to the gas phase.',
   },
   {
-    id: 'chem-005',
+    id: '98765432-abcd-4fed-8765-43210fedcba9',
     subject: 'Chemistry',
     year: 2021,
     difficulty: 'Hard',

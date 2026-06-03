@@ -44,6 +44,7 @@ const Quiz: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showAllSubjects, setShowAllSubjects] = useState(false);
   const [showExitModal, setShowExitModal] = useState(false);
+  const [showResults, setShowResults] = useState(false);
   const [isLoadingTopics, setIsLoadingTopics] = useState(false);
   const [availableTopics, setAvailableTopics] = useState<string[]>([]);
   const [isLoadingQuestions, setIsLoadingQuestions] = useState(false);
@@ -54,7 +55,6 @@ const Quiz: React.FC = () => {
   const {
     questions,
     currentIndex,
-    isFinished,
     isStarted,
     selectedSubject,
     setSelectedSubject,
@@ -65,6 +65,15 @@ const Quiz: React.FC = () => {
     loadQuestions,
     reset,
   } = useQuizStore();
+
+  const isFinished = useQuizStore((s) => s.isFinished);
+
+  // Sync results state with store
+  useEffect(() => {
+    if (isFinished) {
+      setShowResults(true);
+    }
+  }, [isFinished]);
 
   /** Fetch topics when subject changes */
   useEffect(() => {
@@ -110,23 +119,49 @@ const Quiz: React.FC = () => {
     await new Promise((r) => setTimeout(r, 100));
 
     try {
+      // ── CHECK NETWORK & CACHE ──────────────────────────────
+      const isOnline = navigator.onLine;
+      const offlineStore = (
+        await import("../Store/useOfflineStore")
+      ).useOfflineStore.getState();
+
       let qs: any[] = [];
-      if (selectedTopic === "All") {
-        // Get questions for the whole subject (Random years fallback)
-        qs = await fetchQuestionsWithFallback(
-          selectedSubject,
-          "Random",
-          10,
-          selectedDifficulty,
+
+      // Try offline first if user is offline
+      if (!isOnline) {
+        console.log("📴 User is offline. Checking local cache...");
+        // Look for any pack that might contain this subject
+        const packs = offlineStore.downloadedPacks.filter((p) =>
+          p.startsWith(selectedSubject.toLowerCase().slice(0, 3)),
         );
-      } else {
-        // Get questions for the specific topic
-        qs = await fetchQuestionsByTopic(
-          selectedSubject,
-          selectedTopic,
-          10,
-          selectedDifficulty,
-        );
+        if (packs.length > 0) {
+          const offlineQs = await offlineStore.getOfflineQuestions(packs[0]);
+          if (offlineQs.length > 0) {
+            qs = offlineQs.sort(() => Math.random() - 0.5).slice(0, 10);
+            console.log("✅ Loaded questions from offline pack:", packs[0]);
+          }
+        }
+      }
+
+      // If still no questions (online or no offline cache)
+      if (qs.length === 0) {
+        if (selectedTopic === "All") {
+          // Get questions for the whole subject (Random years fallback)
+          qs = await fetchQuestionsWithFallback(
+            selectedSubject,
+            "Random",
+            10,
+            selectedDifficulty,
+          );
+        } else {
+          // Get questions for the specific topic
+          qs = await fetchQuestionsByTopic(
+            selectedSubject,
+            selectedTopic,
+            10,
+            selectedDifficulty,
+          );
+        }
       }
 
       if (qs.length === 0) {
@@ -148,7 +183,7 @@ const Quiz: React.FC = () => {
   };
 
   /* ── Results ───────────────────────────────────────── */
-  if (isFinished) {
+  if (showResults) {
     return (
       <AppLayout
         currentPage="quiz"

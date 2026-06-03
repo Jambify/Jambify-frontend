@@ -294,7 +294,7 @@ const SignUp: React.FC = () => {
 
   // ── Signup Form ───────────────────────────────────────
   return (
-    <div className="min-h-screen bg-bgMain flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-bgMain flex flex-col items-center justify-center p-4 relative overflow-hidden">
       {/* Ambient Glows */}
       <div className="absolute top-0 left-1/4 w-125 h-125 bg-brand/10 blur-[120px] rounded-full pointer-events-none" />
       <div className="absolute bottom-0 right-1/4 w-125 h-125 bg-brand/5 blur-[120px] rounded-full pointer-events-none" />
@@ -434,7 +434,7 @@ const SignUp: React.FC = () => {
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.3 }}
-        className="fixed bottom-10 left-1/2 -translate-x-1/2 w-full max-w-md px-4 z-20"
+        className="lg:relative lg:bottom-auto lg:left-auto lg:translate-x-0 lg:mt-8 lg:z-10 fixed bottom-10 left-1/2 -translate-x-1/2 w-full max-w-md px-4 z-20"
       >
         <button
           onClick={() => navigate("/guest")}

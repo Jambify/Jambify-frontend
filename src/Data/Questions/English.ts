@@ -1,12 +1,11 @@
-// src/Data/Questions/English.ts
 import type { Question } from '../../Types';
 
 export const ENGLISH_QUESTIONS: Question[] = [
   {
-    id: 'eng-001', 
-    subject: 'English', 
+    id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+    subject: 'English',
     year: 2023,
-    difficulty: 'Easy', 
+    difficulty: 'Easy',
     topic: 'Vocabulary',
     text: 'Choose the word closest in meaning to "VERBOSE".',
     options: ['Concise', 'Wordy', 'Aggressive', 'Passive'],
@@ -14,10 +13,10 @@ export const ENGLISH_QUESTIONS: Question[] = [
     explanation: '"Verbose" means using more words than necessary — in other words, wordy.',
   },
   {
-    id: 'eng-002', 
-    subject: 'English', 
+    id: 'b9d5c2e1-4e8a-4a7b-8c9d-1f2e3d4c5b6a',
+    subject: 'English',
     year: 2023,
-    difficulty: 'Medium', 
+    difficulty: 'Medium',
     topic: 'Grammar',
     text: 'Choose the option that best completes the sentence: "Neither the students nor the teacher ___ aware of the change."',
     options: ['were', 'was', 'are', 'have been'],
@@ -25,7 +24,7 @@ export const ENGLISH_QUESTIONS: Question[] = [
     explanation: 'With "neither…nor", the verb agrees with the subject closest to it. Here "the teacher" is singular, so "was" is correct.',
   },
   {
-    id: 'eng-003',
+    id: 'a1b2c3d4-e5f6-4789-a012-b3c4d5e6f7a8',
     subject: 'English',
     year: 2022,
     difficulty: 'Medium',
@@ -36,7 +35,7 @@ export const ENGLISH_QUESTIONS: Question[] = [
     explanation: 'When "as well as" is used, the verb agrees with the first subject ("The principal"), which is singular.',
   },
   {
-    id: 'eng-004',
+    id: 'd4c3b2a1-f6e5-4321-b098-a7b6c5d4e3f2',
     subject: 'English',
     year: 2022,
     difficulty: 'Easy',
@@ -47,7 +46,7 @@ export const ENGLISH_QUESTIONS: Question[] = [
     explanation: '"Ephemeral" means short-lived; its opposite is "Permanent".',
   },
   {
-    id: 'eng-005',
+    id: 'e5f6a7b8-c9d0-4123-b456-7890abcdef12',
     subject: 'English',
     year: 2022,
     difficulty: 'Medium',
@@ -58,7 +57,7 @@ export const ENGLISH_QUESTIONS: Question[] = [
     explanation: '"Feet" and "Beat" share the long /i:/ vowel sound.',
   },
   {
-    id: 'eng-006',
+    id: 'c8d7e6f5-a4b3-4210-9876-543210fedcba',
     subject: 'English',
     year: 2021,
     difficulty: 'Hard',
@@ -69,7 +68,7 @@ export const ENGLISH_QUESTIONS: Question[] = [
     explanation: '"Kick the bucket" is a common idiom meaning to die.',
   },
   {
-    id: 'eng-2018-001',
+    id: 'f1e2d3c4-b5a6-4789-9876-543210abcdef',
     subject: 'English',
     year: 2018,
     difficulty: 'Medium',
@@ -80,7 +79,7 @@ export const ENGLISH_QUESTIONS: Question[] = [
     explanation: 'The past perfect continuous "had been painting" is used for an action that was ongoing up to a point in the past.',
   },
   {
-    id: 'eng-2019-001',
+    id: 'a9b8c7d6-e5f4-4321-b098-76543210fedc',
     subject: 'English',
     year: 2019,
     difficulty: 'Easy',
@@ -91,7 +90,7 @@ export const ENGLISH_QUESTIONS: Question[] = [
     explanation: '"Concise" means giving a lot of information clearly and in a few words.',
   },
   {
-    id: 'eng-2020-001',
+    id: '3d4c5b6a-7f8e-4901-b234-567890abcdef',
     subject: 'English',
     year: 2020,
     difficulty: 'Medium',

@@ -50,12 +50,41 @@ const GuestQuiz: React.FC = () => {
       // Small delay for smooth transition to loader
       await new Promise((r) => setTimeout(r, 100));
 
-      const qs = await fetchQuestionsWithFallback(
-        selectedSubject === "" ? "Biology" : selectedSubject, // Default to Biology if random mix (for simplicity in guest mode)
-        "Random",
-        10,
-        "All",
-      );
+      // ── CHECK NETWORK & CACHE ──────────────────────────────
+      const isOnline = navigator.onLine;
+      const offlineStore = (
+        await import("../../Store/useOfflineStore")
+      ).useOfflineStore.getState();
+
+      let qs: any[] = [];
+
+      // Try offline first if user is offline
+      if (!isOnline && selectedSubject !== "") {
+        console.log(
+          `📴 Guest Offline: Checking local cache for ${selectedSubject}...`,
+        );
+        const packs = offlineStore.downloadedPacks.filter((p) =>
+          p.startsWith(selectedSubject.toLowerCase().slice(0, 3)),
+        );
+        if (packs.length > 0) {
+          const offlineQs = await offlineStore.getOfflineQuestions(packs[0]);
+          if (offlineQs.length > 0) {
+            qs = offlineQs.sort(() => Math.random() - 0.5).slice(0, 10);
+            console.log(
+              `✅ Loaded ${qs.length} guest questions from offline pack: ${packs[0]}`,
+            );
+          }
+        }
+      }
+
+      if (qs.length === 0) {
+        qs = await fetchQuestionsWithFallback(
+          selectedSubject === "" ? "Biology" : selectedSubject, // Default to Biology if random mix (for simplicity in guest mode)
+          "Random",
+          10,
+          "All",
+        );
+      }
 
       setQuestions(qs);
       setScreen("quiz");

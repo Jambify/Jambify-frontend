@@ -25,6 +25,7 @@ import { useExamTimer } from "../../hooks/useExamTimer";
 import { cn } from "../../lib/utils/utils";
 
 import { fetchQuestionsWithFallback } from "../../Services/questionService";
+import { supabase } from "../../lib/supabase";
 import LoadingScreen from "../../components/ui/LoadingScreen";
 import {
   Menu,
@@ -118,7 +119,7 @@ const MockExam: React.FC = () => {
     finishExam(MOCK_DURATION);
   }, [finishExam]);
 
-  const { timeLeft, formattedTime } = useExamTimer({
+  const { timeLeft, formattedTime, status } = useExamTimer({
     initialTime: MOCK_DURATION,
     onTimeUp: handleTimeUp,
     isActive: isStarted && !isFinished,
@@ -165,18 +166,47 @@ const MockExam: React.FC = () => {
     await new Promise((r) => setTimeout(r, 100));
 
     try {
+      // ── CHECK NETWORK & CACHE ──────────────────────────────
+      const isOnline = navigator.onLine;
+      const offlineStore = (
+        await import("../../Store/useOfflineStore")
+      ).useOfflineStore.getState();
+
       const finalQuestionsList: any[] = [];
 
       for (const subjectId of selectedCombination) {
         const config = AVAILABLE_SUBJECTS.find((s) => s.id === subjectId);
         if (!config) continue;
 
-        // Fetch from Supabase with Fallback logic
-        let fetched = await fetchQuestionsWithFallback(
-          subjectId,
-          selectedYear,
-          config.required,
-        );
+        let fetched: any[] = [];
+
+        // Try offline first if user is offline
+        if (!isOnline) {
+          console.log(`📴 Offline: Checking local cache for ${subjectId}...`);
+          const packs = offlineStore.downloadedPacks.filter((p) =>
+            p.startsWith(subjectId.toLowerCase().slice(0, 3)),
+          );
+          if (packs.length > 0) {
+            const offlineQs = await offlineStore.getOfflineQuestions(packs[0]);
+            if (offlineQs.length >= config.required) {
+              fetched = offlineQs
+                .sort(() => Math.random() - 0.5)
+                .slice(0, config.required);
+              console.log(
+                `✅ Loaded ${fetched.length} questions from offline pack: ${packs[0]}`,
+              );
+            }
+          }
+        }
+
+        // If still no questions (online or no offline cache)
+        if (fetched.length === 0) {
+          fetched = await fetchQuestionsWithFallback(
+            subjectId,
+            selectedYear,
+            config.required,
+          );
+        }
 
         // Randomize options for each question to prevent memorization
         const randomized = fetched.map((q: any) => {
@@ -206,7 +236,7 @@ const MockExam: React.FC = () => {
     }
   };
 
-  const handleFinishExam = () => {
+  const handleFinishExam = async () => {
     const timeTaken = MOCK_DURATION - timeLeft;
     finishExam(timeTaken);
     setShowConfirmSubmit(false);
@@ -214,13 +244,59 @@ const MockExam: React.FC = () => {
     // Save result if logged in
     const { lastResult } = useMockStore.getState();
     if (isAuthenticated && lastResult) {
-      addQuizResult(
-        "mock",
-        "Full Mock Exam",
-        questions.map((q) => q.id),
-        answers,
-        timeTaken,
-      );
+      // ── IMPROVED: Save individual session records for EACH subject ──
+      // This ensures the dashboard accurately tracks progress for every subject taken
+      try {
+        await Promise.all(
+          lastResult.subjectBreakdown.map((sb) => {
+            const subjectQuestions = questions.filter(
+              (q) => q.subject === sb.subject,
+            );
+            const subjectAnswers: Record<number, number> = {};
+
+            // Map the global answer indices to relative indices for this subject session
+            subjectQuestions.forEach((q, idx) => {
+              const globalIdx = questions.indexOf(q);
+              if (answers[globalIdx] !== undefined) {
+                subjectAnswers[idx] = answers[globalIdx];
+              }
+            });
+
+            return addQuizResult(
+              "mock",
+              sb.subject,
+              subjectQuestions.map((q) => q.id),
+              subjectAnswers,
+              Math.floor(timeTaken / lastResult.subjectBreakdown.length), // distribute time
+              sb.correct, // Pass calculated correct count
+              sb.total, // Pass total questions
+            );
+          }),
+        );
+
+        // ── UPDATE OVERALL BEST SCORE ──────────────────────────────────
+        // Only update if the new JAMB score is higher than the current best
+        const {
+          bestScore,
+          id: userId,
+          syncProfile,
+        } = useUserStore.getState();
+        if (lastResult.jambScore > bestScore) {
+          console.log(
+            `🏆 New Best Score! ${lastResult.jambScore} > ${bestScore}`,
+          );
+          await supabase
+            .from("profiles")
+            .update({ best_score: lastResult.jambScore })
+            .eq("id", userId);
+        }
+
+        // Refresh user profile to update dashboard stats instantly
+        await syncProfile(true);
+        console.log("✅ [MockExam] All results saved and profile synced.");
+      } catch (err) {
+        console.error("❌ [MockExam] Failed to save all subject results:", err);
+      }
     }
   };
 
@@ -487,26 +563,26 @@ const MockExam: React.FC = () => {
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-bgMain">
           {/* Header */}
-          <header className="z-30 bg-bgCard border-b border-borderMuted px-4 py-3 sm:px-6 flex items-center justify-between shadow-sm shrink-0">
-            <div className="flex items-center gap-4">
+          <header className="z-30 bg-bgCard border-b border-borderMuted px-3 py-2 sm:px-6 sm:py-3 flex items-center justify-between shadow-sm shrink-0">
+            <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
               <button
                 onClick={() => setShowConfirmExit(true)}
-                className="p-2 hover:bg-bgSurface rounded-full transition-all text-textDim hover:text-danger active:scale-90"
+                className="p-1.5 sm:p-2 hover:bg-bgSurface rounded-full transition-all text-textDim hover:text-danger active:scale-90 shrink-0"
                 title="Exit Exam"
               >
-                <ChevronLeft size={24} />
+                <ChevronLeft size={20} className="sm:w-6 sm:h-6" />
               </button>
-              <div className="h-8 w-px bg-borderMuted hidden sm:block"></div>
-              <div>
-                <h1 className="text-sm font-bold text-textMain">
+              <div className="h-6 w-px bg-borderMuted hidden sm:block"></div>
+              <div className="min-w-0">
+                <h1 className="text-xs sm:text-sm font-bold text-textMain truncate leading-tight">
                   {activeSubject}
                 </h1>
-                <p className="text-[10px] text-textDim uppercase font-bold tracking-tighter">
-                  Question{" "}
+                <p className="text-[9px] sm:text-[10px] text-textDim uppercase font-bold tracking-tighter truncate opacity-80">
+                  Q
                   {questions
                     .filter((quest) => quest.subject === activeSubject)
                     .findIndex((quest) => quest.id === q.id) + 1}{" "}
-                  of{" "}
+                  /{" "}
                   {
                     questions.filter((quest) => quest.subject === activeSubject)
                       .length
@@ -515,10 +591,10 @@ const MockExam: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex items-center gap-3 sm:gap-6">
+            <div className="flex items-center gap-1.5 sm:gap-4 shrink-0 ml-2">
               <div
                 className={cn(
-                  "flex items-center gap-2 px-4 py-2 rounded-full border font-mono font-black tabular-nums shadow-sm transition-colors",
+                  "flex items-center gap-1 sm:gap-2 px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-full border font-mono font-black tabular-nums shadow-sm transition-colors",
                   status === "red"
                     ? "bg-danger/10 border-danger/30 text-danger animate-pulse"
                     : status === "orange"
@@ -528,24 +604,26 @@ const MockExam: React.FC = () => {
                         : "bg-success/10 border-success/20 text-success",
                 )}
               >
-                <Clock size={18} />
-                <span className="text-sm sm:text-base">{formattedTime}</span>
+                <Clock size={12} className="sm:w-4.5 sm:h-4.5" />
+                <span className="text-[11px] sm:text-base">
+                  {formattedTime}
+                </span>
               </div>
 
               <Button
                 variant="primary"
                 size="md"
                 onClick={() => setShowConfirmSubmit(true)}
-                className="shadow-brand/20 shadow-lg px-6 font-bold"
+                className="hidden sm:flex shadow-brand/20 shadow-lg px-6 font-bold"
               >
                 Submit
               </Button>
 
               <button
-                className="lg:hidden p-2 hover:bg-bgSurface rounded-full active:scale-90 text-textDim"
+                className="lg:hidden p-1.5 hover:bg-bgSurface rounded-full active:scale-90 text-textDim shrink-0"
                 onClick={() => setIsSidebarOpen(true)}
               >
-                <Menu size={24} />
+                <Menu size={20} className="sm:w-6 sm:h-6" />
               </button>
             </div>
           </header>
@@ -716,6 +794,21 @@ const MockExam: React.FC = () => {
                 </h3>
                 <QuestionPalette onJumpToQuestion={jumpToQuestion} />
               </div>
+            </div>
+
+            {/* Mobile Submit Button */}
+            <div className="p-4 border-t border-borderMuted bg-bgSurface/30">
+              <Button
+                variant="primary"
+                fullWidth
+                onClick={() => {
+                  setIsSidebarOpen(false);
+                  setShowConfirmSubmit(true);
+                }}
+                className="shadow-brand/20 shadow-lg font-bold"
+              >
+                Submit Exam
+              </Button>
             </div>
           </div>
         </div>

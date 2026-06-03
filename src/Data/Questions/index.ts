@@ -5,7 +5,7 @@
 import type { Question } from '../../Types';
 
 import { ENGLISH_QUESTIONS }     from './English';
-import { MATHEMATICS_QUESTIONS } from './Mathematics';
+// import { MATHEMATICS_QUESTIONS } from './Mathematics';
 import { PHYSICS_QUESTIONS }     from './Physics';
 import { CHEMISTRY_QUESTIONS }   from './Chemistry';
 import { BIOLOGY_QUESTIONS }     from './Biology';
@@ -14,7 +14,7 @@ import { BIOLOGY_QUESTIONS }     from './Biology';
 // e.g. MockExam has { id: "Literature" } so the key here is "Literature" not "Literature in English"
 export const LOCAL_DATABASE: Record<string, Question[]> = {
   'English':     ENGLISH_QUESTIONS,
-  'Mathematics': MATHEMATICS_QUESTIONS,
+  // 'Mathematics': MATHEMATICS_QUESTIONS,
   'Physics':     PHYSICS_QUESTIONS,
   'Chemistry':   CHEMISTRY_QUESTIONS,
   'Biology':     BIOLOGY_QUESTIONS,

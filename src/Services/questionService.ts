@@ -71,8 +71,10 @@ const mapDbToQuestion = (row: any, subject: string): Question => {
 
   const { shuffled, newIndex } = shuffleOptions(rawOptions, rawAnswer);
 
+  // Ensure ID is a string, but note that the DB expects UUID format
+  // If it's a local question with a non-UUID ID, it might fail DB operations
   return {
-    id: row.id?.toString() ?? Math.random().toString(36).slice(2),
+    id: row.id?.toString() ?? "",
     subject: (row.subject ?? subject) as any,
     year: parseInt(row.year ?? row.examyear ?? '2023', 10),
     difficulty: (row.difficulty ?? 'Medium') as any,
@@ -128,21 +130,25 @@ export const fetchQuestionsWithFallback = async (
   year: string | number,
   requiredCount: number,
   difficulty: string = 'All',
+  excludeIds: string[] = [],
 ): Promise<Question[]> => {
 
   // Normalise inputs
-  // DB enums are usually Title Case (e.g. 'Biology', 'Easy')
   const formattedSubject = subject.trim().charAt(0).toUpperCase() + subject.trim().slice(1).toLowerCase();
   const resolvedYear = resolveYear(year);
   const resolvedDiff = difficulty === 'All' ? undefined : (difficulty.trim().charAt(0).toUpperCase() + difficulty.trim().slice(1).toLowerCase()) as Difficulty;
-  const fetchedIds = new Set<string>();
+  const fetchedIds = new Set<string>(excludeIds);
   let finalQuestions: Question[] = [];
+
+  // Also track content hashes to avoid same question with different IDs
+  const seenContent = new Set<string>();
 
   console.log('🚀 [questionService] fetch params:', {
     subject: formattedSubject,
     year: resolvedYear ?? (typeof year === 'string' ? year : 'Random'),
     difficulty: resolvedDiff ?? 'All',
     required: requiredCount,
+    excluding: excludeIds.length,
   });
 
   try {
@@ -151,20 +157,27 @@ export const fetchQuestionsWithFallback = async (
       let q = supabase
         .from('questions')
         .select('*')
-        .eq('subject', formattedSubject); // Use .eq() for enums
+        .eq('subject', formattedSubject);
 
       if (resolvedYear !== null) {
         q = q.eq('year', resolvedYear);
       } else {
-        // Random within range
         q = q.gte('year', MIN_YEAR).lte('year', MAX_YEAR);
       }
 
       if (resolvedDiff) {
-        q = q.eq('difficulty', resolvedDiff); // Use .eq() for enums
+        q = q.eq('difficulty', resolvedDiff);
       }
 
-      const { data, error } = await q.limit(requiredCount * 5); // Fetch more to get variety
+      if (fetchedIds.size > 0) {
+        // Use filtering by ID to ensure we don't get duplicates
+        const idList = Array.from(fetchedIds).filter(id => !isNaN(Number(id)));
+        if (idList.length > 0) {
+          q = q.not('id', 'in', `(${idList.join(',')})`);
+        }
+      }
+
+      const { data, error } = await q.limit(requiredCount * 10); // Fetch more for variety
 
       if (error) {
         console.error('❌ [Tier 1 fetch error]', error.message);
@@ -172,15 +185,17 @@ export const fetchQuestionsWithFallback = async (
       }
 
       if (data && data.length > 0) {
-        const yearsFound = Array.from(new Set(data.map(r => r.year))).filter(Boolean);
-        console.log(`✅ [Tier 1] Found ${data.length} questions. Years in DB sample:`, yearsFound);
-
         const shuffled = [...data].sort(() => Math.random() - 0.5);
         for (const row of shuffled) {
           if (finalQuestions.length >= requiredCount) break;
           const mapped = mapDbToQuestion(row, formattedSubject);
-          fetchedIds.add(mapped.id);
-          finalQuestions.push(mapped);
+
+          const contentKey = mapped.text.trim().toLowerCase();
+          if (!fetchedIds.has(mapped.id) && !seenContent.has(contentKey)) {
+            fetchedIds.add(mapped.id);
+            seenContent.add(contentKey);
+            finalQuestions.push(mapped);
+          }
         }
       }
     }
@@ -188,12 +203,11 @@ export const fetchQuestionsWithFallback = async (
     // ── TIER 2: Fallback (Relax Difficulty) ──────────────────────────────────
     if (finalQuestions.length < requiredCount && resolvedDiff) {
       const needed = requiredCount - finalQuestions.length;
-      console.log(`🔄 [Tier 2] Only found ${finalQuestions.length}/${requiredCount}. Retrying without difficulty filter...`);
 
       let q = supabase
         .from('questions')
         .select('*')
-        .eq('subject', formattedSubject); // Use .eq() for enums
+        .eq('subject', formattedSubject);
 
       if (resolvedYear !== null) {
         q = q.eq('year', resolvedYear);
@@ -202,18 +216,24 @@ export const fetchQuestionsWithFallback = async (
       }
 
       if (fetchedIds.size > 0) {
-        q = q.not('id', 'in', `(${Array.from(fetchedIds).join(',')})`);
+        const idList = Array.from(fetchedIds).filter(id => !isNaN(Number(id)));
+        if (idList.length > 0) {
+          q = q.not('id', 'in', `(${idList.join(',')})`);
+        }
       }
 
-      const { data } = await q.limit(needed * 2);
+      const { data } = await q.limit(needed * 5);
 
       if (data && data.length > 0) {
         const shuffled = [...data].sort(() => Math.random() - 0.5);
         for (const row of shuffled) {
           if (finalQuestions.length >= requiredCount) break;
           const mapped = mapDbToQuestion(row, formattedSubject);
-          if (!fetchedIds.has(mapped.id)) {
+
+          const contentKey = mapped.text.trim().toLowerCase();
+          if (!fetchedIds.has(mapped.id) && !seenContent.has(contentKey)) {
             fetchedIds.add(mapped.id);
+            seenContent.add(contentKey);
             finalQuestions.push(mapped);
           }
         }
@@ -223,26 +243,31 @@ export const fetchQuestionsWithFallback = async (
     // ── TIER 3: Last Resort (Any Year, Any Difficulty) ──────────────────────
     if (finalQuestions.length < requiredCount) {
       const needed = requiredCount - finalQuestions.length;
-      console.log(`🔄 [Tier 3] Still need ${needed} more. Fetching any available for ${formattedSubject}`);
 
       let q = supabase
         .from('questions')
         .select('*')
-        .eq('subject', formattedSubject); // Use .eq() for enums
+        .eq('subject', formattedSubject);
 
       if (fetchedIds.size > 0) {
-        q = q.not('id', 'in', `(${Array.from(fetchedIds).join(',')})`);
+        const idList = Array.from(fetchedIds).filter(id => !isNaN(Number(id)));
+        if (idList.length > 0) {
+          q = q.not('id', 'in', `(${idList.join(',')})`);
+        }
       }
 
-      const { data } = await q.limit(needed * 2);
+      const { data } = await q.limit(needed * 5);
 
       if (data && data.length > 0) {
         const shuffled = [...data].sort(() => Math.random() - 0.5);
         for (const row of shuffled) {
           if (finalQuestions.length >= requiredCount) break;
           const mapped = mapDbToQuestion(row, formattedSubject);
-          if (!fetchedIds.has(mapped.id)) {
+
+          const contentKey = mapped.text.trim().toLowerCase();
+          if (!fetchedIds.has(mapped.id) && !seenContent.has(contentKey)) {
             fetchedIds.add(mapped.id);
+            seenContent.add(contentKey);
             finalQuestions.push(mapped);
           }
         }
@@ -328,6 +353,7 @@ export const fetchQuestionsByTopic = async (
   topic: string,
   limit: number = 10,
   difficulty: string = 'All',
+  excludeIds: string[] = [],
 ): Promise<Question[]> => {
   try {
     const formattedSubject = subject.trim().charAt(0).toUpperCase() + subject.trim().slice(1).toLowerCase();
@@ -343,23 +369,43 @@ export const fetchQuestionsByTopic = async (
 
     if (resolvedDiff) q = q.eq('difficulty', resolvedDiff);
 
-    const { data, error } = await q.limit(limit * 3);
+    if (excludeIds.length > 0) {
+      const idList = excludeIds.filter(id => !isNaN(Number(id)));
+      if (idList.length > 0) {
+        q = q.not('id', 'in', `(${idList.join(',')})`);
+      }
+    }
+
+    const { data, error } = await q.limit(limit * 5);
 
     if (error) throw error;
 
     if (data && data.length > 0) {
-      const shuffled = [...data]
-        .sort(() => Math.random() - 0.5)
-        .slice(0, limit)
-        .map(row => mapDbToQuestion(row, formattedSubject));
-      return shuffled;
+      const fetchedIds = new Set<string>(excludeIds);
+      const seenContent = new Set<string>();
+      const finalQuestions: Question[] = [];
+
+      const shuffled = [...data].sort(() => Math.random() - 0.5);
+
+      for (const row of shuffled) {
+        if (finalQuestions.length >= limit) break;
+        const mapped = mapDbToQuestion(row, formattedSubject);
+        const contentKey = mapped.text.trim().toLowerCase();
+
+        if (!fetchedIds.has(mapped.id) && !seenContent.has(contentKey)) {
+          fetchedIds.add(mapped.id);
+          seenContent.add(contentKey);
+          finalQuestions.push(mapped);
+        }
+      }
+      return finalQuestions;
     }
 
     // Topic returned nothing — fall back to general subject fetch
-    return fetchQuestionsWithFallback(formattedSubject, 'Random', limit, difficulty);
+    return fetchQuestionsWithFallback(formattedSubject, 'Random', limit, difficulty, excludeIds);
   } catch (err) {
     console.error('[fetchQuestionsByTopic]', err);
     const formattedSubject = subject.trim().charAt(0).toUpperCase() + subject.trim().slice(1).toLowerCase();
-    return fetchQuestionsWithFallback(formattedSubject, 'Random', limit, difficulty);
+    return fetchQuestionsWithFallback(formattedSubject, 'Random', limit, difficulty, excludeIds);
   }
 };

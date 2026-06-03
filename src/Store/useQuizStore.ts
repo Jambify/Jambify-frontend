@@ -5,27 +5,30 @@ interface QuizState {
   // Data
   questions: Question[];
   currentIndex: number;
-  answers: Record<number, number>;  // questionIndex → chosen option (-1 = timed out)
+  answers: Record<number, number>; // questionIndex → chosen option (-1 = timed out)
   // Flags
   isStarted: boolean;
   isFinished: boolean;
-  hasAnswered: boolean;               // true once current Q is answered
+  hasAnswered: boolean; // true once current Q is answered
+  // Timer
+  timeLeft: number;
+  quizDuration: number;
   // Filter
   selectedSubject: string;
   selectedTopic: string;
-  selectedDifficulty: 'Easy' | 'Medium' | 'Hard' | 'All';
+  selectedDifficulty: "Easy" | "Medium" | "Hard" | "All";
   isFinishedQuiz: boolean;
-  finishQuiz: () => void;           // Action to mark quiz as finished when time expires
+  finishQuiz: () => void; // Action to mark quiz as finished when time expires
   // Actions
-  loadQuestions: (qs: Question[]) => void;
+  loadQuestions: (qs: Question[], duration?: number) => void;
   submitAnswer: (qi: number, opt: number) => void;
+  updateTime: (seconds: number) => void;
   next: () => void;
   reset: () => void;
   setSelectedSubject: (s: string) => void;
   setSelectedTopic: (t: string) => void;
-  setSelectedDifficulty: (d: 'Easy' | 'Medium' | 'Hard' | 'All') => void;
+  setSelectedDifficulty: (d: "Easy" | "Medium" | "Hard" | "All") => void;
 }
-
 
 export const useQuizStore = create<QuizState>()((set, get) => ({
   questions: [],
@@ -34,18 +37,21 @@ export const useQuizStore = create<QuizState>()((set, get) => ({
   isStarted: false,
   isFinished: false,
   hasAnswered: false,
-  selectedSubject: 'English',
-  selectedTopic: 'All',
-  selectedDifficulty: 'All',
+  timeLeft: 0,
+  quizDuration: 1800, // 30 mins default
+  selectedSubject: "English",
+  selectedTopic: "All",
+  selectedDifficulty: "All",
   isFinishedQuiz: false,
-  // Inside useQuizStore create block:
-  finishQuiz: () => set({
-    isFinished: true,
-    isStarted: false,
-    isFinishedQuiz: true
-  }),
 
-  loadQuestions: (qs) =>
+  finishQuiz: () =>
+    set({
+      isFinished: true,
+      isStarted: false,
+      isFinishedQuiz: true,
+    }),
+
+  loadQuestions: (qs, duration = 1800) =>
     set({
       questions: qs,
       currentIndex: 0,
@@ -53,9 +59,11 @@ export const useQuizStore = create<QuizState>()((set, get) => ({
       isStarted: true,
       isFinished: false,
       hasAnswered: false,
+      timeLeft: duration,
+      quizDuration: duration,
     }),
-  // Inside useQuizStore create block:
 
+  updateTime: (seconds) => set({ timeLeft: seconds }),
 
   submitAnswer: (qi, opt) =>
     set((s) => ({

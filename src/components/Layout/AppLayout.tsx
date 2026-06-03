@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useUserStore } from "../../Store/UseUserStore";
 import { useExamCountdown } from "../../hooks/useExamCountdown";
 import Sidebar from "./Sidebar";
+import { useNetworkStatus } from "../../hooks/useNetworkStatus";
 import {
   LayoutGrid,
   FileText,
@@ -13,7 +14,12 @@ import {
   Menu,
   type LucideIcon,
   Settings,
+  WifiOff,
+  Wifi,
+  Trophy,
+  Sparkles,
 } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "../../lib/utils/utils";
 import ThemeToggle from "../ui/ThemeToggle";
 
@@ -79,26 +85,73 @@ const AppLayout: React.FC<LayoutProps> = ({
   const name = useUserStore((state) => state.name);
   const targetScore = useUserStore((state) => state.targetScore);
   const streak = useUserStore((state) => state.streak);
+  const isPro = useUserStore((state) => state.isPro);
   const { daysLeft } = useExamCountdown(); // ← Dynamic countdown
+  const { isOnline, wasOffline } = useNetworkStatus();
 
   const displayName = name || "Guest User";
   const initials = getInitials(displayName);
 
   return (
     <div className="min-h-screen bg-bgMain text-textMain font-sans selection:bg-brand/30">
+      {/* Network Status Toast */}
+      <AnimatePresence>
+        {!isOnline && (
+          <motion.div
+            initial={{ y: -50, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -50, opacity: 0 }}
+            className="fixed top-0 inset-x-0 z-200 flex justify-center p-4 pointer-events-none"
+          >
+            <div className="bg-danger/90 backdrop-blur-md text-white px-6 py-2.5 rounded-full shadow-2xl flex items-center gap-3 border border-white/10">
+              <WifiOff size={18} className="animate-pulse" />
+              <span className="text-sm font-bold tracking-tight">
+                You are offline. Some features may be limited.
+              </span>
+            </div>
+          </motion.div>
+        )}
+        {wasOffline && isOnline && (
+          <motion.div
+            initial={{ y: -50, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -50, opacity: 0 }}
+            className="fixed top-0 inset-x-0 z-200 flex justify-center p-4 pointer-events-none"
+          >
+            <div className="bg-success/90 backdrop-blur-md text-white px-6 py-2.5 rounded-full shadow-2xl flex items-center gap-3 border border-white/10">
+              <Wifi size={18} />
+              <span className="text-sm font-bold tracking-tight">
+                Back online! Syncing your progress...
+              </span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       {/* MOBILE SIDEBAR (Drawer) */}
-      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+      {!hideSidebar && (
+        <Sidebar
+          isOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
+        />
+      )}
 
       {/* DESKTOP SIDEBAR */}
       {!hideSidebar && (
         <aside className="fixed left-0 top-0 bottom-0 w-60 bg-bgSurface border-r border-borderMuted flex-col z-100 hidden lg:flex">
-          <div className="p-6 pb-4 flex items-center gap-3 border-b border-borderMuted">
-            <div className="w-8 h-8 bg-brand rounded-lg flex items-center justify-center font-display font-extrabold shadow-[0_8px_40px_rgba(91,59,255,0.3)]">
-              J
+          <div className="p-6 pb-4 flex items-center justify-between border-b border-borderMuted">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-brand rounded-lg flex items-center justify-center font-display font-extrabold shadow-[0_8px_40px_rgba(91,59,255,0.3)]">
+                J
+              </div>
+              <div className="font-display font-bold text-[17px] tracking-tight">
+                JAMB<span className="text-brand-light">IFY</span>
+              </div>
             </div>
-            <div className="font-display font-bold text-[17px] tracking-tight">
-              JAMB<span className="text-brand-light">IFY</span>
-            </div>
+            {isPro && (
+              <div className="bg-brand/10 text-brand text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded border border-brand/20">
+                Pro
+              </div>
+            )}
           </div>
 
           <nav className="flex-1 overflow-y-auto p-3 space-y-6">
@@ -112,9 +165,18 @@ const AppLayout: React.FC<LayoutProps> = ({
                 icon="grid"
                 path="/"
               />
-              <NavItem label="Practice Quiz" badge={3} icon="file" path="/quiz" />
+              <NavItem
+                label="Practice Quiz"
+                badge={3}
+                icon="file"
+                path="/quiz"
+              />
               <NavItem label="Subjects" icon="book" path="/subjects" />
-              <NavItem label="Performance" icon="activity" path="/performance" />
+              <NavItem
+                label="Performance"
+                icon="activity"
+                path="/performance"
+              />
               <NavItem label="Settings" icon="settings" path="/settings" />
             </section>
 
@@ -130,6 +192,38 @@ const AppLayout: React.FC<LayoutProps> = ({
                 path="/past-questions"
               />
             </section>
+
+            {/* Pro Upgrade / Status Card */}
+            <section className="px-2 pt-2">
+              {!isPro ? (
+                <Link
+                  to="/settings"
+                  className="block p-3 rounded-xl bg-brand/5 border border-brand/10 hover:bg-brand/10 transition-all group"
+                >
+                  <div className="flex items-center gap-2 mb-1.5 text-brand">
+                    <Sparkles
+                      size={14}
+                      className="group-hover:rotate-12 transition-transform"
+                    />
+                    <span className="text-[11px] font-black uppercase tracking-widest">
+                      Unlock Pro
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-textDim leading-tight">
+                    Get AI explanations, offline mode & more.
+                  </p>
+                </Link>
+              ) : (
+                <div className="p-3 rounded-xl bg-success/5 border border-success/10">
+                  <div className="flex items-center gap-2 text-success">
+                    <Trophy size={14} />
+                    <span className="text-[11px] font-black uppercase tracking-widest">
+                      Pro Member
+                    </span>
+                  </div>
+                </div>
+              )}
+            </section>
           </nav>
 
           <div className="p-4 border-t border-borderMuted">
@@ -137,15 +231,24 @@ const AppLayout: React.FC<LayoutProps> = ({
               to="/settings"
               className="flex items-center gap-3 p-2 hover:bg-bgCard rounded-brand cursor-pointer transition-colors"
             >
-              <div className="w-8 h-8 rounded-full bg-brand flex items-center justify-center font-display text-xs font-bold text-white shadow-sm">
+              <div className="w-8 h-8 rounded-full bg-brand flex items-center justify-center font-display text-xs font-bold text-white shadow-sm relative">
                 {initials}
+                {isPro && (
+                  <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-brand border-2 border-bgSurface rounded-full flex items-center justify-center">
+                    <div className="w-1 h-1 bg-white rounded-full" />
+                  </div>
+                )}
               </div>
               <div className="overflow-hidden">
-                <div className="text-sm font-medium truncate">{displayName}</div>
+                <div className="text-sm font-medium truncate">
+                  {displayName}
+                </div>
                 <div className="text-[11px] text-textDim">
-                  {targetScore
-                    ? `Target: ${targetScore}`
-                    : `${streak} day streak`}
+                  {isPro
+                    ? "Pro Active"
+                    : targetScore
+                      ? `Target: ${targetScore}`
+                      : `${streak} day streak`}
                 </div>
               </div>
             </Link>
@@ -154,10 +257,7 @@ const AppLayout: React.FC<LayoutProps> = ({
       )}
 
       {/* MAIN CONTENT AREA */}
-      <main className={cn(
-        "flex-1 pb-24 lg:pb-0",
-        !hideSidebar && "lg:ml-60"
-      )}>
+      <main className={cn("flex-1 pb-24 lg:pb-0", !hideSidebar && "lg:ml-60")}>
         {!hideSidebar && (
           <header className="sticky top-0 z-50 h-14 bg-bgMain/85 backdrop-blur-md border-b border-borderMuted px-4 lg:px-7 flex items-center justify-between safe-area-top fixed-ios">
             <div className="flex items-center gap-3">
@@ -187,16 +287,18 @@ const AppLayout: React.FC<LayoutProps> = ({
               <div className="bg-brand-dim text-brand-light border border-brand/20 px-2.5 lg:px-3 py-1 rounded-full text-[10px] lg:text-xs font-medium">
                 ⏳ {daysLeft} day{daysLeft !== 1 ? "s" : ""}
               </div>
-              <ThemeToggle/>
+              <ThemeToggle />
             </div>
           </header>
         )}
 
-        <div className={cn(
-          "animate-in fade-in slide-in-from-bottom-2 duration-300",
-          !hideSidebar ? "p-4 lg:p-7" : "p-0",
-          className
-        )}>
+        <div
+          className={cn(
+            "animate-in fade-in slide-in-from-bottom-2 duration-300",
+            !hideSidebar ? "p-4 lg:p-7" : "p-0",
+            className,
+          )}
+        >
           {children}
         </div>
       </main>

@@ -1,12 +1,11 @@
-// src/Data/Questions/Physics.ts
 import type { Question } from '../../Types';
 
 export const PHYSICS_QUESTIONS: Question[] = [
   {
-    id: 'phy-001', 
-    subject: 'Physics', 
+    id: 'a8b7c6d5-e4f3-4210-9876-543210fedcba',
+    subject: 'Physics',
     year: 2023,
-    difficulty: 'Hard', 
+    difficulty: 'Hard',
     topic: 'Kinematics',
     text: 'A car accelerates uniformly from rest to 20 m/s in 4 seconds. What is the distance covered?',
     options: ['40 m', '80 m', '160 m', '20 m'],
@@ -14,10 +13,10 @@ export const PHYSICS_QUESTIONS: Question[] = [
     explanation: 'Using s = ½(u + v)t = ½(0 + 20) × 4 = 40 m.',
   },
   {
-    id: 'phy-002', 
-    subject: 'Physics', 
+    id: '550e8400-e29b-41d4-a716-446655440000',
+    subject: 'Physics',
     year: 2023,
-    difficulty: 'Easy', 
+    difficulty: 'Easy',
     topic: "Newton's Laws",
     text: "Which statement correctly describes Newton's First Law of Motion?",
     options: [
@@ -30,7 +29,7 @@ export const PHYSICS_QUESTIONS: Question[] = [
     explanation: "Newton's First Law (Law of Inertia) states that an object at rest stays at rest, and an object in motion stays in motion at the same speed and direction, unless acted on by an unbalanced force.",
   },
   {
-    id: 'phy-003',
+    id: 'bc123456-7890-4abc-def0-1234567890ab',
     subject: 'Physics',
     year: 2022,
     difficulty: 'Medium',
@@ -41,7 +40,7 @@ export const PHYSICS_QUESTIONS: Question[] = [
     explanation: 'The speed of sound in air at room temperature is roughly 340 m/s. 3.0 x 10⁸ m/s is the speed of light.',
   },
   {
-    id: 'phy-004',
+    id: 'de987654-3210-4fed-cba9-876543210fed',
     subject: 'Physics',
     year: 2022,
     difficulty: 'Hard',
@@ -52,7 +51,7 @@ export const PHYSICS_QUESTIONS: Question[] = [
     explanation: '1/Rt = 1/4 + 1/6 = (3+2)/12 = 5/12. Rt = 12/5 = 2.4Ω.',
   },
   {
-    id: 'phy-005',
+    id: '1234abcd-efab-4cde-8901-234567890abc',
     subject: 'Physics',
     year: 2021,
     difficulty: 'Medium',
