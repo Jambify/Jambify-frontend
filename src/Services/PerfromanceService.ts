@@ -27,6 +27,37 @@ export interface PerformanceSummary {
   sessionsCount: number;
 }
 
+interface SupabaseResponse<T> {
+  data: T | null;
+  error: any;
+}
+
+interface PerformanceSummaryData {
+  total_questions: number;
+  avg_accuracy: number;
+  mock_scores: MockScore[];
+  sessions_count: number;
+}
+
+interface WeeklyActivityData {
+  date: string;
+  questions: number;
+}
+
+interface TopicPerformanceData {
+  subject: string;
+  correct: number;
+  total: number;
+}
+
+interface QuizSubmissionData {
+  session_id: string;
+  correct: number;
+  total: number;
+  accuracy: number;
+  streak: number;
+}
+
 // Get performance summary from Supabase
 export const getPerformanceSummary = async (): Promise<PerformanceSummary> => {
   const { data: { user } } = await supabase.auth.getUser();
@@ -34,7 +65,7 @@ export const getPerformanceSummary = async (): Promise<PerformanceSummary> => {
 
   const { data, error } = await supabase.rpc('get_performance_summary', {
     p_user_id: user.id
-  }) as { data: any, error: any };
+  }) as SupabaseResponse<PerformanceSummaryData>;
 
   if (error) throw error;
 
@@ -53,7 +84,7 @@ export const getWeeklyActivity = async (): Promise<WeeklyActivity[]> => {
 
   const { data, error } = await supabase.rpc('get_weekly_activity', {
     p_user_id: user.id
-  }) as { data: any, error: any };
+  }) as SupabaseResponse<WeeklyActivityData[]>;
 
   if (error) throw error;
 
@@ -62,7 +93,7 @@ export const getWeeklyActivity = async (): Promise<WeeklyActivity[]> => {
   const result: WeeklyActivity[] = dayNames.map(day => ({ day, questions: 0 }));
 
   if (data && Array.isArray(data)) {
-    data.forEach((item: any) => {
+    data.forEach((item) => {
       const date = new Date(item.date);
       const dayIndex = date.getDay();
       if (result[dayIndex]) {
@@ -90,8 +121,8 @@ export const getDetailedTopicStats = async (): Promise<TopicStat[]> => {
   const topicAgg: Record<string, { subject: string; correct: number; total: number }> = {};
 
   sessions.forEach(s => {
-    const perf = s.topic_performance || {};
-    Object.entries(perf).forEach(([key, data]: [string, any]) => {
+    const perf = (s.topic_performance as Record<string, TopicPerformanceData>) || {};
+    Object.entries(perf).forEach(([key, data]) => {
       if (!topicAgg[key]) {
         topicAgg[key] = { subject: data.subject, correct: 0, total: 0 };
       }
@@ -214,7 +245,7 @@ export const submitQuizSession = async (
     p_frontend_correct: finalCorrect,
     p_frontend_accuracy: finalAccuracy,
     p_topic_performance: topicPerformance || {}
-  }) as { data: any, error: any };
+  }) as SupabaseResponse<QuizSubmissionData>;
 
   if (error) {
     console.error('❌ [submitQuizSession] RPC Error:', error);
@@ -228,6 +259,8 @@ export const submitQuizSession = async (
   } catch (e) {
     console.warn("Could not sync profile after quiz submission:", e);
   }
+
+  if (!data) throw new Error('Failed to submit session');
 
   const result = {
     sessionId: data.session_id,

@@ -251,9 +251,6 @@ const SwipeableBubble: React.FC<SwipeableBubbleProps> = ({
 
 // ── Main component ──────────────────────────────────────
 const GroupChat: React.FC<Props> = ({ group, onBack }) => {
-  // Safety check: if group is missing, don't crash
-  if (!group) return null;
-
   const { id: myId, name } = useUserStore();
   const {
     myGroupIds,
@@ -268,8 +265,17 @@ const GroupChat: React.FC<Props> = ({ group, onBack }) => {
 
   const { isOnline, wasOffline, quality } = useNetworkStatus();
 
-  const messages = getMessages(group.id);
-  const isMember = myGroupIds.includes(group.id);
+  // Safety check: if group is missing, don't crash
+  // Move all hooks ABOVE this line to satisfy React rules
+  const groupId = group?.id || "";
+  const groupSubject = group?.subject || "Mixed";
+  const groupName = group?.name || "";
+  const groupIcon = group?.icon || "💬";
+  const groupMemberCount = group?.member_count || 0;
+  const groupJoinCode = group?.join_code || "";
+
+  const messages = getMessages(groupId);
+  const isMember = myGroupIds.includes(groupId);
 
   const [text, setText] = useState("");
   const [copied, setCopied] = useState(false);
@@ -278,30 +284,31 @@ const GroupChat: React.FC<Props> = ({ group, onBack }) => {
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const color = subjectColor(group.subject);
+  const color = subjectColor(groupSubject);
 
   const failedInGroup = messages.filter((m) => m.status === "failed");
 
   // ── Load + subscribe ──────────────────────────────────
   useEffect(() => {
-    loadMessages(group.id);
-    const unsub = subscribeToChat(group.id);
+    if (!groupId) return;
+    loadMessages(groupId);
+    const unsub = subscribeToChat(groupId);
     setConnected(true);
 
     return () => {
       unsub?.();
       setConnected(false);
     };
-  }, [group.id]);
+  }, [groupId, loadMessages, subscribeToChat]);
 
   // ── Auto-retry failed messages when back online ───────
   useEffect(() => {
-    if (wasOffline && isOnline && failedInGroup.length > 0) {
+    if (wasOffline && isOnline && failedInGroup.length > 0 && groupId) {
       failedInGroup.forEach((msg) => {
-        retryMessage(group.id, msg.id);
+        retryMessage(groupId, msg.id);
       });
     }
-  }, [wasOffline, isOnline]);
+  }, [wasOffline, isOnline, failedInGroup, groupId, retryMessage]);
 
   // ── Auto-scroll ───────────────────────────────────────
   useEffect(() => {
@@ -310,15 +317,15 @@ const GroupChat: React.FC<Props> = ({ group, onBack }) => {
 
   // ── Handlers ──────────────────────────────────────────
   const handleSend = useCallback(() => {
-    if (!text.trim() || !isMember || !isOnline) return;
+    if (!text.trim() || !isMember || !isOnline || !groupId) return;
 
     // Explicitly pass replyTo parameters through the action layer
-    sendMessage(group.id, text, replyTo);
+    sendMessage(groupId, text, replyTo);
 
     setText("");
     setReplyTo(null);
     setTimeout(() => inputRef.current?.focus(), 50);
-  }, [text, isMember, isOnline, replyTo, group.id, sendMessage]);
+  }, [text, isMember, isOnline, replyTo, groupId, sendMessage]);
 
   const handleReply = useCallback(
     (msg: ChatMessage) => {
@@ -333,20 +340,24 @@ const GroupChat: React.FC<Props> = ({ group, onBack }) => {
   );
 
   const handleRetryAll = useCallback(() => {
-    failedInGroup.forEach((msg) => retryMessage(group.id, msg.id));
-  }, [failedInGroup, group.id, retryMessage]);
+    if (!groupId) return;
+    failedInGroup.forEach((msg) => retryMessage(groupId, msg.id));
+  }, [failedInGroup, groupId, retryMessage]);
 
   const copyJoinCode = useCallback(() => {
-    navigator.clipboard.writeText(group.join_code);
+    if (!groupJoinCode) return;
+    navigator.clipboard.writeText(groupJoinCode);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  }, [group.join_code]);
+  }, [groupJoinCode]);
 
   const formatTime = (iso: string) =>
     new Date(iso).toLocaleTimeString("en-GB", {
       hour: "2-digit",
       minute: "2-digit",
     });
+
+  if (!group) return null;
 
   return (
     // FIXED Layout: Removed restrictive max-height to allow chat to fill available viewport space

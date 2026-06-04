@@ -27,7 +27,10 @@ export function useTimer({
   /** Use a ref for the interval so we never close over stale state */
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const onExpireRef  = useRef(onExpire);
-  onExpireRef.current = onExpire; // always fresh
+
+  useEffect(() => {
+    onExpireRef.current = onExpire;
+  }, [onExpire]);
 
   const clearTick = useCallback(() => {
     if (intervalRef.current) clearInterval(intervalRef.current);
