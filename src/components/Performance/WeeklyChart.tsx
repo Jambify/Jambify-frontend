@@ -10,7 +10,7 @@ const WeeklyChart: React.FC = () => {
 
   if (weeklyActivity.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-full min-h-[200px] text-center space-y-3">
+      <div className="flex flex-col items-center justify-center h-full min-h-50 text-center space-y-3">
         <div className="w-16 h-16 rounded-full bg-bgSurface flex items-center justify-center text-2xl grayscale opacity-50">
           📊
         </div>
@@ -42,14 +42,14 @@ const WeeklyChart: React.FC = () => {
         <div className="flex flex-col items-end">
           <div className="flex items-center gap-1 text-success">
             <span className="text-xs font-black">+12%</span>
-            <div className="w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-b-[6px] border-b-success" />
+            <div className="w-0 h-0 border-l-4 border-l-transparent border-r-4 border-r-transparent border-b-[6px] border-b-success" />
           </div>
           <span className="text-[10px] text-textDim font-bold uppercase tracking-tighter">Vs last week</span>
         </div>
       </div>
 
       {/* Bar chart */}
-      <div className="flex-1 flex items-end gap-3 sm:gap-4 min-h-[180px]">
+      <div className="flex-1 flex items-end gap-3 sm:gap-4 min-h-45">
         {weeklyActivity.map((day) => {
           const heightPct =
             day.questions === 0 ? 8 : Math.round((day.questions / max) * 100);

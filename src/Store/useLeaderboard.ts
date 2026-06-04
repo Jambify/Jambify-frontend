@@ -57,7 +57,7 @@ export const useLeaderboardStore = create<LeaderboardState>()((set, get) => ({
         .from('profiles')
         .select('id, name, university, overall_score')
         .order('overall_score', { ascending: false })
-        .limit(20);
+        .limit(20) as { data: any[], error: any };
 
       // If we get a column missing error (42703), immediately trigger the safe fallback
       if (error) {
@@ -89,7 +89,7 @@ export const useLeaderboardStore = create<LeaderboardState>()((set, get) => ({
       const { data, error } = await supabase
         .from('profiles')
         .select('id, name, university')
-        .limit(20);
+        .limit(20) as { data: any[], error: any };
 
       if (error) throw error;
 

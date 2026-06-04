@@ -89,7 +89,7 @@ export const useGroupStore = create<GroupState>()((set, get) => ({
         .from('profiles')
         .select('name')
         .eq('id', userId)
-        .maybeSingle();
+        .maybeSingle() as { data: any, error: any };
 
       const name = data?.name || 'JAMB Champion';
       set(s => {
@@ -248,7 +248,7 @@ export const useGroupStore = create<GroupState>()((set, get) => ({
         `)
         .eq('group_id', groupId)
         .order('created_at', { ascending: true })
-        .limit(100);
+        .limit(100) as { data: any[], error: any };
 
       if (msgErr) throw msgErr;
       if (!msgs || msgs.length === 0) {
@@ -466,7 +466,7 @@ export const useGroupStore = create<GroupState>()((set, get) => ({
               .from('group_messages')
               .select('id, user_id, message')
               .eq('id', row.reply_to_id)
-              .single();
+              .single() as { data: any, error: any };
 
             if (replyMsg) {
               const replyAuthor = await get().getName(replyMsg.user_id);

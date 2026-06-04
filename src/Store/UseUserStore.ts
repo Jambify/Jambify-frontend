@@ -158,7 +158,7 @@ export const useUserStore = create<UserState>()(
             .from('profiles')
             .select('*')
             .eq('id', id)
-            .maybeSingle();
+            .maybeSingle() as { data: any, error: any };
 
           if (error) throw error;
           if (!data) return { onboardingComplete: false };

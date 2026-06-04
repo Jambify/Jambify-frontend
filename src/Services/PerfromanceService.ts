@@ -34,7 +34,7 @@ export const getPerformanceSummary = async (): Promise<PerformanceSummary> => {
 
   const { data, error } = await supabase.rpc('get_performance_summary', {
     p_user_id: user.id
-  });
+  }) as { data: any, error: any };
 
   if (error) throw error;
 
@@ -53,7 +53,7 @@ export const getWeeklyActivity = async (): Promise<WeeklyActivity[]> => {
 
   const { data, error } = await supabase.rpc('get_weekly_activity', {
     p_user_id: user.id
-  });
+  }) as { data: any, error: any };
 
   if (error) throw error;
 
@@ -214,7 +214,7 @@ export const submitQuizSession = async (
     p_frontend_correct: finalCorrect,
     p_frontend_accuracy: finalAccuracy,
     p_topic_performance: topicPerformance || {}
-  });
+  }) as { data: any, error: any };
 
   if (error) {
     console.error('❌ [submitQuizSession] RPC Error:', error);
