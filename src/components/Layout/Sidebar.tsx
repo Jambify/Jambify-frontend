@@ -1,7 +1,7 @@
 import React from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { cn } from "../../lib/utils/utils";
-import { useUserStore } from "../../Store/UseUserStore";
+import { useUserStore } from "../../Store/useUserStore";
 import { MessageSquare, Trophy, Sparkles, ArrowRight } from "lucide-react";
 interface NavItem {
   label: string;
@@ -226,7 +226,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           <div className="mt-6 pt-4 border-t border-borderMuted/30">
             {!isPro ? (
               <NavLink
-                to="/settings"
+                to="/pro"
                 onClick={onClose}
                 className="flex flex-col gap-2 p-3.5 rounded-2xl bg-linear-to-br from-brand/10 to-brand/5 border border-brand/20 text-brand-light hover:border-brand/40 transition-all group shadow-sm"
               >

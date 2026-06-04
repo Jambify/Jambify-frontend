@@ -18,6 +18,7 @@ import StudyGroups from "./Pages/StudyGroups";
 import MentorChat from "./Pages/MentorChat";
 import PastQuestions from "./Pages/PastQuestions";
 import ReviewScreen from "./Pages/MockExam/ReviewExam";
+import ProPage from "./Pages/Pro";
 import AuthCallback from "./components/auth/AuthCallbacl";
 import GuestLanding from "./Pages/GuestUser/GuestLanding";
 import GuestQuiz from "./Pages/GuestUser/GuestQuiz";
@@ -126,6 +127,14 @@ const App: React.FC = () => (
       element={
         <RouteGuard>
           <PastQuestions />
+        </RouteGuard>
+      }
+    />
+    <Route
+      path="/pro"
+      element={
+        <RouteGuard>
+          <ProPage />
         </RouteGuard>
       }
     />

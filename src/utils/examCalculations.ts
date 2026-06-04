@@ -8,12 +8,21 @@ export interface SubjectScore {
   performance: 'Excellent' | 'Good' | 'Average' | 'Poor';
 }
 
+export interface TopicPerformance {
+  subject: string;
+  name: string;
+  correct: number;
+  total: number;
+  accuracy: number;
+}
+
 export interface ExamResult {
   jambScore: number;
   percentageScore: number;
   totalCorrect: number;
   totalQuestions: number;
   subjectBreakdown: SubjectScore[];
+  topicPerformance: Record<string, TopicPerformance>;
 }
 
 export const getPerformanceIndicator = (percentage: number): SubjectScore['performance'] => {
@@ -31,17 +40,36 @@ export const calculateExamResults = (
   let totalCorrect = 0;
 
   const subjectMap: Record<string, { correct: number; total: number }> = {};
+  const topicMap: Record<string, TopicPerformance> = {};
 
   questions.forEach((q, index) => {
     if (!subjectMap[q.subject]) {
       subjectMap[q.subject] = { correct: 0, total: 0 };
     }
+
+    const topicKey = `${q.subject}:${q.topic}`;
+    if (!topicMap[topicKey]) {
+      topicMap[topicKey] = {
+        subject: q.subject,
+        name: q.topic, correct: 0,
+        total: 0,
+        accuracy: 0,
+      };
+    }
+
     subjectMap[q.subject].total++;
+    topicMap[topicKey].total++;
 
     if (answers[index] === q.answer) {
       totalCorrect++;
       subjectMap[q.subject].correct++;
+      topicMap[topicKey].correct++;
     }
+  });
+
+  // Calculate accuracies for topics
+  Object.values(topicMap).forEach((t) => {
+    t.accuracy = t.total > 0 ? Math.round((t.correct / t.total) * 100) : 0;
   });
 
   // Scale JAMB score relative to a full 180-question exam for realism
@@ -67,6 +95,7 @@ export const calculateExamResults = (
     totalCorrect,
     totalQuestions,
     subjectBreakdown,
+    topicPerformance: topicMap,
   };
 };
 

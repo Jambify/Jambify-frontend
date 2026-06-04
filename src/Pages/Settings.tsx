@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import AppLayout from "../components/Layout/AppLayout";
-import { useUserStore } from "../Store/UseUserStore";
+import { useUserStore } from "../Store/useUserStore";
 import ProfileForm from "../components/Settings/ProfileForm";
 import ExamSettings from "../components/Settings/ExamSettings";
 import DangerZone from "../components/Settings/DangerZone";

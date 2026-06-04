@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
-import { useUserStore } from '../../Store/UseUserStore';
+import { useUserStore } from '../../Store/useUserStore';
 import { useExamCountdown } from '../../hooks/useExamCountdown';
 import ThemeToggle from '../ui/ThemeToggle';
 

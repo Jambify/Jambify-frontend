@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useUserStore } from "../../Store/UseUserStore";
+import { useUserStore } from "../../Store/useUserStore";
 import Button from "../ui/Button";
 import { Section } from "./Shared";
 import { LogOut, AlertCircle, Info, ShieldAlert } from "lucide-react";

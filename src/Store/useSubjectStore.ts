@@ -2,7 +2,8 @@
 
 import { create } from 'zustand';
 import { supabase } from '../lib/supabase';
-import { useUserStore } from './UseUserStore';
+import { useUserStore } from './useUserStore';
+import { getDetailedTopicStats, } from '../Services/PerfromanceService';
 
 export interface Subject {
   id: string;
@@ -33,7 +34,7 @@ interface SubjectState {
   isLoading: boolean;
   error: string | null;
   isInitialized: boolean;
-  
+
   // Actions
   loadSubjects: () => Promise<void>;
   updateSubject: (id: string, accuracy: number, completed: number) => Promise<void>;
@@ -89,27 +90,6 @@ const calculateRank = (accuracy: number): number => {
   return 75;
 };
 
-// Get weak topics based on subject and accuracy
-const getWeakTopics = (subjectId: string, accuracy: number): string[] => {
-  if (accuracy >= 75) return [];
-  
-  const weakTopicsMap: Record<string, string[]> = {
-    eng: ['Antonyms', 'Oral English', 'Comprehension'],
-    math: ['Integration', 'Matrices', 'Permutation', 'Calculus'],
-    phy: ['Electromagnetism', 'Thermodynamics', 'Mechanics'],
-    chem: ['Organic Reactions', 'Acid-Base', 'Electrochemistry', 'Stoichiometry'],
-    bio: ['Genetics', 'Ecology', 'Physiology', 'Cell Division'],
-    econ: ['Monetary Policy', 'Elasticity', 'Market Structure', 'Demand/Supply'],
-    gov: ['Constitution', 'Political Parties', 'Electoral Process'],
-    lit: ['Prose', 'Poetry', 'Drama', 'Literary Devices'],
-    crs: ['The Gospels', 'Pauline Epistles', 'Old Testament'],
-  };
-  
-  const allWeakTopics = weakTopicsMap[subjectId] || [];
-  const numberOfWeakTopics = Math.max(1, Math.floor((75 - accuracy) / 15));
-  return allWeakTopics.slice(0, numberOfWeakTopics);
-};
-
 // Get user's selected subjects based on their onboarding subject combo
 const getUserSelectedSubjects = (): string[] => {
   const subjectComboId = useUserStore.getState().subjectCombo;
@@ -126,17 +106,17 @@ const fetchUserSubjects = async (): Promise<Subject[]> => {
 
   // Get user's selected subjects from their onboarding choice
   const selectedSubjectNames = getUserSelectedSubjects();
-  
+
   // Get the master data for only selected subjects
   const selectedSubjectsMaster = selectedSubjectNames
     .map(name => getSubjectFromName(name))
     .filter(s => s !== undefined);
 
-  // Fetch existing progress from Supabase
-  const { data: existingProgress, error } = await supabase
-    .from('subject_progress')
-    .select('*')
-    .eq('user_id', user.id);
+  // Fetch existing progress and real topic stats
+  const [{ data: existingProgress, error }, realTopicStats] = await Promise.all([
+    supabase.from('subject_progress').select('*').eq('user_id', user.id),
+    getDetailedTopicStats()
+  ]);
 
   if (error) throw error;
 
@@ -152,7 +132,10 @@ const fetchUserSubjects = async (): Promise<Subject[]> => {
     const accuracy = progress?.accuracy || 0;
     const completed = progress?.questions_attempted || 0;
     const rank = calculateRank(accuracy);
-    const weakTopics = getWeakTopics(master.id, accuracy);
+
+    // Find the single lowest accuracy topic for this subject from real data
+    const subjectTopics = realTopicStats.filter(t => t.subject === master.name);
+    const lowestTopic = subjectTopics.length > 0 ? [subjectTopics[0].name] : [];
 
     return {
       id: master.id,
@@ -163,7 +146,7 @@ const fetchUserSubjects = async (): Promise<Subject[]> => {
       completed: completed,
       total: master.total,
       rank: rank,
-      weakTopics: weakTopics,
+      weakTopics: lowestTopic,
     };
   });
 
@@ -197,7 +180,7 @@ const initializeUserSubjects = async (): Promise<void> => {
       }, {
         onConflict: 'user_id,subject_id'
       });
-    
+
     if (error) console.error(`Error initializing ${master.name}:`, error);
   }
 };
@@ -251,15 +234,15 @@ export const useSubjectStore = create<SubjectState>()((set, get) => ({
   updateSubject: async (id: string, accuracy: number, completed: number) => {
     try {
       await updateSubjectProgressInDB(id, accuracy, completed);
-      
+
       set((state) => ({
         subjects: state.subjects.map((subject) =>
           subject.id === id
-            ? { 
-                ...subject, 
-                accuracy,
-                completed
-              }
+            ? {
+              ...subject,
+              accuracy,
+              completed
+            }
             : subject
         ),
       }));
@@ -274,7 +257,7 @@ export const useSubjectStore = create<SubjectState>()((set, get) => ({
 
     const newCompleted = Math.min(subject.completed + count, subject.total);
     const newAccuracy = subject.accuracy;
-    
+
     await get().updateSubject(id, newAccuracy, newCompleted);
   },
 

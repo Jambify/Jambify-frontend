@@ -9,7 +9,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import AppLayout from '../components/Layout/AppLayout';
-import { useUserStore } from '../Store/UseUserStore';
+import { useUserStore } from '../Store/useUserStore';
 import { useSubjectStore } from '../Store/useSubjectStore';
 import { useAIChat, type ChatMessage } from '../hooks/useAIChat';
 import { cn } from '../lib/utils/utils';

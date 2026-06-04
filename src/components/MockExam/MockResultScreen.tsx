@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMockStore } from "../../Store/useMockStore";
-import { useUserStore } from "../../Store/UseUserStore";
+import { useUserStore } from "../../Store/useUserStore";
 import Button from "../ui/Button";
 import { cn } from "../../lib/utils/utils";
 import {

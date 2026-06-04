@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useUserStore } from "../Store/UseUserStore";
+import { useUserStore } from "../Store/useUserStore";
 import StepIndicator from "../components/OnBoarding/StepIndicator";
 import Button from "../components/ui/Button";
 import ConfirmModal from "../components/ui/ConfirmModal";

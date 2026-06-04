@@ -1,6 +1,6 @@
 import React, { type ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { useUserStore } from "../../Store/UseUserStore";
+import { useUserStore } from "../../Store/useUserStore";
 import { useExamCountdown } from "../../hooks/useExamCountdown";
 import Sidebar from "./Sidebar";
 import { useNetworkStatus } from "../../hooks/useNetworkStatus";
@@ -197,28 +197,30 @@ const AppLayout: React.FC<LayoutProps> = ({
             <section className="px-2 pt-2">
               {!isPro ? (
                 <Link
-                  to="/settings"
-                  className="block p-3 rounded-xl bg-brand/5 border border-brand/10 hover:bg-brand/10 transition-all group"
+                  to="/pro"
+                  className="flex flex-col gap-2 p-3.5 rounded-2xl bg-linear-to-br from-brand/10 to-brand/5 border border-brand/20 text-brand-light hover:border-brand/40 transition-all group"
                 >
-                  <div className="flex items-center gap-2 mb-1.5 text-brand">
-                    <Sparkles
-                      size={14}
-                      className="group-hover:rotate-12 transition-transform"
-                    />
-                    <span className="text-[11px] font-black uppercase tracking-widest">
-                      Unlock Pro
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 group-hover:rotate-12 transition-transform text-brand" />
+                    <span className="text-[12px] font-black uppercase tracking-wider">
+                      JAMBIFY Pro
                     </span>
                   </div>
                   <p className="text-[10px] text-textDim leading-tight">
-                    Get AI explanations, offline mode & more.
+                    Unlock AI Tutor, offline mode, and professional mock review.
                   </p>
                 </Link>
               ) : (
-                <div className="p-3 rounded-xl bg-success/5 border border-success/10">
-                  <div className="flex items-center gap-2 text-success">
-                    <Trophy size={14} />
-                    <span className="text-[11px] font-black uppercase tracking-widest">
+                <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-success/5 border border-success/10 text-success">
+                  <div className="w-8 h-8 rounded-xl bg-success/10 flex items-center justify-center">
+                    <Trophy className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="text-[11px] font-black uppercase tracking-wider block">
                       Pro Member
+                    </span>
+                    <span className="text-[9px] text-success/70 font-medium italic">
+                      Premium access active
                     </span>
                   </div>
                 </div>

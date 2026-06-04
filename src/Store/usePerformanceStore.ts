@@ -2,19 +2,18 @@
 
 import { create } from 'zustand';
 import {
-  getPerformanceSummary,
-  getWeeklyActivity,
-  getTopicStats,
   submitQuizSession,
   type WeeklyActivity,
   type TopicStat
 } from '../Services/PerfromanceService';
-
+import { useUserStore } from './useUserStore';
+import { supabase } from '../lib/supabase';
 interface PerformanceState {
   // Data
   weeklyActivity: WeeklyActivity[];
   topicStats: TopicStat[];
   mockScores: number[];
+  mockHistory: any[]; // Added
   totalQuestions: number;
   avgAccuracy: number;
   isLoading: boolean;
@@ -22,11 +21,9 @@ interface PerformanceState {
 
   // Actions
   loadPerformanceData: () => Promise<void>;
-  loadWeeklyActivity: () => Promise<void>;
-  loadTopicStats: () => Promise<void>;
   addMockScore: (score: number) => void;
-  addActivity: (day: string, count: number) => void;  // ← ADD THIS
-  updateTopic: (id: string, accuracy: number) => void;  // ← ADD THIS
+  addActivity: (day: string, count: number) => void;
+  updateTopic: (id: string, accuracy: number) => void;
   addQuizResult: (
     mode: "practice" | "mock",
     subject: string,
@@ -35,6 +32,7 @@ interface PerformanceState {
     timeTaken: number,
     correctCount?: number,
     totalQuestions?: number,
+    topicPerformance?: Record<string, any> // Added
   ) => Promise<{
     correct: number;
     total: number;
@@ -56,55 +54,103 @@ export const usePerformanceStore = create<PerformanceState>()((set, get) => ({
   ],
   topicStats: [],
   mockScores: [],
+  mockHistory: [],
   totalQuestions: 0,
   avgAccuracy: 0,
   isLoading: false,
   error: null,
 
-  // src/Store/usePerformanceStore.ts
-
-  // Update the loadPerformanceData function
   loadPerformanceData: async () => {
-    set({ isLoading: true, error: null });
+    set({ isLoading: true });
     try {
-      const summary = await getPerformanceSummary();
-      const weekly = await getWeeklyActivity();
-      const topics = await getTopicStats();  // This will now only return selected subjects
+      const { id: userId } = useUserStore.getState();
+      if (!userId) return;
 
-      // Extract mock scores from summary
-      const mockScores = summary.mockScores.map(m => m.score);
+      // Fetch all mock and practice sessions
+      const { data: sessions, error } = await supabase
+        .from("quiz_sessions")
+        .select("*")
+        .eq("user_id", userId)
+        .order("completed_at", { ascending: false });
 
-      console.log("🔵 Loaded topics (only selected subjects):", topics);
+      if (error) throw error;
+
+      if (!sessions || sessions.length === 0) {
+        set({
+          topicStats: [],
+          mockHistory: [],
+          weeklyActivity: [
+            { day: 'Sun', questions: 0 },
+            { day: 'Mon', questions: 0 },
+            { day: 'Tue', questions: 0 },
+            { day: 'Wed', questions: 0 },
+            { day: 'Thu', questions: 0 },
+            { day: 'Fri', questions: 0 },
+            { day: 'Sat', questions: 0 },
+          ],
+          totalQuestions: 0,
+          avgAccuracy: 0,
+          isLoading: false,
+        });
+        return;
+      }
+
+      // 1. Process Mock History & Latest Score
+      const mockSessions = sessions.filter((s) => s.mode === "mock");
+      const mockHistory = mockSessions.map((s) => ({
+        id: s.id,
+        date: s.completed_at,
+        score: s.accuracy, // This is accuracy, but we'll show JAMB score separately
+        jambScore: Math.round((s.correct / 180) * 400),
+      }));
+
+      // 2. Aggregate Topic Stats from topic_performance column
+      const topicAgg: Record<string, { subject: string; correct: number; total: number }> = {};
+
+      sessions.forEach(s => {
+        const perf = s.topic_performance || {};
+        Object.entries(perf).forEach(([key, data]: [string, any]) => {
+          if (!topicAgg[key]) {
+            topicAgg[key] = { subject: data.subject, correct: 0, total: 0 };
+          }
+          topicAgg[key].correct += data.correct || 0;
+          topicAgg[key].total += data.total || 0;
+        });
+      });
+
+      const topicStats: TopicStat[] = Object.entries(topicAgg).map(([name, data]) => ({
+        id: name,
+        name: name.split(':')[1] || name,
+        subject: data.subject,
+        accuracy: Math.round((data.correct / data.total) * 100),
+        totalQuestions: data.total,
+      }));
+
+      // 3. Weekly Activity (last 7 days)
+      const weeklyActivity = Array(7).fill(0);
+      const now = new Date();
+      sessions.forEach((s) => {
+        const date = new Date(s.completed_at);
+        const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+        if (diffDays < 7) {
+          const dayIndex = (6 - diffDays); // 0=Sun...6=Sat relative to now
+          weeklyActivity[dayIndex] += s.total_questions;
+        }
+      });
+
+      const totalQs = sessions.reduce((sum, s) => sum + s.total_questions, 0);
+      const totalCorrect = sessions.reduce((sum, s) => sum + s.correct, 0);
 
       set({
-        totalQuestions: summary.totalQuestions,
-        avgAccuracy: Math.min(summary.avgAccuracy, 100), // Cap at 100%
-        weeklyActivity: weekly,
-        topicStats: topics,
-        mockScores: mockScores,
+        mockHistory,
+        topicStats,
+        totalQuestions: totalQs,
+        avgAccuracy: totalQs > 0 ? Math.round((totalCorrect / totalQs) * 100) : 0,
         isLoading: false,
       });
     } catch (error) {
-      console.error('Failed to load performance data:', error);
-      set({ error: 'Failed to load performance data', isLoading: false });
-    }
-  },
-
-  loadWeeklyActivity: async () => {
-    try {
-      const weekly = await getWeeklyActivity();
-      set({ weeklyActivity: weekly });
-    } catch (error) {
-      console.error('Failed to load weekly activity:', error);
-    }
-  },
-
-  loadTopicStats: async () => {
-    try {
-      const topics = await getTopicStats();
-      set({ topicStats: topics });
-    } catch (error) {
-      console.error('Failed to load topic stats:', error);
+      console.error("Error loading performance data:", error);
+      set({ isLoading: false });
     }
   },
 
@@ -140,6 +186,7 @@ export const usePerformanceStore = create<PerformanceState>()((set, get) => ({
     timeTaken: number,
     correctCount?: number,
     totalQuestions?: number,
+    topicPerformance?: Record<string, any>,
   ) => {
     try {
       const result = await submitQuizSession(
@@ -150,6 +197,7 @@ export const usePerformanceStore = create<PerformanceState>()((set, get) => ({
         timeTaken,
         correctCount,
         totalQuestions,
+        topicPerformance,
       );
 
       // Refresh data after adding quiz result
@@ -175,6 +223,7 @@ export const usePerformanceStore = create<PerformanceState>()((set, get) => ({
       ],
       topicStats: [],
       mockScores: [],
+      mockHistory: [],
       totalQuestions: 0,
       avgAccuracy: 0,
       isLoading: false,

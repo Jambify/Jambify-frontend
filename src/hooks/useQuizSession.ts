@@ -1,5 +1,5 @@
 import { useQuizStore } from '../Store/useQuizStore';
-import { useUserStore } from '../Store/UseUserStore';
+import { useUserStore } from '../Store/useUserStore';
 import { useSubjectStore } from '../Store/useSubjectStore';
 import { usePerformanceStore } from '../Store/usePerformanceStore';
 import type { Question } from '../Types';
@@ -16,7 +16,7 @@ import type { Question } from '../Types';
  */
 export function useQuizSession() {
   const { questions, answers, timeLeft, quizDuration, selectedSubject } = useQuizStore();
-  const { isAuthenticated } = useUserStore();
+  const { id: userId, isAuthenticated } = useUserStore();
   const { incrementQuestions,
     updateAccuracy } = useUserStore();
   const { updateAccuracy: updateSubj,
@@ -32,8 +32,21 @@ export function useQuizSession() {
     const newAcc = Math.round((correct / total) * 100);
     const timeTaken = quizDuration - timeLeft;
 
-    /* ── 2. Save to Database if Authenticated ────────── */
-    if (isAuthenticated) {
+    /* ── 2. Calculate topic performance ──────────────── */
+    const topicPerformance: Record<string, { subject: string; correct: number; total: number }> = {};
+    questions.forEach((q, i) => {
+      const key = `${q.subject}:${q.topic}`;
+      if (!topicPerformance[key]) {
+        topicPerformance[key] = { subject: q.subject, correct: 0, total: 0 };
+      }
+      topicPerformance[key].total++;
+      if (answers[i] === q.answer) {
+        topicPerformance[key].correct++;
+      }
+    });
+
+    /* ── 3. Persist to DB ───────────────────────────── */
+    if (isAuthenticated && userId) {
       try {
         await addQuizResult(
           "practice",
@@ -42,10 +55,11 @@ export function useQuizSession() {
           answers,
           timeTaken,
           correct,
-          total
+          total,
+          topicPerformance
         );
       } catch (err) {
-        console.error("Failed to save quiz results to DB:", err);
+        console.error("Failed to submit quiz result:", err);
       }
     }
 

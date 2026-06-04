@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useUserStore } from "../../Store/UseUserStore";
+import { useUserStore } from "../../Store/useUserStore";
 import {
   Mail,
   ArrowRight,

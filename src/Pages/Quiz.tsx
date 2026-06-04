@@ -137,7 +137,7 @@ const Quiz: React.FC = () => {
         if (packs.length > 0) {
           const offlineQs = await offlineStore.getOfflineQuestions(packs[0]);
           if (offlineQs.length > 0) {
-            qs = offlineQs.sort(() => Math.random() - 0.5).slice(0, 10);
+            qs = offlineQs.sort(() => Math.random() - 0.5).slice(0, 20);
             console.log("✅ Loaded questions from offline pack:", packs[0]);
           }
         }
@@ -150,7 +150,7 @@ const Quiz: React.FC = () => {
           qs = await fetchQuestionsWithFallback(
             selectedSubject,
             "Random",
-            10,
+            20,
             selectedDifficulty,
           );
         } else {
@@ -158,7 +158,7 @@ const Quiz: React.FC = () => {
           qs = await fetchQuestionsByTopic(
             selectedSubject,
             selectedTopic,
-            10,
+            20,
             selectedDifficulty,
           );
         }
@@ -169,7 +169,7 @@ const Quiz: React.FC = () => {
         qs = await fetchQuestionsWithFallback(
           selectedSubject,
           "Random",
-          10,
+          20,
           selectedDifficulty,
         );
       }
@@ -299,7 +299,7 @@ const Quiz: React.FC = () => {
             Practice Quiz
           </h2>
           <p className="text-sm text-textMuted max-w-sm mx-auto">
-            10 adaptive questions · 90 seconds each · Instant explanations
+            20 adaptive questions · 60 seconds each · Instant explanations
           </p>
         </div>
 

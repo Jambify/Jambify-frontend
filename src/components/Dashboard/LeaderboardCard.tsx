@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useLeaderboardStore } from "../../Store/useLeaderboard";
-import { useUserStore } from "../../Store/UseUserStore";
+import { useUserStore } from "../../Store/useUserStore";
 import { cn } from "../../lib/utils/utils";
 import {
   Trophy,

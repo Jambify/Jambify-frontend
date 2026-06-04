@@ -1,6 +1,6 @@
 // src/hooks/useExamCountdown.ts
 import { useState, useEffect, useCallback } from 'react';
-import { useUserStore }                      from '../Store/UseUserStore';
+import { useUserStore }                      from '../Store/useUserStore';
 import {
   calculateDaysUntilExam,
   formatExamDate,

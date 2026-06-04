@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { useUserStore } from '../Store/UseUserStore';
+import { useUserStore } from '../Store/useUserStore';
 
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;

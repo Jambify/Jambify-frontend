@@ -14,7 +14,7 @@ import ReactDOM    from 'react-dom/client';
 import App         from './App';
 import { BrowserRouter } from 'react-router-dom';
 import { supabase }        from './lib/supabase';
-import { useUserStore }    from './Store/UseUserStore';
+import { useUserStore }    from './Store/useUserStore';
 import { initTheme }       from './components/ui/ThemeToggle';
 import './index.css';
 

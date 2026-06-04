@@ -123,11 +123,12 @@ const SubjectCard: React.FC<SubjectCardProps> = ({
       {/* <── Expanded section — topics + action buttons ── */}
       {isExpanded && (
         <div className="border-t border-borderMuted animate-slideDown">
-          {/* <Weak topics */}
+          {/* <Lowest topic */}
           {subject.weakTopics.length > 0 && (
             <div className="px-5 pt-4 pb-2">
-              <p className="text-[11px] text-textDim uppercase tracking-widest font-medium mb-2">
-                Weak topics
+              <p className="text-[10px] text-danger uppercase tracking-widest font-black mb-2 flex items-center gap-1.5">
+                <div className="w-1 h-1 rounded-full bg-danger"></div>
+                Lowest Topic
               </p>
               <TopicList topics={subject.weakTopics} color={subject.color} />
             </div>

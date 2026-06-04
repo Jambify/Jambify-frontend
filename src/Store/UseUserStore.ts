@@ -1,4 +1,4 @@
-// src/Store/UseUserStore.ts
+// src/Store/useUserStore.ts
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { supabase } from '../lib/supabase';
@@ -40,12 +40,14 @@ interface UserState {
   examDate: string;
   streak: number;
   bestScore: number;
+  overallScore: number; // Added for compatibility
   weeklyScoreChange: number;
   accuracy: number;
   previousAccuracy: number;
   questionsCompleted: number;
   totalQuestions: number;
   schoolRank: number;
+  topicStats: any[]; // Added for compatibility
   // daysToExam is NOT stored — computed live by useExamCountdown hook
   onboardingComplete: boolean;
   isPro: boolean;
@@ -98,12 +100,14 @@ const DEFAULTS = {
   examDate: 'Apr 27',
   streak: 0,
   bestScore: 0,
+  overallScore: 0,
   weeklyScoreChange: 0,
   accuracy: 0,
   previousAccuracy: 0,
   questionsCompleted: 0,
   totalQuestions: 0,
   schoolRank: 0,
+  topicStats: [],
   // daysToExam removed — computed live by useExamCountdown
   onboardingComplete: false,
   isPro: false,
@@ -172,10 +176,12 @@ export const useUserStore = create<UserState>()(
             email: data.email || get().email,
             isPro: data.is_pro ?? false,
             bestScore: data.overall_score || 0,
+            overallScore: data.overall_score || 0,
             accuracy: data.accuracy || 0,
             streak: data.streak || 0,
             questionsCompleted: data.questions_completed || 0,
             totalQuestions: data.total_questions || 0,
+            topicStats: data.topic_performance || [],
             onboardingComplete,
             isLoading: false,
           });

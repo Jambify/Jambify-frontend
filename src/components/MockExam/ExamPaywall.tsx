@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useUserStore, APP_CONFIG } from "../../Store/UseUserStore";
+import { useUserStore, APP_CONFIG } from "../../Store/useUserStore";
 import { supabase } from "../../lib/supabase";
 import Button from "../ui/Button";
 import { Crown, Lock, CheckCircle, Loader2, ExternalLink } from "lucide-react";
@@ -50,6 +50,11 @@ const ExamPaywall: React.FC<ExamPaywallProps> = ({ onUpgrade, onBack }) => {
       import.meta.env.VITE_FLW_PUBLIC_KEY ||
       "FLWPUBK_TEST-5e4a8f1a2b3c4d5e6f7g8h9i0j1k2l3m-X"; // Fallback for dev
 
+    if (flwKey.includes("PBFPUBLIC")) {
+      setVerifyError("System configuration error: Invalid Public Key format.");
+      return;
+    }
+
     (window as any).FlutterwaveCheckout({
       public_key: flwKey,
       tx_ref: `jambify-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
@@ -65,9 +70,11 @@ const ExamPaywall: React.FC<ExamPaywallProps> = ({ onUpgrade, onBack }) => {
         description: "Monthly subscription for professional JAMB prep tools",
         logo: "https://jambify.vercel.app/hero.png",
       },
-      callback: (data: any) => {
+      callback: async (data: any) => {
         console.log("Payment callback data:", data);
         if (data.status === "successful" || data.status === "completed") {
+          // Grant Pro immediately in frontend for better UX, then verify
+          await upgradeToPro();
           handlePaymentSuccess(data.tx_ref);
         } else {
           setVerifyError("Payment was not successful. Please try again.");

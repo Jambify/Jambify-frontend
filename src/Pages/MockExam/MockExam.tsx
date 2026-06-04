@@ -14,7 +14,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import AppLayout from "../../components/Layout/AppLayout";
 import { useMockStore } from "../../Store/useMockStore";
-import { useUserStore } from "../../Store/UseUserStore";
+import { useUserStore } from "../../Store/useUserStore";
 import { usePerformanceStore } from "../../Store/usePerformanceStore";
 import OptionButton from "../../components/Quiz/OptionButton";
 import MockResultsScreen from "../../components/MockExam/MockResultScreen";
@@ -262,13 +262,13 @@ const MockExam: React.FC = () => {
             const subjectQuestions = questions.filter(
               (q) => q.subject === sb.subject,
             );
-            const subjectAnswers: Record<number, number> = {};
+            const subjectAnswers: Record<string, number> = {};
 
             // Map the global answer indices to relative indices for this subject session
             subjectQuestions.forEach((q, idx) => {
               const globalIdx = questions.indexOf(q);
               if (answers[globalIdx] !== undefined) {
-                subjectAnswers[idx] = answers[globalIdx];
+                subjectAnswers[idx.toString()] = answers[globalIdx];
               }
             });
 
@@ -279,7 +279,8 @@ const MockExam: React.FC = () => {
               subjectAnswers,
               Math.floor(timeTaken / lastResult.subjectBreakdown.length), // distribute time
               sb.correct, // Pass calculated correct count
-              sb.total, // Pass total questions
+              sb.total, // Pass total questions,
+              lastResult.topicPerformance,
             );
           }),
         );

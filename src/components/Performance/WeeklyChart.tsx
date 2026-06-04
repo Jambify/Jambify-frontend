@@ -10,58 +10,79 @@ const WeeklyChart: React.FC = () => {
 
   if (weeklyActivity.length === 0) {
     return (
-      <div className="bg-bgCard border border-borderMuted rounded-brand-lg p-5">
-        <div className="flex items-center justify-center h-32">
-          <p className="text-textDim text-sm">Complete some quizzes to see your activity</p>
+      <div className="flex flex-col items-center justify-center h-full min-h-[200px] text-center space-y-3">
+        <div className="w-16 h-16 rounded-full bg-bgSurface flex items-center justify-center text-2xl grayscale opacity-50">
+          📊
         </div>
+        <p className="text-textDim text-sm font-medium">
+          Complete some quizzes to see your activity
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="bg-bgCard border border-borderMuted rounded-brand-lg p-5">
-      <div className="flex items-center justify-between mb-5">
+    <div className="flex flex-col h-full">
+      <div className="flex items-center justify-between mb-8">
         <div>
-          <h3 className="font-display text-sm font-semibold tracking-tight">
-            Weekly activity
-          </h3>
-          <p className="text-[11px] text-textDim mt-0.5">
-            {total} questions this week
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-2xl font-display font-black text-textMain tracking-tighter">
+              {total}
+            </span>
+            <span className="text-[10px] font-black text-brand uppercase tracking-widest bg-brand/10 px-2 py-0.5 rounded">
+              Total Qs
+            </span>
+          </div>
+          <p className="text-xs text-textDim font-medium italic">
+            Questions answered this week
           </p>
         </div>
-        <div className="text-right">
-          <p className="font-display text-xl font-bold text-brand-light">
-            {total}
-          </p>
-          <p className="text-[11px] text-textDim">total Qs</p>
+        
+        {/* Trend Indicator (placeholder) */}
+        <div className="flex flex-col items-end">
+          <div className="flex items-center gap-1 text-success">
+            <span className="text-xs font-black">+12%</span>
+            <div className="w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-b-[6px] border-b-success" />
+          </div>
+          <span className="text-[10px] text-textDim font-bold uppercase tracking-tighter">Vs last week</span>
         </div>
       </div>
 
       {/* Bar chart */}
-      <div className="flex items-end gap-2 sm:gap-3 h-28">
+      <div className="flex-1 flex items-end gap-3 sm:gap-4 min-h-[180px]">
         {weeklyActivity.map((day) => {
           const heightPct =
-            day.questions === 0 ? 4 : Math.round((day.questions / max) * 100);
+            day.questions === 0 ? 8 : Math.round((day.questions / max) * 100);
           const isEmpty = day.questions === 0;
           return (
             <div
               key={day.day}
-              className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end group"
+              className="flex-1 flex flex-col items-center gap-3 h-full justify-end group cursor-default"
             >
-              <span className="text-[10px] text-textDim opacity-0 group-hover:opacity-100 transition-opacity font-mono">
-                {day.questions}
-              </span>
+              {/* Tooltip-like value */}
+              <div className="relative w-full flex justify-center">
+                <span className="absolute -top-8 bg-brand text-white text-[10px] font-bold px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 shadow-lg shadow-brand/20 z-10 pointer-events-none">
+                  {day.questions} Qs
+                </span>
+              </div>
+              
               <div
-                className="w-full rounded-t-sm transition-all duration-700"
+                className="w-full rounded-t-xl transition-all duration-1000 ease-out group-hover:brightness-125 group-hover:shadow-[0_0_20px_rgba(91,59,255,0.3)] relative overflow-hidden"
                 style={{
                   height: `${heightPct}%`,
                   background: isEmpty
-                    ? "rgba(255,255,255,0.05)"
-                    : `rgba(91,59,255,${0.35 + (day.questions / max) * 0.65})`,
-                  border: isEmpty ? "1px solid rgba(255,255,255,0.07)" : "none",
+                    ? "rgba(255,255,255,0.03)"
+                    : `linear-gradient(to top, rgba(91,59,255,0.4), rgba(123,95,255,0.9))`,
+                  border: isEmpty ? "1px dashed rgba(255,255,255,0.1)" : "none",
                 }}
-              />
-              <span className="text-[10px] text-textDim">{day.day}</span>
+              >
+                {!isEmpty && (
+                  <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.1)_50%,transparent_75%)] bg-size-[40px_40px] animate-[shimmer_4s_linear_infinite]" />
+                )}
+              </div>
+              <span className="text-[11px] font-bold text-textDim group-hover:text-textMain transition-colors uppercase tracking-tighter">
+                {day.day}
+              </span>
             </div>
           );
         })}

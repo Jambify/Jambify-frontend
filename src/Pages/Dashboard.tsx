@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AppLayout from "../components/Layout/AppLayout";
-import { useUserStore } from "../Store/UseUserStore";
+import { useUserStore } from "../Store/useUserStore";
 import { useExamCountdown } from "../hooks/useExamCountdown";
 import SubjectProgress from "../components/Dashboard/SubjectProgress";
 import LeaderboardCard from "../components/Dashboard/LeaderboardCard";
@@ -45,22 +45,51 @@ function countdownMotivation(days: number): string {
   return "🎯 You have plenty of time — stay consistent.";
 }
 
+import { usePerformanceStore } from "../Store/usePerformanceStore";
+
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const { topicStats, avgAccuracy, loadPerformanceData } =
+    usePerformanceStore();
 
   const {
     name,
     streak,
     bestScore,
-    accuracy,
     questionsCompleted,
     totalQuestions,
     examYear,
     previousAccuracy,
     targetScore,
     university,
+    subjectCombo,
   } = useUserStore();
+
+  React.useEffect(() => {
+    loadPerformanceData();
+  }, [loadPerformanceData]);
+
+  const accuracy = Math.round(avgAccuracy);
+
+  // Filter stats based on user subject combo
+  const userSubjects = subjectCombo
+    ? subjectCombo.split(",").map((s) => s.trim())
+    : [];
+  const filteredTopicStats = topicStats.filter((t: any) =>
+    userSubjects.includes(t.subject),
+  );
+
+  // Dynamic weak/strong topics from live data
+  const weakTopics = filteredTopicStats.filter((t: any) => t.accuracy < 60);
+
+  // Highest and Lowest topic logic
+  const sortedTopics = [...filteredTopicStats].sort(
+    (a: any, b: any) => b.accuracy - a.accuracy,
+  );
+  const highestTopic = sortedTopics.length > 0 ? sortedTopics[0] : null;
+  const lowestTopic =
+    sortedTopics.length > 1 ? sortedTopics[sortedTopics.length - 1] : null;
 
   const { daysLeft, formattedDate, isUpdating } = useExamCountdown();
 
@@ -122,7 +151,9 @@ const Dashboard: React.FC = () => {
             <p className="text-sm text-textMuted mb-6 max-w-md leading-relaxed">
               {isNewUser
                 ? "Welcome! Start your first quiz to track your progress and unlock your personalised dashboard."
-                : "You're in the top\u00a038% of students. Keep pushing — 3 weak topics need attention today."}
+                : weakTopics.length > 0
+                  ? `Keep pushing — ${weakTopics.length} weak topics need attention today. Focus on ${lowestTopic?.name || "your weakest areas"} to improve.`
+                  : `Great job! You've mastered your weak topics. Your strongest area is ${highestTopic?.name || "none yet"}. Keep it up!`}
             </p>
 
             {/* CTAs */}

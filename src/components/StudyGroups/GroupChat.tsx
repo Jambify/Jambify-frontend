@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useGroupStore } from "../../Store/useGroupStore";
 import type { ChatMessage, ReplyPreview } from "../../Store/useGroupStore";
-import { useUserStore } from "../../Store/UseUserStore";
+import { useUserStore } from "../../Store/useUserStore";
 import type { StudyGroup } from "../../Store/useGroupStore";
 import { useNetworkStatus } from "../../hooks/useNetworkStatus";
 import MessageStatusIndicator from "./MessageStatusIndicator";

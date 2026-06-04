@@ -1,7 +1,7 @@
 // src/components/Layout/RouteGuard.tsx
 import React, { useEffect, useRef, useState } from 'react';
 import { Navigate, useLocation }               from 'react-router-dom';
-import { useUserStore }                         from '../../Store/UseUserStore';
+import { useUserStore }                         from '../../Store/useUserStore';
 import { supabase }                             from '../../lib/supabase';
 
 // ── Route categories ──────────────────────────────────────────────────────────

@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { useGoalStore } from "../../Store/useGoal";
-import { useUserStore } from "../../Store/UseUserStore";
+import { useUserStore } from "../../Store/useUserStore";
 import { cn } from "../../lib/utils/utils";
 import { Flame, CheckCircle2, Circle, Zap } from "lucide-react";
 

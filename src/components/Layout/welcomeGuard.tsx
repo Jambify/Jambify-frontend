@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { useUserStore } from '../../Store/UseUserStore';
+import { useUserStore } from '../../Store/useUserStore';
 
 interface WelcomeGuardProps {
   children: React.ReactNode;

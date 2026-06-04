@@ -1,185 +1,174 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useSubjectStore } from "../../Store/useSubjectStore";
+import { usePerformanceStore } from "../../Store/usePerformanceStore";
+import { useUserStore } from "../../Store/useUserStore";
 import { cn } from "../../lib/utils/utils";
-import { BookOpen, AlertTriangle, ChevronRight, Loader2 } from "lucide-react";
+import { BookOpen, AlertTriangle, ArrowRight, CheckCircle } from "lucide-react";
+
+// Helper to get subject icons
+const getSubjectIcon = (subject: string) => {
+  const icons: Record<string, string> = {
+    English: "📚",
+    Mathematics: "🔢",
+    Physics: "⚛️",
+    Chemistry: "🧪",
+    Biology: "🧬",
+  };
+  return icons[subject] || "📖";
+};
 
 const SubjectProgress: React.FC = () => {
   const navigate = useNavigate();
-  const { subjects, isLoading, loadSubjects, isInitialized } = useSubjectStore();
+  const { topicStats, isLoading } = usePerformanceStore();
+  const { subjectCombo } = useUserStore();
   const [filter, setFilter] = useState<"all" | "weak">("all");
 
-  useEffect(() => {
-    if (!isInitialized) loadSubjects();
-  }, [isInitialized, loadSubjects]);
+  const userSubjects = subjectCombo
+    ? subjectCombo.split(",").map((s) => s.trim())
+    : [];
 
-  const displayed = filter === "weak"
-    ? subjects.filter((s) => s.accuracy < 55)
-    : subjects;
+  // Only show subjects that have data (been practiced)
+  const subjectsWithData = userSubjects.filter((subj) =>
+    topicStats.some((t) => t.subject === subj),
+  );
 
-  const weakCount = subjects.filter((s) => s.accuracy < 55).length;
+  // If no subjects practiced yet, show a placeholder
+  if (subjectsWithData.length === 0 && !isLoading) {
+    return (
+      <div className="bg-bgCard border border-borderMuted rounded-brand-xl p-6 h-full flex flex-col items-center justify-center text-center">
+        <div className="w-12 h-12 bg-brand/10 rounded-full flex items-center justify-center mb-4">
+          <BookOpen className="w-6 h-6 text-brand" />
+        </div>
+        <h3 className="font-display font-bold text-textMain mb-2">
+          No Subject Progress Yet
+        </h3>
+        <p className="text-sm text-textDim max-w-60 mb-6">
+          Start a practice quiz to see your strengths and weaknesses here.
+        </p>
+        <button
+          onClick={() => navigate("/quiz")}
+          className="bg-brand hover:bg-brand-light text-white px-6 py-2 rounded-full text-sm font-bold transition-all active:scale-95"
+        >
+          Start Practice
+        </button>
+      </div>
+    );
+  }
 
   return (
-    <div className="bg-bgCard border border-borderMuted rounded-brand-lg p-5 flex flex-col min-h-[300px]">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="font-display text-sm font-semibold tracking-tight">
-          Subject Progress
-        </h3>
+    <div className="bg-bgCard border border-borderMuted rounded-brand-xl p-6 h-full flex flex-col">
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col gap-0.5">
+          <h3 className="font-display font-bold text-textMain">
+            Subject Progress
+          </h3>
+          <p className="text-[11px] text-textDim font-medium">
+            Performance across your subjects
+          </p>
+        </div>
         <button
-          onClick={() => navigate("/subjects")}
-          className="text-xs text-brand-light hover:underline"
+          onClick={() => navigate("/performance")}
+          className="text-xs font-bold text-brand hover:text-brand-light flex items-center gap-1 group"
         >
-          View all →
+          View all{" "}
+          <ArrowRight
+            size={14}
+            className="group-hover:translate-x-0.5 transition-transform"
+          />
         </button>
       </div>
 
-      {/* Filter tabs */}
-      <div className="flex gap-1.5 mb-4">
-        {(["all", "weak"] as const).map((f) => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={cn(
-              "px-3 py-1 rounded-full text-[11px] font-medium transition-all",
-              filter === f
-                ? "bg-brand text-white"
-                : "bg-bgSurface text-textDim hover:text-textMain border border-borderMuted"
-            )}
-          >
-            {f === "all" ? "All subjects" : `Needs work${weakCount > 0 ? ` (${weakCount})` : ""}`}
-          </button>
-        ))}
+      <div className="flex gap-2 mb-6">
+        <button
+          onClick={() => setFilter("all")}
+          className={cn(
+            "px-4 py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider transition-all",
+            filter === "all"
+              ? "bg-brand text-white shadow-lg shadow-brand/20"
+              : "bg-bgSurface text-textDim border border-borderMuted hover:border-brand/40",
+          )}
+        >
+          All subjects
+        </button>
+        <button
+          onClick={() => setFilter("weak")}
+          className={cn(
+            "px-4 py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider transition-all",
+            filter === "weak"
+              ? "bg-danger text-white shadow-lg shadow-danger/20"
+              : "bg-bgSurface text-textDim border border-borderMuted hover:border-danger/40",
+          )}
+        >
+          Needs work ({topicStats.filter((t: any) => t.accuracy < 60).length})
+        </button>
       </div>
 
-      {/* Loading */}
-      {isLoading && (
-        <div className="flex-1 flex flex-col items-center justify-center py-8 space-y-3">
-          <div className="relative">
-            <Loader2 className="w-6 h-6 text-brand animate-spin" />
-            <div className="absolute inset-0 bg-brand/20 blur-xl rounded-full animate-pulse" />
-          </div>
-          <p className="text-[10px] text-textDim uppercase tracking-widest font-bold">Syncing data...</p>
-        </div>
-      )}
+      <div className="space-y-5 overflow-y-auto pr-1 custom-scrollbar">
+        {subjectsWithData.map((subj) => {
+          // Get the general performance for this subject (average of topics)
+          const subjectTopics = topicStats.filter(
+            (t: any) => t.subject === subj,
+          );
+          const avgAccuracy = Math.round(
+            subjectTopics.reduce((sum, t) => sum + t.accuracy, 0) /
+              subjectTopics.length,
+          );
 
-      {/* Empty state — no subjects at all */}
-      {!isLoading && subjects.length === 0 && (
-        <div className="flex-1 flex flex-col items-center justify-center py-8 text-center gap-3">
-          <div className="w-12 h-12 rounded-full bg-brand/10 flex items-center justify-center">
-            <BookOpen className="w-5 h-5 text-brand" />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-textMain">No subjects yet</p>
-            <p className="text-xs text-textDim mt-0.5">
-              Complete a quiz to track your progress
-            </p>
-          </div>
-          <button
-            onClick={() => navigate("/quiz")}
-            className="mt-1 px-4 py-2 bg-brand hover:bg-brand-light text-white text-xs font-semibold rounded-brand transition-all"
-          >
-            Start first quiz
-          </button>
-        </div>
-      )}
+          const weakTopics = subjectTopics
+            .filter((t) => t.accuracy < 60)
+            .map((t) => t.name);
 
-      {/* Empty state — filter shows nothing */}
-      {!isLoading && subjects.length > 0 && displayed.length === 0 && (
-        <div className="flex-1 flex flex-col items-center justify-center py-6 text-center gap-2">
-          <span className="text-2xl">🎉</span>
-          <p className="text-sm font-medium text-textMain">All subjects looking good!</p>
-          <p className="text-xs text-textDim">No weak subjects detected right now.</p>
-        </div>
-      )}
+          // If filtering for weak and this subject has no weak topics, skip it
+          if (filter === "weak" && weakTopics.length === 0) return null;
 
-      {/* Subject list — horizontal scroll on mobile */}
-      {!isLoading && displayed.length > 0 && (
-        <div className="overflow-x-auto -mx-1 px-1">
-          <div className="space-y-3 min-w-0">
-            {displayed.map((subject) => {
-              const isWeak = subject.accuracy < 55;
-              const hasStarted = subject.completed > 0;
-
-              return (
-                <div key={subject.id} className="flex items-center gap-3 group">
-                  {/* Icon */}
-                  <span className="text-base w-7 shrink-0">{subject.icon}</span>
-
-                  {/* Name + bar */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-medium truncate">{subject.name}</span>
-                      <span
-                        className={cn(
-                          "text-xs font-mono font-semibold ml-2 shrink-0",
-                          !hasStarted
-                            ? "text-textDim"
-                            : isWeak
-                            ? "text-danger"
-                            : "text-success"
-                        )}
-                      >
-                        {hasStarted ? `${subject.accuracy}%` : "—"}
-                      </span>
-                    </div>
-                    <div className="h-1.5 bg-bgSurface rounded-full overflow-hidden">
-                      <div
-                        className="h-full rounded-full transition-all duration-700"
-                        style={{
-                          width: hasStarted ? `${subject.accuracy}%` : "0%",
-                          backgroundColor: hasStarted ? subject.color : "transparent",
-                        }}
-                      />
-                    </div>
-                    {/* Weak topics */}
-                    {isWeak && subject.weakTopics.length > 0 && (
-                      <p className="text-[10px] text-danger mt-0.5 truncate">
-                        Weak: {subject.weakTopics.slice(0, 2).join(", ")}
+          return (
+            <div key={subj} className="group/item">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-bgSurface border border-borderMuted flex items-center justify-center text-lg">
+                    {getSubjectIcon(subj)}
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-textMain group-hover/item:text-brand transition-colors">
+                      {subj}
+                    </p>
+                    {weakTopics.length > 0 && (
+                      <p className="text-[10px] text-danger font-medium line-clamp-1">
+                        Weak: {weakTopics.join(", ")}
                       </p>
                     )}
                   </div>
-
-                  {/* Practice button */}
-                  <button
-                    onClick={() => navigate("/quiz")}
-                    className={cn(
-                      "shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-brand text-[11px] font-semibold transition-all",
-                      isWeak
-                        ? "bg-danger/10 text-danger border border-danger/20 hover:bg-danger/20"
-                        : "bg-bgSurface text-textDim border border-borderMuted hover:text-textMain opacity-0 group-hover:opacity-100"
-                    )}
-                    title={`Practice ${subject.name}`}
-                  >
-                    {isWeak ? (
-                      <>
-                        <AlertTriangle className="w-3 h-3" />
-                        <span className="hidden sm:inline">Fix</span>
-                      </>
-                    ) : (
-                      <ChevronRight className="w-3 h-3" />
-                    )}
-                  </button>
                 </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Weak subject alert */}
-      {!isLoading && weakCount > 0 && filter === "all" && (
-        <button
-          onClick={() => setFilter("weak")}
-          className="mt-4 w-full flex items-center gap-2 px-3 py-2.5 bg-danger/10 border border-danger/20 rounded-brand text-xs text-danger hover:bg-danger/15 transition-all text-left"
-        >
-          <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
-          <span className="flex-1">
-            {weakCount} subject{weakCount > 1 ? "s" : ""} need{weakCount === 1 ? "s" : ""} attention
-          </span>
-          <ChevronRight className="w-3.5 h-3.5 shrink-0" />
-        </button>
-      )}
+                <div className="flex flex-col items-end">
+                  <span className="text-xs font-bold text-textMain">
+                    {avgAccuracy}%
+                  </span>
+                  <div className="flex items-center gap-1">
+                    {avgAccuracy < 50 ? (
+                      <AlertTriangle size={12} className="text-danger" />
+                    ) : avgAccuracy >= 75 ? (
+                      <CheckCircle size={12} className="text-success" />
+                    ) : null}
+                  </div>
+                </div>
+              </div>
+              <div className="h-1.5 bg-bgSurface rounded-full overflow-hidden border border-borderMuted/30 shadow-inner">
+                <div
+                  className={cn(
+                    "h-full rounded-full transition-all duration-1000 ease-out",
+                    avgAccuracy < 50
+                      ? "bg-danger"
+                      : avgAccuracy < 75
+                        ? "bg-warning"
+                        : "bg-success",
+                  )}
+                  style={{ width: `${avgAccuracy}%` }}
+                />
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 };

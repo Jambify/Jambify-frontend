@@ -7,7 +7,7 @@
 
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import { useMockStore } from "../../Store/useMockStore";
-import { useUserStore } from "../../Store/UseUserStore";
+import { useUserStore } from "../../Store/useUserStore";
 import AppLayout from "../../components/Layout/AppLayout";
 import ExamPaywall from "../../components/MockExam/ExamPaywall";
 import { cn } from "../../lib/utils/utils";

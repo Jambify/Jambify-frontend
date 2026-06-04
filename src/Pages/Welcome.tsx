@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate }                from 'react-router-dom';
-import { useUserStore }               from '../Store/UseUserStore';
+import { useUserStore }               from '../Store/useUserStore';
 import { motion }                     from 'framer-motion';
 import Button                         from '../components/ui/Button';
 import { CheckCircle, Sparkles, Trophy, Target } from 'lucide-react';

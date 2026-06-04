@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { useUserStore } from "../../Store/UseUserStore";
+import { useUserStore } from "../../Store/useUserStore";
 import Button from "../ui/Button";
 import { cn, toTitleCase } from "../../lib/utils/utils";
 import { Section, Field, inputCls } from "./Shared";

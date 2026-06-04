@@ -74,6 +74,42 @@ export const getWeeklyActivity = async (): Promise<WeeklyActivity[]> => {
   return result;
 };
 
+// Get topic stats from quiz sessions (detailed aggregation from JSONB)
+export const getDetailedTopicStats = async (): Promise<TopicStat[]> => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Not authenticated');
+
+  const { data: sessions, error } = await supabase
+    .from('quiz_sessions')
+    .select('topic_performance')
+    .eq('user_id', user.id);
+
+  if (error) throw error;
+  if (!sessions || sessions.length === 0) return [];
+
+  const topicAgg: Record<string, { subject: string; correct: number; total: number }> = {};
+
+  sessions.forEach(s => {
+    const perf = s.topic_performance || {};
+    Object.entries(perf).forEach(([key, data]: [string, any]) => {
+      if (!topicAgg[key]) {
+        topicAgg[key] = { subject: data.subject, correct: 0, total: 0 };
+      }
+      topicAgg[key].correct += data.correct || 0;
+      topicAgg[key].total += data.total || 0;
+    });
+  });
+
+  const topics: TopicStat[] = Object.entries(topicAgg).map(([name, data]) => ({
+    id: name,
+    name: name.split(':')[1] || name,
+    subject: data.subject,
+    accuracy: Math.round((data.correct / data.total) * 100),
+  }));
+
+  return topics.sort((a, b) => a.accuracy - b.accuracy);
+};
+
 // Get topic stats from quiz sessions (only subjects the user has actually practiced)
 export const getTopicStats = async (): Promise<TopicStat[]> => {
   const { data: { user } } = await supabase.auth.getUser();
@@ -139,7 +175,8 @@ export const submitQuizSession = async (
   clientAnswers: Record<number, number>,
   timeTakenSeconds: number,
   correctCount?: number, // Optional: calculated by frontend
-  totalQuestions?: number // Optional: calculated by frontend
+  totalQuestions?: number, // Optional: calculated by frontend
+  topicPerformance?: Record<string, any>
 ): Promise<{
   sessionId: string;
   correct: number;
@@ -174,13 +211,22 @@ export const submitQuizSession = async (
     p_question_ids: questionIds,
     p_client_answers: answersJson,
     p_time_taken_secs: timeTakenSeconds,
-    p_frontend_correct: finalCorrect, // New parameter
-    p_frontend_accuracy: finalAccuracy // New parameter
+    p_frontend_correct: finalCorrect,
+    p_frontend_accuracy: finalAccuracy,
+    p_topic_performance: topicPerformance || {}
   });
 
   if (error) {
     console.error('❌ [submitQuizSession] RPC Error:', error);
     throw error;
+  }
+
+  // After submitting, sync the profile to ensure streak and other stats are updated in frontend
+  try {
+    const { useUserStore } = await import('../Store/useUserStore');
+    await useUserStore.getState().syncProfile(true);
+  } catch (e) {
+    console.warn("Could not sync profile after quiz submission:", e);
   }
 
   const result = {

@@ -1,7 +1,7 @@
 // src/Store/useGroupStore.ts
 import { create } from 'zustand';
 import { supabase } from '../lib/supabase';
-import { useUserStore } from './UseUserStore';
+import { useUserStore } from './useUserStore';
 
 export type MessageStatus = 'sending' | 'sent' | 'delivered' | 'failed';
 

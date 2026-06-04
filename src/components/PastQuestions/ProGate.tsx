@@ -1,7 +1,7 @@
 import React from 'react';
-import { useUserStore } from '../../Store/UseUserStore';
+import { useUserStore } from '../../Store/useUserStore';
 import Button from '../ui/Button';
-import { APP_CONFIG } from '../../Store/UseUserStore'; // Importing the app config for pricing details
+import { APP_CONFIG } from '../../Store/useUserStore'; // Importing the app config for pricing details
 import { Crown } from 'lucide-react';
 const PRO_FEATURES = [
   'Download all subject packs for offline use',
