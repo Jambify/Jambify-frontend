@@ -252,14 +252,6 @@ export const submitQuizSession = async (
     throw error;
   }
 
-  // After submitting, sync the profile to ensure streak and other stats are updated in frontend
-  try {
-    const { useUserStore } = await import('../Store/useUserStore');
-    await useUserStore.getState().syncProfile(true);
-  } catch (e) {
-    console.warn("Could not sync profile after quiz submission:", e);
-  }
-
   if (!data) throw new Error('Failed to submit session');
 
   const result = {

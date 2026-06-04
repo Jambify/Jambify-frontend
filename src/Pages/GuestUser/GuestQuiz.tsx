@@ -16,6 +16,8 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import GuestLayout from "../../components/Layout/GuestLayout";
 
+import { useOfflineStore } from "../../Store/useOfflineStore";
+
 type Screen = "subject" | "quiz" | "results";
 
 const QUIZ_SUBJECTS = [
@@ -48,15 +50,12 @@ const GuestQuiz: React.FC = () => {
 
     try {
       // Small delay for smooth transition to loader
-      await new Promise((r) => setTimeout(r, 100));
+      await new Promise((r) => setTimeout(r, 200));
 
-      // ── CHECK NETWORK & CACHE ──────────────────────────────
       const isOnline = navigator.onLine;
-      const offlineStore = (
-        await import("../../Store/useOfflineStore")
-      ).useOfflineStore.getState();
+      const offlineStore = useOfflineStore.getState();
 
-      let qs: any[] = [];
+      let qs: Question[] = [];
 
       // Try offline first if user is offline
       if (!isOnline && selectedSubject !== "") {

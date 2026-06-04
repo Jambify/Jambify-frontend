@@ -3,7 +3,7 @@
 import { create } from 'zustand';
 import { supabase } from '../lib/supabase';
 import { useUserStore } from './useUserStore';
-import { getDetailedTopicStats, } from '../Services/PerfromanceService';
+import { getDetailedTopicStats, } from '../Services/PerformanceService';
 
 export interface Subject {
   id: string;

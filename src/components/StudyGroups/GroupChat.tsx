@@ -377,16 +377,16 @@ const GroupChat: React.FC<Props> = ({ group, onBack }) => {
             className="w-9 h-9 md:w-10 md:h-10 rounded-xl flex items-center justify-center text-lg md:text-xl shrink-0 shadow-inner"
             style={{ background: `${color}15`, border: `1px solid ${color}30` }}
           >
-            {group.icon}
+            {groupIcon}
           </div>
 
           <div className="flex-1 min-w-0">
             <p className="font-display font-bold text-sm tracking-tight truncate">
-              {group.name}
+              {groupName}
             </p>
             <div className="flex items-center gap-2 text-[10px] text-textDim mt-0.5 font-semibold">
               <Users className="w-3 h-3 text-brand" />
-              <span>{group.member_count} members</span>
+              <span>{groupMemberCount} members</span>
               <span className="opacity-20 text-textDim">|</span>
               <span
                 className={cn(
@@ -423,7 +423,7 @@ const GroupChat: React.FC<Props> = ({ group, onBack }) => {
               ) : (
                 <Copy className="w-3.5 h-3.5" />
               )}
-              <span className="hidden sm:inline">{group.join_code}</span>
+              <span className="hidden sm:inline">{groupJoinCode}</span>
             </button>
           )}
         </div>
@@ -562,7 +562,7 @@ const GroupChat: React.FC<Props> = ({ group, onBack }) => {
                         }
                         onRetry={
                           isFailed
-                            ? () => retryMessage(group.id, msg.id)
+                            ? () => retryMessage(groupId, msg.id)
                             : undefined
                         }
                       />
@@ -655,7 +655,7 @@ const GroupChat: React.FC<Props> = ({ group, onBack }) => {
         ) : (
           <div className="p-4 bg-bgCard">
             <button
-              onClick={() => joinGroup(group.id)}
+              onClick={() => joinGroup(groupId)}
               className="w-full py-3 bg-brand/10 border border-brand/20 text-brand-light rounded-xl text-sm font-bold hover:bg-brand/20 transition-all"
             >
               Join Group to Participate

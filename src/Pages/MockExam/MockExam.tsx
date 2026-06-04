@@ -38,6 +38,8 @@ import {
   X,
 } from "lucide-react";
 
+import { useOfflineStore } from "../../Store/useOfflineStore";
+
 const MOCK_DURATION = 7200; // 2 hours in seconds
 
 const AVAILABLE_SUBJECTS = [
@@ -176,9 +178,7 @@ const MockExam: React.FC = () => {
     try {
       // ── CHECK NETWORK & CACHE ──────────────────────────────
       const isOnline = navigator.onLine;
-      const offlineStore = (
-        await import("../../Store/useOfflineStore")
-      ).useOfflineStore.getState();
+      const offlineStore = useOfflineStore.getState();
 
       const finalQuestionsList: any[] = [];
 

@@ -5,7 +5,7 @@ import {
   submitQuizSession,
   type WeeklyActivity,
   type TopicStat
-} from '../Services/PerfromanceService';
+} from '../Services/PerformanceService';
 import { useUserStore } from './useUserStore';
 import { supabase } from '../lib/supabase';
 interface PerformanceState {
@@ -202,6 +202,9 @@ export const usePerformanceStore = create<PerformanceState>()((set, get) => ({
 
       // Refresh data after adding quiz result
       await get().loadPerformanceData();
+
+      // Sync user profile after successful submission
+      await useUserStore.getState().syncProfile(true);
 
       return result;
     } catch (error) {

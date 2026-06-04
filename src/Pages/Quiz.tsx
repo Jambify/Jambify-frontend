@@ -20,6 +20,8 @@ import {
   CheckCircle2,
 } from "lucide-react";
 
+import { useOfflineStore } from "../Store/useOfflineStore";
+
 /** Subject filter options shown on the quiz start screen with icons and colors */
 const QUIZ_SUBJECTS = [
   { name: "English", icon: "📖", color: "from-blue-500 to-indigo-600" },
@@ -121,9 +123,7 @@ const Quiz: React.FC = () => {
     try {
       // ── CHECK NETWORK & CACHE ──────────────────────────────
       const isOnline = navigator.onLine;
-      const offlineStore = (
-        await import("../Store/useOfflineStore")
-      ).useOfflineStore.getState();
+      const offlineStore = useOfflineStore.getState();
 
       let qs: any[] = [];
 
