@@ -101,11 +101,11 @@ const AppLayout: React.FC<LayoutProps> = ({
             initial={{ y: -50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: -50, opacity: 0 }}
-            className="fixed top-0 inset-x-0 z-200 flex justify-center p-4 pointer-events-none"
+            className="fixed top-0 inset-x-0 z-999 flex justify-center p-4 pointer-events-none"
           >
-            <div className="bg-danger/90 backdrop-blur-md text-white px-6 py-2.5 rounded-full shadow-2xl flex items-center gap-3 border border-white/10">
-              <WifiOff size={18} className="animate-pulse" />
-              <span className="text-sm font-bold tracking-tight">
+            <div className="network-banner-offline backdrop-blur-md px-6 py-2.5 rounded-full shadow-2xl flex items-center gap-3 border border-white/20">
+              <WifiOff size={18} className="animate-pulse text-white" />
+              <span className="text-sm font-bold tracking-tight text-white">
                 You are offline. Some features may be limited.
               </span>
             </div>
@@ -116,11 +116,11 @@ const AppLayout: React.FC<LayoutProps> = ({
             initial={{ y: -50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: -50, opacity: 0 }}
-            className="fixed top-0 inset-x-0 z-200 flex justify-center p-4 pointer-events-none"
+            className="fixed top-0 inset-x-0 z-999 flex justify-center p-4 pointer-events-none"
           >
-            <div className="bg-success/90 backdrop-blur-md text-white px-6 py-2.5 rounded-full shadow-2xl flex items-center gap-3 border border-white/10">
-              <Wifi size={18} />
-              <span className="text-sm font-bold tracking-tight">
+            <div className="network-banner-online backdrop-blur-md px-6 py-2.5 rounded-full shadow-2xl flex items-center gap-3 border border-white/20">
+              <Wifi size={18} className="text-white" />
+              <span className="text-sm font-bold tracking-tight text-white">
                 Back online! Syncing your progress...
               </span>
             </div>

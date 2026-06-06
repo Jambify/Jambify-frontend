@@ -18,6 +18,7 @@ import {
   Layers,
   Sparkles,
   CheckCircle2,
+  AlertTriangle,
 } from "lucide-react";
 
 import { useOfflineStore } from "../Store/useOfflineStore";
@@ -50,6 +51,7 @@ const Quiz: React.FC = () => {
   const [isLoadingTopics, setIsLoadingTopics] = useState(false);
   const [availableTopics, setAvailableTopics] = useState<string[]>([]);
   const [isLoadingQuestions, setIsLoadingQuestions] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const visibleSubjects = showAllSubjects
     ? QUIZ_SUBJECTS
@@ -115,6 +117,7 @@ const Quiz: React.FC = () => {
     if (selectedSubject === "All") return;
 
     setShowExitModal(false);
+    setLoadError(null);
     setIsLoadingQuestions(true);
 
     // Wait a tiny bit for the loader to mount smoothly
@@ -141,25 +144,37 @@ const Quiz: React.FC = () => {
             console.log("✅ Loaded questions from offline pack:", packs[0]);
           }
         }
+
+        if (qs.length === 0) {
+          throw new Error(
+            "OFFLINE: You need an internet connection to load new questions, and no offline packs were found for this subject.",
+          );
+        }
       }
 
       // If still no questions (online or no offline cache)
       if (qs.length === 0) {
-        if (selectedTopic === "All") {
-          // Get questions for the whole subject (Random years fallback)
-          qs = await fetchQuestionsWithFallback(
-            selectedSubject,
-            "Random",
-            20,
-            selectedDifficulty,
-          );
-        } else {
-          // Get questions for the specific topic
-          qs = await fetchQuestionsByTopic(
-            selectedSubject,
-            selectedTopic,
-            20,
-            selectedDifficulty,
+        try {
+          if (selectedTopic === "All") {
+            // Get questions for the whole subject (Random years fallback)
+            qs = await fetchQuestionsWithFallback(
+              selectedSubject,
+              "Random",
+              20,
+              selectedDifficulty,
+            );
+          } else {
+            // Get questions for the specific topic
+            qs = await fetchQuestionsByTopic(
+              selectedSubject,
+              selectedTopic,
+              20,
+              selectedDifficulty,
+            );
+          }
+        } catch (err) {
+          throw new Error(
+            "CONNECTION_ERROR: Failed to fetch questions. Please check your internet connection and try again.",
           );
         }
       }
@@ -174,9 +189,16 @@ const Quiz: React.FC = () => {
         );
       }
 
+      if (qs.length === 0) {
+        throw new Error(
+          "NO_QUESTIONS: Could not find any questions for this selection. Try a different subject or year.",
+        );
+      }
+
       loadQuestions(qs);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to load quiz questions:", error);
+      setLoadError(error.message);
     } finally {
       setIsLoadingQuestions(false);
     }
@@ -290,6 +312,29 @@ const Quiz: React.FC = () => {
       setIsSidebarOpen={setIsSidebarOpen}
     >
       <div className="max-w-2xl mx-auto">
+        {/* Error Message */}
+        {loadError && (
+          <div className="mb-6 p-4 bg-danger/10 border border-danger/20 rounded-2xl animate-in fade-in slide-in-from-top-4 duration-300">
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 rounded-full bg-danger/20 flex items-center justify-center text-danger shrink-0">
+                <AlertTriangle size={16} />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-bold text-danger">Failed to start quiz</p>
+                <p className="text-xs text-danger/80 mt-1 leading-relaxed">
+                  {loadError}
+                </p>
+                <button 
+                  onClick={() => setLoadError(null)}
+                  className="mt-3 text-[10px] font-black uppercase tracking-widest text-danger hover:underline"
+                >
+                  Dismiss
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* <Hero */}
         <div className="text-center mb-10 pt-4">
           <div className="w-16 h-16 bg-brand/10 border border-brand/20 rounded-2xl flex items-center justify-center mx-auto mb-4 text-3xl">

@@ -216,6 +216,27 @@
     stroke 200ms cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
+/* ── Network Status Banners ── */
+.network-banner-offline {
+  background-color: #ff4d6d !important;
+  color: #ffffff !important;
+}
+.network-banner-online {
+  background-color: #00c896 !important;
+  color: #ffffff !important;
+}
+
+[data-theme="light"] .network-banner-offline {
+  background-color: #ff4d6d !important;
+  color: #ffffff !important;
+  box-shadow: 0 10px 25px -5px rgba(255, 77, 109, 0.4);
+}
+[data-theme="light"] .network-banner-online {
+  background-color: #00c896 !important;
+  color: #ffffff !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 200, 150, 0.4);
+}
+
 /* ── Preload guard — suppresses ALL transitions on first paint ── */
 /* Added to <html> by initTheme(), removed 100ms after load.      */
 /* Prevents the "flash animate from browser default" on cold load. */

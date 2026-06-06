@@ -120,7 +120,7 @@ const NetworkBanner: React.FC<NetworkBannerProps> = ({
 
   if (wasOffline && quality === "good") {
     return (
-      <div className="flex items-center justify-between gap-2 px-4 py-2 bg-success/10 border-b border-success/20 text-success text-xs font-medium animate-in slide-in-from-top-2 duration-300">
+      <div className="flex items-center justify-between gap-2 px-4 py-2 bg-success/10 border-b border-success/20 text-success-light dark:text-success text-xs font-medium animate-in slide-in-from-top-2 duration-300">
         <span className="flex items-center gap-1.5">
           <Wifi className="w-3.5 h-3.5" /> Back online
         </span>
@@ -138,18 +138,22 @@ const NetworkBanner: React.FC<NetworkBannerProps> = ({
 
   if (quality === "offline") {
     return (
-      <div className="flex items-center gap-2 px-4 py-2 bg-danger/10 border-b border-danger/20 text-danger text-xs font-medium">
-        <WifiOff className="w-3.5 h-3.5" /> No connection — messages will retry
-        when online
+      <div className="flex items-center justify-between gap-2 px-4 py-2 bg-danger/10 border-b border-danger/20 text-danger-light dark:text-danger text-xs font-medium">
+        <span className="flex items-center gap-1.5">
+          <WifiOff className="w-3.5 h-3.5" /> No connection — messages will retry
+          when online
+        </span>
       </div>
     );
   }
 
   if (quality === "slow") {
     return (
-      <div className="flex items-center gap-2 px-4 py-2 bg-amber-500/10 border-b border-amber-500/20 text-amber-400 text-xs font-medium">
-        <AlertTriangle className="w-3.5 h-3.5" /> Slow connection — messages may
-        be delayed
+      <div className="flex items-center justify-between gap-2 px-4 py-2 bg-amber-500/10 border-b border-amber-500/20 text-amber-600 dark:text-amber-400 text-xs font-medium">
+        <span className="flex items-center gap-1.5">
+          <AlertTriangle className="w-3.5 h-3.5" /> Slow connection — messages may
+          be delayed
+        </span>
       </div>
     );
   }

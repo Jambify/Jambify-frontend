@@ -433,17 +433,13 @@ const Dashboard: React.FC = () => {
       {/* ══════════════════════════════════════════════════
           MIDDLE ROW
       ══════════════════════════════════════════════════ */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
-        <SubjectProgress />
-        <LeaderboardCard />
-      </div>
-
-      {/* ══════════════════════════════════════════════════
-          BOTTOM ROW
-      ══════════════════════════════════════════════════ */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <RecommendedSessions />
-        <DailyGoals />
+        <SubjectProgress />
+        <div className="space-y-4">
+          <RecommendedSessions />
+          <DailyGoals />
+        </div>
+        {/* <LeaderboardCard /> */}
       </div>
     </AppLayout>
   );

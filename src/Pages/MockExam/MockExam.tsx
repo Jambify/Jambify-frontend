@@ -205,15 +205,27 @@ const MockExam: React.FC = () => {
               );
             }
           }
+
+          if (fetched.length === 0) {
+            throw new Error(
+              `OFFLINE: No offline packs found for ${subjectId}. Please connect to the internet to load exam questions.`,
+            );
+          }
         }
 
         // If still no questions (online or no offline cache)
         if (fetched.length === 0) {
-          fetched = await fetchQuestionsWithFallback(
-            subjectId,
-            selectedYear,
-            config.required,
-          );
+          try {
+            fetched = await fetchQuestionsWithFallback(
+              subjectId,
+              selectedYear,
+              config.required,
+            );
+          } catch (err) {
+            throw new Error(
+              `CONNECTION_ERROR: Failed to fetch questions for ${subjectId}. Please check your internet connection.`,
+            );
+          }
         }
 
         // Randomize options for each question to prevent memorization
