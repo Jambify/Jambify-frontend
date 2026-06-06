@@ -119,7 +119,7 @@ const Dashboard: React.FC = () => {
         <div className="bg-bgCard border-borderMuted rounded-brand-xl relative overflow-hidden border p-6 md:p-8">
           {/* Subtle ambient glow */}
           <div
-            className="pointer-events-none absolute inset-0"
+            className="pointer-events-none absolute inset-0 ambient-glow"
             style={{
               background:
                 "radial-gradient(ellipse 70% 80% at 100% 50%, rgba(91,59,255,0.10) 0%, transparent 65%)",
@@ -193,7 +193,7 @@ const Dashboard: React.FC = () => {
         <div
           className="bg-bgCard border-borderMuted rounded-brand-xl relative overflow-hidden border"
           style={{
-            background: `linear-gradient(135deg, rgba(${cdColor === "#7B5FFF" ? "91,59,255" : cdColor === "#EF4444" ? "239,68,68" : cdColor === "#F59E0B" ? "245,158,11" : "249,115,22"},0.08) 0%, transparent 70%)`,
+            background: `linear-gradient(135deg, rgba(${cdColor === "#7B5FFF" ? "91,59,255" : cdColor === "#EF4444" ? "239,68,68" : cdColor === "#F59E0B" ? "245,158,11" : "249,115,22"}, var(--cd-opacity, 0.08)) 0%, transparent 70%)`,
           }}
         >
           {/* ── Mobile: compact horizontal strip ── */}
@@ -371,7 +371,7 @@ const Dashboard: React.FC = () => {
                 <span>{questionsPct}% complete</span>
                 <span>{totalQuestions.toLocaleString()} total</span>
               </div>
-              <div className="bg-bgSurface h-1.5 overflow-hidden rounded-full">
+              <div className="bg-bgTrack h-1.5 overflow-hidden rounded-full">
                 <div
                   className="h-full rounded-full bg-blue-500 transition-all duration-500"
                   style={{ width: `${questionsPct}%` }}

@@ -274,7 +274,7 @@ const Quiz: React.FC = () => {
 
         {/* ── Exit Modal Overlay ── */}
         {showExitModal && (
-          <div className="animate-fadeIn fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
+          <div className="animate-fadeIn fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/80 p-4 backdrop-blur-sm">
             <div className="bg-bgCard border-borderMuted rounded-brand-xl animate-slideDown w-full max-w-sm border p-6 shadow-2xl">
               <h3 className="font-display text-textMain mb-2 text-xl font-bold">
                 Quit Quiz?
@@ -374,7 +374,7 @@ const Quiz: React.FC = () => {
                 className={`flex shrink-0 items-center gap-2 rounded-xl border px-5 py-3 text-xs font-bold transition-all active:scale-95 ${
                   selectedSubject === s.name
                     ? "bg-brand border-brand shadow-brand/20 text-white shadow-lg"
-                    : "bg-bgCard text-textMain border-borderMuted hover:border-brand/40"
+                    : "bg-bgCard text-textMain border-borderMuted hover:border-brand/30 dark:hover:border-brand/40 hover:shadow-sm"
                 }`}
               >
                 <span>{s.icon}</span>
@@ -392,7 +392,7 @@ const Quiz: React.FC = () => {
                 className={`group relative flex flex-col items-center justify-center overflow-hidden rounded-2xl border p-4 transition-all active:scale-95 ${
                   selectedSubject === s.name
                     ? "bg-brand border-brand shadow-brand/20 -translate-y-1 shadow-xl"
-                    : "bg-bgCard border-borderMuted hover:border-brand/40 hover:bg-bgSurface"
+                    : "bg-bgCard border-borderMuted hover:border-brand/30 dark:hover:border-brand/40 hover:shadow-sm dark:hover:bg-bgSurface"
                 }`}
               >
                 {/* Background Gradient on Select */}
@@ -552,7 +552,7 @@ const Quiz: React.FC = () => {
                           : d === "Hard"
                             ? "bg-danger/10 border-danger text-danger"
                             : "bg-brand/10 border-brand text-brand"
-                      : "bg-bgCard border-borderMuted text-textDim hover:border-white/20"
+                      : "bg-bgCard border-borderMuted text-textDim hover:border-brand/20 dark:hover:border-white/20"
                   }`}
                 >
                   {d}
@@ -589,7 +589,7 @@ const Quiz: React.FC = () => {
               className={`rounded-brand-lg cursor-pointer border p-4 transition-all ${
                 mode.active
                   ? "bg-brand/10 border-brand/40 ring-brand/20 ring-1"
-                  : "bg-bgSurface border-borderMuted opacity-60 hover:border-white/15"
+                  : "bg-bgSurface border-borderMuted opacity-70 hover:border-brand/20 dark:hover:border-white/15"
               }`}
             >
               <div className="mb-2 text-2xl">{mode.icon}</div>

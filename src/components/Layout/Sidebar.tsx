@@ -187,7 +187,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       {/* Mobile backdrop */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-110 bg-black/60 lg:hidden"
+          className="fixed inset-0 z-110 bg-black/40 dark:bg-black/60 backdrop-blur-xs lg:hidden"
           onClick={onClose}
         />
       )}
