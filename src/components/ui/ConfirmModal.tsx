@@ -1,7 +1,7 @@
 // src/components/ui/ConfirmModal.tsx
-import React from 'react';
-import { AlertTriangle, X } from 'lucide-react';
-import { cn } from '../../lib/utils/utils';
+import React from "react";
+import { AlertTriangle, X } from "lucide-react";
+import { cn } from "../../lib/utils/utils";
 
 interface ConfirmModalProps {
   isOpen: boolean;
@@ -11,7 +11,7 @@ interface ConfirmModalProps {
   message: string;
   confirmText?: string;
   cancelText?: string;
-  type?: 'danger' | 'warning' | 'info';
+  type?: "danger" | "warning" | "info";
 }
 
 const ConfirmModal: React.FC<ConfirmModalProps> = ({
@@ -20,28 +20,28 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
   onConfirm,
   title,
   message,
-  confirmText = 'Confirm',
-  cancelText = 'Cancel',
-  type = 'danger',
+  confirmText = "Confirm",
+  cancelText = "Cancel",
+  type = "danger",
 }) => {
   if (!isOpen) return null;
 
   const getTypeStyles = () => {
     switch (type) {
-      case 'danger':
+      case "danger":
         return {
-          icon: 'bg-danger/10 text-danger',
-          button: 'bg-danger hover:bg-danger/80 text-white',
+          icon: "bg-danger/10 text-danger",
+          button: "bg-danger hover:bg-danger/80 text-white",
         };
-      case 'warning':
+      case "warning":
         return {
-          icon: 'bg-warn/10 text-warn',
-          button: 'bg-warn hover:bg-warn/80 text-white',
+          icon: "bg-warn/10 text-warn",
+          button: "bg-warn hover:bg-warn/80 text-white",
         };
       default:
         return {
-          icon: 'bg-brand/10 text-brand',
-          button: 'bg-brand hover:bg-brand-light text-white',
+          icon: "bg-brand/10 text-brand",
+          button: "bg-brand hover:bg-brand-light text-white",
         };
     }
   };
@@ -49,37 +49,45 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
   const typeStyles = getTypeStyles();
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-      <div className="bg-bgCard border border-borderMuted rounded-brand-2xl w-full max-w-sm overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200">
-        <div className="flex items-center justify-between p-4 border-b border-borderMuted">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
+      <div className="bg-bgCard border-borderMuted rounded-brand-2xl animate-in fade-in zoom-in w-full max-w-sm overflow-hidden border shadow-2xl duration-200">
+        <div className="border-borderMuted flex items-center justify-between border-b p-4">
           <div className="flex items-center gap-3">
-            <div className={cn("w-8 h-8 rounded-full flex items-center justify-center", typeStyles.icon)}>
-              <AlertTriangle className="w-4 h-4" />
+            <div
+              className={cn(
+                "flex h-8 w-8 items-center justify-center rounded-full",
+                typeStyles.icon,
+              )}
+            >
+              <AlertTriangle className="h-4 w-4" />
             </div>
-            <h3 className="font-display font-bold text-lg">{title}</h3>
+            <h3 className="font-display text-lg font-bold">{title}</h3>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-bgSurface transition-colors"
+            className="hover:bg-bgSurface flex h-8 w-8 items-center justify-center rounded-lg transition-colors"
           >
-            <X className="w-4 h-4 text-textDim" />
+            <X className="text-textDim h-4 w-4" />
           </button>
         </div>
-        
+
         <div className="p-5">
-          <p className="text-sm text-textMuted leading-relaxed">{message}</p>
+          <p className="text-textMuted text-sm leading-relaxed">{message}</p>
         </div>
-        
-        <div className="flex gap-3 p-4 border-t border-borderMuted bg-bgSurface/50">
+
+        <div className="border-borderMuted bg-bgSurface/50 flex gap-3 border-t p-4">
           <button
             onClick={onClose}
-            className="flex-1 py-2.5 rounded-brand text-sm font-medium bg-bgCard border border-borderMuted text-textMain hover:bg-bgDeep transition-colors active:scale-95"
+            className="rounded-brand bg-bgCard border-borderMuted text-textMain hover:bg-bgDeep flex-1 border py-2.5 text-sm font-medium transition-colors active:scale-95"
           >
             {cancelText}
           </button>
           <button
             onClick={onConfirm}
-            className={cn("flex-1 py-2.5 rounded-brand text-sm font-medium transition-all active:scale-95", typeStyles.button)}
+            className={cn(
+              "rounded-brand flex-1 py-2.5 text-sm font-medium transition-all active:scale-95",
+              typeStyles.button,
+            )}
           >
             {confirmText}
           </button>

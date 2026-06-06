@@ -1,9 +1,12 @@
 // src/Store/useMockStore.ts
 
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import type { Question } from '../Types';
-import { calculateExamResults, type ExamResult } from '../utils/examCalculations';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import type { Question } from "../Types";
+import {
+  calculateExamResults,
+  type ExamResult,
+} from "../utils/examCalculations";
 
 export interface MockAttempt {
   id: string;
@@ -165,7 +168,7 @@ export const useMockStore = create<MockState>()(
         }),
     }),
     {
-      name: 'jambify-mock-exam',
+      name: "jambify-mock-exam",
       partialize: (state) => ({
         questions: state.questions,
         currentIndex: state.currentIndex,
@@ -178,6 +181,6 @@ export const useMockStore = create<MockState>()(
         lastResult: state.lastResult,
         attempts: state.attempts,
       }),
-    }
-  )
+    },
+  ),
 );

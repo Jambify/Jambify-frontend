@@ -1,8 +1,8 @@
 // src/hooks/useExamTimer.ts
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from "react";
 
-export type TimerStatus = 'green' | 'yellow' | 'orange' | 'red';
+export type TimerStatus = "green" | "yellow" | "orange" | "red";
 
 interface UseExamTimerProps {
   initialTime: number; // in seconds
@@ -10,7 +10,11 @@ interface UseExamTimerProps {
   isActive: boolean;
 }
 
-export const useExamTimer = ({ initialTime, onTimeUp, isActive }: UseExamTimerProps) => {
+export const useExamTimer = ({
+  initialTime,
+  onTimeUp,
+  isActive,
+}: UseExamTimerProps) => {
   const [timeLeft, setTimeLeft] = useState(initialTime);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -42,17 +46,17 @@ export const useExamTimer = ({ initialTime, onTimeUp, isActive }: UseExamTimerPr
 
   const getTimerStatus = (): TimerStatus => {
     const minutesLeft = timeLeft / 60;
-    if (minutesLeft < 5) return 'red';
-    if (minutesLeft < 15) return 'orange';
-    if (minutesLeft < 30) return 'yellow';
-    return 'green';
+    if (minutesLeft < 5) return "red";
+    if (minutesLeft < 15) return "orange";
+    if (minutesLeft < 30) return "yellow";
+    return "green";
   };
 
   const formatTime = (seconds: number) => {
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
     const s = seconds % 60;
-    return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
   };
 
   return {

@@ -2,22 +2,22 @@
 // Register every subject file here.
 // Add a new import + key whenever you create a new subject file.
 
-import type { Question } from '../../Types';
+import type { Question } from "../../Types";
 
-import { ENGLISH_QUESTIONS }     from './English';
+import { ENGLISH_QUESTIONS } from "./English";
 // import { MATHEMATICS_QUESTIONS } from './Mathematics';
-import { PHYSICS_QUESTIONS }     from './Physics';
-import { CHEMISTRY_QUESTIONS }   from './Chemistry';
-import { BIOLOGY_QUESTIONS }     from './Biology';
+import { PHYSICS_QUESTIONS } from "./Physics";
+import { CHEMISTRY_QUESTIONS } from "./Chemistry";
+import { BIOLOGY_QUESTIONS } from "./Biology";
 
 // The key here MUST match the subject id in AVAILABLE_SUBJECTS in MockExam.tsx.
 // e.g. MockExam has { id: "Literature" } so the key here is "Literature" not "Literature in English"
 export const LOCAL_DATABASE: Record<string, Question[]> = {
-  'English':     ENGLISH_QUESTIONS,
+  English: ENGLISH_QUESTIONS,
   // 'Mathematics': MATHEMATICS_QUESTIONS,
-  'Physics':     PHYSICS_QUESTIONS,
-  'Chemistry':   CHEMISTRY_QUESTIONS,
-  'Biology':     BIOLOGY_QUESTIONS,
+  Physics: PHYSICS_QUESTIONS,
+  Chemistry: CHEMISTRY_QUESTIONS,
+  Biology: BIOLOGY_QUESTIONS,
 };
 
 /**
@@ -27,17 +27,15 @@ export const LOCAL_DATABASE: Record<string, Question[]> = {
  */
 export const getLocalQuestions = (
   subject: string,
-  year:    string | number,
-  count:   number,
+  year: string | number,
+  count: number,
 ): Question[] => {
   let questions = LOCAL_DATABASE[subject] || [];
 
   // Filter by year unless "Random" is selected
-  if (year !== 'Random') {
-    const yearNum = typeof year === 'string'
-      ? parseInt(year, 10)
-      : year;
-    questions = questions.filter(q => q.year === yearNum);
+  if (year !== "Random") {
+    const yearNum = typeof year === "string" ? parseInt(year, 10) : year;
+    questions = questions.filter((q) => q.year === yearNum);
   }
 
   // Shuffle
@@ -51,10 +49,13 @@ export const getLocalQuestions = (
 export const getDatabaseStats = () => {
   return Object.entries(LOCAL_DATABASE).map(([subject, questions]) => ({
     subject,
-    total:  questions.length,
-    years:  [...new Set(questions.map(q => q.year))].sort(),
+    total: questions.length,
+    years: [...new Set(questions.map((q) => q.year))].sort(),
   }));
 };
 export const getTotalQuestionCount = () => {
-  return Object.values(LOCAL_DATABASE).reduce((sum, questions) => sum + questions.length, 0);
-}
+  return Object.values(LOCAL_DATABASE).reduce(
+    (sum, questions) => sum + questions.length,
+    0,
+  );
+};

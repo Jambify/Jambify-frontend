@@ -187,72 +187,72 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       {/* Mobile backdrop */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/60 z-110 lg:hidden"
+          className="fixed inset-0 z-110 bg-black/60 lg:hidden"
           onClick={onClose}
         />
       )}
 
       <aside
         className={cn(
-          "fixed left-0 top-0 bottom-0 z-120 w-64 h-full lg:hidden",
-          "bg-bgDeep border-r border-borderMuted",
+          "fixed top-0 bottom-0 left-0 z-120 h-full w-64 lg:hidden",
+          "bg-bgDeep border-borderMuted border-r",
           "flex flex-col transition-transform duration-300 ease-in-out",
           isOpen ? "translate-x-0" : "-translate-x-full",
         )}
       >
         {/* Logo */}
-        <div className="flex items-center justify-between px-5 py-5 border-b border-borderMuted">
+        <div className="border-borderMuted flex items-center justify-between border-b px-5 py-5">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 bg-brand rounded-lg flex items-center justify-center font-display font-black text-white text-base shadow-lg shadow-brand/40 shrink-0">
+            <div className="bg-brand font-display shadow-brand/40 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-base font-black text-white shadow-lg">
               J
             </div>
-            <span className="font-display font-bold text-[17px] tracking-tight">
+            <span className="font-display text-[17px] font-bold tracking-tight">
               JAMB<span className="text-brand-light">ify</span>
             </span>
           </div>
           {isPro && (
-            <div className="bg-brand/10 text-brand text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded border border-brand/20">
+            <div className="bg-brand/10 text-brand border-brand/20 rounded border px-2 py-1 text-[10px] font-black tracking-widest uppercase">
               Pro
             </div>
           )}
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-6">
+        <nav className="flex-1 space-y-6 overflow-y-auto px-3 py-4">
           <NavSection label="Main" items={MAIN_NAV} onNavigate={onClose} />
           <NavSection label="Study" items={STUDY_NAV} onNavigate={onClose} />
 
           {/* Pro Section Link */}
-          <div className="mt-6 pt-4 border-t border-borderMuted/30">
+          <div className="border-borderMuted/30 mt-6 border-t pt-4">
             {!isPro ? (
               <NavLink
                 to="/pro"
                 onClick={onClose}
-                className="flex flex-col gap-2 p-3.5 rounded-2xl bg-linear-to-br from-brand/10 to-brand/5 border border-brand/20 text-brand-light hover:border-brand/40 transition-all group shadow-sm"
+                className="from-brand/10 to-brand/5 border-brand/20 text-brand-light hover:border-brand/40 group flex flex-col gap-2 rounded-2xl border bg-linear-to-br p-3.5 shadow-sm transition-all"
               >
                 <div className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 group-hover:rotate-12 transition-transform text-brand" />
-                  <span className="text-[13px] font-black uppercase tracking-wider">
+                  <Sparkles className="text-brand h-4 w-4 transition-transform group-hover:rotate-12" />
+                  <span className="text-[13px] font-black tracking-wider uppercase">
                     JAMBIFY Pro
                   </span>
                 </div>
-                <p className="text-[11px] text-textDim leading-tight">
+                <p className="text-textDim text-[11px] leading-tight">
                   Unlock AI Tutor, offline mode, and professional mock review.
                 </p>
-                <div className="mt-1 text-[10px] font-bold text-brand-light flex items-center gap-1">
+                <div className="text-brand-light mt-1 flex items-center gap-1 text-[10px] font-bold">
                   Upgrade Now <ArrowRight size={10} />
                 </div>
               </NavLink>
             ) : (
-              <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-success/5 border border-success/10 text-success shadow-inner">
-                <div className="w-8 h-8 rounded-xl bg-success/10 flex items-center justify-center">
-                  <Trophy className="w-4 h-4" />
+              <div className="bg-success/5 border-success/10 text-success flex items-center gap-3 rounded-2xl border p-3.5 shadow-inner">
+                <div className="bg-success/10 flex h-8 w-8 items-center justify-center rounded-xl">
+                  <Trophy className="h-4 w-4" />
                 </div>
                 <div>
-                  <span className="text-[12px] font-black uppercase tracking-wider block">
+                  <span className="block text-[12px] font-black tracking-wider uppercase">
                     Pro Member
                   </span>
-                  <span className="text-[10px] text-success/70 font-medium italic">
+                  <span className="text-success/70 text-[10px] font-medium italic">
                     Premium access active
                   </span>
                 </div>
@@ -262,25 +262,25 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         </nav>
 
         {/* User footer */}
-        <div className="border-t border-borderMuted p-3">
+        <div className="border-borderMuted border-t p-3">
           <button
             onClick={() => {
               navigate("/settings");
               onClose();
             }}
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-brand hover:bg-bgSurface transition-colors text-left"
+            className="rounded-brand hover:bg-bgSurface flex w-full items-center gap-2.5 px-3 py-2 text-left transition-colors"
           >
-            <div className="w-8 h-8 rounded-full bg-brand flex items-center justify-center font-display text-xs font-bold text-white shrink-0 relative">
+            <div className="bg-brand font-display relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white">
               {initials}
               {isPro && (
-                <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-brand border-2 border-bgDeep rounded-full flex items-center justify-center">
-                  <div className="w-1 h-1 bg-white rounded-full" />
+                <div className="bg-brand border-bgDeep absolute -top-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full border-2">
+                  <div className="h-1 w-1 rounded-full bg-white" />
                 </div>
               )}
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{name}</p>
-              <p className="text-[11px] text-textDim">
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-medium">{name}</p>
+              <p className="text-textDim text-[11px]">
                 {isPro ? "Pro Member" : "Free Tier"} · 🔥 {streak} day streak
               </p>
             </div>
@@ -310,7 +310,7 @@ const NavSection: React.FC<{
   onNavigate: () => void;
 }> = ({ label, items, onNavigate }) => (
   <div>
-    <p className="text-[10px] uppercase tracking-widest text-textDim font-medium px-3 mb-1.5">
+    <p className="text-textDim mb-1.5 px-3 text-[10px] font-medium tracking-widest uppercase">
       {label}
     </p>
     {items.map((item) => (
@@ -321,7 +321,7 @@ const NavSection: React.FC<{
         onClick={onNavigate}
         className={({ isActive }) =>
           cn(
-            "flex items-center gap-2.5 px-3 py-2 rounded-brand text-sm mb-0.5 transition-all",
+            "rounded-brand mb-0.5 flex items-center gap-2.5 px-3 py-2 text-sm transition-all",
             isActive
               ? "bg-brand/10 text-brand-light font-medium"
               : "text-textMuted hover:bg-bgSurface hover:text-textMain",
@@ -331,7 +331,7 @@ const NavSection: React.FC<{
         <span className="shrink-0">{item.icon}</span>
         <span className="flex-1">{item.label}</span>
         {item.badge != null && (
-          <span className="bg-brand text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-4.5 text-center">
+          <span className="bg-brand min-w-4.5 rounded-full px-1.5 py-0.5 text-center text-[10px] font-bold text-white">
             {/* {item.badge} */}
           </span>
         )}

@@ -1,8 +1,8 @@
 // src/Store/useUserStore.ts
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { supabase } from '../lib/supabase';
-import { useSubjectStore } from './useSubjectStore';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import { supabase } from "../lib/supabase";
+import { useSubjectStore } from "./useSubjectStore";
 
 // ── Interfaces ────────────────────────────────────────────────────────────────
 interface OnboardingData {
@@ -14,17 +14,27 @@ interface OnboardingData {
   examDate?: string;
 }
 
-interface ProfileUpdate { name: string; university: string; subjectCombo: string; }
-interface ExamUpdate { targetScore: string; examYear: string; examDate: string; }
-interface DownloadedData { [key: string]: any; }
+interface ProfileUpdate {
+  name: string;
+  university: string;
+  subjectCombo: string;
+}
+interface ExamUpdate {
+  targetScore: string;
+  examYear: string;
+  examDate: string;
+}
+interface DownloadedData {
+  [key: string]: any;
+}
 
 export const APP_CONFIG = {
   PRICING: {
     PRO_LIFETIME: 3000,
-    CURRENCY: '₦',
-    DISPLAY_PRICE: '3,000',
+    CURRENCY: "₦",
+    DISPLAY_PRICE: "3,000",
     PRO_LIFETIME_YEARLY: 20000,
-    DISPLAY_PRICE_YEARLY: '20,000',
+    DISPLAY_PRICE_YEARLY: "20,000",
   },
 };
 
@@ -61,7 +71,9 @@ interface UserState {
   authError: string | null;
 
   // ── Actions ──────────────────────────────────────────
-  completeOnboarding: (data: OnboardingData) => Promise<{ error: Error | null }>;
+  completeOnboarding: (
+    data: OnboardingData,
+  ) => Promise<{ error: Error | null }>;
   updateProfile: (data: ProfileUpdate) => Promise<{ error: Error | null }>;
   updateExamSettings: (data: ExamUpdate) => Promise<{ error: Error | null }>;
   resetAccount: () => Promise<{ error: Error | null }>;
@@ -82,7 +94,11 @@ interface UserState {
   syncProfile: (force?: boolean) => Promise<{ onboardingComplete: boolean }>;
 
   // Legacy — kept for compatibility but not used for OTP flow
-  signUp: (email: string, password: string, name: string) => Promise<{ error: Error | null }>;
+  signUp: (
+    email: string,
+    password: string,
+    name: string,
+  ) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
 }
 
@@ -91,13 +107,13 @@ interface UserState {
 // Intentionally lean — stats like streak/score are loaded from DB via syncProfile.
 const DEFAULTS = {
   id: null,
-  name: '',
-  email: '',
-  university: '',
-  subjectCombo: '',
-  targetScore: '',
-  examYear: '2027',
-  examDate: 'Apr 27',
+  name: "",
+  email: "",
+  university: "",
+  subjectCombo: "",
+  targetScore: "",
+  examYear: "2027",
+  examDate: "Apr 27",
   streak: 0,
   bestScore: 0,
   overallScore: 0,
@@ -120,19 +136,25 @@ const DEFAULTS = {
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-const getSubjectComboString = (id: string): string => ({
-  medicine: 'English, Biology, Chemistry, Physics',
-  engineering: 'English, Mathematics, Physics, Chemistry',
-  'social-sci': 'English, Mathematics, Economics, Government',
-  law: 'English, Literature, Government, CRS/IRS',
-} as Record<string, string>)[id] ?? id;
+const getSubjectComboString = (id: string): string =>
+  (
+    ({
+      medicine: "English, Biology, Chemistry, Physics",
+      engineering: "English, Mathematics, Physics, Chemistry",
+      "social-sci": "English, Mathematics, Economics, Government",
+      law: "English, Literature, Government, CRS/IRS",
+    }) as Record<string, string>
+  )[id] ?? id;
 
-const getSubjectComboId = (str: string): string => ({
-  'English, Biology, Chemistry, Physics': 'medicine',
-  'English, Mathematics, Physics, Chemistry': 'engineering',
-  'English, Mathematics, Economics, Government': 'social-sci',
-  'English, Literature, Government, CRS/IRS': 'law',
-} as Record<string, string>)[str] ?? str;
+const getSubjectComboId = (str: string): string =>
+  (
+    ({
+      "English, Biology, Chemistry, Physics": "medicine",
+      "English, Mathematics, Physics, Chemistry": "engineering",
+      "English, Mathematics, Economics, Government": "social-sci",
+      "English, Literature, Government, CRS/IRS": "law",
+    }) as Record<string, string>
+  )[str] ?? str;
 
 // ── Store ─────────────────────────────────────────────────────────────────────
 export const useUserStore = create<UserState>()(
@@ -154,11 +176,11 @@ export const useUserStore = create<UserState>()(
 
         set({ isLoading: true, _lastSync: now });
         try {
-          const { data, error } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', id)
-            .maybeSingle() as { data: any, error: any };
+          const { data, error } = (await supabase
+            .from("profiles")
+            .select("*")
+            .eq("id", id)
+            .maybeSingle()) as { data: any; error: any };
 
           if (error) throw error;
           if (!data) return { onboardingComplete: false };
@@ -167,12 +189,13 @@ export const useUserStore = create<UserState>()(
 
           set({
             name: data.name || get().name,
-            university: data.university || '',
-            targetScore: data.target_score || '',
-            examYear: data.exam_year || '2027',
-            examDate: data.exam_date || 'Apr 27',
+            university: data.university || "",
+            targetScore: data.target_score || "",
+            examYear: data.exam_year || "2027",
+            examDate: data.exam_date || "Apr 27",
             subjectCombo: data.subject_combo
-              ? getSubjectComboId(data.subject_combo) : '',
+              ? getSubjectComboId(data.subject_combo)
+              : "",
             email: data.email || get().email,
             isPro: data.is_pro ?? false,
             bestScore: data.overall_score || 0,
@@ -188,7 +211,7 @@ export const useUserStore = create<UserState>()(
 
           return { onboardingComplete };
         } catch (err) {
-          console.error('[syncProfile]', err);
+          console.error("[syncProfile]", err);
           return { onboardingComplete: get().onboardingComplete };
         } finally {
           set({ isLoading: false });
@@ -216,7 +239,7 @@ export const useUserStore = create<UserState>()(
           set({ authError: (err as Error).message });
           // FIX: preserve the name the user typed even on failure
           // so Onboarding.tsx can display it correctly
-          set(s => ({ name: s.name || '' }));
+          set((s) => ({ name: s.name || "" }));
           return { error: err as Error };
         } finally {
           set({ isLoading: false });
@@ -227,7 +250,10 @@ export const useUserStore = create<UserState>()(
       signIn: async (email, password) => {
         set({ isLoading: true, authError: null });
         try {
-          const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+          const { data, error } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+          });
           if (error) throw error;
           if (data.user) {
             set({ email, id: data.user.id, isAuthenticated: true });
@@ -249,9 +275,9 @@ export const useUserStore = create<UserState>()(
         try {
           await supabase.auth.signOut();
           set({ ...DEFAULTS });
-          localStorage.removeItem('jambready-user');
+          localStorage.removeItem("jambready-user");
         } catch (err) {
-          console.error('[signOut]', err);
+          console.error("[signOut]", err);
         } finally {
           set({ isLoading: false });
         }
@@ -262,18 +288,18 @@ export const useUserStore = create<UserState>()(
       // ── completeOnboarding ────────────────────────────
       completeOnboarding: async (data) => {
         const { id } = get();
-        if (!id) return { error: new Error('Not authenticated') };
+        if (!id) return { error: new Error("Not authenticated") };
 
         set({ isLoading: true });
         try {
-          const { error } = await supabase.rpc('complete_onboarding', {
+          const { error } = await supabase.rpc("complete_onboarding", {
             p_user_id: id,
             p_name: data.name,
             p_university: data.university,
             p_subject_combo: getSubjectComboString(data.subjectCombo),
             p_target_score: data.targetScore,
             p_exam_year: data.examYear,
-            p_exam_date: data.examDate ?? 'Apr 27',
+            p_exam_date: data.examDate ?? "Apr 27",
           });
           if (error) throw error;
 
@@ -286,7 +312,7 @@ export const useUserStore = create<UserState>()(
             subjectCombo: data.subjectCombo,
             targetScore: data.targetScore,
             examYear: data.examYear,
-            examDate: data.examDate ?? 'Apr 27',
+            examDate: data.examDate ?? "Apr 27",
             onboardingComplete: true,
             hasSeenWelcome: false,
           });
@@ -295,7 +321,7 @@ export const useUserStore = create<UserState>()(
           await get().syncProfile(true);
           return { error: null };
         } catch (err) {
-          console.error('[completeOnboarding]', err);
+          console.error("[completeOnboarding]", err);
           return { error: err as Error };
         } finally {
           set({ isLoading: false });
@@ -309,17 +335,20 @@ export const useUserStore = create<UserState>()(
       // ── Profile updates ───────────────────────────────
       updateProfile: async (data) => {
         const { id } = get();
-        if (!id) { set(data); return { error: null }; }
+        if (!id) {
+          set(data);
+          return { error: null };
+        }
         set({ isLoading: true });
         try {
           const { error } = await supabase
-            .from('profiles')
+            .from("profiles")
             .update({
               name: data.name,
               university: data.university,
               subject_combo: getSubjectComboString(data.subjectCombo),
             })
-            .eq('id', id);
+            .eq("id", id);
           if (error) throw error;
           set(data);
           await get().syncProfile();
@@ -333,17 +362,20 @@ export const useUserStore = create<UserState>()(
 
       updateExamSettings: async (data) => {
         const { id } = get();
-        if (!id) { set(data); return { error: null }; }
+        if (!id) {
+          set(data);
+          return { error: null };
+        }
         set({ isLoading: true });
         try {
           const { error } = await supabase
-            .from('profiles')
+            .from("profiles")
             .update({
               target_score: data.targetScore,
               exam_year: data.examYear,
               exam_date: data.examDate,
             })
-            .eq('id', id);
+            .eq("id", id);
           if (error) throw error;
           set(data);
           await get().syncProfile();
@@ -361,40 +393,46 @@ export const useUserStore = create<UserState>()(
       },
 
       // ── Simple setters ────────────────────────────────
-      setName: n => set({ name: n }),
-      setEmail: e => set({ email: e }),
+      setName: (n) => set({ name: n }),
+      setEmail: (e) => set({ email: e }),
       updateBestScore: async (score) => {
         const { bestScore, id } = get();
         if (score > bestScore) {
           set({ bestScore: score }); // Optimistic update
           if (id) {
             // Use RPC to bypass RLS restrictions
-            const { error } = await supabase.rpc('update_best_score', {
+            const { error } = await supabase.rpc("update_best_score", {
               p_user_id: id,
-              p_new_score: score
+              p_new_score: score,
             });
 
             if (error) {
-              console.error('❌ Failed to update overall_score via RPC:', error);
+              console.error(
+                "❌ Failed to update overall_score via RPC:",
+                error,
+              );
             } else {
-              console.log('✅ overall_score updated via RPC to:', score);
+              console.log("✅ overall_score updated via RPC to:", score);
             }
           }
         }
       },
-      incrementQuestions: n => set(s => ({ questionsCompleted: s.questionsCompleted + n })),
-      updateAccuracy: acc => set(s => ({ previousAccuracy: s.accuracy, accuracy: acc })),
+      incrementQuestions: (n) =>
+        set((s) => ({ questionsCompleted: s.questionsCompleted + n })),
+      updateAccuracy: (acc) =>
+        set((s) => ({ previousAccuracy: s.accuracy, accuracy: acc })),
       upgradeToPro: () => set({ isPro: true }),
       downgradeToPro: () => set({ isPro: false }),
-      setDownloadedData: data => set({ downloadedData: data }),
-      addDownloadedData: (k, v) => set(s => ({
-        downloadedData: { ...s.downloadedData, [k]: v },
-      })),
+      setDownloadedData: (data) => set({ downloadedData: data }),
+      addDownloadedData: (k, v) =>
+        set((s) => ({
+          downloadedData: { ...s.downloadedData, [k]: v },
+        })),
     }),
 
     {
-      name: 'jambready-user',
-      partialize: s => ({
+      name: "jambready-user",
+      partialize: (s) => ({
         // Persist auth identity and profile so page refresh works
         id: s.id,
         name: s.name,

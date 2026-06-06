@@ -67,9 +67,9 @@ const TopicStats: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-48">
+      <div className="flex h-48 items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 border-4 border-brand/20 border-t-brand rounded-full animate-spin" />
+          <div className="border-brand/20 border-t-brand h-10 w-10 animate-spin rounded-full border-4" />
           <div className="text-textDim text-sm font-medium">
             Analyzing topics...
           </div>
@@ -81,17 +81,17 @@ const TopicStats: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Controls Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-bgSurface/30 p-4 rounded-2xl border border-borderMuted/30">
+      <div className="bg-bgSurface/30 border-borderMuted/30 flex flex-col justify-between gap-4 rounded-2xl border p-4 sm:flex-row sm:items-center">
         <div className="flex items-center gap-4">
-          <div className="flex gap-1 p-1 bg-bgDeep rounded-xl border border-borderMuted/20">
+          <div className="bg-bgDeep border-borderMuted/20 flex gap-1 rounded-xl border p-1">
             {(["all", "weak", "strong"] as Filter[]).map((f) => (
               <button
                 key={f}
                 onClick={() => setFilter(f)}
                 className={cn(
-                  "px-4 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-wider transition-all",
+                  "rounded-lg px-4 py-1.5 text-[11px] font-black tracking-wider uppercase transition-all",
                   filter === f
-                    ? "bg-brand text-white shadow-lg shadow-brand/20"
+                    ? "bg-brand shadow-brand/20 text-white shadow-lg"
                     : "text-textDim hover:text-textMain hover:bg-bgSurface",
                 )}
               >
@@ -99,28 +99,28 @@ const TopicStats: React.FC = () => {
               </button>
             ))}
           </div>
-          <span className="text-[10px] font-bold text-textDim uppercase tracking-widest hidden md:block">
+          <span className="text-textDim hidden text-[10px] font-bold tracking-widest uppercase md:block">
             {visibleTopics.length} Topics found
           </span>
         </div>
 
         <button
           onClick={() => navigate("/quiz")}
-          className="text-[10px] font-black uppercase tracking-widest text-brand hover:text-brand-light flex items-center gap-2 transition-colors group"
+          className="text-brand hover:text-brand-light group flex items-center gap-2 text-[10px] font-black tracking-widest uppercase transition-colors"
         >
           Practice weak topics
           <ArrowRight
             size={14}
-            className="group-hover:translate-x-1 transition-transform"
+            className="transition-transform group-hover:translate-x-1"
           />
         </button>
       </div>
 
       {/* Topic Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
         {displayedTopics.length === 0 && (
-          <div className="col-span-full py-12 text-center bg-bgSurface/20 rounded-3xl border border-dashed border-borderMuted/40">
-            <p className="text-sm text-textDim font-medium">
+          <div className="bg-bgSurface/20 border-borderMuted/40 col-span-full rounded-3xl border border-dashed py-12 text-center">
+            <p className="text-textDim text-sm font-medium">
               No topics match this filter. Try another one!
             </p>
           </div>
@@ -131,21 +131,21 @@ const TopicStats: React.FC = () => {
           return (
             <div
               key={t.id}
-              className="bg-bgCard border border-borderMuted/60 rounded-2xl p-5 cursor-pointer group hover:border-brand/40 hover:bg-bgSurface/50 transition-all active:scale-[0.98] shadow-sm hover:shadow-md"
+              className="bg-bgCard border-borderMuted/60 group hover:border-brand/40 hover:bg-bgSurface/50 cursor-pointer rounded-2xl border p-5 shadow-sm transition-all hover:shadow-md active:scale-[0.98]"
               onClick={() => handleTopicClick(t)}
             >
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex flex-col min-w-0">
-                  <span className="text-[10px] font-black text-brand uppercase tracking-widest mb-1">
+              <div className="mb-4 flex items-center justify-between">
+                <div className="flex min-w-0 flex-col">
+                  <span className="text-brand mb-1 text-[10px] font-black tracking-widest uppercase">
                     {t.subject}
                   </span>
-                  <h4 className="text-sm font-bold text-textMain truncate group-hover:text-brand transition-colors">
+                  <h4 className="text-textMain group-hover:text-brand truncate text-sm font-bold transition-colors">
                     {t.name}
                   </h4>
                 </div>
                 <div
                   className={cn(
-                    "px-2 py-1 rounded-md border text-[9px] font-black uppercase tracking-tight shrink-0",
+                    "shrink-0 rounded-md border px-2 py-1 text-[9px] font-black tracking-tight uppercase",
                     label.cls,
                   )}
                 >
@@ -154,15 +154,15 @@ const TopicStats: React.FC = () => {
               </div>
 
               <div className="space-y-2">
-                <div className="flex items-center justify-between text-[10px] font-bold text-textDim uppercase tracking-tighter">
+                <div className="text-textDim flex items-center justify-between text-[10px] font-bold tracking-tighter uppercase">
                   <span>Accuracy</span>
                   <span style={{ color: getBarColor(cappedAccuracy) }}>
                     {cappedAccuracy}%
                   </span>
                 </div>
-                <div className="h-2 bg-bgDeep rounded-full overflow-hidden p-0.5 border border-borderMuted/20">
+                <div className="bg-bgDeep border-borderMuted/20 h-2 overflow-hidden rounded-full border p-0.5">
                   <div
-                    className="h-full rounded-full transition-all duration-1000 ease-out shadow-sm"
+                    className="h-full rounded-full shadow-sm transition-all duration-1000 ease-out"
                     style={{
                       width: `${cappedAccuracy}%`,
                       background: getBarColor(cappedAccuracy),
@@ -180,7 +180,7 @@ const TopicStats: React.FC = () => {
         <div className="flex justify-center pt-4">
           <button
             onClick={() => setShowAll(!showAll)}
-            className="px-8 py-3 rounded-full bg-bgSurface border border-borderMuted hover:border-brand/40 text-xs font-black uppercase tracking-widest text-textDim hover:text-textMain transition-all active:scale-95 shadow-sm"
+            className="bg-bgSurface border-borderMuted hover:border-brand/40 text-textDim hover:text-textMain rounded-full border px-8 py-3 text-xs font-black tracking-widest uppercase shadow-sm transition-all active:scale-95"
           >
             {showAll
               ? "Show less"

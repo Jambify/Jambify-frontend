@@ -1,6 +1,6 @@
 // src/services/performanceService.ts
 
-import { supabase } from '../lib/supabase';
+import { supabase } from "../lib/supabase";
 
 export interface WeeklyActivity {
   day: string;
@@ -60,12 +60,14 @@ interface QuizSubmissionData {
 
 // Get performance summary from Supabase
 export const getPerformanceSummary = async (): Promise<PerformanceSummary> => {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error('Not authenticated');
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
 
-  const { data, error } = await supabase.rpc('get_performance_summary', {
-    p_user_id: user.id
-  }) as SupabaseResponse<PerformanceSummaryData>;
+  const { data, error } = (await supabase.rpc("get_performance_summary", {
+    p_user_id: user.id,
+  })) as SupabaseResponse<PerformanceSummaryData>;
 
   if (error) throw error;
 
@@ -79,18 +81,23 @@ export const getPerformanceSummary = async (): Promise<PerformanceSummary> => {
 
 // Get weekly activity from Supabase
 export const getWeeklyActivity = async (): Promise<WeeklyActivity[]> => {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error('Not authenticated');
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
 
-  const { data, error } = await supabase.rpc('get_weekly_activity', {
-    p_user_id: user.id
-  }) as SupabaseResponse<WeeklyActivityData[]>;
+  const { data, error } = (await supabase.rpc("get_weekly_activity", {
+    p_user_id: user.id,
+  })) as SupabaseResponse<WeeklyActivityData[]>;
 
   if (error) throw error;
 
   // Map the data to day names
-  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  const result: WeeklyActivity[] = dayNames.map(day => ({ day, questions: 0 }));
+  const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const result: WeeklyActivity[] = dayNames.map((day) => ({
+    day,
+    questions: 0,
+  }));
 
   if (data && Array.isArray(data)) {
     data.forEach((item) => {
@@ -107,21 +114,27 @@ export const getWeeklyActivity = async (): Promise<WeeklyActivity[]> => {
 
 // Get topic stats from quiz sessions (detailed aggregation from JSONB)
 export const getDetailedTopicStats = async (): Promise<TopicStat[]> => {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error('Not authenticated');
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
 
   const { data: sessions, error } = await supabase
-    .from('quiz_sessions')
-    .select('topic_performance')
-    .eq('user_id', user.id);
+    .from("quiz_sessions")
+    .select("topic_performance")
+    .eq("user_id", user.id);
 
   if (error) throw error;
   if (!sessions || sessions.length === 0) return [];
 
-  const topicAgg: Record<string, { subject: string; correct: number; total: number }> = {};
+  const topicAgg: Record<
+    string,
+    { subject: string; correct: number; total: number }
+  > = {};
 
-  sessions.forEach(s => {
-    const perf = (s.topic_performance as Record<string, TopicPerformanceData>) || {};
+  sessions.forEach((s) => {
+    const perf =
+      (s.topic_performance as Record<string, TopicPerformanceData>) || {};
     Object.entries(perf).forEach(([key, data]) => {
       if (!topicAgg[key]) {
         topicAgg[key] = { subject: data.subject, correct: 0, total: 0 };
@@ -133,7 +146,7 @@ export const getDetailedTopicStats = async (): Promise<TopicStat[]> => {
 
   const topics: TopicStat[] = Object.entries(topicAgg).map(([name, data]) => ({
     id: name,
-    name: name.split(':')[1] || name,
+    name: name.split(":")[1] || name,
     subject: data.subject,
     accuracy: Math.round((data.correct / data.total) * 100),
   }));
@@ -143,14 +156,16 @@ export const getDetailedTopicStats = async (): Promise<TopicStat[]> => {
 
 // Get topic stats from quiz sessions (only subjects the user has actually practiced)
 export const getTopicStats = async (): Promise<TopicStat[]> => {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error('Not authenticated');
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
 
   // 1. Get ALL quiz sessions for this user to see what they've actually practiced
   const { data, error } = await supabase
-    .from('quiz_sessions')
-    .select('subject, accuracy')
-    .eq('user_id', user.id);
+    .from("quiz_sessions")
+    .select("subject, accuracy")
+    .eq("user_id", user.id);
 
   if (error) throw error;
 
@@ -171,7 +186,7 @@ export const getTopicStats = async (): Promise<TopicStat[]> => {
       const existing = quizMap.get(subject)!;
       quizMap.set(subject, {
         total: existing.total + accuracy,
-        count: existing.count + 1
+        count: existing.count + 1,
       });
     } else {
       quizMap.set(subject, { total: accuracy, count: 1 });
@@ -200,14 +215,14 @@ export const getTopicStats = async (): Promise<TopicStat[]> => {
 
 // Submit quiz session (call from Quiz page)
 export const submitQuizSession = async (
-  mode: 'practice' | 'mock',
+  mode: "practice" | "mock",
   subject: string,
   questionIds: string[],
   clientAnswers: Record<number, number>,
   timeTakenSeconds: number,
   correctCount?: number, // Optional: calculated by frontend
   totalQuestions?: number, // Optional: calculated by frontend
-  topicPerformance?: Record<string, any>
+  topicPerformance?: Record<string, any>,
 ): Promise<{
   sessionId: string;
   correct: number;
@@ -215,8 +230,10 @@ export const submitQuizSession = async (
   accuracy: number;
   streak: number;
 }> => {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error('Not authenticated');
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
 
   // Convert answers to JSONB format with proper typing
   const answersJson: Record<number, number> = {};
@@ -232,10 +249,10 @@ export const submitQuizSession = async (
   console.log(`🚀 [submitQuizSession] Sending ${subject} (${mode}) to DB:`, {
     correct: finalCorrect,
     total: finalTotal,
-    accuracy: finalAccuracy.toFixed(2)
+    accuracy: finalAccuracy.toFixed(2),
   });
 
-  const { data, error } = await supabase.rpc('submit_quiz_session', {
+  const { data, error } = (await supabase.rpc("submit_quiz_session", {
     p_user_id: user.id,
     p_mode: mode,
     p_subject: subject,
@@ -244,15 +261,15 @@ export const submitQuizSession = async (
     p_time_taken_secs: timeTakenSeconds,
     p_frontend_correct: finalCorrect,
     p_frontend_accuracy: finalAccuracy,
-    p_topic_performance: topicPerformance || {}
-  }) as SupabaseResponse<QuizSubmissionData>;
+    p_topic_performance: topicPerformance || {},
+  })) as SupabaseResponse<QuizSubmissionData>;
 
   if (error) {
-    console.error('❌ [submitQuizSession] RPC Error:', error);
+    console.error("❌ [submitQuizSession] RPC Error:", error);
     throw error;
   }
 
-  if (!data) throw new Error('Failed to submit session');
+  if (!data) throw new Error("Failed to submit session");
 
   const result = {
     sessionId: data.session_id,

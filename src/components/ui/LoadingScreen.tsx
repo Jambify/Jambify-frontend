@@ -52,12 +52,12 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
   }, [estimatedTime]);
 
   return (
-    <div className="min-h-screen bg-bgMain flex flex-col items-center justify-center p-4 relative overflow-hidden">
+    <div className="bg-bgMain relative flex min-h-screen flex-col items-center justify-center overflow-hidden p-4">
       {/* Dynamic Background Elements */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-brand/5 blur-[120px] rounded-full animate-pulse" />
+      <div className="pointer-events-none absolute inset-0">
+        <div className="bg-brand/5 absolute top-[-10%] left-[-10%] h-[40%] w-[40%] animate-pulse rounded-full blur-[120px]" />
         <div
-          className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-brand/10 blur-[120px] rounded-full animate-pulse"
+          className="bg-brand/10 absolute right-[-10%] bottom-[-10%] h-[40%] w-[40%] animate-pulse rounded-full blur-[120px]"
           style={{ animationDelay: "1s" }}
         />
       </div>
@@ -69,55 +69,55 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
         className="relative z-10 w-full max-w-sm"
       >
         {/* Logo Animation */}
-        <div className="flex flex-col items-center mb-12">
+        <div className="mb-12 flex flex-col items-center">
           <motion.div
-            className="w-20 h-20 bg-brand rounded-3xl flex items-center justify-center shadow-2xl shadow-brand/40 mb-6 relative overflow-hidden group"
+            className="bg-brand shadow-brand/40 group relative mb-6 flex h-20 w-20 items-center justify-center overflow-hidden rounded-3xl shadow-2xl"
             animate={{
               rotate: [0, 5, -5, 0],
               scale: [1, 1.05, 1],
             }}
             transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
           >
-            <div className="absolute inset-0 bg-linear-to-tr from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-            <span className="text-white text-4xl font-black tracking-tighter">
+            <div className="absolute inset-0 bg-linear-to-tr from-white/20 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+            <span className="text-4xl font-black tracking-tighter text-white">
               J
             </span>
           </motion.div>
 
-          <h1 className="font-display text-3xl font-bold tracking-tight text-textMain">
+          <h1 className="font-display text-textMain text-3xl font-bold tracking-tight">
             JAMB<span className="text-brand">IFY</span>
           </h1>
-          <div className="h-1 w-12 bg-brand/30 rounded-full mt-2" />
+          <div className="bg-brand/30 mt-2 h-1 w-12 rounded-full" />
         </div>
 
         {/* Loading Card */}
-        <div className="bg-bgCard border border-borderMuted rounded-3xl p-8 shadow-2xl backdrop-blur-md relative overflow-hidden">
+        <div className="bg-bgCard border-borderMuted relative overflow-hidden rounded-3xl border p-8 shadow-2xl backdrop-blur-md">
           {/* Shimmer line */}
           <motion.div
-            className="absolute top-0 left-0 w-full h-0.5 bg-linear-to-r from-transparent via-brand to-transparent"
+            className="via-brand absolute top-0 left-0 h-0.5 w-full bg-linear-to-r from-transparent to-transparent"
             animate={{ left: ["-100%", "100%"] }}
             transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
           />
 
           <div className="space-y-6">
             <div className="text-center">
-              <h3 className="text-lg font-bold text-textMain mb-1 capitalize">
+              <h3 className="text-textMain mb-1 text-lg font-bold capitalize">
                 {message}
               </h3>
-              <p className="text-xs text-textDim font-medium tracking-wide uppercase">
+              <p className="text-textDim text-xs font-medium tracking-wide uppercase">
                 {submessage}
               </p>
             </div>
 
             {/* Progress Container */}
             <div className="space-y-2">
-              <div className="flex justify-between text-[10px] font-bold text-textDim uppercase tracking-widest">
+              <div className="text-textDim flex justify-between text-[10px] font-bold tracking-widest uppercase">
                 <span>Progress</span>
                 <span>{Math.round(progress)}%</span>
               </div>
-              <div className="h-2 bg-bgSurface rounded-full overflow-hidden border border-borderMuted p-0.5">
+              <div className="bg-bgSurface border-borderMuted h-2 overflow-hidden rounded-full border p-0.5">
                 <motion.div
-                  className="h-full bg-brand rounded-full relative"
+                  className="bg-brand relative h-full rounded-full"
                   style={{ width: `${progress}%` }}
                 >
                   <div className="absolute inset-0 bg-linear-to-r from-white/20 to-transparent" />
@@ -132,12 +132,12 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="bg-bgSurface/50 border border-borderMuted rounded-2xl p-4 flex items-center gap-4"
+                className="bg-bgSurface/50 border-borderMuted flex items-center gap-4 rounded-2xl border p-4"
               >
-                <div className="w-10 h-10 bg-bgCard rounded-xl flex items-center justify-center text-xl shadow-sm">
+                <div className="bg-bgCard flex h-10 w-10 items-center justify-center rounded-xl text-xl shadow-sm">
                   {LOADING_TIPS[tipIndex].icon}
                 </div>
-                <p className="text-xs text-textMuted leading-relaxed font-medium">
+                <p className="text-textMuted text-xs leading-relaxed font-medium">
                   {LOADING_TIPS[tipIndex].text}
                 </p>
               </motion.div>
@@ -145,7 +145,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
           </div>
         </div>
 
-        <p className="text-center text-[10px] text-textDim font-bold uppercase tracking-[0.2em] mt-8 opacity-50">
+        <p className="text-textDim mt-8 text-center text-[10px] font-bold tracking-[0.2em] uppercase opacity-50">
           Powered by JAMBIFY AI
         </p>
       </motion.div>

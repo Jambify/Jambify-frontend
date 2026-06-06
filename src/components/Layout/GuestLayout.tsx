@@ -8,19 +8,19 @@ interface GuestLayoutProps {
 
 const GuestLayout: React.FC<GuestLayoutProps> = ({ children, className }) => {
   return (
-    <div className={cn(
-      "min-h-screen bg-bgMain text-textMain font-sans selection:bg-brand/30 relative overflow-x-hidden",
-      className
-    )}>
+    <div
+      className={cn(
+        "bg-bgMain text-textMain selection:bg-brand/30 relative min-h-screen overflow-x-hidden font-sans",
+        className,
+      )}
+    >
       {/* Global Ambient Glow for Guest Pages */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-brand/5 blur-[120px] rounded-full" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-brand/10 blur-[120px] rounded-full" />
+      <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+        <div className="bg-brand/5 absolute top-[-10%] left-[-10%] h-[40%] w-[40%] rounded-full blur-[120px]" />
+        <div className="bg-brand/10 absolute right-[-10%] bottom-[-10%] h-[40%] w-[40%] rounded-full blur-[120px]" />
       </div>
-      
-      <div className="relative z-10">
-        {children}
-      </div>
+
+      <div className="relative z-10">{children}</div>
     </div>
   );
 };

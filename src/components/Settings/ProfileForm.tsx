@@ -124,7 +124,7 @@ const ProfileForm: React.FC = () => {
             )}
             placeholder="your.email@example.com"
           />
-          <p className="text-xs text-textDim mt-1">
+          <p className="text-textDim mt-1 text-xs">
             Email cannot be changed - it's your account identifier
           </p>
         </Field>
@@ -156,18 +156,18 @@ const ProfileForm: React.FC = () => {
                   setShowDropdown(true);
                 }}
                 onFocus={() => setShowDropdown(true)}
-                className={cn(inputCls(false), "pl-10 pr-10")}
+                className={cn(inputCls(false), "pr-10 pl-10")}
                 placeholder="Search Nigerian universities..."
               />
               <Search
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-textDim"
+                className="text-textDim absolute top-1/2 left-3 -translate-y-1/2"
                 size={16}
               />
 
               {/* Spinner logic */}
               {isLoadingUnis && (
                 <Loader2
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-brand animate-spin"
+                  className="text-brand absolute top-1/2 right-3 -translate-y-1/2 animate-spin"
                   size={16}
                 />
               )}
@@ -175,9 +175,9 @@ const ProfileForm: React.FC = () => {
           </Field>
 
           {showDropdown && searchTerm && (
-            <div className="absolute z-50 w-full mt-1 bg-bgSurface border border-borderMuted rounded-brand shadow-2xl overflow-hidden">
+            <div className="bg-bgSurface border-borderMuted rounded-brand absolute z-50 mt-1 w-full overflow-hidden border shadow-2xl">
               {isLoadingUnis ? (
-                <div className="px-4 py-3 text-sm text-textDim italic text-center">
+                <div className="text-textDim px-4 py-3 text-center text-sm italic">
                   Loading list...
                 </div>
               ) : filteredUnis.length > 0 ? (
@@ -190,13 +190,13 @@ const ProfileForm: React.FC = () => {
                       setForm((p) => ({ ...p, university: uni }));
                       setShowDropdown(false);
                     }}
-                    className="w-full text-left px-4 py-3 text-sm hover:bg-brand/10 hover:text-brand-light transition-colors border-b border-borderMuted/30 last:border-none"
+                    className="hover:bg-brand/10 hover:text-brand-light border-borderMuted/30 w-full border-b px-4 py-3 text-left text-sm transition-colors last:border-none"
                   >
                     {uni}
                   </button>
                 ))
               ) : (
-                <div className="px-4 py-3 text-sm text-textDim text-center">
+                <div className="text-textDim px-4 py-3 text-center text-sm">
                   No results found
                 </div>
               )}
@@ -218,9 +218,9 @@ const ProfileForm: React.FC = () => {
                   setForm((p) => ({ ...p, subjectCombo: combo.id }))
                 }
                 className={cn(
-                  "w-full text-left px-4 py-3 rounded-brand border flex items-center gap-3 transition-all duration-200",
+                  "rounded-brand flex w-full items-center gap-3 border px-4 py-3 text-left transition-all duration-200",
                   isSelected
-                    ? "bg-brand/10 border-brand ring-1 ring-brand/50"
+                    ? "bg-brand/10 border-brand ring-brand/50 ring-1"
                     : "bg-bgSurface border-borderMuted hover:border-white/20",
                 )}
               >
@@ -234,12 +234,12 @@ const ProfileForm: React.FC = () => {
                   >
                     {combo.label}
                   </p>
-                  <p className="text-[11px] text-textDim leading-tight mt-0.5">
+                  <p className="text-textDim mt-0.5 text-[11px] leading-tight">
                     {combo.subjects.join(" · ")}
                   </p>
                 </div>
                 {isSelected && (
-                  <div className="w-2 h-2 rounded-full bg-brand shadow-brand" />
+                  <div className="bg-brand shadow-brand h-2 w-2 rounded-full" />
                 )}
               </button>
             );
@@ -258,7 +258,7 @@ const ProfileForm: React.FC = () => {
         </Button>
         {isDirty && (
           <button
-            className="text-sm text-textDim hover:text-textMain transition-colors"
+            className="text-textDim hover:text-textMain text-sm transition-colors"
             onClick={() =>
               setForm({
                 name,

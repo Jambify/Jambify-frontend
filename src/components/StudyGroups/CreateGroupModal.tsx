@@ -63,9 +63,9 @@ const CreateGroupModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-bgCard border border-borderMuted rounded-brand-xl p-6 w-full max-w-md shadow-card">
-        <div className="flex items-center justify-between mb-5">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
+      <div className="bg-bgCard border-borderMuted rounded-brand-xl shadow-card w-full max-w-md border p-6">
+        <div className="mb-5 flex items-center justify-between">
           <h3 className="font-display text-lg font-bold tracking-tight">
             Create a group
           </h3>
@@ -73,13 +73,13 @@ const CreateGroupModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             onClick={onClose}
             className="text-textDim hover:text-textMain transition-colors"
           >
-            <X className="w-5 h-5" />
+            <X className="h-5 w-5" />
           </button>
         </div>
 
         {/* <Subject picker doubles as icon picker */}
         <div className="mb-4">
-          <label className="block text-[11px] text-textDim uppercase tracking-widest font-medium mb-2">
+          <label className="text-textDim mb-2 block text-[11px] font-medium tracking-widest uppercase">
             Subject focus
           </label>
           <div className="flex flex-wrap gap-1.5">
@@ -88,7 +88,7 @@ const CreateGroupModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                 key={s}
                 onClick={() => update("subject", s)}
                 className={cn(
-                  "px-3 py-1.5 rounded-full text-xs font-medium border transition-all",
+                  "rounded-full border px-3 py-1.5 text-xs font-medium transition-all",
                   form.subject === s
                     ? "bg-brand border-brand text-white"
                     : "bg-bgSurface border-borderMuted text-textMuted hover:text-textMain",
@@ -101,7 +101,7 @@ const CreateGroupModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         </div>
 
         <div className="mb-4">
-          <label className="block text-[11px] text-textDim uppercase tracking-widest font-medium mb-2">
+          <label className="text-textDim mb-2 block text-[11px] font-medium tracking-widest uppercase">
             Group name
           </label>
           <input
@@ -114,12 +114,12 @@ const CreateGroupModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             }}
             placeholder="e.g. UNILAG Chemistry Squad"
             style={{ fontSize: "16px" }}
-            className="w-full px-4 py-2.5 bg-bgSurface border border-borderMuted rounded-brand text-sm text-textMain placeholder:text-textDim focus:outline-none focus:border-brand/40 transition-colors"
+            className="bg-bgSurface border-borderMuted rounded-brand text-textMain placeholder:text-textDim focus:border-brand/40 w-full border px-4 py-2.5 text-sm transition-colors focus:outline-none"
           />
         </div>
 
         <div className="mb-5">
-          <label className="block text-[11px] text-textDim uppercase tracking-widest font-medium mb-2">
+          <label className="text-textDim mb-2 block text-[11px] font-medium tracking-widest uppercase">
             Description
           </label>
           <textarea
@@ -131,11 +131,11 @@ const CreateGroupModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             placeholder="What's this group about?"
             rows={3}
             style={{ fontSize: "16px" }}
-            className="w-full px-4 py-2.5 bg-bgSurface border border-borderMuted rounded-brand text-sm text-textMain placeholder:text-textDim focus:outline-none focus:border-brand/40 transition-colors resize-none"
+            className="bg-bgSurface border-borderMuted rounded-brand text-textMain placeholder:text-textDim focus:border-brand/40 w-full resize-none border px-4 py-2.5 text-sm transition-colors focus:outline-none"
           />
         </div>
 
-        {error && <p className="text-xs text-danger mb-3">{error}</p>}
+        {error && <p className="text-danger mb-3 text-xs">{error}</p>}
 
         <div className="flex gap-2">
           <Button variant="secondary" fullWidth onClick={onClose}>
@@ -149,11 +149,11 @@ const CreateGroupModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
           >
             {loading ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin" /> Creating…
+                <Loader2 className="h-4 w-4 animate-spin" /> Creating…
               </>
             ) : (
               <>
-                <Users className="w-4 h-4" /> Create group
+                <Users className="h-4 w-4" /> Create group
               </>
             )}
           </Button>

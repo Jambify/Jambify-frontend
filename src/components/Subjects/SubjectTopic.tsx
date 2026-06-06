@@ -1,8 +1,8 @@
-import React from 'react';
+import React from "react";
 
 interface TopicListProps {
   topics: string[];
-  color:  string;
+  color: string;
 }
 
 const TopicList: React.FC<TopicListProps> = ({ topics, color }) => {
@@ -13,16 +13,16 @@ const TopicList: React.FC<TopicListProps> = ({ topics, color }) => {
       {topics.map((topic) => (
         <div
           key={topic}
-          className="flex items-center gap-2.5 px-3 py-2 bg-bgSurface rounded-brand border border-borderMuted"
+          className="bg-bgSurface rounded-brand border-borderMuted flex items-center gap-2.5 border px-3 py-2"
         >
           {/* <Colour dot */}
           <span
-            className="w-1.5 h-1.5 rounded-full shrink-0"
+            className="h-1.5 w-1.5 shrink-0 rounded-full"
             style={{ background: color }}
           />
-          <span className="text-xs text-textMuted flex-1">{topic}</span>
+          <span className="text-textMuted flex-1 text-xs">{topic}</span>
           {/* <Weak indicator */}
-          <span className="text-[10px] text-danger font-medium">Weak</span>
+          <span className="text-danger text-[10px] font-medium">Weak</span>
         </div>
       ))}
     </div>

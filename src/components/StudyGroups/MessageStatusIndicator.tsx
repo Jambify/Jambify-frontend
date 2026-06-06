@@ -18,8 +18,8 @@ const MessageStatusIndicator: React.FC<Props> = ({
 }) => {
   if (status === "sending") {
     return (
-      <span className={cn("flex items-center gap-0.5 text-textDim", className)}>
-        <Clock className="w-3 h-3 animate-pulse" />
+      <span className={cn("text-textDim flex items-center gap-0.5", className)}>
+        <Clock className="h-3 w-3 animate-pulse" />
       </span>
     );
   }
@@ -27,9 +27,9 @@ const MessageStatusIndicator: React.FC<Props> = ({
   if (status === "sent") {
     return (
       <span
-        className={cn("flex items-center gap-0.5 text-textMuted", className)}
+        className={cn("text-textMuted flex items-center gap-0.5", className)}
       >
-        <Check className="w-3 h-3" />
+        <Check className="h-3 w-3" />
       </span>
     );
   }
@@ -37,9 +37,9 @@ const MessageStatusIndicator: React.FC<Props> = ({
   if (status === "delivered") {
     return (
       <span
-        className={cn("flex items-center gap-0.5 text-brand-light", className)}
+        className={cn("text-brand-light flex items-center gap-0.5", className)}
       >
-        <CheckCheck className="w-3 h-3" />
+        <CheckCheck className="h-3 w-3" />
       </span>
     );
   }
@@ -50,12 +50,12 @@ const MessageStatusIndicator: React.FC<Props> = ({
         onClick={onRetry}
         title="Tap to retry"
         className={cn(
-          "flex items-center gap-1 text-danger hover:text-danger/80 transition-all active:scale-95",
+          "text-danger hover:text-danger/80 flex items-center gap-1 transition-all active:scale-95",
           className,
         )}
       >
-        <WifiOff className="w-3.5 h-3.5" />
-        {onRetry && <RefreshCw className="w-3 h-3 animate-spin" />}
+        <WifiOff className="h-3.5 w-3.5" />
+        {onRetry && <RefreshCw className="h-3 w-3 animate-spin" />}
       </button>
     );
   }

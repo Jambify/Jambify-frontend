@@ -173,16 +173,16 @@ const ExamPaywall: React.FC<ExamPaywallProps> = ({ onUpgrade, onBack }) => {
   // ── Pending step (payment initiated, waiting for user) ────────────────────
   if (step === "pending" || step === "verify") {
     return (
-      <div className="min-h-screen bg-bgMain text-textMain flex items-center justify-center p-4">
-        <div className="bg-bgCard border border-borderMuted rounded-4xl p-8 w-full max-w-md text-center shadow-2xl">
-          <div className="w-16 h-16 bg-warn/10 rounded-full flex items-center justify-center mx-auto mb-5 border border-warn/20">
-            <Crown className="w-8 h-8 text-warn" />
+      <div className="bg-bgMain text-textMain flex min-h-screen items-center justify-center p-4">
+        <div className="bg-bgCard border-borderMuted w-full max-w-md rounded-4xl border p-8 text-center shadow-2xl">
+          <div className="bg-warn/10 border-warn/20 mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full border">
+            <Crown className="text-warn h-8 w-8" />
           </div>
 
-          <h2 className="text-2xl font-display font-bold mb-2">
+          <h2 className="font-display mb-2 text-2xl font-bold">
             Complete Payment
           </h2>
-          <p className="text-textMuted text-sm mb-6 leading-relaxed">
+          <p className="text-textMuted mb-6 text-sm leading-relaxed">
             Pay{" "}
             <strong className="text-textMain">
               {CURRENCY}
@@ -193,12 +193,12 @@ const ExamPaywall: React.FC<ExamPaywallProps> = ({ onUpgrade, onBack }) => {
           </p>
 
           {/* Payment instructions */}
-          <div className="bg-bgSurface border border-borderMuted rounded-2xl p-4 mb-6 text-left space-y-2">
-            <p className="text-xs text-textDim uppercase tracking-widest font-bold mb-3">
+          <div className="bg-bgSurface border-borderMuted mb-6 space-y-2 rounded-2xl border p-4 text-left">
+            <p className="text-textDim mb-3 text-xs font-bold tracking-widest uppercase">
               Payment Steps
             </p>
-            <div className="flex items-start gap-2 text-sm text-textMuted">
-              <span className="w-5 h-5 rounded-full bg-brand/10 text-brand text-[10px] flex items-center justify-center shrink-0 mt-0.5 font-bold">
+            <div className="text-textMuted flex items-start gap-2 text-sm">
+              <span className="bg-brand/10 text-brand mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold">
                 1
               </span>
               <span>
@@ -210,14 +210,14 @@ const ExamPaywall: React.FC<ExamPaywallProps> = ({ onUpgrade, onBack }) => {
                 via bank transfer or Flutterwave
               </span>
             </div>
-            <div className="flex items-start gap-2 text-sm text-textMuted">
-              <span className="w-5 h-5 rounded-full bg-brand/10 text-brand text-[10px] flex items-center justify-center shrink-0 mt-0.5 font-bold">
+            <div className="text-textMuted flex items-start gap-2 text-sm">
+              <span className="bg-brand/10 text-brand mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold">
                 2
               </span>
               <span>Copy your transaction reference number</span>
             </div>
-            <div className="flex items-start gap-2 text-sm text-textMuted">
-              <span className="w-5 h-5 rounded-full bg-brand/10 text-brand text-[10px] flex items-center justify-center shrink-0 mt-0.5 font-bold">
+            <div className="text-textMuted flex items-start gap-2 text-sm">
+              <span className="bg-brand/10 text-brand mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold">
                 3
               </span>
               <span>Enter it below to instantly activate Pro</span>
@@ -229,9 +229,9 @@ const ExamPaywall: React.FC<ExamPaywallProps> = ({ onUpgrade, onBack }) => {
             href={`https://wa.me/2348000000000?text=Hi, I want to upgrade to JAMBIFY Pro. Name: ${encodeURIComponent(name)}, Email: ${encodeURIComponent(email)}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 w-full py-3 mb-4 bg-green-600/10 border border-green-600/20 text-green-600 rounded-2xl text-sm font-semibold hover:bg-green-600/20 transition-all"
+            className="mb-4 flex w-full items-center justify-center gap-2 rounded-2xl border border-green-600/20 bg-green-600/10 py-3 text-sm font-semibold text-green-600 transition-all hover:bg-green-600/20"
           >
-            <ExternalLink className="w-4 h-4" />
+            <ExternalLink className="h-4 w-4" />
             Pay via WhatsApp
           </a>
 
@@ -245,10 +245,10 @@ const ExamPaywall: React.FC<ExamPaywallProps> = ({ onUpgrade, onBack }) => {
                 setVerifyError(null);
               }}
               placeholder="Enter transaction reference (e.g. FLW-XXXX)"
-              className="w-full px-4 py-3 bg-bgSurface border border-borderMuted rounded-2xl text-sm text-textMain placeholder:text-textDim/50 focus:outline-none focus:border-brand/50"
+              className="bg-bgSurface border-borderMuted text-textMain placeholder:text-textDim/50 focus:border-brand/50 w-full rounded-2xl border px-4 py-3 text-sm focus:outline-none"
             />
             {verifyError && (
-              <p className="text-danger text-xs mt-1.5 text-left">
+              <p className="text-danger mt-1.5 text-left text-xs">
                 {verifyError}
               </p>
             )}
@@ -262,7 +262,7 @@ const ExamPaywall: React.FC<ExamPaywallProps> = ({ onUpgrade, onBack }) => {
             disabled={isVerifying || !txRef.trim()}
             icon={
               isVerifying ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin" />
               ) : undefined
             }
           >
@@ -271,7 +271,7 @@ const ExamPaywall: React.FC<ExamPaywallProps> = ({ onUpgrade, onBack }) => {
 
           <button
             onClick={() => setStep("wall")}
-            className="mt-3 text-xs text-textDim hover:text-textMuted transition-colors"
+            className="text-textDim hover:text-textMuted mt-3 text-xs transition-colors"
           >
             ← Go back
           </button>
@@ -282,24 +282,24 @@ const ExamPaywall: React.FC<ExamPaywallProps> = ({ onUpgrade, onBack }) => {
 
   // ── Default: paywall wall ─────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-bgMain text-textMain flex items-center justify-center p-4">
-      <div className="bg-bgCard border border-borderMuted rounded-4xl p-8 w-full max-w-md text-center shadow-2xl backdrop-blur-md">
+    <div className="bg-bgMain text-textMain flex min-h-screen items-center justify-center p-4">
+      <div className="bg-bgCard border-borderMuted w-full max-w-md rounded-4xl border p-8 text-center shadow-2xl backdrop-blur-md">
         {/* Brand Header */}
-        <div className="flex items-center gap-3 mb-8">
-          <div className="w-10 h-10 bg-brand rounded-xl flex items-center justify-center font-display font-black text-white text-xl shadow-lg shadow-brand/40">
+        <div className="mb-8 flex items-center gap-3">
+          <div className="bg-brand font-display shadow-brand/40 flex h-10 w-10 items-center justify-center rounded-xl text-xl font-black text-white shadow-lg">
             J
           </div>
-          <span className="font-display font-bold text-2xl tracking-tight text-textMain">
+          <span className="font-display text-textMain text-2xl font-bold tracking-tight">
             JAMB<span className="text-brand">IFY</span>
           </span>
         </div>
 
         {/* Lock Icon */}
-        <div className="w-20 h-20 bg-brand/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-brand/20">
-          <Lock className="w-10 h-10 text-brand" />
+        <div className="bg-brand/10 border-brand/20 mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full border">
+          <Lock className="text-brand h-10 w-10" />
         </div>
 
-        <h1 className="text-3xl font-display font-bold text-textMain mb-4">
+        <h1 className="font-display text-textMain mb-4 text-3xl font-bold">
           Unlock Pro Features
         </h1>
         <p className="text-textMuted mb-8">
@@ -308,7 +308,7 @@ const ExamPaywall: React.FC<ExamPaywallProps> = ({ onUpgrade, onBack }) => {
         </p>
 
         {/* Pro Features */}
-        <div className="space-y-3 mb-8">
+        <div className="mb-8 space-y-3">
           {[
             "Detailed exam breakdown",
             "Subject-wise performance analysis",
@@ -318,26 +318,26 @@ const ExamPaywall: React.FC<ExamPaywallProps> = ({ onUpgrade, onBack }) => {
           ].map((feat) => (
             <div
               key={feat}
-              className="flex items-center gap-3 text-left bg-bgSurface border border-borderMuted rounded-2xl p-3"
+              className="bg-bgSurface border-borderMuted flex items-center gap-3 rounded-2xl border p-3 text-left"
             >
-              <CheckCircle className="w-5 h-5 text-success shrink-0" />
+              <CheckCircle className="text-success h-5 w-5 shrink-0" />
               <span className="text-textMain text-sm">{feat}</span>
             </div>
           ))}
         </div>
 
         {/* Pricing */}
-        <div className="bg-brand/5 border border-brand/10 rounded-brand-lg p-4 mb-5 text-center">
-          <Crown className="w-5 h-5 text-brand mx-auto mb-1" />
-          <p className="text-textDim text-xs mb-1">Upgrade to Pro</p>
+        <div className="bg-brand/5 border-brand/10 rounded-brand-lg mb-5 border p-4 text-center">
+          <Crown className="text-brand mx-auto mb-1 h-5 w-5" />
+          <p className="text-textDim mb-1 text-xs">Upgrade to Pro</p>
           <div className="flex items-baseline justify-center gap-1">
-            <span className="font-display text-4xl font-black text-brand tracking-tighter">
+            <span className="font-display text-brand text-4xl font-black tracking-tighter">
               {CURRENCY}
               {DISPLAY_PRICE}
             </span>
             <span className="text-textDim text-sm">/ month</span>
           </div>
-          <p className="text-xs text-textDim mt-1">
+          <p className="text-textDim mt-1 text-xs">
             or {CURRENCY}
             {DISPLAY_PRICE_YEARLY} / year (save 33%)
           </p>
@@ -360,19 +360,19 @@ const ExamPaywall: React.FC<ExamPaywallProps> = ({ onUpgrade, onBack }) => {
           </Button>
         </div>
 
-        <p className="text-center text-[11px] text-textDim mt-3">
+        <p className="text-textDim mt-3 text-center text-[11px]">
           Secured by Flutterwave — cancel any time
         </p>
 
         {/* Trust indicators */}
-        <div className="mt-6 pt-6 border-t border-borderMuted">
-          <p className="text-xs text-textDim mb-3">
+        <div className="border-borderMuted mt-6 border-t pt-6">
+          <p className="text-textDim mb-3 text-xs">
             Trusted by students nationwide
           </p>
           <div className="flex justify-center gap-4 opacity-50 grayscale">
-            <div className="w-8 h-8 bg-textDim/20 rounded-md" />
-            <div className="w-8 h-8 bg-textDim/20 rounded-md" />
-            <div className="w-8 h-8 bg-textDim/20 rounded-md" />
+            <div className="bg-textDim/20 h-8 w-8 rounded-md" />
+            <div className="bg-textDim/20 h-8 w-8 rounded-md" />
+            <div className="bg-textDim/20 h-8 w-8 rounded-md" />
           </div>
         </div>
       </div>

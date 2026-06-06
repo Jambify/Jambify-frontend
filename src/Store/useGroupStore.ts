@@ -1,9 +1,9 @@
 // src/Store/useGroupStore.ts
-import { create } from 'zustand';
-import { supabase } from '../lib/supabase';
-import { useUserStore } from './useUserStore';
+import { create } from "zustand";
+import { supabase } from "../lib/supabase";
+import { useUserStore } from "./useUserStore";
 
-export type MessageStatus = 'sending' | 'sent' | 'delivered' | 'failed';
+export type MessageStatus = "sending" | "sent" | "delivered" | "failed";
 
 export interface ChatMessage {
   id: string;
@@ -13,7 +13,7 @@ export interface ChatMessage {
   message: string;
   created_at: string;
   is_edited: boolean;
-  status?: MessageStatus;        // only on outgoing messages
+  status?: MessageStatus; // only on outgoing messages
   reply_to?: ReplyPreview | null; // quoted message info
 }
 
@@ -49,12 +49,20 @@ interface GroupState {
 
   loadGroups: () => Promise<void>;
   loadMyGroups: () => Promise<void>;
-  createGroup: (data: { name: string; description: string; subject: string }) => Promise<void>;
+  createGroup: (data: {
+    name: string;
+    description: string;
+    subject: string;
+  }) => Promise<void>;
   joinGroup: (id: string) => Promise<void>;
   joinByCode: (code: string) => Promise<{ error: string | null }>;
   leaveGroup: (id: string) => Promise<void>;
   loadMessages: (groupId: string) => Promise<void>;
-  sendMessage: (groupId: string, text: string, replyTo?: ReplyPreview | null) => Promise<void>;
+  sendMessage: (
+    groupId: string,
+    text: string,
+    replyTo?: ReplyPreview | null,
+  ) => Promise<void>;
   retryMessage: (groupId: string, tempId: string) => Promise<void>;
   subscribeToChat: (groupId: string) => () => void;
   getMessages: (groupId: string) => ChatMessage[];
@@ -62,14 +70,24 @@ interface GroupState {
 }
 
 const SUBJECT_ICONS: Record<string, string> = {
-  'English': '📖', 'Mathematics': '🔢', 'Physics': '⚡',
-  'Chemistry': '⚗️', 'Biology': '🧬', 'Economics': '📊',
-  'Government': '🏛️', 'Literature': '📚', 'CRS/IRS': '✝️',
-  'History': '📜', 'Mixed': '📑',
+  English: "📖",
+  Mathematics: "🔢",
+  Physics: "⚡",
+  Chemistry: "⚗️",
+  Biology: "🧬",
+  Economics: "📊",
+  Government: "🏛️",
+  Literature: "📚",
+  "CRS/IRS": "✝️",
+  History: "📜",
+  Mixed: "📑",
 };
 
 // Store failed messages for retry: tempId → { groupId, text, replyTo }
-const failedMessages = new Map<string, { groupId: string; text: string; replyTo?: ReplyPreview | null }>();
+const failedMessages = new Map<
+  string,
+  { groupId: string; text: string; replyTo?: ReplyPreview | null }
+>();
 
 export const useGroupStore = create<GroupState>()((set, get) => ({
   groups: [],
@@ -85,22 +103,22 @@ export const useGroupStore = create<GroupState>()((set, get) => ({
     if (nameCache.has(userId)) return nameCache.get(userId)!;
 
     try {
-      const { data } = await supabase
-        .from('profiles')
-        .select('name')
-        .eq('id', userId)
-        .maybeSingle() as { data: any, error: any };
+      const { data } = (await supabase
+        .from("profiles")
+        .select("name")
+        .eq("id", userId)
+        .maybeSingle()) as { data: any; error: any };
 
-      const name = data?.name || 'JAMB Champion';
-      set(s => {
+      const name = data?.name || "JAMB Champion";
+      set((s) => {
         const newCache = new Map(s.nameCache);
         newCache.set(userId, name);
         return { nameCache: newCache };
       });
       return name;
     } catch (err) {
-      console.error('Error fetching name:', err);
-      return 'JAMB Champion';
+      console.error("Error fetching name:", err);
+      return "JAMB Champion";
     }
   },
 
@@ -109,22 +127,22 @@ export const useGroupStore = create<GroupState>()((set, get) => ({
     set({ loading: true, error: null });
     try {
       const { data, error } = await supabase
-        .from('study_groups')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .from("study_groups")
+        .select("*")
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
 
-      const mapped = (data || []).map(g => ({
+      const mapped = (data || []).map((g) => ({
         ...g,
-        icon: SUBJECT_ICONS[g.subject] || '📚',
+        icon: SUBJECT_ICONS[g.subject] || "📚",
         recentMembers: [],
         isActive: false,
       }));
 
       set({ groups: mapped as StudyGroup[], loading: false });
     } catch (err: any) {
-      console.error('loadGroups error:', err);
+      console.error("loadGroups error:", err);
       set({ error: err.message, loading: false });
     }
   },
@@ -132,18 +150,21 @@ export const useGroupStore = create<GroupState>()((set, get) => ({
   // ── loadMyGroups ────────────────────────────────────────
   loadMyGroups: async () => {
     const userId = useUserStore.getState().id;
-    if (!userId) { set({ myGroupIds: [] }); return; }
+    if (!userId) {
+      set({ myGroupIds: [] });
+      return;
+    }
 
     try {
       const { data, error } = await supabase
-        .from('group_members')
-        .select('group_id')
-        .eq('user_id', userId);
+        .from("group_members")
+        .select("group_id")
+        .eq("user_id", userId);
 
       if (error) throw error;
-      set({ myGroupIds: data?.map(r => r.group_id) || [] });
+      set({ myGroupIds: data?.map((r) => r.group_id) || [] });
     } catch (err) {
-      console.error('loadMyGroups error:', err);
+      console.error("loadMyGroups error:", err);
       set({ myGroupIds: [] });
     }
   },
@@ -156,8 +177,13 @@ export const useGroupStore = create<GroupState>()((set, get) => ({
     set({ loading: true, error: null });
     try {
       const { error } = await supabase
-        .from('study_groups')
-        .insert({ name: data.name, description: data.description, subject: data.subject, created_by: userId });
+        .from("study_groups")
+        .insert({
+          name: data.name,
+          description: data.description,
+          subject: data.subject,
+          created_by: userId,
+        });
 
       if (error) throw error;
       await Promise.all([get().loadGroups(), get().loadMyGroups()]);
@@ -175,45 +201,47 @@ export const useGroupStore = create<GroupState>()((set, get) => ({
 
     try {
       const { error } = await supabase
-        .from('group_members')
-        .insert({ group_id: groupId, user_id: userId, role: 'member' });
+        .from("group_members")
+        .insert({ group_id: groupId, user_id: userId, role: "member" });
 
       if (error) throw error;
-      set(s => ({ myGroupIds: [...new Set([...s.myGroupIds, groupId])] }));
+      set((s) => ({ myGroupIds: [...new Set([...s.myGroupIds, groupId])] }));
       await get().loadGroups();
     } catch (err) {
-      console.error('joinGroup error:', err);
+      console.error("joinGroup error:", err);
     }
   },
 
   // ── joinByCode ──────────────────────────────────────────
   joinByCode: async (code) => {
     const userId = useUserStore.getState().id;
-    if (!userId) return { error: 'Please sign in to join groups' };
+    if (!userId) return { error: "Please sign in to join groups" };
 
     try {
       const { data: group, error: groupError } = await supabase
-        .from('study_groups')
-        .select('id')
-        .eq('join_code', code.toUpperCase().trim())
+        .from("study_groups")
+        .select("id")
+        .eq("join_code", code.toUpperCase().trim())
         .single();
 
-      if (groupError || !group) return { error: 'Invalid join code. Please check and try again.' };
+      if (groupError || !group)
+        return { error: "Invalid join code. Please check and try again." };
 
       const { error: insertError } = await supabase
-        .from('group_members')
-        .insert({ group_id: group.id, user_id: userId, role: 'member' });
+        .from("group_members")
+        .insert({ group_id: group.id, user_id: userId, role: "member" });
 
       if (insertError) {
-        if (insertError.code === '23505') return { error: 'You are already a member of this group.' };
-        return { error: 'Failed to join group. Please try again.' };
+        if (insertError.code === "23505")
+          return { error: "You are already a member of this group." };
+        return { error: "Failed to join group. Please try again." };
       }
 
-      set(s => ({ myGroupIds: [...new Set([...s.myGroupIds, group.id])] }));
+      set((s) => ({ myGroupIds: [...new Set([...s.myGroupIds, group.id])] }));
       await get().loadGroups();
       return { error: null };
     } catch {
-      return { error: 'Something went wrong. Please try again.' };
+      return { error: "Something went wrong. Please try again." };
     }
   },
 
@@ -224,15 +252,15 @@ export const useGroupStore = create<GroupState>()((set, get) => ({
 
     try {
       await supabase
-        .from('group_members')
+        .from("group_members")
         .delete()
-        .eq('group_id', groupId)
-        .eq('user_id', userId);
+        .eq("group_id", groupId)
+        .eq("user_id", userId);
 
-      set(s => ({ myGroupIds: s.myGroupIds.filter(id => id !== groupId) }));
+      set((s) => ({ myGroupIds: s.myGroupIds.filter((id) => id !== groupId) }));
       await get().loadGroups();
     } catch (err) {
-      console.error('leaveGroup error:', err);
+      console.error("leaveGroup error:", err);
     }
   },
 
@@ -240,24 +268,29 @@ export const useGroupStore = create<GroupState>()((set, get) => ({
   loadMessages: async (groupId) => {
     set({ msgLoading: true });
     try {
-      const { data: msgs, error: msgErr } = await supabase
-        .from('group_messages')
-        .select(`
+      const { data: msgs, error: msgErr } = (await supabase
+        .from("group_messages")
+        .select(
+          `
           *,
           profiles:user_id (name)
-        `)
-        .eq('group_id', groupId)
-        .order('created_at', { ascending: true })
-        .limit(100) as { data: any[], error: any };
+        `,
+        )
+        .eq("group_id", groupId)
+        .order("created_at", { ascending: true })
+        .limit(100)) as { data: any[]; error: any };
 
       if (msgErr) throw msgErr;
       if (!msgs || msgs.length === 0) {
-        set(s => ({ messages: { ...s.messages, [groupId]: [] }, msgLoading: false }));
+        set((s) => ({
+          messages: { ...s.messages, [groupId]: [] },
+          msgLoading: false,
+        }));
         return;
       }
 
       // Update name cache from joined data
-      set(s => {
+      set((s) => {
         const newCache = new Map(s.nameCache);
         msgs.forEach((m: any) => {
           if (m.profiles?.name) {
@@ -268,22 +301,26 @@ export const useGroupStore = create<GroupState>()((set, get) => ({
       });
 
       // Build reply preview map from reply_to_id references
-      const replyIds = msgs.filter(m => m.reply_to_id).map(m => m.reply_to_id);
+      const replyIds = msgs
+        .filter((m) => m.reply_to_id)
+        .map((m) => m.reply_to_id);
       let replyMap = new Map<string, { author: string; message: string }>();
 
       if (replyIds.length > 0) {
         const { data: replyMsgs } = await supabase
-          .from('group_messages')
-          .select(`
+          .from("group_messages")
+          .select(
+            `
             id, 
             user_id, 
             message, 
             profiles:user_id (name)
-          `)
-          .in('id', replyIds);
+          `,
+          )
+          .in("id", replyIds);
 
         (replyMsgs || []).forEach((r: any) => {
-          const authorName = r.profiles?.name || 'JAMB Champion';
+          const authorName = r.profiles?.name || "JAMB Champion";
           replyMap.set(r.id, {
             author: authorName,
             message: r.message,
@@ -296,7 +333,7 @@ export const useGroupStore = create<GroupState>()((set, get) => ({
       }
 
       const messages: ChatMessage[] = msgs.map((row: any) => {
-        const authorName = row.profiles?.name || 'JAMB Champion';
+        const authorName = row.profiles?.name || "JAMB Champion";
 
         return {
           id: row.id,
@@ -306,16 +343,19 @@ export const useGroupStore = create<GroupState>()((set, get) => ({
           message: row.message,
           created_at: row.created_at,
           is_edited: row.is_edited,
-          status: 'delivered' as MessageStatus,
+          status: "delivered" as MessageStatus,
           reply_to: row.reply_to_id
             ? { id: row.reply_to_id, ...replyMap.get(row.reply_to_id)! }
             : null,
         };
       });
 
-      set(s => ({ messages: { ...s.messages, [groupId]: messages }, msgLoading: false }));
+      set((s) => ({
+        messages: { ...s.messages, [groupId]: messages },
+        msgLoading: false,
+      }));
     } catch (err) {
-      console.error('loadMessages error:', err);
+      console.error("loadMessages error:", err);
       set({ msgLoading: false });
     }
   },
@@ -335,16 +375,19 @@ export const useGroupStore = create<GroupState>()((set, get) => ({
       id: tempId,
       group_id: groupId,
       user_id: userId,
-      author: currentName || 'You',
+      author: currentName || "You",
       message: text.trim(),
       created_at: new Date().toISOString(),
       is_edited: false,
-      status: 'sending',
+      status: "sending",
       reply_to: replyTo,
     };
 
-    set(s => ({
-      messages: { ...s.messages, [groupId]: [...(s.messages[groupId] || []), tempMsg] },
+    set((s) => ({
+      messages: {
+        ...s.messages,
+        [groupId]: [...(s.messages[groupId] || []), tempMsg],
+      },
     }));
 
     // Store for potential retry
@@ -359,32 +402,31 @@ export const useGroupStore = create<GroupState>()((set, get) => ({
       if (replyTo?.id) insertPayload.reply_to_id = replyTo.id;
 
       const { error } = await supabase
-        .from('group_messages')
+        .from("group_messages")
         .insert(insertPayload);
 
       if (error) throw error;
 
       // Mark as 'sent' — realtime will update to 'delivered' when confirmed
-      set(s => ({
+      set((s) => ({
         messages: {
           ...s.messages,
-          [groupId]: (s.messages[groupId] || []).map(m =>
-            m.id === tempId ? { ...m, status: 'sent' as MessageStatus } : m
+          [groupId]: (s.messages[groupId] || []).map((m) =>
+            m.id === tempId ? { ...m, status: "sent" as MessageStatus } : m,
           ),
         },
       }));
 
       // Remove from retry queue on success
       failedMessages.delete(tempId);
-
     } catch (err: any) {
-      console.error('sendMessage error:', err);
+      console.error("sendMessage error:", err);
       // Mark as 'failed'
-      set(s => ({
+      set((s) => ({
         messages: {
           ...s.messages,
-          [groupId]: (s.messages[groupId] || []).map(m =>
-            m.id === tempId ? { ...m, status: 'failed' as MessageStatus } : m
+          [groupId]: (s.messages[groupId] || []).map((m) =>
+            m.id === tempId ? { ...m, status: "failed" as MessageStatus } : m,
           ),
         },
       }));
@@ -397,10 +439,10 @@ export const useGroupStore = create<GroupState>()((set, get) => ({
     if (!failed) return;
 
     // Remove the failed message from UI
-    set(s => ({
+    set((s) => ({
       messages: {
         ...s.messages,
-        [groupId]: (s.messages[groupId] || []).filter(m => m.id !== tempId),
+        [groupId]: (s.messages[groupId] || []).filter((m) => m.id !== tempId),
       },
     }));
     failedMessages.delete(tempId);
@@ -414,16 +456,16 @@ export const useGroupStore = create<GroupState>()((set, get) => ({
     const seenIds = new Set<string>();
 
     // Pre-populate seen IDs from already loaded messages
-    (get().messages[groupId] || []).forEach(m => seenIds.add(m.id));
+    (get().messages[groupId] || []).forEach((m) => seenIds.add(m.id));
 
     const channel = supabase
       .channel(`group-chat-${groupId}-${Date.now()}`)
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'group_messages',
+          event: "INSERT",
+          schema: "public",
+          table: "group_messages",
           filter: `group_id=eq.${groupId}`,
         },
         async (payload) => {
@@ -437,11 +479,14 @@ export const useGroupStore = create<GroupState>()((set, get) => ({
 
           if (row.user_id === myId) {
             // Our own message confirmed — swap temp → real, mark 'delivered'
-            set(s => {
+            set((s) => {
               const list = s.messages[groupId] || [];
               // Find a 'sent' or 'sending' temp message with matching text to replace
               const tempIdx = list.findIndex(
-                m => m.id.startsWith('temp-') && m.message === row.message && m.status !== 'failed'
+                (m) =>
+                  m.id.startsWith("temp-") &&
+                  m.message === row.message &&
+                  m.status !== "failed",
               );
               if (tempIdx === -1) return s; // nothing to swap
               const updated = [...list];
@@ -449,7 +494,7 @@ export const useGroupStore = create<GroupState>()((set, get) => ({
                 ...updated[tempIdx],
                 id: row.id,
                 created_at: row.created_at,
-                status: 'delivered',
+                status: "delivered",
               };
               return { messages: { ...s.messages, [groupId]: updated } };
             });
@@ -462,11 +507,11 @@ export const useGroupStore = create<GroupState>()((set, get) => ({
           // Resolve reply preview if present
           let reply_to: ReplyPreview | null = null;
           if (row.reply_to_id) {
-            const { data: replyMsg } = await supabase
-              .from('group_messages')
-              .select('id, user_id, message')
-              .eq('id', row.reply_to_id)
-              .single() as { data: any, error: any };
+            const { data: replyMsg } = (await supabase
+              .from("group_messages")
+              .select("id, user_id, message")
+              .eq("id", row.reply_to_id)
+              .single()) as { data: any; error: any };
 
             if (replyMsg) {
               const replyAuthor = await get().getName(replyMsg.user_id);
@@ -486,17 +531,17 @@ export const useGroupStore = create<GroupState>()((set, get) => ({
             message: row.message,
             created_at: row.created_at,
             is_edited: row.is_edited,
-            status: 'delivered',
+            status: "delivered",
             reply_to,
           };
 
-          set(s => ({
+          set((s) => ({
             messages: {
               ...s.messages,
               [groupId]: [...(s.messages[groupId] || []), newMsg],
             },
           }));
-        }
+        },
       )
       .subscribe();
 

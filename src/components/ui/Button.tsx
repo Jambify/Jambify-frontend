@@ -112,7 +112,7 @@ const Button: React.FC<ButtonProps> = ({
         "transition-all duration-150 ease-out",
         "active:scale-[0.97]",
         /* Disabled */
-        "disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none",
+        "disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-40",
         "disabled:active:scale-100",
         /* Variant + Size */
         VARIANTS[variant],

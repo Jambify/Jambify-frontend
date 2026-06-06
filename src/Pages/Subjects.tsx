@@ -50,12 +50,12 @@ const Subjects: React.FC = () => {
       isSidebarOpen={isSidebarOpen}
       setIsSidebarOpen={setIsSidebarOpen}
     >
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
+      <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
         <div>
           <h2 className="font-display text-2xl font-bold tracking-tight">
             Subjects
           </h2>
-          <p className="text-sm text-textMuted mt-1">
+          <p className="text-textMuted mt-1 text-sm">
             {subjects.length} subjects · overall accuracy 
             <span className="text-textMain font-medium">
               {overallAccuracy}%
@@ -64,7 +64,7 @@ const Subjects: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-1.5">
-          <span className="text-[11px] text-textDim">Sort:</span>
+          <span className="text-textDim text-[11px]">Sort:</span>
           {(
             [
               ["accuracy", "Weakest first"],
@@ -75,7 +75,7 @@ const Subjects: React.FC = () => {
             <button
               key={key}
               onClick={() => setSort(key)}
-              className={`px-3 py-1.5 rounded-full text-[11px] font-medium border transition-all ${
+              className={`rounded-full border px-3 py-1.5 text-[11px] font-medium transition-all ${
                 sort === key
                   ? "bg-brand border-brand text-white"
                   : "bg-bgSurface border-borderMuted text-textMuted hover:text-textMain hover:border-white/15"
@@ -87,27 +87,27 @@ const Subjects: React.FC = () => {
         </div>
       </div>
 
-      <div className="bg-bgCard border border-borderMuted rounded-brand-lg p-4 mb-6">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-xs text-textMuted">
+      <div className="bg-bgCard border-borderMuted rounded-brand-lg mb-6 border p-4">
+        <div className="mb-2 flex items-center justify-between">
+          <span className="text-textMuted text-xs">
             Overall mastery across all subjects
           </span>
-          <span className="font-mono text-sm font-semibold text-brand-light">
+          <span className="text-brand-light font-mono text-sm font-semibold">
             {overallAccuracy}%
           </span>
         </div>
-        <div className="h-2 bg-bgSurface rounded-full overflow-hidden">
+        <div className="bg-bgSurface h-2 overflow-hidden rounded-full">
           <div
-            className="h-full rounded-full bg-brand transition-all duration-700"
+            className="bg-brand h-full rounded-full transition-all duration-700"
             style={{ width: `${overallAccuracy}%` }}
           />
         </div>
-        <div className="flex gap-3 mt-3 flex-wrap">
+        <div className="mt-3 flex flex-wrap gap-3">
           {subjects.map((s) => (
             <div key={s.id} className="flex items-center gap-1.5">
               <span className="text-sm">{s.icon}</span>
               <span
-                className="text-[11px] font-mono font-medium"
+                className="font-mono text-[11px] font-medium"
                 style={{ color: s.color }}
               >
                 {s.accuracy}%
@@ -117,7 +117,7 @@ const Subjects: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {sorted.map((subject) => (
           <SubjectCard
             key={subject.id}

@@ -36,7 +36,7 @@ const OfflinePackCard: React.FC<{ pack: OfflinePack }> = ({ pack }) => {
   return (
     <div
       className={cn(
-        "bg-bgCard border rounded-brand-lg p-4 flex items-center gap-4 transition-all",
+        "bg-bgCard rounded-brand-lg flex items-center gap-4 border p-4 transition-all",
         isDownloaded
           ? "border-success/30"
           : "border-borderMuted hover:border-white/10",
@@ -44,27 +44,27 @@ const OfflinePackCard: React.FC<{ pack: OfflinePack }> = ({ pack }) => {
     >
       {/* <Subject icon */}
       <div
-        className="w-11 h-11 rounded-brand flex items-center justify-center text-xl shrink-0"
+        className="rounded-brand flex h-11 w-11 shrink-0 items-center justify-center text-xl"
         style={{ background: color + "18" }}
       >
         {SUBJ_ICONS[pack.subject] ?? "📚"}
       </div>
 
       {/* <Info */}
-      <div className="flex-1 min-w-0">
+      <div className="min-w-0 flex-1">
         <p className="text-sm font-medium">{pack.subject}</p>
-        <p className="text-[11px] text-textDim mt-0.5">
+        <p className="text-textDim mt-0.5 text-[11px]">
           {pack.count} questions · {pack.years} · {pack.size}
         </p>
         {isDownloaded && (
-          <p className="text-[11px] text-success mt-1 flex items-center gap-1">
+          <p className="text-success mt-1 flex items-center gap-1 text-[11px]">
             ✓ Downloaded — available offline
           </p>
         )}
         {isDownloading && (
-          <div className="mt-2 h-1 bg-bgSurface rounded-full overflow-hidden">
+          <div className="bg-bgSurface mt-2 h-1 overflow-hidden rounded-full">
             <div
-              className="h-full bg-brand rounded-full animate-pulse"
+              className="bg-brand h-full animate-pulse rounded-full"
               style={{ width: "60%" }}
             />
           </div>
@@ -76,21 +76,21 @@ const OfflinePackCard: React.FC<{ pack: OfflinePack }> = ({ pack }) => {
         {isDownloading ? (
           <button
             disabled
-            className="text-xs px-3 py-1.5 rounded-brand bg-bgSurface border border-borderMuted text-textDim cursor-not-allowed"
+            className="rounded-brand bg-bgSurface border-borderMuted text-textDim cursor-not-allowed border px-3 py-1.5 text-xs"
           >
             Downloading…
           </button>
         ) : isDownloaded ? (
           <button
             onClick={() => removePack(pack.id)}
-            className="text-xs px-3 py-1.5 rounded-brand bg-danger/10 border border-danger/20 text-danger hover:bg-danger/20 transition-all"
+            className="rounded-brand bg-danger/10 border-danger/20 text-danger hover:bg-danger/20 border px-3 py-1.5 text-xs transition-all"
           >
             Remove
           </button>
         ) : (
           <button
             onClick={() => downloadPack(pack.id)}
-            className="text-xs px-3 py-1.5 rounded-brand bg-brand/10 border border-brand/20 text-brand-light hover:bg-brand/20 transition-all flex items-center gap-1.5"
+            className="rounded-brand bg-brand/10 border-brand/20 text-brand-light hover:bg-brand/20 flex items-center gap-1.5 border px-3 py-1.5 text-xs transition-all"
           >
             ↓ Download
           </button>

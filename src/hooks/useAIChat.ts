@@ -10,19 +10,19 @@
  * - localStorage: persists last 40 messages, trimmed on save
  */
 
-import { useCallback, useRef, useState } from 'react';
-import { streamAI, type GeminiMessage } from '../lib/ai';
+import { useCallback, useRef, useState } from "react";
+import { streamAI, type GeminiMessage } from "../lib/ai";
 
 export interface ChatMessage {
-  id:           string;
-  role:         'user' | 'ai';
-  content:      string;
+  id: string;
+  role: "user" | "ai";
+  content: string;
   isStreaming?: boolean;
 }
 
 interface UseAIChatOptions {
   systemPrompt?: string;
-  storageKey?:   string;
+  storageKey?: string;
 }
 
 // ── Thresholds ────────────────────────────────────────────────────────────────
@@ -50,7 +50,9 @@ function loadHistory(key?: string): ChatMessage[] {
 function saveHistory(key: string, messages: ChatMessage[]) {
   try {
     localStorage.setItem(key, JSON.stringify(messages.slice(-MAX_MESSAGES)));
-  } catch { /* storage full — ignore */ }
+  } catch {
+    /* storage full — ignore */
+  }
 }
 
 // ── Hook ──────────────────────────────────────────────────────────────────────
@@ -58,17 +60,19 @@ export function useAIChat(options: UseAIChatOptions = {}) {
   const { systemPrompt, storageKey } = options;
 
   const [messages, setMessages] = useState<ChatMessage[]>(() =>
-    loadHistory(storageKey)
+    loadHistory(storageKey),
   );
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError]         = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const streamingIdRef = useRef<string | null>(null);
-  const abortRef       = useRef(false);
+  const abortRef = useRef(false);
 
   /** True when the conversation has hit the soft cap */
-  const isNearLimit = messages.filter(m => !m.isStreaming).length >= MAX_MESSAGES - 4;
-  const isAtLimit   = messages.filter(m => !m.isStreaming).length >= MAX_MESSAGES;
+  const isNearLimit =
+    messages.filter((m) => !m.isStreaming).length >= MAX_MESSAGES - 4;
+  const isAtLimit =
+    messages.filter((m) => !m.isStreaming).length >= MAX_MESSAGES;
 
   /**
    * Convert ChatMessage[] → Gemini format.
@@ -77,15 +81,15 @@ export function useAIChat(options: UseAIChatOptions = {}) {
    */
   const toGeminiHistory = useCallback(
     (msgs: ChatMessage[]): GeminiMessage[] => {
-      const completed = msgs.filter(m => !m.isStreaming && m.content.trim());
+      const completed = msgs.filter((m) => !m.isStreaming && m.content.trim());
       // Slide: take only the last CONTEXT_WINDOW messages
-      const windowed  = completed.slice(-CONTEXT_WINDOW);
-      return windowed.map(m => ({
-        role:  m.role === 'user' ? 'user' : 'model',
+      const windowed = completed.slice(-CONTEXT_WINDOW);
+      return windowed.map((m) => ({
+        role: m.role === "user" ? "user" : "model",
         parts: [{ text: m.content }],
       }));
     },
-    []
+    [],
   );
 
   const sendMessage = useCallback(
@@ -96,12 +100,12 @@ export function useAIChat(options: UseAIChatOptions = {}) {
       abortRef.current = false;
 
       const userMsg: ChatMessage = {
-        id:      `u-${Date.now()}`,
-        role:    'user',
+        id: `u-${Date.now()}`,
+        role: "user",
         content: text.trim(),
       };
 
-      setMessages(prev => {
+      setMessages((prev) => {
         const next = [...prev, userMsg];
         if (storageKey) saveHistory(storageKey, next);
         return next;
@@ -111,13 +115,13 @@ export function useAIChat(options: UseAIChatOptions = {}) {
       streamingIdRef.current = aiId;
 
       const aiPlaceholder: ChatMessage = {
-        id:          aiId,
-        role:        'ai',
-        content:     '',
+        id: aiId,
+        role: "ai",
+        content: "",
         isStreaming: true,
       };
 
-      setMessages(prev => [...prev, aiPlaceholder]);
+      setMessages((prev) => [...prev, aiPlaceholder]);
       setIsLoading(true);
 
       // Build windowed history for the API call
@@ -129,51 +133,61 @@ export function useAIChat(options: UseAIChatOptions = {}) {
         last.parts[0].text = `${prependContext}\n\nUser question: ${last.parts[0].text}`;
       }
 
-      let accumulated = '';
+      let accumulated = "";
 
       await streamAI(
         historyForApi,
         // onChunk
-        delta => {
+        (delta) => {
           if (abortRef.current) return;
           accumulated += delta;
-          setMessages(prev =>
-            prev.map(m =>
-              m.id === aiId ? { ...m, content: accumulated, isStreaming: true } : m
-            )
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === aiId
+                ? { ...m, content: accumulated, isStreaming: true }
+                : m,
+            ),
           );
         },
         // onDone
         () => {
           streamingIdRef.current = null;
           setIsLoading(false);
-          setMessages(prev => {
-            const next = prev.map(m =>
+          setMessages((prev) => {
+            const next = prev.map((m) =>
               m.id === aiId
-                ? { ...m, content: accumulated || 'No response received.', isStreaming: false }
-                : m
+                ? {
+                    ...m,
+                    content: accumulated || "No response received.",
+                    isStreaming: false,
+                  }
+                : m,
             );
             if (storageKey) saveHistory(storageKey, next);
             return next;
           });
         },
         // onError
-        err => {
+        (err) => {
           streamingIdRef.current = null;
           setIsLoading(false);
           setError(err.message);
-          setMessages(prev =>
-            prev.map(m =>
+          setMessages((prev) =>
+            prev.map((m) =>
               m.id === aiId
-                ? { ...m, content: `❌ Error: ${err.message}`, isStreaming: false }
-                : m
-            )
+                ? {
+                    ...m,
+                    content: `❌ Error: ${err.message}`,
+                    isStreaming: false,
+                  }
+                : m,
+            ),
           );
         },
         systemPrompt,
       );
     },
-    [isLoading, isAtLimit, messages, systemPrompt, storageKey, toGeminiHistory]
+    [isLoading, isAtLimit, messages, systemPrompt, storageKey, toGeminiHistory],
   );
 
   const clearHistory = useCallback(() => {
@@ -182,7 +196,11 @@ export function useAIChat(options: UseAIChatOptions = {}) {
     setError(null);
     setIsLoading(false);
     if (storageKey) {
-      try { localStorage.removeItem(storageKey); } catch { /* ignore */ }
+      try {
+        localStorage.removeItem(storageKey);
+      } catch {
+        /* ignore */
+      }
     }
   }, [storageKey]);
 
@@ -198,6 +216,9 @@ export function useAIChat(options: UseAIChatOptions = {}) {
     /** Input should be disabled when at the hard limit */
     isAtLimit,
     /** How many messages remain before the hard cap */
-    messagesRemaining: Math.max(0, MAX_MESSAGES - messages.filter(m => !m.isStreaming).length),
+    messagesRemaining: Math.max(
+      0,
+      MAX_MESSAGES - messages.filter((m) => !m.isStreaming).length,
+    ),
   };
 }

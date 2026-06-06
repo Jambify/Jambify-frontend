@@ -34,15 +34,15 @@ const QuestionCard: React.FC = () => {
   return (
     <div className="animate-fadeIn">
       {/* Card */}
-      <div className="bg-bgCard border border-borderMuted rounded-brand-xl p-5 sm:p-7 mb-4">
+      <div className="bg-bgCard border-borderMuted rounded-brand-xl mb-4 border p-5 sm:p-7">
         {/* Meta row */}
-        <div className="flex flex-wrap items-center gap-2 mb-5">
+        <div className="mb-5 flex flex-wrap items-center gap-2">
           <span
-            className={`text-[11px] font-medium px-2.5 py-1 rounded-full ${subjStyle.bg} ${subjStyle.text}`}
+            className={`rounded-full px-2.5 py-1 text-[11px] font-medium ${subjStyle.bg} ${subjStyle.text}`}
           >
             {q.subject}
           </span>
-          <span className="text-[11px] font-mono text-textDim">
+          <span className="text-textDim font-mono text-[11px]">
             JAMB {q.year}
           </span>
           <span
@@ -50,18 +50,18 @@ const QuestionCard: React.FC = () => {
           >
             ● {q.difficulty}
           </span>
-          <span className="text-[11px] text-textDim ml-auto hidden sm:inline">
+          <span className="text-textDim ml-auto hidden text-[11px] sm:inline">
             Topic: {q.topic}
           </span>
         </div>
 
         {/* Question text */}
-        <p className="text-base sm:text-lg font-normal leading-relaxed text-textMain mb-6">
+        <p className="text-textMain mb-6 text-base leading-relaxed font-normal sm:text-lg">
           {q.text}
         </p>
         {/*<{/* Options */}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
           {q.options.map((opt, i) => (
             <OptionButton
               key={i}
@@ -80,12 +80,12 @@ const QuestionCard: React.FC = () => {
       <ExplanationBox visible={hasAnswered} text={q.explanation} />
 
       {/* Actions row */}
-      <div className="flex items-center justify-between gap-3 mt-4">
+      <div className="mt-4 flex items-center justify-between gap-3">
         {/*   <{/* Hint button */}
         <div className="flex flex-col gap-3">
           {!hasAnswered && (
             <button
-              className="flex w-fit items-center gap-1.5 text-xs text-brand-light border border-brand/25 hover:bg-brand/10 px-3 py-2 rounded-brand transition-all"
+              className="text-brand-light border-brand/25 hover:bg-brand/10 rounded-brand flex w-fit items-center gap-1.5 border px-3 py-2 text-xs transition-all"
               onClick={() => setShowHint(!showHint)}
             >
               💡{" "}
@@ -97,8 +97,8 @@ const QuestionCard: React.FC = () => {
 
           {/* Real Message / Inline Hint */}
           {showHint && !hasAnswered && (
-            <div className="animate-fadeIn p-3 rounded-brand bg-brand-dim border border-brand/20 text-sm text-textMain leading-relaxed italic">
-              <span className="font-bold text-brand-light mr-1">Hint:</span>
+            <div className="animate-fadeIn rounded-brand bg-brand-dim border-brand/20 text-textMain border p-3 text-sm leading-relaxed italic">
+              <span className="text-brand-light mr-1 font-bold">Hint:</span>
               {q.explanation.split(".")[0] + "."}
             </div>
           )}

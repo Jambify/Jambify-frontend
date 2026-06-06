@@ -140,56 +140,56 @@ const GuestQuiz: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="w-full max-w-2xl relative z-10"
+          className="relative z-10 w-full max-w-2xl"
         >
-          <div className="flex items-center justify-between mb-8">
+          <div className="mb-8 flex items-center justify-between">
             <button
               onClick={() => navigate("/guest")}
-              className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-textDim hover:text-brand transition-colors group"
+              className="text-textDim hover:text-brand group flex items-center gap-2 text-xs font-bold tracking-widest uppercase transition-colors"
             >
-              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+              <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
               Back to Home
             </button>
-            <div className="flex items-center gap-2 px-3 py-1 bg-brand/10 border border-brand/20 rounded-full">
-              <div className="w-1.5 h-1.5 rounded-full bg-brand animate-pulse" />
-              <span className="text-[10px] font-bold text-brand uppercase tracking-tighter">
+            <div className="bg-brand/10 border-brand/20 flex items-center gap-2 rounded-full border px-3 py-1">
+              <div className="bg-brand h-1.5 w-1.5 animate-pulse rounded-full" />
+              <span className="text-brand text-[10px] font-bold tracking-tighter uppercase">
                 Guest Mode
               </span>
             </div>
           </div>
 
-          <div className="text-center mb-10">
-            <div className="w-16 h-16 bg-brand/10 border border-brand/20 rounded-2xl flex items-center justify-center mx-auto mb-4 text-3xl shadow-xl shadow-brand/10">
+          <div className="mb-10 text-center">
+            <div className="bg-brand/10 border-brand/20 shadow-brand/10 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border text-3xl shadow-xl">
               ⚡
             </div>
-            <h2 className="text-3xl font-display font-black text-textMain mb-2 tracking-tight">
+            <h2 className="font-display text-textMain mb-2 text-3xl font-black tracking-tight">
               Quick Practice
             </h2>
-            <p className="text-textDim text-sm max-w-xs mx-auto leading-relaxed">
+            <p className="text-textDim mx-auto max-w-xs text-sm leading-relaxed">
               Sharpen your skills with 10 random questions. No pressure, just
               learning.
             </p>
           </div>
 
-          <div className="bg-bgCard border border-borderMuted rounded-3xl p-6 shadow-2xl shadow-black/20 backdrop-blur-sm">
-            <div className="flex items-center gap-2 mb-6 text-[10px] font-black uppercase tracking-widest text-textDim">
+          <div className="bg-bgCard border-borderMuted rounded-3xl border p-6 shadow-2xl shadow-black/20 backdrop-blur-sm">
+            <div className="text-textDim mb-6 flex items-center gap-2 text-[10px] font-black tracking-widest uppercase">
               <BookOpen size={14} className="text-brand" />
               Select a Subject
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+            <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
               <button
                 onClick={() => handleStartQuiz("")}
-                className="sm:col-span-2 group relative overflow-hidden p-5 bg-brand text-white rounded-2xl font-bold transition-all hover:scale-[1.01] active:scale-[0.98] shadow-lg shadow-brand/20"
+                className="group bg-brand shadow-brand/20 relative overflow-hidden rounded-2xl p-5 font-bold text-white shadow-lg transition-all hover:scale-[1.01] active:scale-[0.98] sm:col-span-2"
               >
-                <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
+                <div className="absolute inset-0 translate-y-full bg-white/10 transition-transform duration-300 group-hover:translate-y-0" />
                 <div className="relative z-10 flex items-center justify-center gap-3">
                   <span className="text-2xl">🎲</span>
                   <div className="text-left">
-                    <p className="text-sm font-black leading-none mb-1">
+                    <p className="mb-1 text-sm leading-none font-black">
                       Random Mix
                     </p>
-                    <p className="text-[10px] opacity-80 font-medium tracking-tight">
+                    <p className="text-[10px] font-medium tracking-tight opacity-80">
                       Questions from across all subjects
                     </p>
                   </div>
@@ -203,9 +203,9 @@ const GuestQuiz: React.FC = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.05 }}
                   onClick={() => handleStartQuiz(s.name)}
-                  className="flex items-center gap-4 p-4 bg-bgSurface/50 border border-borderMuted rounded-2xl text-sm font-bold hover:border-brand/40 hover:bg-bgCard transition-all group active:scale-[0.98]"
+                  className="bg-bgSurface/50 border-borderMuted hover:border-brand/40 hover:bg-bgCard group flex items-center gap-4 rounded-2xl border p-4 text-sm font-bold transition-all active:scale-[0.98]"
                 >
-                  <div className="w-10 h-10 rounded-xl bg-bgDeep flex items-center justify-center text-xl group-hover:scale-110 transition-transform shadow-inner">
+                  <div className="bg-bgDeep flex h-10 w-10 items-center justify-center rounded-xl text-xl shadow-inner transition-transform group-hover:scale-110">
                     {s.icon}
                   </div>
                   <span className="text-textMain group-hover:text-brand transition-colors">
@@ -215,8 +215,8 @@ const GuestQuiz: React.FC = () => {
               ))}
             </div>
 
-            <div className="p-4 bg-brand/5 border border-dashed border-brand/20 rounded-2xl text-center">
-              <p className="text-[10px] text-textMuted font-medium italic">
+            <div className="bg-brand/5 border-brand/20 rounded-2xl border border-dashed p-4 text-center">
+              <p className="text-textMuted text-[10px] font-medium italic">
                 Questions are pulled from our live JAMB database
               </p>
             </div>
@@ -234,30 +234,30 @@ const GuestQuiz: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="w-full max-w-md text-center relative z-10"
+          className="relative z-10 w-full max-w-md text-center"
         >
           <div className="mb-8">
             <motion.div
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.2 }}
-              className="text-7xl mb-6 drop-shadow-2xl"
+              className="mb-6 text-7xl drop-shadow-2xl"
             >
               {pct >= 70 ? "🏆" : pct >= 50 ? "👍" : "📚"}
             </motion.div>
 
-            <h2 className="text-4xl font-display font-black mb-2 tracking-tight">
+            <h2 className="font-display mb-2 text-4xl font-black tracking-tight">
               {score}/{questions.length}{" "}
               <span className="text-brand">Correct</span>
             </h2>
 
-            <div className="inline-block px-4 py-1.5 bg-bgCard border border-borderMuted rounded-full mb-6 shadow-sm">
-              <span className="text-sm font-bold text-textDim uppercase tracking-widest">
+            <div className="bg-bgCard border-borderMuted mb-6 inline-block rounded-full border px-4 py-1.5 shadow-sm">
+              <span className="text-textDim text-sm font-bold tracking-widest uppercase">
                 {pct}% Accuracy
               </span>
             </div>
 
-            <p className="text-textMuted text-base leading-relaxed px-4">
+            <p className="text-textMuted px-4 text-base leading-relaxed">
               {pct >= 80
                 ? "Incredible! You're clearly at the top of your game."
                 : pct >= 60
@@ -266,32 +266,32 @@ const GuestQuiz: React.FC = () => {
             </p>
           </div>
 
-          <div className="bg-bgCard border border-borderMuted rounded-3xl p-8 mb-8 shadow-2xl relative overflow-hidden group">
-            <div className="absolute top-0 left-0 w-full h-1 bg-brand/20 group-hover:h-full group-hover:bg-brand/5 transition-all duration-500" />
+          <div className="bg-bgCard border-borderMuted group relative mb-8 overflow-hidden rounded-3xl border p-8 shadow-2xl">
+            <div className="bg-brand/20 group-hover:bg-brand/5 absolute top-0 left-0 h-1 w-full transition-all duration-500 group-hover:h-full" />
 
             <div className="relative z-10">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-brand/10 rounded-xl flex items-center justify-center">
-                  <Sparkles className="w-5 h-5 text-brand" />
+              <div className="mb-4 flex items-center gap-3">
+                <div className="bg-brand/10 flex h-10 w-10 items-center justify-center rounded-xl">
+                  <Sparkles className="text-brand h-5 w-5" />
                 </div>
-                <p className="text-left font-bold text-sm text-textMain leading-tight">
+                <p className="text-textMain text-left text-sm leading-tight font-bold">
                   Unlock the full potential of JAMBIFY
                 </p>
               </div>
 
-              <p className="text-xs text-textDim text-left mb-6 leading-relaxed">
+              <p className="text-textDim mb-6 text-left text-xs leading-relaxed">
                 Create a free account to save your scores, track progress across
                 subjects, and unlock 4,000+ real JAMB questions.
               </p>
 
               <button
                 onClick={() => navigate("/signup")}
-                className="w-full bg-brand text-white py-4 rounded-2xl font-black text-sm hover:bg-brand-light transition-all active:scale-[0.98] shadow-xl shadow-brand/20 mb-4"
+                className="bg-brand hover:bg-brand-light shadow-brand/20 mb-4 w-full rounded-2xl py-4 text-sm font-black text-white shadow-xl transition-all active:scale-[0.98]"
               >
                 Create Free Account
               </button>
 
-              <div className="flex items-center justify-center gap-4 text-[10px] text-textMuted font-bold uppercase tracking-widest">
+              <div className="text-textMuted flex items-center justify-center gap-4 text-[10px] font-bold tracking-widest uppercase">
                 <span className="flex items-center gap-1.5">
                   <CheckCircle size={10} className="text-success" /> Save Scores
                 </span>
@@ -303,20 +303,20 @@ const GuestQuiz: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row">
             <button
               onClick={() => {
                 setCurrent(0);
                 setAnswers({});
                 setScreen("subject");
               }}
-              className="flex-1 py-4 bg-bgSurface border border-borderMuted rounded-2xl text-xs font-black uppercase tracking-widest hover:border-brand/40 transition-all active:scale-[0.98]"
+              className="bg-bgSurface border-borderMuted hover:border-brand/40 flex-1 rounded-2xl border py-4 text-xs font-black tracking-widest uppercase transition-all active:scale-[0.98]"
             >
               Try Another Subject
             </button>
             <button
               onClick={() => navigate("/guest")}
-              className="flex-1 py-4 bg-bgSurface border border-borderMuted rounded-2xl text-xs font-black uppercase tracking-widest hover:border-brand/40 transition-all active:scale-[0.98]"
+              className="bg-bgSurface border-borderMuted hover:border-brand/40 flex-1 rounded-2xl border py-4 text-xs font-black tracking-widest uppercase transition-all active:scale-[0.98]"
             >
               Exit to Home
             </button>
@@ -330,18 +330,18 @@ const GuestQuiz: React.FC = () => {
   if (!q && screen === "quiz") {
     return (
       <GuestLayout className="flex flex-col items-center justify-center p-6 text-center">
-        <div className="w-16 h-16 bg-brand/10 rounded-2xl flex items-center justify-center mb-6">
-          <Sparkles className="w-8 h-8 text-brand" />
+        <div className="bg-brand/10 mb-6 flex h-16 w-16 items-center justify-center rounded-2xl">
+          <Sparkles className="text-brand h-8 w-8" />
         </div>
-        <h2 className="text-2xl font-display font-black mb-2">
+        <h2 className="font-display mb-2 text-2xl font-black">
           Session Expired
         </h2>
-        <p className="text-textDim text-sm max-w-xs mb-8">
+        <p className="text-textDim mb-8 max-w-xs text-sm">
           Your practice session was reset because of a page refresh.
         </p>
         <button
           onClick={() => setScreen("subject")}
-          className="px-8 py-4 bg-brand text-white rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl shadow-brand/20 active:scale-[0.98] transition-all"
+          className="bg-brand shadow-brand/20 rounded-2xl px-8 py-4 text-sm font-black tracking-widest text-white uppercase shadow-xl transition-all active:scale-[0.98]"
         >
           Start New Session
         </button>
@@ -354,20 +354,20 @@ const GuestQuiz: React.FC = () => {
   return (
     <GuestLayout className="flex flex-col p-4">
       {/* <Top bar */}
-      <div className="flex items-center justify-between mb-6 pt-2 max-w-2xl mx-auto w-full relative z-10">
+      <div className="relative z-10 mx-auto mb-6 flex w-full max-w-2xl items-center justify-between pt-2">
         <button
           onClick={() => setScreen("subject")}
-          className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-textDim hover:text-textMain transition-colors group"
+          className="text-textDim hover:text-textMain group flex items-center gap-2 text-xs font-bold tracking-widest uppercase transition-colors"
         >
-          <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" />{" "}
+          <ArrowLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-1" />{" "}
           Quit
         </button>
 
         <div className="flex flex-col items-center">
-          <div className="text-[10px] font-black uppercase tracking-[0.2em] text-brand mb-1">
+          <div className="text-brand mb-1 text-[10px] font-black tracking-[0.2em] uppercase">
             JAMBIFY
           </div>
-          <div className="text-xs font-mono font-bold text-textMain px-3 py-1 bg-bgCard border border-borderMuted rounded-full shadow-sm">
+          <div className="text-textMain bg-bgCard border-borderMuted rounded-full border px-3 py-1 font-mono text-xs font-bold shadow-sm">
             {current + 1} <span className="text-textDim mx-1">/</span>{" "}
             {questions.length}
           </div>
@@ -375,29 +375,29 @@ const GuestQuiz: React.FC = () => {
 
         <button
           onClick={() => navigate("/signin")}
-          className="flex items-center gap-1.5 text-xs font-bold text-brand-light hover:text-brand transition-colors uppercase tracking-widest"
+          className="text-brand-light hover:text-brand flex items-center gap-1.5 text-xs font-bold tracking-widest uppercase transition-colors"
         >
-          <LogIn className="w-3.5 h-3.5" />{" "}
+          <LogIn className="h-3.5 w-3.5" />{" "}
           <span className="hidden sm:inline">Sign In</span>
         </button>
       </div>
 
       {/* <Progress bar */}
-      <div className="max-w-2xl mx-auto w-full mb-8 relative z-10">
-        <div className="h-1.5 bg-bgSurface rounded-full overflow-hidden border border-borderMuted/30 shadow-inner">
+      <div className="relative z-10 mx-auto mb-8 w-full max-w-2xl">
+        <div className="bg-bgSurface border-borderMuted/30 h-1.5 overflow-hidden rounded-full border shadow-inner">
           <motion.div
             initial={{ width: 0 }}
             animate={{
               width: `${((current + (answered ? 1 : 0)) / questions.length) * 100}%`,
             }}
-            className="h-full bg-brand rounded-full shadow-[0_0_10px_rgba(123,95,255,0.5)]"
+            className="bg-brand h-full rounded-full shadow-[0_0_10px_rgba(123,95,255,0.5)]"
             transition={{ type: "spring", stiffness: 50, damping: 20 }}
           />
         </div>
       </div>
 
       {/* <Question */}
-      <div className="flex-1 max-w-2xl mx-auto w-full relative z-10">
+      <div className="relative z-10 mx-auto w-full max-w-2xl flex-1">
         <AnimatePresence mode="wait">
           <motion.div
             key={current}
@@ -406,24 +406,24 @@ const GuestQuiz: React.FC = () => {
             exit={{ opacity: 0, x: -20 }}
             className="w-full"
           >
-            <div className="bg-bgCard border border-borderMuted rounded-3xl p-6 sm:p-8 mb-6 shadow-2xl shadow-black/20 backdrop-blur-sm relative overflow-hidden group">
-              <div className="absolute top-0 left-0 w-1 h-full bg-brand/20 group-hover:bg-brand transition-colors" />
+            <div className="bg-bgCard border-borderMuted group relative mb-6 overflow-hidden rounded-3xl border p-6 shadow-2xl shadow-black/20 backdrop-blur-sm sm:p-8">
+              <div className="bg-brand/20 group-hover:bg-brand absolute top-0 left-0 h-full w-1 transition-colors" />
 
-              <div className="flex items-center gap-2 mb-4">
-                <span className="px-2.5 py-1 bg-brand/10 text-brand text-[10px] font-black uppercase tracking-widest rounded-md border border-brand/20">
+              <div className="mb-4 flex items-center gap-2">
+                <span className="bg-brand/10 text-brand border-brand/20 rounded-md border px-2.5 py-1 text-[10px] font-black tracking-widest uppercase">
                   {q.subject}
                 </span>
-                <span className="px-2.5 py-1 bg-bgSurface text-textDim text-[10px] font-black uppercase tracking-widest rounded-md border border-borderMuted">
+                <span className="bg-bgSurface text-textDim border-borderMuted rounded-md border px-2.5 py-1 text-[10px] font-black tracking-widest uppercase">
                   {q.year}
                 </span>
               </div>
 
-              <p className="text-lg sm:text-xl font-medium leading-relaxed text-textMain tracking-tight">
+              <p className="text-textMain text-lg leading-relaxed font-medium tracking-tight sm:text-xl">
                 {q.text}
               </p>
             </div>
 
-            <div className="grid grid-cols-1 gap-3 mb-8">
+            <div className="mb-8 grid grid-cols-1 gap-3">
               {q.options.map((opt, i) => {
                 const isChosen = chosen === i;
                 const isRight = i === q.answer;
@@ -438,11 +438,11 @@ const GuestQuiz: React.FC = () => {
                     onClick={() => handleAnswer(i)}
                     disabled={answered}
                     className={cn(
-                      "w-full text-left p-5 rounded-2xl border-2 text-sm sm:text-base font-bold transition-all flex items-center justify-between gap-4 group",
+                      "group flex w-full items-center justify-between gap-4 rounded-2xl border-2 p-5 text-left text-sm font-bold transition-all sm:text-base",
                       showRight
-                        ? "border-success bg-success/10 text-success shadow-lg shadow-success/5"
+                        ? "border-success bg-success/10 text-success shadow-success/5 shadow-lg"
                         : showWrong
-                          ? "border-danger bg-danger/10 text-danger shadow-lg shadow-danger/5"
+                          ? "border-danger bg-danger/10 text-danger shadow-danger/5 shadow-lg"
                           : isChosen
                             ? "border-brand bg-brand/10 text-textMain"
                             : "border-borderMuted bg-bgCard hover:border-brand/40 text-textMain shadow-sm",
@@ -451,7 +451,7 @@ const GuestQuiz: React.FC = () => {
                     <div className="flex items-center gap-4">
                       <div
                         className={cn(
-                          "w-8 h-8 rounded-lg flex items-center justify-center font-mono text-xs transition-colors",
+                          "flex h-8 w-8 items-center justify-center rounded-lg font-mono text-xs transition-colors",
                           showRight
                             ? "bg-success text-white"
                             : showWrong
@@ -466,10 +466,10 @@ const GuestQuiz: React.FC = () => {
                       <span className="flex-1">{opt}</span>
                     </div>
                     {showRight && (
-                      <CheckCircle className="w-5 h-5 shrink-0 animate-in zoom-in duration-300" />
+                      <CheckCircle className="animate-in zoom-in h-5 w-5 shrink-0 duration-300" />
                     )}
                     {showWrong && (
-                      <XCircle className="w-5 h-5 shrink-0 animate-in zoom-in duration-300" />
+                      <XCircle className="animate-in zoom-in h-5 w-5 shrink-0 duration-300" />
                     )}
                   </motion.button>
                 );
@@ -487,25 +487,25 @@ const GuestQuiz: React.FC = () => {
                 >
                   <div
                     className={cn(
-                      "p-6 rounded-3xl border-2 shadow-xl",
+                      "rounded-3xl border-2 p-6 shadow-xl",
                       isCorrect
                         ? "bg-success/5 border-success/20 text-success shadow-success/5"
                         : "bg-danger/5 border-danger/20 text-danger shadow-danger/5",
                     )}
                   >
-                    <div className="flex items-center gap-2 mb-3">
+                    <div className="mb-3 flex items-center gap-2">
                       {isCorrect ? (
                         <CheckCircle size={18} />
                       ) : (
                         <XCircle size={18} />
                       )}
-                      <p className="font-black uppercase tracking-widest text-xs">
+                      <p className="text-xs font-black tracking-widest uppercase">
                         {isCorrect
                           ? "Brilliant! That's Correct"
                           : "Not quite, but keep going!"}
                       </p>
                     </div>
-                    <div className="h-px w-full bg-current opacity-10 mb-4" />
+                    <div className="mb-4 h-px w-full bg-current opacity-10" />
                     <p className="text-textMain text-sm leading-relaxed font-medium">
                       {q.explanation}
                     </p>
@@ -519,14 +519,14 @@ const GuestQuiz: React.FC = () => {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 onClick={handleNext}
-                className="w-full bg-brand text-white py-5 rounded-2xl font-black text-sm uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-brand-light transition-all active:scale-[0.98] shadow-2xl shadow-brand/20 mt-8 mb-12"
+                className="bg-brand hover:bg-brand-light shadow-brand/20 mt-8 mb-12 flex w-full items-center justify-center gap-3 rounded-2xl py-5 text-sm font-black tracking-widest text-white uppercase shadow-2xl transition-all active:scale-[0.98]"
               >
                 <span>
                   {current + 1 >= questions.length
                     ? "Finish & See Results"
                     : "Continue to Next Question"}
                 </span>
-                <ArrowRight className="w-5 h-5" />
+                <ArrowRight className="h-5 w-5" />
               </motion.button>
             )}
           </motion.div>

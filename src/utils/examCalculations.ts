@@ -5,7 +5,7 @@ export interface SubjectScore {
   correct: number;
   total: number;
   score: number; // percentage
-  performance: 'Excellent' | 'Good' | 'Average' | 'Poor';
+  performance: "Excellent" | "Good" | "Average" | "Poor";
 }
 
 export interface TopicPerformance {
@@ -25,11 +25,13 @@ export interface ExamResult {
   topicPerformance: Record<string, TopicPerformance>;
 }
 
-export const getPerformanceIndicator = (percentage: number): SubjectScore['performance'] => {
-  if (percentage >= 75) return 'Excellent';
-  if (percentage >= 60) return 'Good';
-  if (percentage >= 45) return 'Average';
-  return 'Poor';
+export const getPerformanceIndicator = (
+  percentage: number,
+): SubjectScore["performance"] => {
+  if (percentage >= 75) return "Excellent";
+  if (percentage >= 60) return "Good";
+  if (percentage >= 45) return "Average";
+  return "Poor";
 };
 
 export const calculateExamResults = (
@@ -51,7 +53,8 @@ export const calculateExamResults = (
     if (!topicMap[topicKey]) {
       topicMap[topicKey] = {
         subject: q.subject,
-        name: q.topic, correct: 0,
+        name: q.topic,
+        correct: 0,
         total: 0,
         accuracy: 0,
       };
@@ -73,8 +76,10 @@ export const calculateExamResults = (
   });
 
   // Scale JAMB score relative to a full 180-question exam for realism
-  const jambScore = totalQuestions > 0 ? Math.round((totalCorrect / 180) * 400) : 0;
-  const percentageScore = totalQuestions > 0 ? Math.round((totalCorrect / totalQuestions) * 100) : 0;
+  const jambScore =
+    totalQuestions > 0 ? Math.round((totalCorrect / 180) * 400) : 0;
+  const percentageScore =
+    totalQuestions > 0 ? Math.round((totalCorrect / totalQuestions) * 100) : 0;
 
   const subjectBreakdown: SubjectScore[] = Object.entries(subjectMap).map(
     ([subject, data]) => {
@@ -86,7 +91,7 @@ export const calculateExamResults = (
         score,
         performance: getPerformanceIndicator(score),
       };
-    }
+    },
   );
 
   return {
@@ -103,5 +108,5 @@ export const formatTime = (seconds: number): string => {
   const h = Math.floor(seconds / 3600);
   const m = Math.floor((seconds % 3600) / 60);
   const s = seconds % 60;
-  return `${h > 0 ? `${h}:` : ''}${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  return `${h > 0 ? `${h}:` : ""}${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 };

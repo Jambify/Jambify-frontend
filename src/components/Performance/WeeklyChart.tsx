@@ -10,8 +10,8 @@ const WeeklyChart: React.FC = () => {
 
   if (weeklyActivity.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-full min-h-50 text-center space-y-3">
-        <div className="w-16 h-16 rounded-full bg-bgSurface flex items-center justify-center text-2xl grayscale opacity-50">
+      <div className="flex h-full min-h-50 flex-col items-center justify-center space-y-3 text-center">
+        <div className="bg-bgSurface flex h-16 w-16 items-center justify-center rounded-full text-2xl opacity-50 grayscale">
           📊
         </div>
         <p className="text-textDim text-sm font-medium">
@@ -22,34 +22,36 @@ const WeeklyChart: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between mb-8">
+    <div className="flex h-full flex-col">
+      <div className="mb-8 flex items-center justify-between">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-2xl font-display font-black text-textMain tracking-tighter">
+          <div className="mb-1 flex items-center gap-2">
+            <span className="font-display text-textMain text-2xl font-black tracking-tighter">
               {total}
             </span>
-            <span className="text-[10px] font-black text-brand uppercase tracking-widest bg-brand/10 px-2 py-0.5 rounded">
+            <span className="text-brand bg-brand/10 rounded px-2 py-0.5 text-[10px] font-black tracking-widest uppercase">
               Total Qs
             </span>
           </div>
-          <p className="text-xs text-textDim font-medium italic">
+          <p className="text-textDim text-xs font-medium italic">
             Questions answered this week
           </p>
         </div>
-        
+
         {/* Trend Indicator (placeholder) */}
         <div className="flex flex-col items-end">
-          <div className="flex items-center gap-1 text-success">
+          <div className="text-success flex items-center gap-1">
             <span className="text-xs font-black">+12%</span>
-            <div className="w-0 h-0 border-l-4 border-l-transparent border-r-4 border-r-transparent border-b-[6px] border-b-success" />
+            <div className="border-b-success h-0 w-0 border-r-4 border-b-[6px] border-l-4 border-r-transparent border-l-transparent" />
           </div>
-          <span className="text-[10px] text-textDim font-bold uppercase tracking-tighter">Vs last week</span>
+          <span className="text-textDim text-[10px] font-bold tracking-tighter uppercase">
+            Vs last week
+          </span>
         </div>
       </div>
 
       {/* Bar chart */}
-      <div className="flex-1 flex items-end gap-3 sm:gap-4 min-h-45">
+      <div className="flex min-h-45 flex-1 items-end gap-3 sm:gap-4">
         {weeklyActivity.map((day) => {
           const heightPct =
             day.questions === 0 ? 8 : Math.round((day.questions / max) * 100);
@@ -57,17 +59,17 @@ const WeeklyChart: React.FC = () => {
           return (
             <div
               key={day.day}
-              className="flex-1 flex flex-col items-center gap-3 h-full justify-end group cursor-default"
+              className="group flex h-full flex-1 cursor-default flex-col items-center justify-end gap-3"
             >
               {/* Tooltip-like value */}
-              <div className="relative w-full flex justify-center">
-                <span className="absolute -top-8 bg-brand text-white text-[10px] font-bold px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 shadow-lg shadow-brand/20 z-10 pointer-events-none">
+              <div className="relative flex w-full justify-center">
+                <span className="bg-brand shadow-brand/20 pointer-events-none absolute -top-8 z-10 translate-y-2 transform rounded px-2 py-1 text-[10px] font-bold text-white opacity-0 shadow-lg transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
                   {day.questions} Qs
                 </span>
               </div>
-              
+
               <div
-                className="w-full rounded-t-xl transition-all duration-1000 ease-out group-hover:brightness-125 group-hover:shadow-[0_0_20px_rgba(91,59,255,0.3)] relative overflow-hidden"
+                className="relative w-full overflow-hidden rounded-t-xl transition-all duration-1000 ease-out group-hover:shadow-[0_0_20px_rgba(91,59,255,0.3)] group-hover:brightness-125"
                 style={{
                   height: `${heightPct}%`,
                   background: isEmpty
@@ -77,10 +79,10 @@ const WeeklyChart: React.FC = () => {
                 }}
               >
                 {!isEmpty && (
-                  <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.1)_50%,transparent_75%)] bg-size-[40px_40px] animate-[shimmer_4s_linear_infinite]" />
+                  <div className="absolute inset-0 animate-[shimmer_4s_linear_infinite] bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.1)_50%,transparent_75%)] bg-size-[40px_40px]" />
                 )}
               </div>
-              <span className="text-[11px] font-bold text-textDim group-hover:text-textMain transition-colors uppercase tracking-tighter">
+              <span className="text-textDim group-hover:text-textMain text-[11px] font-bold tracking-tighter uppercase transition-colors">
                 {day.day}
               </span>
             </div>

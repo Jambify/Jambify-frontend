@@ -132,7 +132,7 @@ const StudyGroups: React.FC = () => {
         isSidebarOpen={isSidebarOpen}
         setIsSidebarOpen={setIsSidebarOpen}
       >
-        <div className="fixed top-14 left-0 right-0 bottom-18 lg:left-60 lg:bottom-0 bg-bgMain z-40 flex flex-col">
+        <div className="bg-bgMain fixed top-14 right-0 bottom-18 left-0 z-40 flex flex-col lg:bottom-0 lg:left-60">
           <GroupChat
             group={activeGroup}
             onBack={() => setActiveGroupId(null)}
@@ -151,12 +151,12 @@ const StudyGroups: React.FC = () => {
       isSidebarOpen={isSidebarOpen}
       setIsSidebarOpen={setIsSidebarOpen}
     >
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
+      <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
         <div>
           <h2 className="font-display text-2xl font-bold tracking-tight">
             Study Groups
           </h2>
-          <p className="text-sm text-textMuted mt-1">
+          <p className="text-textMuted mt-1 text-sm">
             Study with peers, share strategies, challenge each other.
           </p>
         </div>
@@ -164,22 +164,22 @@ const StudyGroups: React.FC = () => {
           variant="primary"
           size="sm"
           onClick={() => setShowCreate(true)}
-          icon={<Plus className="w-4 h-4" />}
+          icon={<Plus className="h-4 w-4" />}
         >
           Create group
         </Button>
       </div>
 
       {/* Utilities Container: Join By Code & Discover Search Bar */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+      <div className="mb-5 grid grid-cols-1 gap-4 md:grid-cols-2">
         {/* Join by code */}
-        <div className="bg-bgCard border border-borderMuted rounded-brand-lg p-4">
-          <p className="text-xs text-textDim mb-2 font-medium uppercase tracking-widest">
+        <div className="bg-bgCard border-borderMuted rounded-brand-lg border p-4">
+          <p className="text-textDim mb-2 text-xs font-medium tracking-widest uppercase">
             Join by code
           </p>
           <div className="flex gap-2">
             <div className="relative flex-1">
-              <Hash className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-textDim" />
+              <Hash className="text-textDim absolute top-1/2 left-3 h-3.5 w-3.5 -translate-y-1/2" />
               <input
                 value={joinCode}
                 onChange={(e) => {
@@ -190,7 +190,7 @@ const StudyGroups: React.FC = () => {
                 placeholder="Enter 8-character code"
                 maxLength={8}
                 style={{ fontSize: "16px" }}
-                className="w-full pl-8 pr-3 py-2 bg-bgSurface border border-borderMuted rounded-brand text-sm font-mono text-textMain placeholder:text-textDim focus:outline-none focus:border-brand/40 transition-colors"
+                className="bg-bgSurface border-borderMuted rounded-brand text-textMain placeholder:text-textDim focus:border-brand/40 w-full border py-2 pr-3 pl-8 font-mono text-sm transition-colors focus:outline-none"
               />
             </div>
             <Button
@@ -200,53 +200,53 @@ const StudyGroups: React.FC = () => {
               disabled={!joinCode.trim() || joining}
             >
               {joining ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
               ) : (
                 "Join"
               )}
             </Button>
           </div>
-          {joinError && <p className="text-xs text-danger mt-2">{joinError}</p>}
+          {joinError && <p className="text-danger mt-2 text-xs">{joinError}</p>}
         </div>
 
         {/* Dynamic Search Box */}
-        <div className="bg-bgCard border border-borderMuted rounded-brand-lg p-4 flex flex-col justify-end">
-          <p className="text-xs text-textDim mb-2 font-medium uppercase tracking-widest">
+        <div className="bg-bgCard border-borderMuted rounded-brand-lg flex flex-col justify-end border p-4">
+          <p className="text-textDim mb-2 text-xs font-medium tracking-widest uppercase">
             Find Other Squads
           </p>
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-textDim" />
+            <Search className="text-textDim absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search by squad name or subject..."
-              className="w-full pl-9 pr-3 py-2 bg-bgSurface border border-borderMuted rounded-brand text-sm text-textMain placeholder:text-textDim focus:outline-none focus:border-brand/40 transition-colors"
+              className="bg-bgSurface border-borderMuted rounded-brand text-textMain placeholder:text-textDim focus:border-brand/40 w-full border py-2 pr-3 pl-9 text-sm transition-colors focus:outline-none"
             />
           </div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-bgSurface border border-borderMuted rounded-brand p-1 mb-4 w-fit">
+      <div className="bg-bgSurface border-borderMuted rounded-brand mb-4 flex w-fit gap-1 border p-1">
         {(["discover", "my-groups"] as const).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
             className={cn(
-              "flex items-center gap-1.5 px-4 py-1.5 rounded-brand text-xs font-medium transition-all",
+              "rounded-brand flex items-center gap-1.5 px-4 py-1.5 text-xs font-medium transition-all",
               tab === t
-                ? "bg-bgCard text-textMain border border-borderMuted shadow-sm"
+                ? "bg-bgCard text-textMain border-borderMuted border shadow-sm"
                 : "text-textMuted hover:text-textMain",
             )}
           >
             {t === "discover" ? (
               <>
-                <Search className="w-3 h-3" /> Discover Hot Squads
+                <Search className="h-3 w-3" /> Discover Hot Squads
               </>
             ) : (
               <>
-                <Users className="w-3 h-3" /> My groups
+                <Users className="h-3 w-3" /> My groups
                 {myGroups.length > 0 && ` (${myGroups.length})`}
               </>
             )}
@@ -255,7 +255,7 @@ const StudyGroups: React.FC = () => {
       </div>
 
       {/* Category filter */}
-      <div className="flex gap-2 mb-5 overflow-x-auto no-scrollbar pb-1">
+      <div className="no-scrollbar mb-5 flex gap-2 overflow-x-auto pb-1">
         {CATEGORIES.map((c) => {
           const Icon = c.icon;
           return (
@@ -263,13 +263,13 @@ const StudyGroups: React.FC = () => {
               key={c.id}
               onClick={() => setCategory(c.id)}
               className={cn(
-                "flex items-center gap-1.5 px-3 py-1.5 rounded-brand text-xs font-medium transition-all shrink-0 border",
+                "rounded-brand flex shrink-0 items-center gap-1.5 border px-3 py-1.5 text-xs font-medium transition-all",
                 category === c.id
                   ? "bg-bgCard text-textMain border-borderMuted shadow-sm"
-                  : "border-transparent text-textMuted hover:text-textMain",
+                  : "text-textMuted hover:text-textMain border-transparent",
               )}
             >
-              <Icon className="w-3 h-3" /> {c.name}
+              <Icon className="h-3 w-3" /> {c.name}
             </button>
           );
         })}
@@ -277,7 +277,7 @@ const StudyGroups: React.FC = () => {
 
       {/* Header Label for Context */}
       {!loading && tab === "discover" && !searchQuery && (
-        <p className="text-xs font-semibold text-textMuted tracking-wide uppercase mb-3">
+        <p className="text-textMuted mb-3 text-xs font-semibold tracking-wide uppercase">
           🔥 Top Trending Squads
         </p>
       )}
@@ -285,7 +285,7 @@ const StudyGroups: React.FC = () => {
       {/* Loading */}
       {loading && (
         <div className="flex justify-center py-12">
-          <Loader2 className="w-6 h-6 text-brand animate-spin" />
+          <Loader2 className="text-brand h-6 w-6 animate-spin" />
         </div>
       )}
 
@@ -293,11 +293,11 @@ const StudyGroups: React.FC = () => {
       {!loading &&
         (tab === "discover" ? (
           displayedDiscover.length === 0 ? (
-            <div className="text-center py-12 text-textDim text-sm">
+            <div className="text-textDim py-12 text-center text-sm">
               No squads found matching your filters or search.
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {displayedDiscover.map((g, i) => (
                 <motion.div
                   key={g.id}
@@ -316,8 +316,8 @@ const StudyGroups: React.FC = () => {
             </div>
           )
         ) : displayedMyGroups.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-textDim text-sm mb-4">
+          <div className="py-12 text-center">
+            <p className="text-textDim mb-4 text-sm">
               {myGroups.length === 0
                 ? "You haven't joined any groups yet."
                 : "No groups found in this selection."}
@@ -333,7 +333,7 @@ const StudyGroups: React.FC = () => {
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {displayedMyGroups.map((g, i) => (
               <motion.div
                 key={g.id}
@@ -361,25 +361,25 @@ const StudyGroups: React.FC = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
             onClick={() => setLeaveId(null)}
           >
             <motion.div
               initial={{ scale: 0.9 }}
               animate={{ scale: 1 }}
               exit={{ scale: 0.9 }}
-              className="bg-bgCard border border-borderMuted rounded-brand-2xl p-6 w-full max-w-md"
+              className="bg-bgCard border-borderMuted rounded-brand-2xl w-full max-w-md border p-6"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex justify-center mb-4">
-                <div className="w-14 h-14 rounded-full bg-amber-500/10 flex items-center justify-center">
-                  <TriangleAlert className="w-7 h-7 text-amber-500" />
+              <div className="mb-4 flex justify-center">
+                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-amber-500/10">
+                  <TriangleAlert className="h-7 w-7 text-amber-500" />
                 </div>
               </div>
-              <h3 className="text-xl font-bold text-center mb-2">
+              <h3 className="mb-2 text-center text-xl font-bold">
                 Leave this Squad?
               </h3>
-              <p className="text-sm text-textMuted text-center mb-6">
+              <p className="text-textMuted mb-6 text-center text-sm">
                 You will lose access to the group chat and resources.
               </p>
               <div className="flex gap-3">
@@ -393,7 +393,7 @@ const StudyGroups: React.FC = () => {
                 <Button
                   variant="primary"
                   fullWidth
-                  className="bg-rose-500/10 text-rose-500 border-rose-500/20 hover:bg-rose-500/20"
+                  className="border-rose-500/20 bg-rose-500/10 text-rose-500 hover:bg-rose-500/20"
                   onClick={() => {
                     leaveGroup(leaveId!);
                     setLeaveId(null);

@@ -9,19 +9,17 @@
  * or briefly redirects away from the dashboard.
  */
 
-import React       from 'react';
-import ReactDOM    from 'react-dom/client';
-import App         from './App';
-import { BrowserRouter } from 'react-router-dom';
-import { supabase }        from './lib/supabase';
-import { useUserStore }    from './Store/useUserStore';
-import { initTheme }       from './components/ui/ThemeToggle';
-import './index.css';
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App";
+import { BrowserRouter } from "react-router-dom";
+import { supabase } from "./lib/supabase";
+import { useUserStore } from "./Store/useUserStore";
+import { initTheme } from "./components/ui/ThemeToggle";
+import "./index.css";
 
 // Apply saved/system theme before first paint — prevents flash of wrong theme
 initTheme();
-
-
 
 // ── Bootstrap: restore session on page load ────────────────────────────
 // Runs ONCE before React renders anything.
@@ -30,16 +28,17 @@ initTheme();
 // This replaces the need for useAuthStore entirely.
 // In your main layout component
 
-
 async function bootstrap() {
-  const { data: { session } } = await supabase.auth.getSession();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
 
   if (session?.user) {
     // Restore identity into Zustand immediately
     useUserStore.setState({
       isAuthenticated: true,
-      id:    session.user.id,
-      email: session.user.email || '',
+      id: session.user.id,
+      email: session.user.email || "",
     });
 
     // Sync full profile from DB in the background.
@@ -54,15 +53,15 @@ async function bootstrap() {
     if (session?.user) {
       useUserStore.setState({
         isAuthenticated: true,
-        id:    session.user.id,
-        email: session.user.email || '',
+        id: session.user.id,
+        email: session.user.email || "",
       });
       useUserStore.getState().syncProfile().catch(console.error);
     } else {
       // Session ended — clear auth state but keep persisted profile data
       useUserStore.setState({
         isAuthenticated: false,
-        id:    null,
+        id: null,
         onboardingComplete: false,
       });
     }
@@ -71,12 +70,11 @@ async function bootstrap() {
 
 // Run bootstrap first, then render the app
 bootstrap().then(() => {
-  ReactDOM.createRoot(document.getElementById('root')!).render(
+  ReactDOM.createRoot(document.getElementById("root")!).render(
     <React.StrictMode>
-       <BrowserRouter>
-       <App />
-       </BrowserRouter>
-      
-    </React.StrictMode>
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+    </React.StrictMode>,
   );
 });

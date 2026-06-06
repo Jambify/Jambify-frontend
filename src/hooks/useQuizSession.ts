@@ -1,8 +1,8 @@
-import { useQuizStore } from '../Store/useQuizStore';
-import { useUserStore } from '../Store/useUserStore';
-import { useSubjectStore } from '../Store/useSubjectStore';
-import { usePerformanceStore } from '../Store/usePerformanceStore';
-import type { Question } from '../Types';
+import { useQuizStore } from "../Store/useQuizStore";
+import { useUserStore } from "../Store/useUserStore";
+import { useSubjectStore } from "../Store/useSubjectStore";
+import { usePerformanceStore } from "../Store/usePerformanceStore";
+import type { Question } from "../Types";
 
 /**
  * useQuizSession
@@ -15,12 +15,11 @@ import type { Question } from '../Types';
  * NOT called from: MockResultsScreen — mock has its own commit
  */
 export function useQuizSession() {
-  const { questions, answers, timeLeft, quizDuration, selectedSubject } = useQuizStore();
+  const { questions, answers, timeLeft, quizDuration, selectedSubject } =
+    useQuizStore();
   const { id: userId, isAuthenticated } = useUserStore();
-  const { incrementQuestions,
-    updateAccuracy } = useUserStore();
-  const { updateAccuracy: updateSubj,
-    incrementCompleted } = useSubjectStore();
+  const { incrementQuestions, updateAccuracy } = useUserStore();
+  const { updateAccuracy: updateSubj, incrementCompleted } = useSubjectStore();
   const { addActivity, updateTopic, addQuizResult } = usePerformanceStore();
 
   const commitSession = async () => {
@@ -33,7 +32,10 @@ export function useQuizSession() {
     const timeTaken = quizDuration - timeLeft;
 
     /* ── 2. Calculate topic performance ──────────────── */
-    const topicPerformance: Record<string, { subject: string; correct: number; total: number }> = {};
+    const topicPerformance: Record<
+      string,
+      { subject: string; correct: number; total: number }
+    > = {};
     questions.forEach((q, i) => {
       const key = `${q.subject}:${q.topic}`;
       if (!topicPerformance[key]) {
@@ -56,7 +58,7 @@ export function useQuizSession() {
           timeTaken,
           correct,
           total,
-          topicPerformance
+          topicPerformance,
         );
       } catch (err) {
         console.error("Failed to submit quiz result:", err);
@@ -64,11 +66,19 @@ export function useQuizSession() {
     }
 
     /* ── 3. Per-subject breakdown ────────────────────── */
-    type SubMap = Record<string, { correct: number; total: number; id: string }>;
+    type SubMap = Record<
+      string,
+      { correct: number; total: number; id: string }
+    >;
     const subjMap: SubMap = {};
 
     questions.forEach((q: Question, i) => {
-      if (!subjMap[q.subject]) subjMap[q.subject] = { correct: 0, total: 0, id: q.subject.toLowerCase().slice(0, 4) };
+      if (!subjMap[q.subject])
+        subjMap[q.subject] = {
+          correct: 0,
+          total: 0,
+          id: q.subject.toLowerCase().slice(0, 4),
+        };
       subjMap[q.subject].total++;
       if (answers[i] === q.answer) subjMap[q.subject].correct++;
     });
@@ -87,7 +97,7 @@ export function useQuizSession() {
 
     /* ── 5. Update usePerformanceStore ───────────────── */
     const today = new Date()
-      .toLocaleDateString('en-GB', { weekday: 'short' })
+      .toLocaleDateString("en-GB", { weekday: "short" })
       .slice(0, 3); // "Mon" | "Tue" etc.
     addActivity(today, total);
 
@@ -101,11 +111,11 @@ export function useQuizSession() {
     });
 
     Object.entries(topicAccMap).forEach(([key, data]) => {
-      const [, topic] = key.split('::');
+      const [, topic] = key.split("::");
       const acc = Math.round((data.correct / data.total) * 100);
       // Find the topic by name and update it
       const store = usePerformanceStore.getState();
-      const match = store.topicStats.find(t => t.name === topic);
+      const match = store.topicStats.find((t) => t.name === topic);
       if (match) updateTopic(match.id, acc);
     });
   };

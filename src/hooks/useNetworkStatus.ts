@@ -1,23 +1,23 @@
 // src/hooks/useNetworkStatus.ts
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from "react";
 
 export interface NetworkStatus {
   isOnline: boolean;
   wasOffline: boolean; // true when connection was just restored
-  quality: 'good' | 'slow' | 'offline';
+  quality: "good" | "slow" | "offline";
 }
 
 export function useNetworkStatus(): NetworkStatus {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [wasOffline, setWasOffline] = useState(false);
-  const [quality, setQuality] = useState<'good' | 'slow' | 'offline'>(
-    navigator.onLine ? 'good' : 'offline'
+  const [quality, setQuality] = useState<"good" | "slow" | "offline">(
+    navigator.onLine ? "good" : "offline",
   );
 
   const handleOnline = useCallback(() => {
     setIsOnline(true);
     setWasOffline(true);
-    setQuality('good');
+    setQuality("good");
     // Reset the wasOffline flag after 4 seconds
     setTimeout(() => setWasOffline(false), 4000);
   }, []);
@@ -25,7 +25,7 @@ export function useNetworkStatus(): NetworkStatus {
   const handleOffline = useCallback(() => {
     setIsOnline(false);
     setWasOffline(false);
-    setQuality('offline');
+    setQuality("offline");
   }, []);
 
   // Detect slow connections via Network Information API (Chrome/Android)
@@ -35,31 +35,35 @@ export function useNetworkStatus(): NetworkStatus {
 
     const updateQuality = () => {
       if (!navigator.onLine) {
-        setQuality('offline');
+        setQuality("offline");
         return;
       }
       if (conn) {
         const { effectiveType, downlink } = conn;
-        if (effectiveType === '2g' || effectiveType === 'slow-2g' || downlink < 0.5) {
-          setQuality('slow');
+        if (
+          effectiveType === "2g" ||
+          effectiveType === "slow-2g" ||
+          downlink < 0.5
+        ) {
+          setQuality("slow");
         } else {
-          setQuality('good');
+          setQuality("good");
         }
       } else {
-        setQuality('good');
+        setQuality("good");
       }
     };
 
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-    conn?.addEventListener('change', updateQuality);
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+    conn?.addEventListener("change", updateQuality);
 
     updateQuality();
 
     return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-      conn?.removeEventListener('change', updateQuality);
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+      conn?.removeEventListener("change", updateQuality);
     };
   }, [handleOnline, handleOffline]);
 

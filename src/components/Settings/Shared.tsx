@@ -11,8 +11,8 @@ export const Section: React.FC<{
   title: string;
   children: React.ReactNode;
 }> = ({ title, children }) => (
-  <div className="bg-bgCard border border-borderMuted rounded-brand-lg p-5">
-    <h4 className="text-[11px] uppercase tracking-widest text-textDim font-medium mb-4">
+  <div className="bg-bgCard border-borderMuted rounded-brand-lg border p-5">
+    <h4 className="text-textDim mb-4 text-[11px] font-medium tracking-widest uppercase">
       {title}
     </h4>
     {children}
@@ -26,12 +26,12 @@ export const Field: React.FC<{
 }> = ({ label, error, children }) => (
   <div className="mb-4 last:mb-0">
     {label && (
-      <label className="block text-[11px] text-textDim uppercase tracking-widest font-medium mb-2">
+      <label className="text-textDim mb-2 block text-[11px] font-medium tracking-widest uppercase">
         {label}
       </label>
     )}
     {children}
-    {error && <p className="text-[11px] text-danger mt-1.5">{error}</p>}
+    {error && <p className="text-danger mt-1.5 text-[11px]">{error}</p>}
   </div>
 );
 

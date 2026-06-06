@@ -32,7 +32,7 @@ const TypingDots: React.FC = () => (
     {[0, 1, 2].map((i) => (
       <span
         key={i}
-        className="w-2 h-2 rounded-full bg-brand/60"
+        className="bg-brand/60 h-2 w-2 rounded-full"
         style={{
           animation: "bounce 1.2s infinite",
           animationDelay: `${i * 0.2}s`,
@@ -114,59 +114,59 @@ Your goal is to provide deep, professional insights into JAMB questions.
       />
 
       {/* Drawer panel */}
-      <div className="relative w-full max-w-md bg-bgCard h-full shadow-2xl flex flex-col z-10 overflow-hidden animate-in slide-in-from-right duration-300">
+      <div className="bg-bgCard animate-in slide-in-from-right relative z-10 flex h-full w-full max-w-md flex-col overflow-hidden shadow-2xl duration-300">
         {/* Header */}
-        <div className="px-5 py-4 border-b border-borderMuted flex items-center justify-between bg-brand text-white shrink-0">
+        <div className="border-borderMuted bg-brand flex shrink-0 items-center justify-between border-b px-5 py-4 text-white">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-brand-light/20 rounded-brand">
-              <Sparkles className="w-4 h-4" />
+            <div className="bg-brand-light/20 rounded-brand p-2">
+              <Sparkles className="h-4 w-4" />
             </div>
             <div>
-              <h2 className="font-bold text-sm">AI Tutor</h2>
-              <p className="text-[10px] opacity-80 uppercase tracking-widest font-mono">
+              <h2 className="text-sm font-bold">AI Tutor</h2>
+              <p className="font-mono text-[10px] tracking-widest uppercase opacity-80">
                 Interactive Help
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-brand-light/10 rounded-full transition-colors"
+            className="hover:bg-brand-light/10 rounded-full p-2 transition-colors"
           >
-            <X className="w-5 h-5" />
+            <X className="h-5 w-5" />
           </button>
         </div>
 
         {/* Question context strip */}
-        <div className="px-5 py-3 bg-bgSurface border-b border-borderMuted shrink-0">
-          <div className="flex items-center justify-between mb-1">
-            <p className="text-[10px] font-bold text-brand uppercase">
+        <div className="bg-bgSurface border-borderMuted shrink-0 border-b px-5 py-3">
+          <div className="mb-1 flex items-center justify-between">
+            <p className="text-brand text-[10px] font-bold uppercase">
               The Question
             </p>
             {showTruthScore && (
-              <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-success/10 border border-success/20 animate-in fade-in zoom-in duration-500">
-                <div className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
-                <span className="text-[9px] font-bold text-success uppercase tracking-tighter">
+              <div className="bg-success/10 border-success/20 animate-in fade-in zoom-in flex items-center gap-1.5 rounded-full border px-2 py-0.5 duration-500">
+                <div className="bg-success h-1.5 w-1.5 animate-pulse rounded-full" />
+                <span className="text-success text-[9px] font-bold tracking-tighter uppercase">
                   Verified by AI
                 </span>
               </div>
             )}
           </div>
-          <p className="text-xs text-textMain leading-relaxed line-clamp-3">
+          <p className="text-textMain line-clamp-3 text-xs leading-relaxed">
             {question.text}
           </p>
-          <div className="flex items-center gap-2 mt-1.5">
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-success/10 text-success border border-success/20 font-medium">
+          <div className="mt-1.5 flex items-center gap-2">
+            <span className="bg-success/10 text-success border-success/20 rounded-full border px-2 py-0.5 text-[10px] font-medium">
               ✓ {String.fromCharCode(65 + question.answer)}.{" "}
               {question.options[question.answer]}
             </span>
             {question.topic && (
-              <span className="text-[10px] text-textDim">{question.topic}</span>
+              <span className="text-textDim text-[10px]">{question.topic}</span>
             )}
           </div>
         </div>
 
         {/* Chat body */}
-        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4 scroll-smooth">
+        <div className="flex-1 space-y-4 overflow-y-auto scroll-smooth px-5 py-4">
           {/* Message bubbles */}
           {messages.map((msg: ChatMessage) => {
             const isUser = msg.role === "user";
@@ -176,21 +176,21 @@ Your goal is to provide deep, professional insights into JAMB questions.
               <div
                 key={msg.id}
                 className={cn(
-                  "flex flex-col max-w-[90%]",
+                  "flex max-w-[90%] flex-col",
                   isUser ? "ml-auto items-end" : "mr-auto items-start",
                 )}
               >
-                <span className="text-[9px] font-bold text-textDim uppercase mb-1 px-1">
+                <span className="text-textDim mb-1 px-1 text-[9px] font-bold uppercase">
                   {isUser ? "You" : "AI Tutor"}
                 </span>
                 <div
                   className={cn(
-                    "px-3 py-2.5 rounded-2xl text-sm leading-relaxed",
+                    "rounded-2xl px-3 py-2.5 text-sm leading-relaxed",
                     isUser
-                      ? "bg-brand text-white rounded-tr-sm"
-                      : "bg-bgSurface border border-borderMuted text-textMain rounded-tl-sm",
+                      ? "bg-brand rounded-tr-sm text-white"
+                      : "bg-bgSurface border-borderMuted text-textMain rounded-tl-sm border",
                     msg.isStreaming &&
-                      'after:content-["▋"] after:animate-pulse after:text-brand after:ml-0.5',
+                      'after:text-brand after:ml-0.5 after:animate-pulse after:content-["▋"]',
                   )}
                   style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}
                 >
@@ -204,10 +204,10 @@ Your goal is to provide deep, professional insights into JAMB questions.
           {isLoading &&
             messages.filter((m) => m.role === "ai").length === 0 && (
               <div className="mr-auto">
-                <span className="text-[9px] font-bold text-textDim uppercase mb-1 block px-1">
+                <span className="text-textDim mb-1 block px-1 text-[9px] font-bold uppercase">
                   AI Tutor
                 </span>
-                <div className="bg-bgSurface border border-borderMuted rounded-2xl rounded-tl-sm">
+                <div className="bg-bgSurface border-borderMuted rounded-2xl rounded-tl-sm border">
                   <TypingDots />
                 </div>
               </div>
@@ -224,7 +224,7 @@ Your goal is to provide deep, professional insights into JAMB questions.
                 <button
                   key={s}
                   onClick={() => sendMessage(s)}
-                  className="px-2.5 py-1 bg-bgSurface border border-borderMuted rounded-full text-[11px] text-textDim hover:text-textMain hover:border-brand/40 transition-all"
+                  className="bg-bgSurface border-borderMuted text-textDim hover:text-textMain hover:border-brand/40 rounded-full border px-2.5 py-1 text-[11px] transition-all"
                 >
                   {s}
                 </button>
@@ -236,8 +236,8 @@ Your goal is to provide deep, professional insights into JAMB questions.
         </div>
 
         {/* Input footer */}
-        <div className="px-4 pb-4 pt-2 border-t border-borderMuted shrink-0 bg-bgCard">
-          <div className="flex items-end gap-2 bg-bgSurface border border-borderMuted rounded-brand-lg p-2 focus-within:border-brand transition-colors">
+        <div className="border-borderMuted bg-bgCard shrink-0 border-t px-4 pt-2 pb-4">
+          <div className="bg-bgSurface border-borderMuted rounded-brand-lg focus-within:border-brand flex items-end gap-2 border p-2 transition-colors">
             <textarea
               ref={inputRef}
               rows={1}
@@ -250,22 +250,22 @@ Your goal is to provide deep, professional insights into JAMB questions.
               onKeyDown={handleKeyDown}
               placeholder="Ask a follow-up question…"
               disabled={isLoading}
-              className="flex-1 bg-transparent border-none text-sm px-2 py-1.5 focus:ring-0 resize-none no-scrollbar placeholder:text-textDim text-textMain min-h-9 max-h-25 disabled:opacity-50"
+              className="no-scrollbar placeholder:text-textDim text-textMain max-h-25 min-h-9 flex-1 resize-none border-none bg-transparent px-2 py-1.5 text-sm focus:ring-0 disabled:opacity-50"
             />
             <button
               onClick={handleSend}
               disabled={!input.trim() || isLoading}
               className={cn(
-                "p-2 rounded-brand transition-all shrink-0",
+                "rounded-brand shrink-0 p-2 transition-all",
                 input.trim() && !isLoading
-                  ? "bg-brand text-white hover:bg-brand-light shadow-md shadow-brand/20 active:scale-95"
+                  ? "bg-brand hover:bg-brand-light shadow-brand/20 text-white shadow-md active:scale-95"
                   : "bg-borderMuted text-textDim cursor-not-allowed",
               )}
             >
-              <Send className="w-4 h-4" />
+              <Send className="h-4 w-4" />
             </button>
           </div>
-          <p className="mt-1.5 text-[9px] text-center text-textDim uppercase tracking-tighter">
+          <p className="text-textDim mt-1.5 text-center text-[9px] tracking-tighter uppercase">
             AI can make mistakes. Verify important information.
           </p>
         </div>
@@ -332,22 +332,22 @@ const ReviewScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
       isSidebarOpen={isSidebarOpen}
       setIsSidebarOpen={setIsSidebarOpen}
     >
-      <div className="w-full max-w-full overflow-x-hidden box-border relative">
-        <div className="max-w-5xl mx-auto px-4 py-6 md:px-8 overflow-hidden">
+      <div className="relative box-border w-full max-w-full overflow-x-hidden">
+        <div className="mx-auto max-w-5xl overflow-hidden px-4 py-6 md:px-8">
           {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+          <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
             <Button
               variant="secondary"
               size="sm"
               onClick={onBack}
               icon={<ArrowLeft size={18} />}
-              className="rounded-xl shrink-0 bg-brand/10 border-brand/10 text-brand hover:bg-brand/20 active:scale-95 transition-all px-4 self-start"
+              className="bg-brand/10 border-brand/10 text-brand hover:bg-brand/20 shrink-0 self-start rounded-xl px-4 transition-all active:scale-95"
             >
               Back
             </Button>
-            <div className="flex items-center gap-2 bg-brand/5 border border-brand/20 p-2.5 rounded-xl self-start sm:self-auto shrink-0">
-              <Trophy className="text-brand w-4 h-4" />
-              <span className="text-xs font-bold font-mono">
+            <div className="bg-brand/5 border-brand/20 flex shrink-0 items-center gap-2 self-start rounded-xl border p-2.5 sm:self-auto">
+              <Trophy className="text-brand h-4 w-4" />
+              <span className="font-mono text-xs font-bold">
                 Total:{" "}
                 {
                   Object.values(answers).filter(
@@ -360,48 +360,48 @@ const ReviewScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
           </div>
 
           {/* Sticky nav */}
-          <div className="sticky top-0 z-20 bg-bgPage py-2 mb-6 space-y-3 max-w-full">
-            <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 max-w-full">
+          <div className="bg-bgPage sticky top-0 z-20 mb-6 max-w-full space-y-3 py-2">
+            <div className="no-scrollbar flex max-w-full gap-2 overflow-x-auto pb-1">
               {subjectData.map((sub) => (
                 <button
                   key={sub.name}
                   onClick={() => setActiveTab(sub.name)}
                   className={cn(
-                    "flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-bold border transition-all whitespace-nowrap shrink-0",
+                    "flex shrink-0 items-center gap-1 rounded-xl border px-3 py-2 text-xs font-bold whitespace-nowrap transition-all",
                     activeTab === sub.name
                       ? "bg-brand border-brand text-white shadow-md"
                       : "bg-bgCard border-borderMuted text-textDim hover:border-brand/40",
                   )}
                 >
                   {sub.name}
-                  <span className="opacity-70 text-[10px]">
+                  <span className="text-[10px] opacity-70">
                     {sub.score}/{sub.total}
                   </span>
                 </button>
               ))}
             </div>
-            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 max-w-full">
+            <div className="no-scrollbar flex max-w-full items-center gap-2 overflow-x-auto pb-1">
               <Filter size={12} className="text-textDim shrink-0" />
               {["all", "correct", "incorrect"].map((f) => (
                 <button
                   key={f}
                   onClick={() => setStatusFilter(f as any)}
                   className={cn(
-                    "px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all border shrink-0",
+                    "shrink-0 rounded-lg border px-3 py-1 text-[10px] font-bold tracking-wider uppercase transition-all",
                     statusFilter === f
                       ? "bg-textMain border-textMain text-bgCard"
-                      : "bg-transparent border-borderMuted text-textDim",
+                      : "border-borderMuted text-textDim bg-transparent",
                   )}
                 >
                   {f}
                 </button>
               ))}
             </div>
-            <div className="h-px bg-borderMuted w-full" />
+            <div className="bg-borderMuted h-px w-full" />
           </div>
 
           {/* Questions feed */}
-          <div className="space-y-6 pb-20 max-w-full overflow-hidden">
+          <div className="max-w-full space-y-6 overflow-hidden pb-20">
             {filteredQuestions.map((q, idx) => {
               const globalIdx = questions.indexOf(q);
               const userAnswer = answers[globalIdx];
@@ -411,18 +411,18 @@ const ReviewScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 <div
                   key={q.id}
                   className={cn(
-                    "bg-bgCard border rounded-2xl md:rounded-3xl transition-all w-full box-border overflow-hidden",
+                    "bg-bgCard box-border w-full overflow-hidden rounded-2xl border transition-all md:rounded-3xl",
                     isCorrect
-                      ? "border-l-4 border-l-success border-success/20"
-                      : "border-l-4 border-l-danger border-danger/20",
+                      ? "border-l-success border-success/20 border-l-4"
+                      : "border-l-danger border-danger/20 border-l-4",
                   )}
                 >
                   <div className="p-4 md:p-8">
                     {/* Question header */}
-                    <div className="flex items-start gap-3 md:gap-5 mb-6 min-w-0">
+                    <div className="mb-6 flex min-w-0 items-start gap-3 md:gap-5">
                       <div
                         className={cn(
-                          "w-8 h-8 md:w-12 md:h-12 rounded-xl flex items-center justify-center shrink-0 shadow-sm mt-1",
+                          "mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl shadow-sm md:h-12 md:w-12",
                           isCorrect
                             ? "bg-success/10 text-success"
                             : "bg-danger/10 text-danger",
@@ -435,22 +435,22 @@ const ReviewScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                         )}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <span className="text-[10px] font-mono font-bold text-textDim uppercase">
+                        <span className="text-textDim font-mono text-[10px] font-bold uppercase">
                           Q {idx + 1}
                         </span>
-                        <p className="text-sm md:text-lg font-bold text-textMain mt-1 leading-snug wrap-break-word">
+                        <p className="text-textMain mt-1 text-sm leading-snug font-bold wrap-break-word md:text-lg">
                           {q.text}
                         </p>
                       </div>
                     </div>
 
                     {/* Options */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6 md:ml-16">
+                    <div className="mb-6 grid grid-cols-1 gap-3 md:ml-16 md:grid-cols-2">
                       {q.options.map((opt: string, i: number) => (
                         <div
                           key={i}
                           className={cn(
-                            "p-3 md:p-4 rounded-xl border-2 text-xs md:text-sm flex items-center justify-between transition-all min-w-0",
+                            "flex min-w-0 items-center justify-between rounded-xl border-2 p-3 text-xs transition-all md:p-4 md:text-sm",
                             i === q.answer
                               ? "border-success bg-success/5 text-success font-bold"
                               : i === userAnswer
@@ -458,29 +458,29 @@ const ReviewScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                 : "border-borderMuted text-textDim opacity-80",
                           )}
                         >
-                          <span className="pr-2 wrap-break-word flex-1 min-w-0">
-                            <span className="opacity-50 font-mono mr-1">
+                          <span className="min-w-0 flex-1 pr-2 wrap-break-word">
+                            <span className="mr-1 font-mono opacity-50">
                               {String.fromCharCode(65 + i)}.
                             </span>
                             {opt}
                           </span>
                           {i === q.answer && (
-                            <CheckCircle size={14} className="shrink-0 ml-2" />
+                            <CheckCircle size={14} className="ml-2 shrink-0" />
                           )}
                           {i === userAnswer && i !== q.answer && (
-                            <XCircle size={14} className="shrink-0 ml-2" />
+                            <XCircle size={14} className="ml-2 shrink-0" />
                           )}
                         </div>
                       ))}
                     </div>
 
                     {/* Explanation + AI button */}
-                    <div className="md:ml-16 space-y-4">
-                      <div className="p-4 bg-bgSurface/50 rounded-2xl border border-borderMuted overflow-hidden">
-                        <div className="flex items-center gap-2 mb-2 text-brand font-black text-[10px] uppercase">
+                    <div className="space-y-4 md:ml-16">
+                      <div className="bg-bgSurface/50 border-borderMuted overflow-hidden rounded-2xl border p-4">
+                        <div className="text-brand mb-2 flex items-center gap-2 text-[10px] font-black uppercase">
                           <BookOpen size={14} /> Explanation
                         </div>
-                        <p className="text-xs md:text-sm text-textMuted leading-relaxed wrap-break-word">
+                        <p className="text-textMuted text-xs leading-relaxed wrap-break-word md:text-sm">
                           {q.explanation || "No explanation provided."}
                         </p>
                       </div>
@@ -488,18 +488,18 @@ const ReviewScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                       <div className="flex items-center justify-between gap-4">
                         <button
                           onClick={() => setSelectedAIQuestion(q)}
-                          className="flex items-center gap-2 px-4 py-2.5 bg-brand text-white rounded-xl shadow-lg shadow-brand/20 hover:bg-brand-light hover:scale-105 transition-all shrink-0 active:scale-95"
+                          className="bg-brand shadow-brand/20 hover:bg-brand-light flex shrink-0 items-center gap-2 rounded-xl px-4 py-2.5 text-white shadow-lg transition-all hover:scale-105 active:scale-95"
                         >
                           <Sparkles size={14} />
-                          <span className="text-[11px] font-bold uppercase tracking-tight">
+                          <span className="text-[11px] font-bold tracking-tight uppercase">
                             Ask AI Tutor
                           </span>
                         </button>
-                        <div className="text-right min-w-0">
-                          <p className="text-[9px] text-textDim font-mono uppercase">
+                        <div className="min-w-0 text-right">
+                          <p className="text-textDim font-mono text-[9px] uppercase">
                             Topic
                           </p>
-                          <p className="text-[10px] font-bold text-textMain truncate">
+                          <p className="text-textMain truncate text-[10px] font-bold">
                             {q.topic || "General"}
                           </p>
                         </div>

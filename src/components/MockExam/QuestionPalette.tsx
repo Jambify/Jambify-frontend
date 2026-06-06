@@ -47,18 +47,18 @@ const QuestionPalette: React.FC<QuestionPaletteProps> = ({
         return (
           <div key={subject} className="space-y-3">
             <div className="flex items-center gap-2">
-              <div className="w-1 h-3 bg-brand/30 rounded-full"></div>
-              <h4 className="text-[10px] font-black text-textDim uppercase tracking-widest">
+              <div className="bg-brand/30 h-3 w-1 rounded-full"></div>
+              <h4 className="text-textDim text-[10px] font-black tracking-widest uppercase">
                 {subject}
               </h4>
             </div>
-            <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-1.5">
+            <div className="grid grid-cols-6 gap-1.5 sm:grid-cols-8 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
               {subjectQuestions.map((q) => (
                 <button
                   key={q.globalIndex}
                   onClick={() => onJumpToQuestion(q.globalIndex)}
                   className={cn(
-                    "h-8 w-8 rounded-lg text-[10px] font-black transition-all border flex items-center justify-center active:scale-90",
+                    "flex h-8 w-8 items-center justify-center rounded-lg border text-[10px] font-black transition-all active:scale-90",
                     getStatusColor(q.globalIndex),
                   )}
                 >
@@ -70,21 +70,21 @@ const QuestionPalette: React.FC<QuestionPaletteProps> = ({
         );
       })}
 
-      <div className="mt-2 p-4 bg-bgSurface/50 rounded-brand-xl border border-borderMuted grid grid-cols-2 gap-y-3 gap-x-2 text-[9px] font-black uppercase tracking-tighter text-textDim">
+      <div className="bg-bgSurface/50 rounded-brand-xl border-borderMuted text-textDim mt-2 grid grid-cols-2 gap-x-2 gap-y-3 border p-4 text-[9px] font-black tracking-tighter uppercase">
         <div className="flex items-center gap-2">
-          <div className="w-2.5 h-2.5 rounded-sm bg-bgSurface border border-borderMuted"></div>
+          <div className="bg-bgSurface border-borderMuted h-2.5 w-2.5 rounded-sm border"></div>
           <span>Unvisited</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-2.5 h-2.5 rounded-sm bg-blue-500 border border-blue-600"></div>
+          <div className="h-2.5 w-2.5 rounded-sm border border-blue-600 bg-blue-500"></div>
           <span>Visited</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-2.5 h-2.5 rounded-sm bg-success border border-success-dark"></div>
+          <div className="bg-success border-success-dark h-2.5 w-2.5 rounded-sm border"></div>
           <span>Answered</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-2.5 h-2.5 rounded-sm bg-orange-500 border border-orange-600"></div>
+          <div className="h-2.5 w-2.5 rounded-sm border border-orange-600 bg-orange-500"></div>
           <span>Review</span>
         </div>
       </div>

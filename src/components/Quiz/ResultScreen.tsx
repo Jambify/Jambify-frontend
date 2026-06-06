@@ -36,29 +36,29 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ onRetry, onHome }) => {
           : { emoji: "💪", label: "Don't give up!", color: "text-danger" };
 
   return (
-    <div className="max-w-xl mx-auto animate-fadeIn">
+    <div className="animate-fadeIn mx-auto max-w-xl">
       {/* <Score hero */}
-      <div className="relative bg-bgCard border border-borderMuted rounded-brand-xl p-8 text-center mb-5 overflow-hidden">
+      <div className="bg-bgCard border-borderMuted rounded-brand-xl relative mb-5 overflow-hidden border p-8 text-center">
         <div
-          className="absolute inset-0 pointer-events-none"
+          className="pointer-events-none absolute inset-0"
           style={{
             background:
               "radial-gradient(circle at 50% 0%, rgba(91,59,255,0.08) 0%, transparent 70%)",
           }}
         />
-        <div className="text-5xl mb-3">{emoji}</div>
-        <div className="font-display text-7xl font-black tracking-tighter text-brand-light leading-none mb-1">
+        <div className="mb-3 text-5xl">{emoji}</div>
+        <div className="font-display text-brand-light mb-1 text-7xl leading-none font-black tracking-tighter">
           {correct}
-          <span className="text-3xl text-textDim font-normal">/{total}</span>
+          <span className="text-textDim text-3xl font-normal">/{total}</span>
         </div>
-        <div className={cn("font-display text-xl font-semibold mt-2", color)}>
+        <div className={cn("font-display mt-2 text-xl font-semibold", color)}>
           {label}
         </div>
-        <div className="text-sm text-textDim mt-1">{pct}% accuracy</div>
+        <div className="text-textDim mt-1 text-sm">{pct}% accuracy</div>
       </div>
 
       {/* <Stats row */}
-      <div className="grid grid-cols-3 gap-3 mb-5">
+      <div className="mb-5 grid grid-cols-3 gap-3">
         {[
           { label: "Correct", value: correct, color: "text-success" },
           { label: "Incorrect", value: total - correct, color: "text-danger" },
@@ -66,7 +66,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ onRetry, onHome }) => {
         ].map(({ label, value, color }) => (
           <div
             key={label}
-            className="bg-bgCard border border-borderMuted rounded-brand-lg p-4 text-center"
+            className="bg-bgCard border-borderMuted rounded-brand-lg border p-4 text-center"
           >
             <div
               className={cn(
@@ -76,7 +76,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ onRetry, onHome }) => {
             >
               {value}
             </div>
-            <div className="text-[11px] text-textDim uppercase tracking-wider mt-0.5">
+            <div className="text-textDim mt-0.5 text-[11px] tracking-wider uppercase">
               {label}
             </div>
           </div>
@@ -84,8 +84,8 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ onRetry, onHome }) => {
       </div>
 
       {/* <Per-question review */}
-      <div className="bg-bgCard border border-borderMuted rounded-brand-lg overflow-hidden mb-5">
-        <div className="px-4 py-3 border-b border-borderMuted">
+      <div className="bg-bgCard border-borderMuted rounded-brand-lg mb-5 overflow-hidden border">
+        <div className="border-borderMuted border-b px-4 py-3">
           <p className="text-sm font-semibold">Question review</p>
         </div>
         {questions.map((q, i) => {
@@ -94,11 +94,11 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ onRetry, onHome }) => {
           return (
             <div
               key={q.id}
-              className="flex items-start gap-3 px-4 py-3 border-b border-borderMuted last:border-b-0"
+              className="border-borderMuted flex items-start gap-3 border-b px-4 py-3 last:border-b-0"
             >
               <span
                 className={cn(
-                  "w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5",
+                  "mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold",
                   wasCorrect
                     ? "bg-success/15 text-success"
                     : skipped
@@ -108,15 +108,15 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ onRetry, onHome }) => {
               >
                 {wasCorrect ? "✓" : skipped ? "–" : "✕"}
               </span>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs text-textMain line-clamp-2">{q.text}</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-textMain line-clamp-2 text-xs">{q.text}</p>
                 {!wasCorrect && !skipped && (
-                  <p className="text-[11px] text-success mt-0.5">
+                  <p className="text-success mt-0.5 text-[11px]">
                     Correct: {q.options[q.answer]}
                   </p>
                 )}
               </div>
-              <span className="text-[10px] text-textDim shrink-0">
+              <span className="text-textDim shrink-0 text-[10px]">
                 {q.subject}
               </span>
             </div>
@@ -125,7 +125,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ onRetry, onHome }) => {
       </div>
 
       {/* <CTAs */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <Button variant="primary" fullWidth onClick={onRetry}>
           🔄 Try again
         </Button>

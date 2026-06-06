@@ -24,7 +24,7 @@ const DangerZone: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="animate-in fade-in slide-in-from-bottom-4 flex flex-col gap-6 duration-500">
       {/* ── App Information ─────────────────────────────── */}
       <Section title="System Information">
         <div className="flex flex-col gap-1">
@@ -35,14 +35,14 @@ const DangerZone: React.FC = () => {
           ].map((item) => (
             <div
               key={item.label}
-              className="flex items-center justify-between py-3 border-b border-borderMuted last:border-0"
+              className="border-borderMuted flex items-center justify-between border-b py-3 last:border-0"
             >
               <div className="flex items-center gap-3">
-                <span className="text-sm text-textMuted font-medium">
+                <span className="text-textMuted text-sm font-medium">
                   {item.label}
                 </span>
               </div>
-              <span className="text-sm text-textMain font-bold bg-bgSurface px-3 py-1 rounded-lg border border-borderMuted">
+              <span className="text-textMain bg-bgSurface border-borderMuted rounded-lg border px-3 py-1 text-sm font-bold">
                 {item.value}
               </span>
             </div>
@@ -53,7 +53,7 @@ const DangerZone: React.FC = () => {
       {/* ── Session Management ───────────────────────────── */}
       <Section title="Session Management">
         <div className="p-1">
-          <p className="text-sm text-textMuted mb-5 leading-relaxed">
+          <p className="text-textMuted mb-5 text-sm leading-relaxed">
             Ready to end your session? Your study progress and groups will be
             waiting for you when you return.
           </p>
@@ -63,9 +63,9 @@ const DangerZone: React.FC = () => {
             onClick={handleLogout}
             loading={isLoggingOut}
             icon={
-              <LogOut className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              <LogOut className="h-5 w-5 transition-transform group-hover:translate-x-1" />
             }
-            className="bg-bgSurface border-borderMuted hover:bg-bgDeep text-textMain font-bold py-6 rounded-2xl group transition-all"
+            className="bg-bgSurface border-borderMuted hover:bg-bgDeep text-textMain group rounded-2xl py-6 font-bold transition-all"
           >
             Sign Out of Account
           </Button>
@@ -74,19 +74,19 @@ const DangerZone: React.FC = () => {
 
       {/* ── Security Zone ────────────────────────────────── */}
       <Section title="Security Zone">
-        <div className="bg-danger/5 border border-danger/10 rounded-2xl p-5 overflow-hidden relative">
-          <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
+        <div className="bg-danger/5 border-danger/10 relative overflow-hidden rounded-2xl border p-5">
+          <div className="pointer-events-none absolute top-0 right-0 p-4 opacity-10">
             <ShieldAlert size={80} className="text-danger" />
           </div>
 
           <div className="relative z-10">
-            <div className="flex items-center gap-2 mb-2">
-              <AlertCircle className="w-5 h-5 text-danger" />
-              <p className="text-sm font-bold text-danger uppercase tracking-tight">
+            <div className="mb-2 flex items-center gap-2">
+              <AlertCircle className="text-danger h-5 w-5" />
+              <p className="text-danger text-sm font-bold tracking-tight uppercase">
                 Critical Actions
               </p>
             </div>
-            <p className="text-sm text-textMuted mb-6 leading-relaxed">
+            <p className="text-textMuted mb-6 text-sm leading-relaxed">
               Permanently delete your profile and clear all study data. This
               action is irreversible.
             </p>
@@ -97,14 +97,14 @@ const DangerZone: React.FC = () => {
                 size="sm"
                 fullWidth
                 onClick={() => setConfirmDelete(true)}
-                className="font-bold py-4 rounded-xl border-danger/30"
+                className="border-danger/30 rounded-xl py-4 font-bold"
               >
                 Delete My Account
               </Button>
             ) : (
-              <div className="bg-bgCard border border-danger/20 rounded-xl p-4 animate-in zoom-in-95 duration-200">
-                <p className="text-sm text-danger font-black mb-4 flex items-center gap-2">
-                  <TriangleAlert className="w-4 h-4" /> Final Confirmation
+              <div className="bg-bgCard border-danger/20 animate-in zoom-in-95 rounded-xl border p-4 duration-200">
+                <p className="text-danger mb-4 flex items-center gap-2 text-sm font-black">
+                  <TriangleAlert className="h-4 w-4" /> Final Confirmation
                   Required
                 </p>
                 <div className="flex flex-col gap-2">
@@ -114,7 +114,7 @@ const DangerZone: React.FC = () => {
                     onClick={() => {
                       /* Handle delete logic if needed */
                     }}
-                    className="py-4 rounded-xl shadow-lg shadow-danger/20"
+                    className="shadow-danger/20 rounded-xl py-4 shadow-lg"
                   >
                     Yes, Delete Everything
                   </Button>

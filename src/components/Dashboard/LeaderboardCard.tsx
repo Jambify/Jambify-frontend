@@ -21,17 +21,17 @@ const RANK_STYLES: Record<number, { text: string; bg: string; label: string }> =
   };
 
 function ChangeIndicator({ change }: { change: number }) {
-  if (change === 0) return <Minus className="w-3 h-3 text-textDim" />;
+  if (change === 0) return <Minus className="text-textDim h-3 w-3" />;
   if (change > 0)
     return (
-      <span className="flex items-center gap-0.5 text-success text-[10px] font-medium">
-        <TrendingUp className="w-3 h-3" />
+      <span className="text-success flex items-center gap-0.5 text-[10px] font-medium">
+        <TrendingUp className="h-3 w-3" />
         {change}
       </span>
     );
   return (
-    <span className="flex items-center gap-0.5 text-danger text-[10px] font-medium">
-      <TrendingDown className="w-3 h-3" />
+    <span className="text-danger flex items-center gap-0.5 text-[10px] font-medium">
+      <TrendingDown className="h-3 w-3" />
       {Math.abs(change)}
     </span>
   );
@@ -57,22 +57,22 @@ const LeaderboardCard: React.FC = () => {
   };
 
   return (
-    <div className="bg-bgCard border border-borderMuted rounded-brand-lg p-5 flex flex-col">
+    <div className="bg-bgCard border-borderMuted rounded-brand-lg flex flex-col border p-5">
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-display text-sm font-semibold tracking-tight flex items-center gap-2">
-          <Trophy className="w-4 h-4 text-yellow-400" />
+      <div className="mb-4 flex items-center justify-between">
+        <h3 className="font-display flex items-center gap-2 text-sm font-semibold tracking-tight">
+          <Trophy className="h-4 w-4 text-yellow-400" />
           Leaderboard
         </h3>
 
         {/* Scope tabs */}
-        <div className="flex gap-1 bg-bgSurface rounded-brand p-0.5 border border-borderMuted">
+        <div className="bg-bgSurface rounded-brand border-borderMuted flex gap-1 border p-0.5">
           {(["school", "national"] as Tab[]).map((t) => (
             <button
               key={t}
               onClick={() => handleTabChange(t)}
               className={cn(
-                "px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all capitalize",
+                "rounded-lg px-2.5 py-1 text-[11px] font-medium capitalize transition-all",
                 tab === t
                   ? "bg-bgCard text-textMain shadow-sm"
                   : "text-textDim hover:text-textMain",
@@ -86,9 +86,9 @@ const LeaderboardCard: React.FC = () => {
 
       {/* Loading state */}
       {isLoading && (
-        <div className="flex-1 flex flex-col items-center justify-center py-12">
-          <Loader2 className="w-8 h-8 text-brand animate-spin mb-2" />
-          <p className="text-xs text-textDim font-medium">
+        <div className="flex flex-1 flex-col items-center justify-center py-12">
+          <Loader2 className="text-brand mb-2 h-8 w-8 animate-spin" />
+          <p className="text-textDim text-xs font-medium">
             Fetching champions...
           </p>
         </div>
@@ -96,24 +96,24 @@ const LeaderboardCard: React.FC = () => {
 
       {/* Empty / new-user state */}
       {!isLoading && isNewUser && (
-        <div className="flex-1 flex flex-col items-center justify-center py-6 text-center gap-3">
-          <div className="w-14 h-14 rounded-full bg-yellow-400/10 border border-yellow-400/20 flex items-center justify-center">
-            <Trophy className="w-6 h-6 text-yellow-400" />
+        <div className="flex flex-1 flex-col items-center justify-center gap-3 py-6 text-center">
+          <div className="flex h-14 w-14 items-center justify-center rounded-full border border-yellow-400/20 bg-yellow-400/10">
+            <Trophy className="h-6 w-6 text-yellow-400" />
           </div>
           <div>
-            <p className="text-sm font-semibold text-textMain">
+            <p className="text-textMain text-sm font-semibold">
               Your rank awaits
             </p>
-            <p className="text-xs text-textDim mt-1 max-w-45 mx-auto leading-relaxed">
+            <p className="text-textDim mx-auto mt-1 max-w-45 text-xs leading-relaxed">
               Complete a quiz to earn your spot on the leaderboard
             </p>
           </div>
-          <div className="flex gap-2 mt-1">
+          <div className="mt-1 flex gap-2">
             <button
               onClick={() => {}}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-bgSurface border border-borderMuted text-textDim hover:text-textMain text-xs font-medium rounded-brand transition-all"
+              className="bg-bgSurface border-borderMuted text-textDim hover:text-textMain rounded-brand flex items-center gap-1.5 border px-3 py-1.5 text-xs font-medium transition-all"
             >
-              <Users className="w-3.5 h-3.5" />
+              <Users className="h-3.5 w-3.5" />
               Invite friends
             </button>
           </div>
@@ -122,31 +122,31 @@ const LeaderboardCard: React.FC = () => {
 
       {/* Leaderboard list */}
       {!isLoading && hasData && (
-        <div className="space-y-0.5 flex-1">
+        <div className="flex-1 space-y-0.5">
           {top3.map((entry) => {
             const rankStyle = RANK_STYLES[entry.rank];
             return (
               <div
                 key={entry.id}
-                className="flex items-center gap-2 sm:gap-2.5 px-2 sm:px-2.5 py-2 rounded-brand hover:bg-bgSurface transition-colors"
+                className="rounded-brand hover:bg-bgSurface flex items-center gap-2 px-2 py-2 transition-colors sm:gap-2.5 sm:px-2.5"
               >
                 {/* Rank medal or number */}
                 <div
                   className={cn(
-                    "w-6 text-center shrink-0",
+                    "w-6 shrink-0 text-center",
                     rankStyle?.text ?? "text-textDim",
                   )}
                 >
                   {rankStyle ? (
                     <span className="text-sm">{rankStyle.label}</span>
                   ) : (
-                    <span className="text-xs font-mono">{entry.rank}</span>
+                    <span className="font-mono text-xs">{entry.rank}</span>
                   )}
                 </div>
 
                 {/* Avatar */}
                 <div
-                  className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0"
+                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[10px] font-bold"
                   style={{
                     background: entry.avatarBg,
                     color: entry.avatarColor,
@@ -156,11 +156,11 @@ const LeaderboardCard: React.FC = () => {
                 </div>
 
                 {/* Name + school */}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate leading-tight">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm leading-tight font-medium">
                     {entry.name}
                   </p>
-                  <p className="text-[10px] text-textDim truncate">
+                  <p className="text-textDim truncate text-[10px]">
                     {entry.school}
                   </p>
                 </div>
@@ -169,7 +169,7 @@ const LeaderboardCard: React.FC = () => {
                 <ChangeIndicator change={entry.change} />
 
                 {/* Score */}
-                <span className="font-mono text-sm font-semibold text-textMain shrink-0 ml-1">
+                <span className="text-textMain ml-1 shrink-0 font-mono text-sm font-semibold">
                   {entry.score}
                 </span>
               </div>
@@ -177,32 +177,32 @@ const LeaderboardCard: React.FC = () => {
           })}
 
           {/* Divider */}
-          <div className="my-1.5 border-t border-borderMuted" />
+          <div className="border-borderMuted my-1.5 border-t" />
 
           {/* Current user row */}
-          <div className="flex items-center gap-2 sm:gap-2.5 px-2 sm:px-2.5 py-2 rounded-brand bg-brand/10 border border-brand/20">
+          <div className="rounded-brand bg-brand/10 border-brand/20 flex items-center gap-2 border px-2 py-2 sm:gap-2.5 sm:px-2.5">
             {/* Rank */}
-            <div className="w-6 text-center shrink-0">
-              <span className="text-xs font-mono text-brand-light">
+            <div className="w-6 shrink-0 text-center">
+              <span className="text-brand-light font-mono text-xs">
                 {schoolRank || "—"}
               </span>
             </div>
 
             {/* Avatar */}
-            <div className="w-7 h-7 rounded-full bg-brand flex items-center justify-center text-[10px] font-bold text-white shrink-0">
+            <div className="bg-brand flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white">
               {name ? name.slice(0, 2).toUpperCase() : "ME"}
             </div>
 
             {/* Name */}
-            <div className="flex-1 min-w-0 flex items-center gap-1.5">
-              <p className="text-sm font-semibold truncate">{name || "You"}</p>
-              <span className="shrink-0 text-[9px] bg-brand text-white px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wide">
+            <div className="flex min-w-0 flex-1 items-center gap-1.5">
+              <p className="truncate text-sm font-semibold">{name || "You"}</p>
+              <span className="bg-brand shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-white uppercase">
                 You
               </span>
             </div>
 
             {/* Score */}
-            <span className="font-mono text-sm font-semibold text-brand-light shrink-0">
+            <span className="text-brand-light shrink-0 font-mono text-sm font-semibold">
               {overallScore}
             </span>
           </div>
@@ -211,17 +211,17 @@ const LeaderboardCard: React.FC = () => {
 
       {/* No Data State (Not loading, but no entries) */}
       {!isLoading && !hasData && !isNewUser && (
-        <div className="flex-1 flex flex-col items-center justify-center py-8 text-center">
-          <div className="w-12 h-12 bg-bgSurface rounded-full flex items-center justify-center mb-3">
-            <Users className="w-6 h-6 text-textDim" />
+        <div className="flex flex-1 flex-col items-center justify-center py-8 text-center">
+          <div className="bg-bgSurface mb-3 flex h-12 w-12 items-center justify-center rounded-full">
+            <Users className="text-textDim h-6 w-6" />
           </div>
-          <p className="text-sm font-semibold text-textMain">No rankings yet</p>
-          <p className="text-xs text-textDim mt-1 max-w-40">
+          <p className="text-textMain text-sm font-semibold">No rankings yet</p>
+          <p className="text-textDim mt-1 max-w-40 text-xs">
             Be the first to join the leaderboard!
           </p>
           <button
             onClick={() => fetchLeaderboard()}
-            className="mt-4 text-[10px] font-bold uppercase tracking-widest text-brand hover:text-brand-light transition-colors"
+            className="text-brand hover:text-brand-light mt-4 text-[10px] font-bold tracking-widest uppercase transition-colors"
           >
             Refresh
           </button>

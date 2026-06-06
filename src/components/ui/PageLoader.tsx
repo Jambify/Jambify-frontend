@@ -32,23 +32,23 @@ const PageLoader: React.FC<PageLoaderProps> = ({
   }, []);
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-100 w-full animate-fadeIn px-6">
+    <div className="animate-fadeIn flex min-h-100 w-full flex-col items-center justify-center px-6">
       {/* Unique Central Animation: The "Scanning Book" */}
       <div className="relative mb-8">
         {/* Glowing Background */}
-        <div className="absolute inset-0 bg-brand/20 blur-3xl rounded-full scale-150 animate-pulse" />
+        <div className="bg-brand/20 absolute inset-0 scale-150 animate-pulse rounded-full blur-3xl" />
 
-        <div className="relative bg-bgCard border border-borderMuted rounded-3xl p-8 shadow-2xl flex items-center justify-center overflow-hidden w-28 h-28">
+        <div className="bg-bgCard border-borderMuted relative flex h-28 w-28 items-center justify-center overflow-hidden rounded-3xl border p-8 shadow-2xl">
           {/* Animated "Book" Pages */}
           <motion.div
-            className="flex gap-1.5 items-end"
+            className="flex items-end gap-1.5"
             initial="initial"
             animate="animate"
           >
             {[0, 1, 2, 3].map((i) => (
               <motion.div
                 key={i}
-                className="w-2 bg-brand rounded-full"
+                className="bg-brand w-2 rounded-full"
                 variants={{
                   initial: { height: 12 },
                   animate: {
@@ -67,7 +67,7 @@ const PageLoader: React.FC<PageLoaderProps> = ({
 
           {/* Scanning Beam */}
           <motion.div
-            className="absolute top-0 left-0 w-full h-1.5 bg-linear-to-r from-transparent via-brand to-transparent opacity-60"
+            className="via-brand absolute top-0 left-0 h-1.5 w-full bg-linear-to-r from-transparent to-transparent opacity-60"
             animate={{
               top: ["0%", "100%", "0%"],
             }}
@@ -83,7 +83,7 @@ const PageLoader: React.FC<PageLoaderProps> = ({
         {[...Array(6)].map((_, i) => (
           <motion.div
             key={i}
-            className="absolute w-1 h-1 bg-brand-light rounded-full"
+            className="bg-brand-light absolute h-1 w-1 rounded-full"
             initial={{ opacity: 0 }}
             animate={{
               opacity: [0, 1, 0],
@@ -105,9 +105,9 @@ const PageLoader: React.FC<PageLoaderProps> = ({
       </div>
 
       {/* Professional Message */}
-      <div className="text-center space-y-4 max-w-xs">
+      <div className="max-w-xs space-y-4 text-center">
         <div className="space-y-1">
-          <h3 className="text-xl font-display font-bold text-textMain tracking-tight">
+          <h3 className="font-display text-textMain text-xl font-bold tracking-tight">
             {message}
           </h3>
           <AnimatePresence mode="wait">
@@ -116,26 +116,26 @@ const PageLoader: React.FC<PageLoaderProps> = ({
               initial={{ opacity: 0, y: 5 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -5 }}
-              className="text-sm text-brand-light font-medium h-5"
+              className="text-brand-light h-5 text-sm font-medium"
             >
               {STUDY_TIPS[tipIndex]}
             </motion.p>
           </AnimatePresence>
         </div>
 
-        <p className="text-xs text-textDim flex items-center justify-center gap-2">
-          <span className="w-1.5 h-1.5 bg-success rounded-full animate-pulse" />
+        <p className="text-textDim flex items-center justify-center gap-2 text-xs">
+          <span className="bg-success h-1.5 w-1.5 animate-pulse rounded-full" />
           Optimizing your study path
         </p>
       </div>
 
       {/* Professional Skeleton Pulse Placeholder */}
       <div className="mt-16 w-full max-w-sm space-y-5 opacity-20">
-        <div className="h-2 bg-bgSurface rounded-full w-full animate-pulse" />
-        <div className="h-2 bg-bgSurface rounded-full w-2/3 mx-auto animate-pulse" />
+        <div className="bg-bgSurface h-2 w-full animate-pulse rounded-full" />
+        <div className="bg-bgSurface mx-auto h-2 w-2/3 animate-pulse rounded-full" />
         <div className="grid grid-cols-2 gap-4 pt-6">
-          <div className="h-16 bg-bgSurface rounded-2xl animate-pulse" />
-          <div className="h-16 bg-bgSurface rounded-2xl animate-pulse" />
+          <div className="bg-bgSurface h-16 animate-pulse rounded-2xl" />
+          <div className="bg-bgSurface h-16 animate-pulse rounded-2xl" />
         </div>
       </div>
     </div>

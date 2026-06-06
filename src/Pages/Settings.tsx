@@ -31,40 +31,40 @@ const Settings: React.FC = () => {
       isSidebarOpen={isSidebarOpen}
       setIsSidebarOpen={setIsSidebarOpen}
     >
-      <div className="max-w-2xl mx-auto">
+      <div className="mx-auto max-w-2xl">
         {/* <── Page header ── */}
         <div className="mb-6">
           <h2 className="font-display text-2xl font-bold tracking-tight">
             Settings
           </h2>
-          <p className="text-sm text-textMuted mt-1">
+          <p className="text-textMuted mt-1 text-sm">
             Manage your profile, exam targets, and account preferences.
           </p>
         </div>
 
         {/* <── Avatar + name hero ── */}
-        <div className="bg-bgCard border border-borderMuted rounded-brand-xl p-5 mb-5 flex items-center gap-4">
-          <div className="w-16 h-16 rounded-full bg-brand flex items-center justify-center font-display text-xl font-bold text-white shrink-0 shadow-brand">
+        <div className="bg-bgCard border-borderMuted rounded-brand-xl mb-5 flex items-center gap-4 border p-5">
+          <div className="bg-brand font-display shadow-brand flex h-16 w-16 shrink-0 items-center justify-center rounded-full text-xl font-bold text-white">
             {initials || "?"}
           </div>
           <div>
             <p className="font-display text-lg font-semibold tracking-tight">
               {name || "Your name"}
             </p>
-            <p className="text-sm text-textMuted mt-0.5">JAMBIFY student</p>
+            <p className="text-textMuted mt-0.5 text-sm">JAMBIFY student</p>
           </div>
         </div>
 
         {/* <── Tab switcher ── */}
-        <div className="flex gap-1 mb-5 bg-bgSurface p-1 rounded-brand-lg border border-borderMuted">
+        <div className="bg-bgSurface rounded-brand-lg border-borderMuted mb-5 flex gap-1 border p-1">
           {TABS.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={cn(
-                "flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-brand text-sm font-medium transition-all",
+                "rounded-brand flex flex-1 items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium transition-all",
                 activeTab === tab.id
-                  ? "bg-bgCard text-textMain shadow-sm border border-borderMuted"
+                  ? "bg-bgCard text-textMain border-borderMuted border shadow-sm"
                   : "text-textMuted hover:text-textMain touch-target no-double-tap active:scale-95",
               )}
             >

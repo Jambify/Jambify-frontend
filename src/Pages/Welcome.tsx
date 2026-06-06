@@ -58,11 +58,11 @@ const Welcome: React.FC = () => {
 
   return (
     <div
-      className="min-h-screen bg-bgMain text-textMain flex flex-col items-center justify-center p-4"
+      className="bg-bgMain text-textMain flex min-h-screen flex-col items-center justify-center p-4"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
       {showConfetti && (
-        <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="pointer-events-none fixed inset-0 overflow-hidden">
           {confettiParticles.map((p, i) => (
             <motion.div
               key={i}
@@ -74,43 +74,43 @@ const Welcome: React.FC = () => {
                 repeat: Infinity,
                 repeatDelay: p.repeatDelay,
               }}
-              className="absolute w-2 h-2 bg-brand rounded-full opacity-70"
+              className="bg-brand absolute h-2 w-2 rounded-full opacity-70"
               style={{ left: `${p.left}%` }}
             />
           ))}
         </div>
       )}
 
-      <div className="flex items-center gap-3 mb-8">
-        <div className="w-10 h-10 bg-brand rounded-xl flex items-center justify-center font-bold text-white text-xl">
+      <div className="mb-8 flex items-center gap-3">
+        <div className="bg-brand flex h-10 w-10 items-center justify-center rounded-xl text-xl font-bold text-white">
           J
         </div>
-        <span className="font-bold text-2xl tracking-tight">
+        <span className="text-2xl font-bold tracking-tight">
           JAMB<span className="text-brand">IFY</span>
         </span>
       </div>
 
-      <div className="max-w-md w-full">
+      <div className="w-full max-w-md">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5 }}
-          className="bg-bgCard border border-borderMuted rounded-brand-2xl p-8 text-center shadow-2xl"
+          className="bg-bgCard border-borderMuted rounded-brand-2xl border p-8 text-center shadow-2xl"
         >
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-            className="w-20 h-20 bg-success/20 rounded-full flex items-center justify-center mx-auto mb-6 border border-success/30"
+            className="bg-success/20 border-success/30 mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full border"
           >
-            <CheckCircle className="w-10 h-10 text-success" />
+            <CheckCircle className="text-success h-10 w-10" />
           </motion.div>
 
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="text-3xl font-display font-bold text-textMain mb-2"
+            className="font-display text-textMain mb-2 text-3xl font-bold"
           >
             Welcome, {name}! 🎉
           </motion.h1>
@@ -128,36 +128,36 @@ const Welcome: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
-            className="space-y-3 mb-8"
+            className="mb-8 space-y-3"
           >
             {[
               {
-                icon: <Target className="w-5 h-5 text-brand-light" />,
+                icon: <Target className="text-brand-light h-5 w-5" />,
                 label: "Target University",
                 value: university || "Not specified",
               },
               {
-                icon: <Sparkles className="w-5 h-5 text-brand-light" />,
+                icon: <Sparkles className="text-brand-light h-5 w-5" />,
                 label: "Subject Track",
                 value: getSubjectLabel(subjectCombo),
               },
               {
-                icon: <Trophy className="w-5 h-5 text-brand-light" />,
+                icon: <Trophy className="text-brand-light h-5 w-5" />,
                 label: "Target Score",
                 value: targetScore || "Not set",
               },
             ].map((card) => (
               <div
                 key={card.label}
-                className="bg-bgSurface border border-borderMuted rounded-2xl p-4"
+                className="bg-bgSurface border-borderMuted rounded-2xl border p-4"
               >
                 <div className="flex items-center gap-3">
                   {card.icon}
                   <div className="text-left">
-                    <p className="text-sm font-semibold text-textMain">
+                    <p className="text-textMain text-sm font-semibold">
                       {card.label}
                     </p>
-                    <p className="text-xs text-textDim">{card.value}</p>
+                    <p className="text-textDim text-xs">{card.value}</p>
                   </div>
                 </div>
               </div>
@@ -177,17 +177,17 @@ const Welcome: React.FC = () => {
             >
               Start Your Journey
             </Button>
-            <p className="text-xs text-textDim">
+            <p className="text-textDim text-xs">
               Redirecting in {REDIRECT_SECS} seconds…
             </p>
           </motion.div>
 
-          <div className="mt-4 h-1 bg-bgSurface rounded-full overflow-hidden">
+          <div className="bg-bgSurface mt-4 h-1 overflow-hidden rounded-full">
             <motion.div
               initial={{ width: "0%" }}
               animate={{ width: "100%" }}
               transition={{ duration: REDIRECT_SECS, ease: "linear" }}
-              className="h-full bg-brand rounded-full"
+              className="bg-brand h-full rounded-full"
             />
           </div>
         </motion.div>
@@ -198,8 +198,8 @@ const Welcome: React.FC = () => {
           transition={{ delay: 0.7 }}
           className="mt-6 text-center"
         >
-          <p className="text-sm text-textDim">
-            <span className="font-semibold text-brand-light">Pro Tip:</span>{" "}
+          <p className="text-textDim text-sm">
+            <span className="text-brand-light font-semibold">Pro Tip:</span>{" "}
             Start with a quiz to assess your current level!
           </p>
         </motion.div>

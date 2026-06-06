@@ -12,18 +12,18 @@ const ExplanationBox: React.FC<ExplanationBoxProps> = ({ visible, text }) => {
   return (
     <div
       className={cn(
-        "border-l-[3px] border-brand rounded-r-brand-lg",
-        "bg-brand/5 border border-brand/20 border-l-brand px-4 py-3.5",
+        "border-brand rounded-r-brand-lg border-l-[3px]",
+        "bg-brand/5 border-brand/20 border-l-brand border px-4 py-3.5",
         "animate-slideDown",
       )}
     >
-      <div className="flex items-center gap-2 mb-1.5">
+      <div className="mb-1.5 flex items-center gap-2">
         <span className="text-sm">💡</span>
-        <span className="text-[11px] font-semibold uppercase tracking-widest text-brand-light">
+        <span className="text-brand-light text-[11px] font-semibold tracking-widest uppercase">
           Explanation
         </span>
       </div>
-      <p className="text-sm text-textMuted leading-relaxed">{text}</p>
+      <p className="text-textMuted text-sm leading-relaxed">{text}</p>
     </div>
   );
 };

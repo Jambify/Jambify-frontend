@@ -1,35 +1,51 @@
 import React, { useState } from "react";
-import { useUserStore }     from "../../Store/useUserStore";
+import { useUserStore } from "../../Store/useUserStore";
 import { useExamCountdown } from "../../hooks/useExamCountdown";
-import Button               from "../ui/Button";
-import { cn }               from "../../lib/utils/utils";
+import Button from "../ui/Button";
+import { cn } from "../../lib/utils/utils";
 import { Section, Field, inputCls } from "./Shared";
 import { Calendar, Clock } from "lucide-react";
 
 const TARGET_SCORES = [
-  { range: "320+",    label: "Elite",     sub: "Top 1% nationwide",         color: "#7B5FFF" },
-  { range: "280–319", label: "Excellent", sub: "Competitive for all Unis",   color: "#00C896" },
-  { range: "250–279", label: "Strong",    sub: "Target for State/Federal",   color: "#FFB020" },
-  { range: "200–249", label: "Target",    sub: "Standard Entry Level",       color: "#FF4D6D" },
+  { range: "320+", label: "Elite", sub: "Top 1% nationwide", color: "#7B5FFF" },
+  {
+    range: "280–319",
+    label: "Excellent",
+    sub: "Competitive for all Unis",
+    color: "#00C896",
+  },
+  {
+    range: "250–279",
+    label: "Strong",
+    sub: "Target for State/Federal",
+    color: "#FFB020",
+  },
+  {
+    range: "200–249",
+    label: "Target",
+    sub: "Standard Entry Level",
+    color: "#FF4D6D",
+  },
 ];
 
 // Years users can choose from — extend as needed
 const EXAM_YEARS = ["2025", "2026", "2027", "2028"];
 
 const ExamSettings: React.FC = () => {
-  const { targetScore, examYear, examDate, updateExamSettings } = useUserStore();
+  const { targetScore, examYear, examDate, updateExamSettings } =
+    useUserStore();
 
   // daysLeft is COMPUTED — never read from store
   const { daysLeft, formattedDate, isUpdating } = useExamCountdown();
 
   const [form, setForm] = useState({ targetScore, examYear, examDate });
-  const [saved, setSaved]   = useState(false);
+  const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const isDirty =
     form.targetScore !== targetScore ||
-    form.examYear    !== examYear    ||
-    form.examDate    !== examDate;
+    form.examYear !== examYear ||
+    form.examDate !== examDate;
 
   const handleSave = async () => {
     setSaving(true);
@@ -41,31 +57,37 @@ const ExamSettings: React.FC = () => {
 
   // Colour the countdown based on urgency
   const cdColor =
-    daysLeft < 0   ? "#6B7280" :
-    daysLeft === 0 ? "#F97316" :
-    daysLeft <= 7  ? "#EF4444" :
-    daysLeft <= 30 ? "#F59E0B" :
-    "#7B5FFF";
+    daysLeft < 0
+      ? "#6B7280"
+      : daysLeft === 0
+        ? "#F97316"
+        : daysLeft <= 7
+          ? "#EF4444"
+          : daysLeft <= 30
+            ? "#F59E0B"
+            : "#7B5FFF";
 
   return (
     <div className="flex flex-col gap-5">
-
       {/* ── Live countdown banner ─────────────────────── */}
-      <div className="bg-bgCard border border-borderMuted rounded-brand-lg overflow-hidden">
-        <div className="px-4 py-3 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3 min-w-0">
+      <div className="bg-bgCard border-borderMuted rounded-brand-lg overflow-hidden border">
+        <div className="flex items-center justify-between gap-4 px-4 py-3">
+          <div className="flex min-w-0 items-center gap-3">
             <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-              style={{ background: `${cdColor}18`, border: `1px solid ${cdColor}30` }}
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
+              style={{
+                background: `${cdColor}18`,
+                border: `1px solid ${cdColor}30`,
+              }}
             >
-              <Clock className="w-5 h-5" style={{ color: cdColor }} />
+              <Clock className="h-5 w-5" style={{ color: cdColor }} />
             </div>
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-textMain">
+              <p className="text-textMain text-sm font-semibold">
                 JAMB {form.examYear} Exam
               </p>
-              <div className="flex items-center gap-1.5 text-[11px] text-textDim mt-0.5">
-                <Calendar className="w-3 h-3 shrink-0" />
+              <div className="text-textDim mt-0.5 flex items-center gap-1.5 text-[11px]">
+                <Calendar className="h-3 w-3 shrink-0" />
                 {/* Shows live formattedDate from the hook — updates when form saves */}
                 <span>{formattedDate}</span>
               </div>
@@ -73,24 +95,29 @@ const ExamSettings: React.FC = () => {
           </div>
 
           {/* Big countdown number */}
-          <div className="text-right shrink-0">
+          <div className="shrink-0 text-right">
             {isUpdating ? (
-              <p className="font-display text-2xl font-black text-textDim animate-pulse">…</p>
+              <p className="font-display text-textDim animate-pulse text-2xl font-black">
+                …
+              </p>
             ) : daysLeft < 0 ? (
-              <p className="text-sm text-textDim">No date set</p>
+              <p className="text-textDim text-sm">No date set</p>
             ) : daysLeft === 0 ? (
-              <p className="font-display text-lg font-black" style={{ color: cdColor }}>
+              <p
+                className="font-display text-lg font-black"
+                style={{ color: cdColor }}
+              >
                 Today!
               </p>
             ) : (
               <div>
                 <p
-                  className="font-display text-3xl font-black tracking-tighter leading-none"
+                  className="font-display text-3xl leading-none font-black tracking-tighter"
                   style={{ color: cdColor }}
                 >
                   {daysLeft}
                 </p>
-                <p className="text-[10px] text-textDim uppercase tracking-widest mt-0.5">
+                <p className="text-textDim mt-0.5 text-[10px] tracking-widest uppercase">
                   days left
                 </p>
               </div>
@@ -100,7 +127,7 @@ const ExamSettings: React.FC = () => {
 
         {/* Urgency bar at bottom of banner */}
         {daysLeft > 0 && (
-          <div className="h-1 w-full bg-bgSurface">
+          <div className="bg-bgSurface h-1 w-full">
             <div
               className="h-full transition-all duration-700"
               style={{
@@ -115,16 +142,16 @@ const ExamSettings: React.FC = () => {
 
       {/* ── JAMB year ─────────────────────────────────── */}
       <Section title="JAMB year">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {EXAM_YEARS.map((yr) => (
             <button
               key={yr}
               onClick={() => setForm((p) => ({ ...p, examYear: yr }))}
               className={cn(
-                "py-2.5 rounded-brand border text-sm font-medium transition-all",
+                "rounded-brand border py-2.5 text-sm font-medium transition-all",
                 form.examYear === yr
-                  ? "bg-brand border-brand text-white shadow-lg shadow-brand/20"
-                  : "bg-bgSurface border-borderMuted text-textMuted hover:border-white/20 hover:text-textMain",
+                  ? "bg-brand border-brand shadow-brand/20 text-white shadow-lg"
+                  : "bg-bgSurface border-borderMuted text-textMuted hover:text-textMain hover:border-white/20",
               )}
             >
               {yr}
@@ -139,15 +166,17 @@ const ExamSettings: React.FC = () => {
           <input
             type="text"
             value={form.examDate}
-            onChange={(e) => setForm((p) => ({ ...p, examDate: e.target.value }))}
+            onChange={(e) =>
+              setForm((p) => ({ ...p, examDate: e.target.value }))
+            }
             placeholder="e.g. Apr 27"
             className={inputCls(false)}
           />
-          <p className="text-[11px] text-textDim mt-1.5 leading-relaxed">
-            Format: <span className="text-textMain font-mono">Mon DD</span> — e.g.{" "}
-            <span className="text-textMain font-mono">Apr 27</span>,{" "}
-            <span className="text-textMain font-mono">Jun 14</span>. The countdown
-            updates live when you save.
+          <p className="text-textDim mt-1.5 text-[11px] leading-relaxed">
+            Format: <span className="text-textMain font-mono">Mon DD</span> —
+            e.g. <span className="text-textMain font-mono">Apr 27</span>,{" "}
+            <span className="text-textMain font-mono">Jun 14</span>. The
+            countdown updates live when you save.
           </p>
         </Field>
       </Section>
@@ -162,7 +191,7 @@ const ExamSettings: React.FC = () => {
                 key={t.range}
                 onClick={() => setForm((p) => ({ ...p, targetScore: t.range }))}
                 className={cn(
-                  "w-full text-left px-4 py-3.5 rounded-brand border transition-all",
+                  "rounded-brand w-full border px-4 py-3.5 text-left transition-all",
                   isSelected
                     ? "bg-brand/10 border-brand"
                     : "bg-bgSurface border-borderMuted hover:border-white/20",
@@ -171,20 +200,22 @@ const ExamSettings: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <span
-                      className="font-display font-bold text-lg leading-none"
+                      className="font-display text-lg leading-none font-bold"
                       style={{ color: t.color }}
                     >
                       {t.range}
                     </span>
-                    <span className="ml-2 text-xs font-semibold text-textDim uppercase tracking-wide">
+                    <span className="text-textDim ml-2 text-xs font-semibold tracking-wide uppercase">
                       {t.label}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-[11px] text-textDim hidden sm:block">{t.sub}</span>
+                    <span className="text-textDim hidden text-[11px] sm:block">
+                      {t.sub}
+                    </span>
                     {isSelected && (
                       <span
-                        className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black text-white"
+                        className="flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-black text-white"
                         style={{ background: t.color }}
                       >
                         ✓
@@ -210,14 +241,13 @@ const ExamSettings: React.FC = () => {
         </Button>
         {isDirty && (
           <button
-            className="text-sm text-textDim hover:text-textMain transition-colors"
+            className="text-textDim hover:text-textMain text-sm transition-colors"
             onClick={() => setForm({ targetScore, examYear, examDate })}
           >
             Discard
           </button>
         )}
       </div>
-
     </div>
   );
 };

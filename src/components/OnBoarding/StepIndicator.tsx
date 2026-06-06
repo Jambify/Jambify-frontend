@@ -12,7 +12,7 @@ const STEP_LABELS = ["University", "Subjects", "Target"];
 const StepIndicator: React.FC<StepIndicatorProps> = ({ current, total }) => (
   <div className="mb-6">
     {/* Step dots + connecting lines */}
-    <div className="flex items-center gap-0 mb-3">
+    <div className="mb-3 flex items-center gap-0">
       {Array.from({ length: total }).map((_, i) => {
         const stepNum = i + 1;
         const isDone = stepNum < current;
@@ -23,11 +23,11 @@ const StepIndicator: React.FC<StepIndicatorProps> = ({ current, total }) => (
             {/* Dot */}
             <div
               className={cn(
-                "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 transition-all duration-300 border",
+                "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-xs font-bold transition-all duration-300",
                 isDone
-                  ? "bg-green-500 border-green-500 text-white"
+                  ? "border-green-500 bg-green-500 text-white"
                   : isCurrent
-                    ? "bg-brand border-brand text-white shadow-lg shadow-brand/30"
+                    ? "bg-brand border-brand shadow-brand/30 text-white shadow-lg"
                     : "bg-bgSurface border-borderMuted text-textDim",
               )}
             >
@@ -38,7 +38,7 @@ const StepIndicator: React.FC<StepIndicatorProps> = ({ current, total }) => (
             {i < total - 1 && (
               <div
                 className={cn(
-                  "flex-1 h-0.5 transition-all duration-500",
+                  "h-0.5 flex-1 transition-all duration-500",
                   stepNum < current ? "bg-green-500" : "bg-borderMuted",
                 )}
               />
@@ -58,7 +58,7 @@ const StepIndicator: React.FC<StepIndicatorProps> = ({ current, total }) => (
           <div
             key={label}
             className={cn(
-              "flex-1 text-center text-[10px] font-medium uppercase tracking-wider transition-colors",
+              "flex-1 text-center text-[10px] font-medium tracking-wider uppercase transition-colors",
               isCurrent
                 ? "text-brand"
                 : isDone

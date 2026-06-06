@@ -1,8 +1,8 @@
 // src/components/Layout/WelcomeGuard.tsx
 
-import React from 'react';
-import { Navigate } from 'react-router-dom';
-import { useUserStore } from '../../Store/useUserStore';
+import React from "react";
+import { Navigate } from "react-router-dom";
+import { useUserStore } from "../../Store/useUserStore";
 
 interface WelcomeGuardProps {
   children: React.ReactNode;
@@ -15,9 +15,9 @@ const WelcomeGuard: React.FC<WelcomeGuardProps> = ({ children }) => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-bgMain flex items-center justify-center">
-        <div className="text-white text-center">
-          <div className="w-12 h-12 border-4 border-brand border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+      <div className="bg-bgMain flex min-h-screen items-center justify-center">
+        <div className="text-center text-white">
+          <div className="border-brand mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-t-transparent"></div>
           <p>Loading...</p>
         </div>
       </div>

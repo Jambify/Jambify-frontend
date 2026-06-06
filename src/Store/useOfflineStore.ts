@@ -1,7 +1,7 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import Dexie from 'dexie';
-import type { Table } from 'dexie';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import Dexie from "dexie";
+import type { Table } from "dexie";
 
 /**
  * IndexedDB setup for offline question storage
@@ -17,9 +17,9 @@ class JambifyOfflineDB extends Dexie {
   questions!: Table<QuestionData>;
 
   constructor() {
-    super('jambify-offline-db');
+    super("jambify-offline-db");
     this.version(1).stores({
-      questions: '++id, packId, downloadedAt',
+      questions: "++id, packId, downloadedAt",
     });
   }
 }
@@ -31,32 +31,32 @@ const db = new JambifyOfflineDB();
  */
 async function fetchSampleQuestionsForPack(packId: string): Promise<any[]> {
   // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 1500));
-  
+  await new Promise((resolve) => setTimeout(resolve, 1500));
+
   // Return sample questions based on pack ID
   const sampleQuestions = [
     {
       id: `${packId}-1`,
       text: `Sample question 1 from ${packId}`,
-      subject: packId.split('-')[0],
+      subject: packId.split("-")[0],
       year: 2023,
-      topic: 'General',
-      difficulty: 'Medium',
-      options: ['Option A', 'Option B', 'Option C', 'Option D'],
-      answer: 0
+      topic: "General",
+      difficulty: "Medium",
+      options: ["Option A", "Option B", "Option C", "Option D"],
+      answer: 0,
     },
     {
       id: `${packId}-2`,
       text: `Sample question 2 from ${packId}`,
-      subject: packId.split('-')[0],
+      subject: packId.split("-")[0],
       year: 2023,
-      topic: 'General',
-      difficulty: 'Easy',
-      options: ['Option A', 'Option B', 'Option C', 'Option D'],
-      answer: 1
-    }
+      topic: "General",
+      difficulty: "Easy",
+      options: ["Option A", "Option B", "Option C", "Option D"],
+      answer: 1,
+    },
   ];
-  
+
   return sampleQuestions;
 }
 
@@ -68,29 +68,29 @@ async function fetchSampleQuestionsForPack(packId: string): Promise<any[]> {
  */
 
 interface OfflineState {
-  downloadedPacks:  string[];           // pack IDs cached for offline
-  downloadingId:    string | null;       // pack currently being downloaded
-  totalCachedBytes: number;              // rough size tracking
-  downloadPack:     (id: string) => Promise<void>;
-  removePack:       (id: string) => Promise<void>;
-  isPackAvailable:  (id: string) => boolean;
+  downloadedPacks: string[]; // pack IDs cached for offline
+  downloadingId: string | null; // pack currently being downloaded
+  totalCachedBytes: number; // rough size tracking
+  downloadPack: (id: string) => Promise<void>;
+  removePack: (id: string) => Promise<void>;
+  isPackAvailable: (id: string) => boolean;
   getOfflineQuestions: (packId: string) => Promise<any[]>;
 }
 
 /** Pack sizes in bytes for tracking (approximate) */
 const PACK_SIZES: Record<string, number> = {
-  'eng-all':  1258291,
-  'math-all': 1048576,
-  'phy-all':  943718,
-  'chem-all': 943718,
-  'bio-all':  838861,
+  "eng-all": 1258291,
+  "math-all": 1048576,
+  "phy-all": 943718,
+  "chem-all": 943718,
+  "bio-all": 838861,
 };
 
 export const useOfflineStore = create<OfflineState>()(
   persist(
     (set, get) => ({
-      downloadedPacks:  [],
-      downloadingId:    null,
+      downloadedPacks: [],
+      downloadingId: null,
       totalCachedBytes: 0,
 
       downloadPack: async (id) => {
@@ -101,29 +101,29 @@ export const useOfflineStore = create<OfflineState>()(
           // Simulate fetching sample questions based on pack ID
           // In a real app, this would fetch from an API
           const sampleQuestions = await fetchSampleQuestionsForPack(id);
-          
+
           // Store questions in IndexedDB
-          await db.transaction('rw', db.questions, async () => {
+          await db.transaction("rw", db.questions, async () => {
             // Clear existing questions for this pack
-            await db.questions.where('packId').equals(id).delete();
-            
+            await db.questions.where("packId").equals(id).delete();
+
             // Add new questions
-            const questionData = sampleQuestions.map(q => ({
+            const questionData = sampleQuestions.map((q) => ({
               packId: id,
               questionData: q,
-              downloadedAt: new Date()
+              downloadedAt: new Date(),
             }));
-            
+
             await db.questions.bulkAdd(questionData);
           });
 
           set((s) => ({
-            downloadedPacks:  [...s.downloadedPacks, id],
-            downloadingId:    null,
+            downloadedPacks: [...s.downloadedPacks, id],
+            downloadingId: null,
             totalCachedBytes: s.totalCachedBytes + (PACK_SIZES[id] ?? 0),
           }));
         } catch (error) {
-          console.error('Failed to download pack:', error);
+          console.error("Failed to download pack:", error);
           set({ downloadingId: null });
         }
       },
@@ -131,14 +131,14 @@ export const useOfflineStore = create<OfflineState>()(
       removePack: async (id) => {
         try {
           // Remove from IndexedDB
-          await db.questions.where('packId').equals(id).delete();
-          
+          await db.questions.where("packId").equals(id).delete();
+
           set((s) => ({
-            downloadedPacks:  s.downloadedPacks.filter((p) => p !== id),
+            downloadedPacks: s.downloadedPacks.filter((p) => p !== id),
             totalCachedBytes: s.totalCachedBytes - (PACK_SIZES[id] ?? 0),
           }));
         } catch (error) {
-          console.error('Failed to remove pack:', error);
+          console.error("Failed to remove pack:", error);
         }
       },
 
@@ -146,18 +146,21 @@ export const useOfflineStore = create<OfflineState>()(
 
       getOfflineQuestions: async (packId: string) => {
         try {
-          const questions = await db.questions.where('packId').equals(packId).toArray();
-          return questions.map(q => q.questionData);
+          const questions = await db.questions
+            .where("packId")
+            .equals(packId)
+            .toArray();
+          return questions.map((q) => q.questionData);
         } catch (error) {
-          console.error('Failed to get offline questions:', error);
+          console.error("Failed to get offline questions:", error);
           return [];
         }
       },
     }),
     {
-      name: 'jambready-offline',
+      name: "jambready-offline",
       partialize: (s) => ({
-        downloadedPacks:  s.downloadedPacks,
+        downloadedPacks: s.downloadedPacks,
         totalCachedBytes: s.totalCachedBytes,
       }),
     },

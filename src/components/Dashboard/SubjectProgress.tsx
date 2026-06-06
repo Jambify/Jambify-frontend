@@ -35,19 +35,19 @@ const SubjectProgress: React.FC = () => {
   // If no subjects practiced yet, show a placeholder
   if (subjectsWithData.length === 0 && !isLoading) {
     return (
-      <div className="bg-bgCard border border-borderMuted rounded-brand-xl p-6 h-full flex flex-col items-center justify-center text-center">
-        <div className="w-12 h-12 bg-brand/10 rounded-full flex items-center justify-center mb-4">
-          <BookOpen className="w-6 h-6 text-brand" />
+      <div className="bg-bgCard border-borderMuted rounded-brand-xl flex h-full flex-col items-center justify-center border p-6 text-center">
+        <div className="bg-brand/10 mb-4 flex h-12 w-12 items-center justify-center rounded-full">
+          <BookOpen className="text-brand h-6 w-6" />
         </div>
-        <h3 className="font-display font-bold text-textMain mb-2">
+        <h3 className="font-display text-textMain mb-2 font-bold">
           No Subject Progress Yet
         </h3>
-        <p className="text-sm text-textDim max-w-60 mb-6">
+        <p className="text-textDim mb-6 max-w-60 text-sm">
           Start a practice quiz to see your strengths and weaknesses here.
         </p>
         <button
           onClick={() => navigate("/quiz")}
-          className="bg-brand hover:bg-brand-light text-white px-6 py-2 rounded-full text-sm font-bold transition-all active:scale-95"
+          className="bg-brand hover:bg-brand-light rounded-full px-6 py-2 text-sm font-bold text-white transition-all active:scale-95"
         >
           Start Practice
         </button>
@@ -56,36 +56,36 @@ const SubjectProgress: React.FC = () => {
   }
 
   return (
-    <div className="bg-bgCard border border-borderMuted rounded-brand-xl p-6 h-full flex flex-col">
-      <div className="flex items-center justify-between mb-6">
+    <div className="bg-bgCard border-borderMuted rounded-brand-xl flex h-full flex-col border p-6">
+      <div className="mb-6 flex items-center justify-between">
         <div className="flex flex-col gap-0.5">
-          <h3 className="font-display font-bold text-textMain">
+          <h3 className="font-display text-textMain font-bold">
             Subject Progress
           </h3>
-          <p className="text-[11px] text-textDim font-medium">
+          <p className="text-textDim text-[11px] font-medium">
             Performance across your subjects
           </p>
         </div>
         <button
           onClick={() => navigate("/performance")}
-          className="text-xs font-bold text-brand hover:text-brand-light flex items-center gap-1 group"
+          className="text-brand hover:text-brand-light group flex items-center gap-1 text-xs font-bold"
         >
           View all{" "}
           <ArrowRight
             size={14}
-            className="group-hover:translate-x-0.5 transition-transform"
+            className="transition-transform group-hover:translate-x-0.5"
           />
         </button>
       </div>
 
-      <div className="flex gap-2 mb-6">
+      <div className="mb-6 flex gap-2">
         <button
           onClick={() => setFilter("all")}
           className={cn(
-            "px-4 py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider transition-all",
+            "rounded-full px-4 py-1.5 text-[11px] font-black tracking-wider uppercase transition-all",
             filter === "all"
-              ? "bg-brand text-white shadow-lg shadow-brand/20"
-              : "bg-bgSurface text-textDim border border-borderMuted hover:border-brand/40",
+              ? "bg-brand shadow-brand/20 text-white shadow-lg"
+              : "bg-bgSurface text-textDim border-borderMuted hover:border-brand/40 border",
           )}
         >
           All subjects
@@ -93,17 +93,17 @@ const SubjectProgress: React.FC = () => {
         <button
           onClick={() => setFilter("weak")}
           className={cn(
-            "px-4 py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider transition-all",
+            "rounded-full px-4 py-1.5 text-[11px] font-black tracking-wider uppercase transition-all",
             filter === "weak"
-              ? "bg-danger text-white shadow-lg shadow-danger/20"
-              : "bg-bgSurface text-textDim border border-borderMuted hover:border-danger/40",
+              ? "bg-danger shadow-danger/20 text-white shadow-lg"
+              : "bg-bgSurface text-textDim border-borderMuted hover:border-danger/40 border",
           )}
         >
           Needs work ({topicStats.filter((t: any) => t.accuracy < 60).length})
         </button>
       </div>
 
-      <div className="space-y-5 overflow-y-auto pr-1 custom-scrollbar">
+      <div className="custom-scrollbar space-y-5 overflow-y-auto pr-1">
         {subjectsWithData.map((subj) => {
           // Get the general performance for this subject (average of topics)
           const subjectTopics = topicStats.filter(
@@ -123,24 +123,24 @@ const SubjectProgress: React.FC = () => {
 
           return (
             <div key={subj} className="group/item">
-              <div className="flex items-center justify-between mb-2">
+              <div className="mb-2 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-bgSurface border border-borderMuted flex items-center justify-center text-lg">
+                  <div className="bg-bgSurface border-borderMuted flex h-8 w-8 items-center justify-center rounded-lg border text-lg">
                     {getSubjectIcon(subj)}
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-textMain group-hover/item:text-brand transition-colors">
+                    <p className="text-textMain group-hover/item:text-brand text-sm font-bold transition-colors">
                       {subj}
                     </p>
                     {weakTopics.length > 0 && (
-                      <p className="text-[10px] text-danger font-medium line-clamp-1">
+                      <p className="text-danger line-clamp-1 text-[10px] font-medium">
                         Weak: {weakTopics.join(", ")}
                       </p>
                     )}
                   </div>
                 </div>
                 <div className="flex flex-col items-end">
-                  <span className="text-xs font-bold text-textMain">
+                  <span className="text-textMain text-xs font-bold">
                     {avgAccuracy}%
                   </span>
                   <div className="flex items-center gap-1">
@@ -152,7 +152,7 @@ const SubjectProgress: React.FC = () => {
                   </div>
                 </div>
               </div>
-              <div className="h-1.5 bg-bgSurface rounded-full overflow-hidden border border-borderMuted/30 shadow-inner">
+              <div className="bg-bgSurface border-borderMuted/30 h-1.5 overflow-hidden rounded-full border shadow-inner">
                 <div
                   className={cn(
                     "h-full rounded-full transition-all duration-1000 ease-out",

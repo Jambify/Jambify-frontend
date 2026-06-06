@@ -226,10 +226,10 @@ const Quiz: React.FC = () => {
         setIsSidebarOpen={setIsSidebarOpen}
       >
         {/* <Progress header */}
-        <div className="flex items-center gap-4 mb-6">
+        <div className="mb-6 flex items-center gap-4">
           <button
             onClick={() => setShowExitModal(true)} // Trigger Modal
-            className="flex items-center gap-1.5 text-xs text-textMuted hover:text-textMain transition-colors shrink-0 touch-target no-double-tap active:scale-95"
+            className="text-textMuted hover:text-textMain touch-target no-double-tap flex shrink-0 items-center gap-1.5 text-xs transition-colors active:scale-95"
           >
             <svg
               width="14"
@@ -245,7 +245,7 @@ const Quiz: React.FC = () => {
           </button>
 
           {/* <Dot progress — mobile friendly */}
-          <div className="flex items-center gap-1 flex-1 justify-center">
+          <div className="flex flex-1 items-center justify-center gap-1">
             {questions.map((_, i) => (
               <div
                 key={i}
@@ -264,7 +264,7 @@ const Quiz: React.FC = () => {
             ))}
           </div>
 
-          <span className="text-xs font-mono text-textDim shrink-0">
+          <span className="text-textDim shrink-0 font-mono text-xs">
             {currentIndex + 1} / {questions.length}
           </span>
         </div>
@@ -274,25 +274,25 @@ const Quiz: React.FC = () => {
 
         {/* ── Exit Modal Overlay ── */}
         {showExitModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
-            <div className="bg-bgCard border border-borderMuted p-6 rounded-brand-xl max-w-sm w-full shadow-2xl animate-slideDown">
-              <h3 className="font-display text-xl font-bold text-textMain mb-2">
+          <div className="animate-fadeIn fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
+            <div className="bg-bgCard border-borderMuted rounded-brand-xl animate-slideDown w-full max-w-sm border p-6 shadow-2xl">
+              <h3 className="font-display text-textMain mb-2 text-xl font-bold">
                 Quit Quiz?
               </h3>
-              <p className="text-textMuted text-sm mb-6">
+              <p className="text-textMuted mb-6 text-sm">
                 Your progress will be lost. Are you sure you want to exit the
                 current session?
               </p>
               <div className="flex gap-3">
                 <button
                   onClick={() => setShowExitModal(false)}
-                  className="flex-1 py-3 rounded-brand font-medium bg-bgSurface hover:bg-bgDeep text-textMain transition-colors touch-target no-double-tap active:scale-95"
+                  className="rounded-brand bg-bgSurface hover:bg-bgDeep text-textMain touch-target no-double-tap flex-1 py-3 font-medium transition-colors active:scale-95"
                 >
                   Stay
                 </button>
                 <button
                   onClick={reset}
-                  className="flex-1 py-3 rounded-brand font-medium bg-danger text-white hover:bg-danger/80 transition-colors touch-target no-double-tap active:scale-95"
+                  className="rounded-brand bg-danger hover:bg-danger/80 touch-target no-double-tap flex-1 py-3 font-medium text-white transition-colors active:scale-95"
                 >
                   Exit
                 </button>
@@ -311,22 +311,24 @@ const Quiz: React.FC = () => {
       isSidebarOpen={isSidebarOpen}
       setIsSidebarOpen={setIsSidebarOpen}
     >
-      <div className="max-w-2xl mx-auto">
+      <div className="mx-auto max-w-2xl">
         {/* Error Message */}
         {loadError && (
-          <div className="mb-6 p-4 bg-danger/10 border border-danger/20 rounded-2xl animate-in fade-in slide-in-from-top-4 duration-300">
+          <div className="bg-danger/10 border-danger/20 animate-in fade-in slide-in-from-top-4 mb-6 rounded-2xl border p-4 duration-300">
             <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-full bg-danger/20 flex items-center justify-center text-danger shrink-0">
+              <div className="bg-danger/20 text-danger flex h-8 w-8 shrink-0 items-center justify-center rounded-full">
                 <AlertTriangle size={16} />
               </div>
               <div className="flex-1">
-                <p className="text-sm font-bold text-danger">Failed to start quiz</p>
-                <p className="text-xs text-danger/80 mt-1 leading-relaxed">
+                <p className="text-danger text-sm font-bold">
+                  Failed to start quiz
+                </p>
+                <p className="text-danger/80 mt-1 text-xs leading-relaxed">
                   {loadError}
                 </p>
-                <button 
+                <button
                   onClick={() => setLoadError(null)}
-                  className="mt-3 text-[10px] font-black uppercase tracking-widest text-danger hover:underline"
+                  className="text-danger mt-3 text-[10px] font-black tracking-widest uppercase hover:underline"
                 >
                   Dismiss
                 </button>
@@ -336,42 +338,42 @@ const Quiz: React.FC = () => {
         )}
 
         {/* <Hero */}
-        <div className="text-center mb-10 pt-4">
-          <div className="w-16 h-16 bg-brand/10 border border-brand/20 rounded-2xl flex items-center justify-center mx-auto mb-4 text-3xl">
+        <div className="mb-10 pt-4 text-center">
+          <div className="bg-brand/10 border-brand/20 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border text-3xl">
             📝
           </div>
-          <h2 className="font-display text-2xl sm:text-3xl font-bold tracking-tight mb-2">
+          <h2 className="font-display mb-2 text-2xl font-bold tracking-tight sm:text-3xl">
             Practice Quiz
           </h2>
-          <p className="text-sm text-textMuted max-w-sm mx-auto">
+          <p className="text-textMuted mx-auto max-w-sm text-sm">
             20 adaptive questions · 60 seconds each · Instant explanations
           </p>
         </div>
 
         {/* Subject filter */}
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <p className="text-[11px] uppercase tracking-widest text-textDim font-black flex items-center gap-2">
+          <div className="mb-4 flex items-center justify-between">
+            <p className="text-textDim flex items-center gap-2 text-[11px] font-black tracking-widest uppercase">
               <BookOpen size={14} className="text-brand" />
               1. Select Subject
             </p>
             <button
               onClick={() => setShowAllSubjects(!showAllSubjects)}
-              className="text-[10px] font-black uppercase tracking-widest text-brand hover:text-brand-light transition-colors"
+              className="text-brand hover:text-brand-light text-[10px] font-black tracking-widest uppercase transition-colors"
             >
               {showAllSubjects ? "Show Less" : "Show All"}
             </button>
           </div>
 
           {/* 📱 Mobile Scrollable List */}
-          <div className="sm:hidden flex gap-2 overflow-x-auto pb-2 scrollbar-none">
+          <div className="scrollbar-none flex gap-2 overflow-x-auto pb-2 sm:hidden">
             {QUIZ_SUBJECTS.map((s) => (
               <button
                 key={s.name}
                 onClick={() => setSelectedSubject(s.name)}
-                className={`shrink-0 px-5 py-3 rounded-xl border transition-all active:scale-95 text-xs font-bold flex items-center gap-2 ${
+                className={`flex shrink-0 items-center gap-2 rounded-xl border px-5 py-3 text-xs font-bold transition-all active:scale-95 ${
                   selectedSubject === s.name
-                    ? "bg-brand text-white border-brand shadow-lg shadow-brand/20"
+                    ? "bg-brand border-brand shadow-brand/20 text-white shadow-lg"
                     : "bg-bgCard text-textMain border-borderMuted hover:border-brand/40"
                 }`}
               >
@@ -382,26 +384,26 @@ const Quiz: React.FC = () => {
           </div>
 
           {/* 💻 Desktop Grid */}
-          <div className="hidden sm:grid grid-cols-3 gap-3">
+          <div className="hidden grid-cols-3 gap-3 sm:grid">
             {visibleSubjects.map((s) => (
               <button
                 key={s.name}
                 onClick={() => setSelectedSubject(s.name)}
-                className={`group relative overflow-hidden flex flex-col items-center justify-center p-4 rounded-2xl border transition-all active:scale-95 ${
+                className={`group relative flex flex-col items-center justify-center overflow-hidden rounded-2xl border p-4 transition-all active:scale-95 ${
                   selectedSubject === s.name
-                    ? "bg-brand border-brand shadow-xl shadow-brand/20 -translate-y-1"
+                    ? "bg-brand border-brand shadow-brand/20 -translate-y-1 shadow-xl"
                     : "bg-bgCard border-borderMuted hover:border-brand/40 hover:bg-bgSurface"
                 }`}
               >
                 {/* Background Gradient on Select */}
                 {selectedSubject === s.name && (
                   <div
-                    className={`absolute inset-0 opacity-20 bg-linear-to-br ${s.color}`}
+                    className={`absolute inset-0 bg-linear-to-br opacity-20 ${s.color}`}
                   />
                 )}
 
                 <span
-                  className={`text-3xl mb-2 transition-transform duration-300 group-hover:scale-110 ${selectedSubject === s.name ? "scale-110" : ""}`}
+                  className={`mb-2 text-3xl transition-transform duration-300 group-hover:scale-110 ${selectedSubject === s.name ? "scale-110" : ""}`}
                 >
                   {s.icon}
                 </span>
@@ -423,39 +425,39 @@ const Quiz: React.FC = () => {
 
         {/* Topic filter - Only if subject is selected */}
         {selectedSubject !== "All" && (
-          <div className="mb-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="flex items-center justify-between mb-4">
-              <p className="text-[11px] uppercase tracking-widest text-textDim font-black flex items-center gap-2">
+          <div className="animate-in fade-in slide-in-from-bottom-4 mb-10 duration-500">
+            <div className="mb-4 flex items-center justify-between">
+              <p className="text-textDim flex items-center gap-2 text-[11px] font-black tracking-widest uppercase">
                 <Layers size={14} className="text-brand" />
                 2. Choose Topic
               </p>
               {availableTopics.length > 0 && (
-                <span className="text-[10px] bg-brand/10 text-brand px-2 py-0.5 rounded-full font-bold">
+                <span className="bg-brand/10 text-brand rounded-full px-2 py-0.5 text-[10px] font-bold">
                   {availableTopics.length} Topics Found
                 </span>
               )}
             </div>
 
             {isLoadingTopics ? (
-              <div className="flex flex-col items-center justify-center p-12 bg-bgSurface/30 rounded-2xl border border-dashed border-borderMuted">
-                <Loader2 className="w-6 h-6 text-brand animate-spin mb-2" />
-                <p className="text-[10px] text-textDim uppercase tracking-tighter">
+              <div className="bg-bgSurface/30 border-borderMuted flex flex-col items-center justify-center rounded-2xl border border-dashed p-12">
+                <Loader2 className="text-brand mb-2 h-6 w-6 animate-spin" />
+                <p className="text-textDim text-[10px] tracking-tighter uppercase">
                   Fetching Topics...
                 </p>
               </div>
             ) : availableTopics.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-75 overflow-y-auto pr-2 custom-scrollbar">
+              <div className="custom-scrollbar grid max-h-75 grid-cols-1 gap-2 overflow-y-auto pr-2 sm:grid-cols-2">
                 <button
                   onClick={() => setSelectedTopic("All")}
-                  className={`relative overflow-hidden px-4 py-4 rounded-xl border text-xs font-bold text-left transition-all ${
+                  className={`relative overflow-hidden rounded-xl border px-4 py-4 text-left text-xs font-bold transition-all ${
                     selectedTopic === "All"
-                      ? "bg-brand/10 border-brand text-brand ring-1 ring-brand/30"
+                      ? "bg-brand/10 border-brand text-brand ring-brand/30 ring-1"
                       : "bg-bgSurface text-textDim border-borderMuted hover:border-brand/30 hover:bg-bgCard"
                   }`}
                 >
                   <div className="flex items-center gap-3">
                     <div
-                      className={`w-8 h-8 rounded-lg flex items-center justify-center text-lg ${selectedTopic === "All" ? "bg-brand text-white" : "bg-bgDeep text-textDim"}`}
+                      className={`flex h-8 w-8 items-center justify-center rounded-lg text-lg ${selectedTopic === "All" ? "bg-brand text-white" : "bg-bgDeep text-textDim"}`}
                     >
                       🎯
                     </div>
@@ -475,7 +477,7 @@ const Quiz: React.FC = () => {
                     </div>
                   </div>
                   {selectedTopic === "All" && (
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-brand animate-pulse" />
+                    <div className="bg-brand absolute top-1/2 right-3 h-1.5 w-1.5 -translate-y-1/2 animate-pulse rounded-full" />
                   )}
                 </button>
 
@@ -483,15 +485,15 @@ const Quiz: React.FC = () => {
                   <button
                     key={topic}
                     onClick={() => setSelectedTopic(topic)}
-                    className={`relative overflow-hidden px-4 py-4 rounded-xl border text-xs font-bold text-left transition-all ${
+                    className={`relative overflow-hidden rounded-xl border px-4 py-4 text-left text-xs font-bold transition-all ${
                       selectedTopic === topic
-                        ? "bg-brand/10 border-brand text-brand ring-1 ring-brand/30"
+                        ? "bg-brand/10 border-brand text-brand ring-brand/30 ring-1"
                         : "bg-bgSurface text-textDim border-borderMuted hover:border-brand/30 hover:bg-bgCard"
                     }`}
                   >
                     <div className="flex items-center gap-3">
                       <div
-                        className={`w-8 h-8 rounded-lg flex items-center justify-center text-lg ${selectedTopic === topic ? "bg-brand text-white" : "bg-bgDeep text-textDim"}`}
+                        className={`flex h-8 w-8 items-center justify-center rounded-lg text-lg ${selectedTopic === topic ? "bg-brand text-white" : "bg-bgDeep text-textDim"}`}
                       >
                         <Sparkles size={14} />
                       </div>
@@ -507,20 +509,20 @@ const Quiz: React.FC = () => {
                       </div>
                     </div>
                     {selectedTopic === topic && (
-                      <div className="absolute right-3 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-brand animate-pulse" />
+                      <div className="bg-brand absolute top-1/2 right-3 h-1.5 w-1.5 -translate-y-1/2 animate-pulse rounded-full" />
                     )}
                   </button>
                 ))}
               </div>
             ) : (
-              <div className="p-8 text-center bg-bgSurface/30 rounded-2xl border border-dashed border-borderMuted">
-                <div className="w-12 h-12 bg-bgDeep rounded-full flex items-center justify-center mx-auto mb-3">
+              <div className="bg-bgSurface/30 border-borderMuted rounded-2xl border border-dashed p-8 text-center">
+                <div className="bg-bgDeep mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full">
                   <Layers size={20} className="text-textDim" />
                 </div>
-                <p className="text-sm text-textMain font-bold mb-1">
+                <p className="text-textMain mb-1 text-sm font-bold">
                   No Topics Found
                 </p>
-                <p className="text-xs text-textDim">
+                <p className="text-textDim text-xs">
                   We're still updating the database for {selectedSubject}. You
                   can play in "General" mode!
                 </p>
@@ -531,8 +533,8 @@ const Quiz: React.FC = () => {
 
         {/* 3. Select Difficulty */}
         {selectedSubject !== "All" && (
-          <div className="mb-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <p className="text-[11px] uppercase tracking-widest text-textDim font-black mb-4 flex items-center gap-2">
+          <div className="animate-in fade-in slide-in-from-bottom-4 mb-10 duration-700">
+            <p className="text-textDim mb-4 flex items-center gap-2 text-[11px] font-black tracking-widest uppercase">
               <Sparkles size={14} className="text-brand" />
               3. Select Difficulty
             </p>
@@ -541,7 +543,7 @@ const Quiz: React.FC = () => {
                 <button
                   key={d}
                   onClick={() => setSelectedDifficulty(d as any)}
-                  className={`py-3 rounded-xl border text-[11px] font-bold transition-all active:scale-95 ${
+                  className={`rounded-xl border py-3 text-[11px] font-bold transition-all active:scale-95 ${
                     selectedDifficulty === d
                       ? d === "Easy"
                         ? "bg-success/10 border-success text-success"
@@ -561,7 +563,7 @@ const Quiz: React.FC = () => {
         )}
 
         {/* <Mode cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-8">
+        <div className="mb-8 grid grid-cols-1 gap-3 sm:grid-cols-3">
           {[
             {
               icon: "⚡",
@@ -584,19 +586,19 @@ const Quiz: React.FC = () => {
           ].map((mode) => (
             <div
               key={mode.label}
-              className={`p-4 rounded-brand-lg border cursor-pointer transition-all ${
+              className={`rounded-brand-lg cursor-pointer border p-4 transition-all ${
                 mode.active
-                  ? "bg-brand/10 border-brand/40 ring-1 ring-brand/20"
-                  : "bg-bgSurface border-borderMuted hover:border-white/15 opacity-60"
+                  ? "bg-brand/10 border-brand/40 ring-brand/20 ring-1"
+                  : "bg-bgSurface border-borderMuted opacity-60 hover:border-white/15"
               }`}
             >
-              <div className="text-2xl mb-2">{mode.icon}</div>
-              <p className="font-display font-semibold text-sm tracking-tight">
+              <div className="mb-2 text-2xl">{mode.icon}</div>
+              <p className="font-display text-sm font-semibold tracking-tight">
                 {mode.label}
               </p>
-              <p className="text-[11px] text-textDim mt-0.5">{mode.desc}</p>
+              <p className="text-textDim mt-0.5 text-[11px]">{mode.desc}</p>
               {!mode.active && (
-                <p className="text-[10px] text-brand-light mt-1.5">
+                <p className="text-brand-light mt-1.5 text-[10px]">
                   Coming soon
                 </p>
               )}
@@ -610,14 +612,14 @@ const Quiz: React.FC = () => {
           fullWidth
           onClick={handleStart}
           disabled={isLoadingQuestions}
-          className="py-5 text-lg font-black shadow-xl shadow-brand/20 group relative overflow-hidden"
+          className="shadow-brand/20 group relative overflow-hidden py-5 text-lg font-black shadow-xl"
         >
           {isLoadingQuestions ? (
-            <Loader2 className="w-6 h-6 animate-spin mx-auto" />
+            <Loader2 className="mx-auto h-6 w-6 animate-spin" />
           ) : (
             <>
               <span className="relative z-10">Start Practice Quiz</span>
-              <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+              <div className="absolute inset-0 translate-y-full bg-white/10 transition-transform duration-300 group-hover:translate-y-0"></div>
             </>
           )}
         </Button>

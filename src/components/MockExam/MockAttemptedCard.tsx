@@ -22,22 +22,24 @@ const MockAttemptCard: React.FC<MockAttemptCardProps> = ({
     pct >= 70 ? "text-success" : pct >= 50 ? "text-warn" : "text-danger";
 
   return (
-    <div className="bg-bgCard border border-borderMuted rounded-brand-lg p-4 hover:border-white/10 transition-colors">
+    <div className="bg-bgCard border-borderMuted rounded-brand-lg border p-4 transition-colors hover:border-white/10">
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 bg-brand/10 rounded-brand flex items-center justify-center text-lg shrink-0">
+        <div className="bg-brand/10 rounded-brand flex h-10 w-10 shrink-0 items-center justify-center text-lg">
           📝
         </div>
 
-        <div className="flex-1 min-w-0">
+        <div className="min-w-0 flex-1">
           <p className="text-sm font-medium">Mock Exam #{attemptNumber}</p>
-          <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-0.5">
-            <span className="text-[11px] text-textDim">{new Date(attempt.date).toLocaleDateString()}</span>
-            <span className="text-[11px] text-textDim">⏱ {timeStr}</span>
+          <div className="mt-0.5 flex flex-wrap gap-x-3 gap-y-0.5">
+            <span className="text-textDim text-[11px]">
+              {new Date(attempt.date).toLocaleDateString()}
+            </span>
+            <span className="text-textDim text-[11px]">⏱ {timeStr}</span>
           </div>
           {/* Per-subject scores */}
-          <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1">
+          <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5">
             {attempt.results.subjectBreakdown.map((sb) => (
-              <span key={sb.subject} className="text-[11px] text-textDim">
+              <span key={sb.subject} className="text-textDim text-[11px]">
                 {sb.subject}:{" "}
                 <span className="text-textMuted">
                   {sb.correct}/{sb.total}
@@ -47,7 +49,7 @@ const MockAttemptCard: React.FC<MockAttemptCardProps> = ({
           </div>
         </div>
 
-        <div className="text-right shrink-0">
+        <div className="shrink-0 text-right">
           <p
             className={cn(
               "font-display text-2xl font-bold tracking-tight",
@@ -56,12 +58,12 @@ const MockAttemptCard: React.FC<MockAttemptCardProps> = ({
           >
             {jambScore}
           </p>
-          <p className="text-[11px] text-textDim">{pct}%</p>
+          <p className="text-textDim text-[11px]">{pct}%</p>
         </div>
       </div>
 
       {/* <Score bar */}
-      <div className="mt-3 h-1 bg-bgSurface rounded-full overflow-hidden">
+      <div className="bg-bgSurface mt-3 h-1 overflow-hidden rounded-full">
         <div
           className={cn(
             "h-full rounded-full transition-all duration-700",

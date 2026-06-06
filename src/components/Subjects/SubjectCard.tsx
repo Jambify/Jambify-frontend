@@ -31,28 +31,28 @@ const SubjectCard: React.FC<SubjectCardProps> = ({
   return (
     <div
       className={cn(
-        "bg-bgCard border rounded-brand-lg overflow-hidden transition-all duration-200",
+        "bg-bgCard rounded-brand-lg overflow-hidden border transition-all duration-200",
         isExpanded
           ? "border-white/15"
           : "border-borderMuted hover:border-white/10",
       )}
     >
       {/* <── Card top — always visible ── */}
-      <div className="p-5 cursor-pointer" onClick={onToggle}>
+      <div className="cursor-pointer p-5" onClick={onToggle}>
         {/* <Header row */}
-        <div className="flex items-start justify-between gap-3 mb-4">
+        <div className="mb-4 flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">
             <div
-              className="w-11 h-11 rounded-brand flex items-center justify-center text-xl shrink-0"
+              className="rounded-brand flex h-11 w-11 shrink-0 items-center justify-center text-xl"
               style={{ background: `${subject.color}18` }}
             >
               {subject.icon}
             </div>
             <div>
-              <h3 className="font-display font-semibold text-base tracking-tight">
+              <h3 className="font-display text-base font-semibold tracking-tight">
                 {subject.name}
               </h3>
-              <p className="text-[11px] text-textDim mt-0.5">
+              <p className="text-textDim mt-0.5 text-[11px]">
                 Rank #{subject.rank} nationally
               </p>
             </div>
@@ -60,7 +60,7 @@ const SubjectCard: React.FC<SubjectCardProps> = ({
           <div className="flex items-center gap-2">
             <span
               className={cn(
-                "text-[10px] font-medium px-2 py-0.5 rounded border",
+                "rounded border px-2 py-0.5 text-[10px] font-medium",
                 statusLabel.cls,
               )}
             >
@@ -75,7 +75,7 @@ const SubjectCard: React.FC<SubjectCardProps> = ({
               stroke="currentColor"
               strokeWidth="2"
               className={cn(
-                "text-textDim transition-transform duration-200 shrink-0",
+                "text-textDim shrink-0 transition-transform duration-200",
                 isExpanded && "rotate-180",
               )}
             >
@@ -85,27 +85,27 @@ const SubjectCard: React.FC<SubjectCardProps> = ({
         </div>
 
         {/* <Big accuracy number */}
-        <div className="flex items-end justify-between mb-3">
+        <div className="mb-3 flex items-end justify-between">
           <div>
             <p
-              className="font-display text-4xl font-black tracking-tighter leading-none"
+              className="font-display text-4xl leading-none font-black tracking-tighter"
               style={{ color: subject.color }}
             >
               {subject.accuracy}%
             </p>
-            <p className="text-[11px] text-textDim mt-1">accuracy</p>
+            <p className="text-textDim mt-1 text-[11px]">accuracy</p>
           </div>
           <div className="text-right">
-            <p className="font-mono text-sm font-medium text-textMain">
+            <p className="text-textMain font-mono text-sm font-medium">
               {subject.completed}
               <span className="text-textDim">/{subject.total}</span>
             </p>
-            <p className="text-[11px] text-textDim mt-0.5">questions done</p>
+            <p className="text-textDim mt-0.5 text-[11px]">questions done</p>
           </div>
         </div>
 
         {/* <Accuracy bar */}
-        <div className="h-1.5 bg-bgSurface rounded-full overflow-hidden mb-1">
+        <div className="bg-bgSurface mb-1 h-1.5 overflow-hidden rounded-full">
           <div
             className="h-full rounded-full transition-all duration-700"
             style={{ width: `${subject.accuracy}%`, background: subject.color }}
@@ -114,7 +114,7 @@ const SubjectCard: React.FC<SubjectCardProps> = ({
 
         {/* <Progress bar */}
         <div className="flex items-center justify-between">
-          <span className="text-[10px] text-textDim">
+          <span className="text-textDim text-[10px]">
             {progressPct}% of questions attempted
           </span>
         </div>
@@ -122,12 +122,12 @@ const SubjectCard: React.FC<SubjectCardProps> = ({
 
       {/* <── Expanded section — topics + action buttons ── */}
       {isExpanded && (
-        <div className="border-t border-borderMuted animate-slideDown">
+        <div className="border-borderMuted animate-slideDown border-t">
           {/* <Lowest topic */}
           {subject.weakTopics.length > 0 && (
             <div className="px-5 pt-4 pb-2">
-              <p className="text-[10px] text-danger uppercase tracking-widest font-black mb-2 flex items-center gap-1.5">
-                <div className="w-1 h-1 rounded-full bg-danger"></div>
+              <p className="text-danger mb-2 flex items-center gap-1.5 text-[10px] font-black tracking-widest uppercase">
+                <div className="bg-danger h-1 w-1 rounded-full"></div>
                 Lowest Topic
               </p>
               <TopicList topics={subject.weakTopics} color={subject.color} />
@@ -141,7 +141,7 @@ const SubjectCard: React.FC<SubjectCardProps> = ({
                 e.stopPropagation();
                 navigate("/quiz");
               }}
-              className="flex-1 py-2 rounded-brand text-xs font-medium text-white transition-all active:scale-[0.98]"
+              className="rounded-brand flex-1 py-2 text-xs font-medium text-white transition-all active:scale-[0.98]"
               style={{ background: subject.color }}
             >
               Practise this subject
@@ -151,7 +151,7 @@ const SubjectCard: React.FC<SubjectCardProps> = ({
                 e.stopPropagation();
                 navigate("/performance");
               }}
-              className="px-4 py-2 rounded-brand text-xs font-medium bg-bgSurface border border-borderMuted text-textMuted hover:text-textMain hover:border-white/15 transition-all"
+              className="rounded-brand bg-bgSurface border-borderMuted text-textMuted hover:text-textMain border px-4 py-2 text-xs font-medium transition-all hover:border-white/15"
             >
               View stats
             </button>

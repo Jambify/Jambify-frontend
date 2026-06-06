@@ -22,11 +22,11 @@ const SelectFilter: React.FC<{
       value={value}
       onChange={(e) => onChange(e.target.value)}
       className={cn(
-        "appearance-none pl-3 pr-8 py-2 rounded-brand border text-xs font-medium transition-all cursor-pointer",
+        "rounded-brand cursor-pointer appearance-none border py-2 pr-8 pl-3 text-xs font-medium transition-all",
         "bg-bgSurface focus:outline-none",
         active
           ? "border-brand text-brand-light bg-brand/10"
-          : "border-borderMuted text-textMuted hover:border-white/15 hover:text-textMain",
+          : "border-borderMuted text-textMuted hover:text-textMain hover:border-white/15",
       )}
     >
       {options.map((opt) => (
@@ -35,7 +35,7 @@ const SelectFilter: React.FC<{
         </option>
       ))}
     </select>
-    <div className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-textDim text-[10px]">
+    <div className="text-textDim pointer-events-none absolute top-1/2 right-2.5 -translate-y-1/2 text-[10px]">
       ▼
     </div>
   </div>
@@ -60,7 +60,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
       {/* <Search input */}
       <div className="relative mb-3">
         <svg
-          className="absolute left-3 top-1/2 -translate-y-1/2 text-textDim"
+          className="text-textDim absolute top-1/2 left-3 -translate-y-1/2"
           width="14"
           height="14"
           viewBox="0 0 24 24"
@@ -76,11 +76,11 @@ const FilterBar: React.FC<FilterBarProps> = ({
           value={filters.search}
           onChange={(e) => onChange({ search: e.target.value })}
           placeholder="Search questions or topics..."
-          className="w-full pl-9 pr-4 py-2.5 bg-bgSurface border border-borderMuted rounded-brand text-sm text-textMain placeholder:text-textDim focus:outline-none focus:border-brand/40 transition-colors"
+          className="bg-bgSurface border-borderMuted rounded-brand text-textMain placeholder:text-textDim focus:border-brand/40 w-full border py-2.5 pr-4 pl-9 text-sm transition-colors focus:outline-none"
         />
         {filters.search && (
           <button
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-textDim hover:text-textMain text-xs"
+            className="text-textDim hover:text-textMain absolute top-1/2 right-3 -translate-y-1/2 text-xs"
             onClick={() => onChange({ search: "" })}
           >
             ✕
@@ -89,7 +89,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
       </div>
 
       {/* <Filter row */}
-      <div className="flex flex-wrap gap-2 items-center">
+      <div className="flex flex-wrap items-center gap-2">
         <SelectFilter
           label="Subject"
           value={filters.subject}
@@ -120,7 +120,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
         />
         {hasActiveFilters && (
           <button
-            className="text-xs text-brand-light hover:underline px-2 py-2"
+            className="text-brand-light px-2 py-2 text-xs hover:underline"
             onClick={() =>
               onChange({
                 subject: "All",

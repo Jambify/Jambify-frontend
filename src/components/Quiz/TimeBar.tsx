@@ -36,22 +36,22 @@ const TimerBar: React.FC = () => {
   if (isFinished) return null;
 
   return (
-    <div className="mb-4 relative">
+    <div className="relative mb-4">
       {/* ── Warning Reminder ── */}
       {isWarn && (
-        <div className="absolute -top-8 left-1/2 -translate-x-1/2 animate-bounce bg-warn/10 border border-warn/30 text-warn text-[10px] px-3 py-1 rounded-full whitespace-nowrap z-10 font-bold uppercase tracking-tighter">
+        <div className="bg-warn/10 border-warn/30 text-warn absolute -top-8 left-1/2 z-10 -translate-x-1/2 animate-bounce rounded-full border px-3 py-1 text-[10px] font-bold tracking-tighter whitespace-nowrap uppercase">
           ⚠️ 5 Minutes Remaining!
         </div>
       )}
 
       {isDanger && (
-        <div className="absolute -top-8 left-1/2 -translate-x-1/2 animate-pulse bg-danger/10 border border-danger/30 text-danger text-[10px] px-3 py-1 rounded-full whitespace-nowrap z-10 font-bold uppercase tracking-tighter">
+        <div className="bg-danger/10 border-danger/30 text-danger absolute -top-8 left-1/2 z-10 -translate-x-1/2 animate-pulse rounded-full border px-3 py-1 text-[10px] font-bold tracking-tighter whitespace-nowrap uppercase">
           🚨 Final Minute - Submit Now!
         </div>
       )}
 
-      <div className="flex items-center justify-between mb-1.5">
-        <span className="text-[11px] text-textDim uppercase tracking-wider font-medium">
+      <div className="mb-1.5 flex items-center justify-between">
+        <span className="text-textDim text-[11px] font-medium tracking-wider uppercase">
           Total Exam Time
         </span>
         <span
@@ -64,7 +64,7 @@ const TimerBar: React.FC = () => {
         </span>
       </div>
 
-      <div className="h-1.5 bg-bgSurface rounded-full overflow-hidden">
+      <div className="bg-bgSurface h-1.5 overflow-hidden rounded-full">
         <div
           className={cn(
             "h-full rounded-full transition-all duration-1000 ease-linear",

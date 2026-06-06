@@ -43,9 +43,9 @@ const Button: React.FC<ButtonProps> = ({
     <button
       disabled={disabled || loading}
       className={cn(
-        "inline-flex items-center justify-center rounded-brand font-medium",
+        "rounded-brand inline-flex items-center justify-center font-medium",
         "transition-all duration-150 active:scale-[0.98]",
-        "disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100",
+        "disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100",
         VARIANTS[variant],
         SIZES[size],
         fullWidth && "w-full",

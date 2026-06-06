@@ -176,21 +176,21 @@ const SignIn: React.FC = () => {
   // ── OTP Screen ────────────────────────────────────────
   if (step === "otp") {
     return (
-      <div className="min-h-screen bg-bgMain flex items-center justify-center p-4 relative overflow-hidden">
+      <div className="bg-bgMain relative flex min-h-screen items-center justify-center overflow-hidden p-4">
         {/* Ambient Glows */}
-        <div className="absolute top-0 right-1/4 w-125 h-125 bg-brand/10 blur-[120px] rounded-full pointer-events-none" />
-        <div className="absolute bottom-0 left-1/4 w-125 h-125 bg-brand/5 blur-[120px] rounded-full pointer-events-none" />
+        <div className="bg-brand/10 pointer-events-none absolute top-0 right-1/4 h-125 w-125 rounded-full blur-[120px]" />
+        <div className="bg-brand/5 pointer-events-none absolute bottom-0 left-1/4 h-125 w-125 rounded-full blur-[120px]" />
 
         <motion.div
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="bg-bgCard border border-borderMuted rounded-brand-2xl p-8 w-full max-w-md relative z-10 shadow-2xl"
+          className="bg-bgCard border-borderMuted rounded-brand-2xl relative z-10 w-full max-w-md border p-8 shadow-2xl"
         >
-          <div className="text-center mb-8">
-            <div className="w-14 h-14 bg-brand rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-brand/40">
-              <Key className="w-7 h-7 text-white" />
+          <div className="mb-8 text-center">
+            <div className="bg-brand shadow-brand/40 mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl shadow-lg">
+              <Key className="h-7 w-7 text-white" />
             </div>
-            <h1 className="text-3xl font-display font-bold text-textMain mb-2 tracking-tight">
+            <h1 className="font-display text-textMain mb-2 text-3xl font-bold tracking-tight">
               Check your Email
             </h1>
             <p className="text-textDim text-sm">
@@ -208,9 +208,9 @@ const SignIn: React.FC = () => {
                 exit={{ opacity: 0, height: 0 }}
                 className="mb-5 overflow-hidden"
               >
-                <div className="p-4 bg-danger/10 border border-danger/20 rounded-brand-lg flex gap-3">
-                  <AlertCircle className="w-5 h-5 text-danger shrink-0 mt-0.5" />
-                  <p className="text-sm text-danger">{error}</p>
+                <div className="bg-danger/10 border-danger/20 rounded-brand-lg flex gap-3 border p-4">
+                  <AlertCircle className="text-danger mt-0.5 h-5 w-5 shrink-0" />
+                  <p className="text-danger text-sm">{error}</p>
                 </div>
               </motion.div>
             )}
@@ -218,7 +218,7 @@ const SignIn: React.FC = () => {
 
           <form onSubmit={handleVerifyOtp} className="space-y-5">
             <div>
-              <label className="block text-xs font-bold uppercase tracking-widest text-textMuted mb-2 px-1">
+              <label className="text-textMuted mb-2 block px-1 text-xs font-bold tracking-widest uppercase">
                 Verification Code
               </label>
               <input
@@ -234,31 +234,31 @@ const SignIn: React.FC = () => {
                 }}
                 placeholder="000000"
                 style={{ fontSize: "16px" }}
-                className="w-full text-center text-2xl font-mono tracking-[0.5em] py-4 bg-bgSurface border border-borderMuted rounded-brand-lg text-textMain focus:ring-2 focus:ring-brand/40 focus:border-transparent outline-none transition-all placeholder:text-textDim/30"
+                className="bg-bgSurface border-borderMuted rounded-brand-lg text-textMain focus:ring-brand/40 placeholder:text-textDim/30 w-full border py-4 text-center font-mono text-2xl tracking-[0.5em] transition-all outline-none focus:border-transparent focus:ring-2"
               />
             </div>
             <button
               type="submit"
               disabled={otp.length !== 6 || loading}
-              className="w-full bg-brand hover:bg-brand-light disabled:opacity-50 disabled:cursor-not-allowed text-white py-4 rounded-brand-lg font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-brand/20 active:scale-[0.98]"
+              className="bg-brand hover:bg-brand-light rounded-brand-lg shadow-brand/20 flex w-full items-center justify-center gap-2 py-4 font-bold text-white shadow-lg transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
             >
               {loading ? (
                 <>
-                  <RefreshCw className="w-4 h-4 animate-spin" /> Verifying…
+                  <RefreshCw className="h-4 w-4 animate-spin" /> Verifying…
                 </>
               ) : (
                 <>
-                  Sign In <ArrowRight className="w-5 h-5" />
+                  Sign In <ArrowRight className="h-5 w-5" />
                 </>
               )}
             </button>
           </form>
 
-          <div className="mt-6 text-center space-y-3">
+          <div className="mt-6 space-y-3 text-center">
             <button
               onClick={handleResend}
               disabled={loading || cooldown > 0}
-              className="text-sm text-textDim hover:text-brand-light transition-colors disabled:opacity-50"
+              className="text-textDim hover:text-brand-light text-sm transition-colors disabled:opacity-50"
             >
               {cooldown > 0
                 ? `Resend in ${cooldown}s`
@@ -270,7 +270,7 @@ const SignIn: React.FC = () => {
                 setOtp("");
                 setError("");
               }}
-              className="block w-full text-xs text-textMuted hover:text-textDim transition-colors"
+              className="text-textMuted hover:text-textDim block w-full text-xs transition-colors"
             >
               ← Back
             </button>
@@ -283,33 +283,33 @@ const SignIn: React.FC = () => {
   // ── Sign In Form ──────────────────────────────────────
   return (
     <div
-      className="min-h-screen bg-bgMain flex flex-col items-center justify-center p-4 relative overflow-hidden"
+      className="bg-bgMain relative flex min-h-screen flex-col items-center justify-center overflow-hidden p-4"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
       {/* Ambient Glows */}
-      <div className="absolute top-0 right-1/4 w-125 h-125 bg-brand/10 blur-[120px] rounded-full pointer-events-none" />
-      <div className="absolute bottom-0 left-1/4 w-125 h-125 bg-brand/5 blur-[120px] rounded-full pointer-events-none" />
+      <div className="bg-brand/10 pointer-events-none absolute top-0 right-1/4 h-125 w-125 rounded-full blur-[120px]" />
+      <div className="bg-brand/5 pointer-events-none absolute bottom-0 left-1/4 h-125 w-125 rounded-full blur-[120px]" />
 
       <motion.div
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="bg-bgCard border border-borderMuted rounded-brand-2xl p-8 w-full max-w-md relative z-10 shadow-2xl"
+        className="bg-bgCard border-borderMuted rounded-brand-2xl relative z-10 w-full max-w-md border p-8 shadow-2xl"
       >
-        <div className="text-center mb-8">
+        <div className="mb-8 text-center">
           <div className="relative mb-8">
             {/* Theme Toggle - Top Right */}
-            <div className="absolute right-0 top-0">
+            <div className="absolute top-0 right-0">
               <ThemeToggle />
             </div>
 
             {/* Centered Logo */}
             <div className="flex justify-center">
-              <div className="w-14 h-14 bg-brand rounded-xl flex items-center justify-center shadow-lg shadow-brand/40">
-                <span className="text-white text-2xl font-black">J</span>
+              <div className="bg-brand shadow-brand/40 flex h-14 w-14 items-center justify-center rounded-xl shadow-lg">
+                <span className="text-2xl font-black text-white">J</span>
               </div>
             </div>
           </div>
-          <h1 className="text-3xl font-display font-bold text-brand mb-2 tracking-tight">
+          <h1 className="font-display text-brand mb-2 text-3xl font-bold tracking-tight">
             Sign In
           </h1>
           <p className="text-textDim text-sm">
@@ -326,14 +326,14 @@ const SignIn: React.FC = () => {
               exit={{ opacity: 0, height: 0 }}
               className="mb-5 overflow-hidden"
             >
-              <div className="p-4 bg-danger/10 border border-danger/20 rounded-brand-lg flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 text-danger shrink-0 mt-0.5" />
+              <div className="bg-danger/10 border-danger/20 rounded-brand-lg flex items-start gap-3 border p-4">
+                <AlertCircle className="text-danger mt-0.5 h-5 w-5 shrink-0" />
                 <div>
-                  <p className="text-sm text-danger">{error}</p>
+                  <p className="text-danger text-sm">{error}</p>
                   {error.includes("No account found") && (
                     <Link
                       to="/signup"
-                      className="text-xs text-brand-light hover:underline mt-1 block"
+                      className="text-brand-light mt-1 block text-xs hover:underline"
                     >
                       Create an account →
                     </Link>
@@ -341,7 +341,7 @@ const SignIn: React.FC = () => {
                   {error.includes("not yet verified") && (
                     <Link
                       to="/signup"
-                      className="text-xs text-brand-light hover:underline mt-1 block"
+                      className="text-brand-light mt-1 block text-xs hover:underline"
                     >
                       Complete sign up →
                     </Link>
@@ -354,12 +354,12 @@ const SignIn: React.FC = () => {
 
         <form onSubmit={handleSendOtp} className="space-y-5">
           <div>
-            <label className="block text-xs font-bold uppercase tracking-widest text-textMuted mb-2 px-1">
+            <label className="text-textMuted mb-2 block px-1 text-xs font-bold tracking-widest uppercase">
               Email Address
             </label>
-            <div className="relative group">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <Mail className="h-5 w-5 text-textDim group-focus-within:text-brand-light transition-colors" />
+            <div className="group relative">
+              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                <Mail className="text-textDim group-focus-within:text-brand-light h-5 w-5 transition-colors" />
               </div>
               <input
                 type="email"
@@ -370,7 +370,7 @@ const SignIn: React.FC = () => {
                   setEmail(e.target.value);
                 }}
                 style={{ fontSize: "16px" }}
-                className="w-full pl-12 pr-4 py-3.5 bg-bgSurface border border-borderMuted rounded-brand-lg text-textMain focus:ring-2 focus:ring-brand/40 focus:border-transparent outline-none transition-all placeholder:text-textDim/50"
+                className="bg-bgSurface border-borderMuted rounded-brand-lg text-textMain focus:ring-brand/40 placeholder:text-textDim/50 w-full border py-3.5 pr-4 pl-12 transition-all outline-none focus:border-transparent focus:ring-2"
                 placeholder="Enter your email"
               />
             </div>
@@ -378,33 +378,33 @@ const SignIn: React.FC = () => {
           <button
             type="submit"
             disabled={!email || loading || cooldown > 0}
-            className="w-full bg-brand hover:bg-brand-light disabled:opacity-50 disabled:cursor-not-allowed text-white py-4 rounded-brand-lg font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-brand/20 active:scale-[0.98]"
+            className="bg-brand hover:bg-brand-light rounded-brand-lg shadow-brand/20 flex w-full items-center justify-center gap-2 py-4 font-bold text-white shadow-lg transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
           >
             {loading ? (
               <>
-                <RefreshCw className="w-4 h-4 animate-spin" /> Sending…
+                <RefreshCw className="h-4 w-4 animate-spin" /> Sending…
               </>
             ) : cooldown > 0 ? (
               `Wait ${cooldown}s`
             ) : (
               <>
-                Send Code <ArrowRight className="w-5 h-5" />
+                Send Code <ArrowRight className="h-5 w-5" />
               </>
             )}
           </button>
         </form>
 
-        <div className="mt-8 text-center space-y-5">
-          <p className="text-sm text-textDim">
+        <div className="mt-8 space-y-5 text-center">
+          <p className="text-textDim text-sm">
             New to JAMBIFY?{" "}
             <Link
               to="/signup"
-              className="text-brand-light hover:underline font-semibold"
+              className="text-brand-light font-semibold hover:underline"
             >
               Create Account
             </Link>
           </p>
-          <div className="flex items-center justify-center gap-4 text-[10px] text-textMuted uppercase tracking-widest pt-4 border-t border-borderMuted/50">
+          <div className="text-textMuted border-borderMuted/50 flex items-center justify-center gap-4 border-t pt-4 text-[10px] tracking-widest uppercase">
             <ShieldCheck size={14} className="text-green-500" />
             Secure · No password · 6-digit code
           </div>
@@ -416,26 +416,26 @@ const SignIn: React.FC = () => {
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.3 }}
-        className="lg:relative lg:bottom-auto lg:left-auto lg:translate-x-0 lg:mt-8 lg:z-10 fixed bottom-10 left-1/2 -translate-x-1/2 w-full max-w-md px-4 z-20"
+        className="fixed bottom-10 left-1/2 z-20 w-full max-w-md -translate-x-1/2 px-4 lg:relative lg:bottom-auto lg:left-auto lg:z-10 lg:mt-8 lg:translate-x-0"
       >
         <button
           onClick={() => navigate("/guest")}
-          className="w-full bg-bgCard/40 backdrop-blur-xl border border-brand/20 hover:border-brand/50 rounded-4xl p-4 lg:p-5 flex items-center justify-between group transition-all shadow-2xl shadow-brand/5 hover:shadow-brand/10 active:scale-[0.98]"
+          className="bg-bgCard/40 border-brand/20 hover:border-brand/50 group shadow-brand/5 hover:shadow-brand/10 flex w-full items-center justify-between rounded-4xl border p-4 shadow-2xl backdrop-blur-xl transition-all active:scale-[0.98] lg:p-5"
         >
           <div className="flex items-center gap-4 text-left">
-            <div className="w-12 h-12 bg-brand/10 rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform shadow-inner">
+            <div className="bg-brand/10 flex h-12 w-12 items-center justify-center rounded-2xl text-2xl shadow-inner transition-transform group-hover:scale-110">
               🎯
             </div>
             <div>
-              <p className="text-xs font-black uppercase tracking-widest text-brand leading-none mb-1">
+              <p className="text-brand mb-1 text-xs leading-none font-black tracking-widest uppercase">
                 Just Exploring?
               </p>
-              <p className="text-sm font-bold text-textMain">
+              <p className="text-textMain text-sm font-bold">
                 Take a free practice test
               </p>
             </div>
           </div>
-          <div className="w-10 h-10 bg-brand/10 rounded-full flex items-center justify-center text-brand group-hover:translate-x-1 transition-all">
+          <div className="bg-brand/10 text-brand flex h-10 w-10 items-center justify-center rounded-full transition-all group-hover:translate-x-1">
             <ArrowRight size={18} />
           </div>
         </button>

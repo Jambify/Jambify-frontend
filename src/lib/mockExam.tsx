@@ -43,7 +43,8 @@ const ALLOWED_HTML_TAGS = new Set([
 ]);
 
 const textFrom = (...values: unknown[]) =>
-  values.find((value) => typeof value === "string" && value.trim().length > 0)
+  values
+    .find((value) => typeof value === "string" && value.trim().length > 0)
     ?.toString()
     .trim() || "";
 
@@ -196,7 +197,7 @@ export const QuestionMedia: React.FC<{
         src={src}
         alt={alt}
         loading="lazy"
-        className="max-h-72 w-full rounded-brand border border-borderMuted bg-bgSurface object-contain"
+        className="rounded-brand border-borderMuted bg-bgSurface max-h-72 w-full border object-contain"
       />
     </figure>
   );
@@ -263,8 +264,7 @@ export const mapApiQuestion = (
   return {
     ...mappedQuestion,
     explanation:
-      mappedQuestion.explanation ||
-      buildGeneratedExplanation(mappedQuestion),
+      mappedQuestion.explanation || buildGeneratedExplanation(mappedQuestion),
   };
 };
 
@@ -438,7 +438,9 @@ export const buildSubjectScores = (
 
   Object.values(scores).forEach((subject) => {
     subject.score =
-      subject.total > 0 ? Math.round((subject.correct / subject.total) * 100) : 0;
+      subject.total > 0
+        ? Math.round((subject.correct / subject.total) * 100)
+        : 0;
   });
 
   return scores;

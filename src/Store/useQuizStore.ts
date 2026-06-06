@@ -1,5 +1,5 @@
-import { create } from 'zustand';
-import type { Question } from '../Types';
+import { create } from "zustand";
+import type { Question } from "../Types";
 
 interface QuizState {
   // Data
@@ -81,7 +81,6 @@ export const useQuizStore = create<QuizState>()((set, get) => ({
     }
   },
 
-
   reset: () =>
     set({
       questions: [],
@@ -91,11 +90,16 @@ export const useQuizStore = create<QuizState>()((set, get) => ({
       isFinished: false,
       hasAnswered: false,
       isFinishedQuiz: false,
-      selectedTopic: 'All',
-      selectedDifficulty: 'All',
+      selectedTopic: "All",
+      selectedDifficulty: "All",
     }),
 
-  setSelectedSubject: (s) => set({ selectedSubject: s, selectedTopic: 'All', selectedDifficulty: 'All' }),
+  setSelectedSubject: (s) =>
+    set({
+      selectedSubject: s,
+      selectedTopic: "All",
+      selectedDifficulty: "All",
+    }),
   setSelectedTopic: (t) => set({ selectedTopic: t }),
   setSelectedDifficulty: (d) => set({ selectedDifficulty: d }),
 }));

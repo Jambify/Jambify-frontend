@@ -114,12 +114,12 @@ const Dashboard: React.FC = () => {
       {/* ══════════════════════════════════════════════════
           HERO — two-column grid, no absolute positioning
       ══════════════════════════════════════════════════ */}
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-4 mb-6">
+      <div className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-[1fr_auto]">
         {/* ── Left: greeting + CTAs ─────────────────────── */}
-        <div className="relative bg-bgCard border border-borderMuted rounded-brand-xl p-6 md:p-8 overflow-hidden">
+        <div className="bg-bgCard border-borderMuted rounded-brand-xl relative overflow-hidden border p-6 md:p-8">
           {/* Subtle ambient glow */}
           <div
-            className="absolute inset-0 pointer-events-none"
+            className="pointer-events-none absolute inset-0"
             style={{
               background:
                 "radial-gradient(ellipse 70% 80% at 100% 50%, rgba(91,59,255,0.10) 0%, transparent 65%)",
@@ -128,27 +128,27 @@ const Dashboard: React.FC = () => {
 
           <div className="relative z-10">
             {/* Tag line */}
-            <div className="flex items-center gap-2 mb-3">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-brand/10 border border-brand/20 text-[10px] font-bold tracking-widest uppercase text-brand-light">
-                <Zap className="w-3 h-3" />
+            <div className="mb-3 flex items-center gap-2">
+              <span className="bg-brand/10 border-brand/20 text-brand-light inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold tracking-widest uppercase">
+                <Zap className="h-3 w-3" />
                 JAMB {examYear} Prep
               </span>
               {university && (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-bgSurface border border-borderMuted text-[10px] text-textDim truncate max-w-50">
+                <span className="bg-bgSurface border-borderMuted text-textDim inline-flex max-w-50 items-center gap-1.5 truncate rounded-full border px-2.5 py-1 text-[10px]">
                   🎓 {university}
                 </span>
               )}
             </div>
 
             {/* Greeting */}
-            <h2 className="font-display text-2xl md:text-3xl font-bold tracking-tight leading-snug mb-1">
+            <h2 className="font-display mb-1 text-2xl leading-snug font-bold tracking-tight md:text-3xl">
               Ready to ace it,
             </h2>
-            <h2 className="font-display text-2xl md:text-3xl font-bold tracking-tight leading-snug mb-4">
+            <h2 className="font-display mb-4 text-2xl leading-snug font-bold tracking-tight md:text-3xl">
               <span className="text-brand-light">{name || "Champion"}</span>?
             </h2>
 
-            <p className="text-sm text-textMuted mb-6 max-w-md leading-relaxed">
+            <p className="text-textMuted mb-6 max-w-md text-sm leading-relaxed">
               {isNewUser
                 ? "Welcome! Start your first quiz to track your progress and unlock your personalised dashboard."
                 : weakTopics.length > 0
@@ -157,22 +157,22 @@ const Dashboard: React.FC = () => {
             </p>
 
             {/* CTAs */}
-            <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
               {/* Primary pair — always visible, share width equally on mobile */}
-              <div className="flex gap-2 sm:gap-3 flex-1 sm:flex-none min-w-0">
+              <div className="flex min-w-0 flex-1 gap-2 sm:flex-none sm:gap-3">
                 <button
                   onClick={() => navigate("/quiz")}
-                  className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 sm:gap-2 bg-brand hover:bg-brand-light text-white px-3 sm:px-5 py-2.5 rounded-brand font-semibold text-sm whitespace-nowrap transition-all shadow-lg shadow-brand/30 active:scale-95"
+                  className="bg-brand hover:bg-brand-light rounded-brand shadow-brand/30 inline-flex flex-1 items-center justify-center gap-1.5 px-3 py-2.5 text-sm font-semibold whitespace-nowrap text-white shadow-lg transition-all active:scale-95 sm:flex-none sm:gap-2 sm:px-5"
                 >
-                  <BookOpen className="w-4 h-4 shrink-0" />
+                  <BookOpen className="h-4 w-4 shrink-0" />
                   <span className="sm:hidden">Daily Quiz</span>
                   <span className="hidden sm:inline">Start Daily Quiz</span>
                 </button>
                 <button
                   onClick={() => navigate("/mock-exams")}
-                  className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 sm:gap-2 bg-bgSurface hover:bg-bgDeep text-textMain border border-borderMuted px-3 sm:px-5 py-2.5 rounded-brand font-semibold text-sm whitespace-nowrap transition-all active:scale-95"
+                  className="bg-bgSurface hover:bg-bgDeep text-textMain border-borderMuted rounded-brand inline-flex flex-1 items-center justify-center gap-1.5 border px-3 py-2.5 text-sm font-semibold whitespace-nowrap transition-all active:scale-95 sm:flex-none sm:gap-2 sm:px-5"
                 >
-                  <Target className="w-4 h-4 shrink-0" />
+                  <Target className="h-4 w-4 shrink-0" />
                   Mock Exam
                 </button>
               </div>
@@ -180,9 +180,9 @@ const Dashboard: React.FC = () => {
               {/* View Progress — hidden on mobile, visible sm+ */}
               <button
                 onClick={() => navigate("/performance")}
-                className="hidden sm:inline-flex items-center gap-2 text-textDim hover:text-textMain px-4 py-2.5 rounded-brand font-medium text-sm whitespace-nowrap transition-all"
+                className="text-textDim hover:text-textMain rounded-brand hidden items-center gap-2 px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-all sm:inline-flex"
               >
-                <TrendingUp className="w-4 h-4" />
+                <TrendingUp className="h-4 w-4" />
                 View Progress
               </button>
             </div>
@@ -191,34 +191,34 @@ const Dashboard: React.FC = () => {
 
         {/* ── Right: countdown card ─────────────────────── */}
         <div
-          className="relative overflow-hidden bg-bgCard border border-borderMuted rounded-brand-xl"
+          className="bg-bgCard border-borderMuted rounded-brand-xl relative overflow-hidden border"
           style={{
             background: `linear-gradient(135deg, rgba(${cdColor === "#7B5FFF" ? "91,59,255" : cdColor === "#EF4444" ? "239,68,68" : cdColor === "#F59E0B" ? "245,158,11" : "249,115,22"},0.08) 0%, transparent 70%)`,
           }}
         >
           {/* ── Mobile: compact horizontal strip ── */}
-          <div className="flex lg:hidden items-center justify-between px-5 py-4 gap-4">
+          <div className="flex items-center justify-between gap-4 px-5 py-4 lg:hidden">
             {/* Left: label + date */}
             <div className="flex flex-col gap-0.5">
-              <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-textDim">
-                <Clock className="w-3 h-3" />
+              <div className="text-textDim flex items-center gap-1.5 text-[10px] font-bold tracking-widest uppercase">
+                <Clock className="h-3 w-3" />
                 Exam Countdown
               </div>
-              <div className="flex items-center gap-1.5 text-[11px] text-textMuted mt-1">
-                <Calendar className="w-3 h-3 shrink-0" />
+              <div className="text-textMuted mt-1 flex items-center gap-1.5 text-[11px]">
+                <Calendar className="h-3 w-3 shrink-0" />
                 {formattedDate}
               </div>
               {targetScore && (
-                <div className="mt-1.5 self-start px-2.5 py-0.5 rounded-full bg-bgSurface border border-borderMuted text-[10px] text-textDim font-medium">
+                <div className="bg-bgSurface border-borderMuted text-textDim mt-1.5 self-start rounded-full border px-2.5 py-0.5 text-[10px] font-medium">
                   Target: {targetScore}
                 </div>
               )}
             </div>
 
             {/* Right: big number */}
-            <div className="flex flex-col items-center shrink-0">
+            <div className="flex shrink-0 flex-col items-center">
               <div
-                className="font-display font-black leading-none tracking-tighter"
+                className="font-display leading-none font-black tracking-tighter"
                 style={{
                   fontSize: "2.75rem",
                   color: isUpdating ? "#6B7280" : cdColor,
@@ -226,20 +226,20 @@ const Dashboard: React.FC = () => {
               >
                 {isUpdating ? "…" : cdLabel}
               </div>
-              <div className="text-[11px] text-textDim font-medium mt-0.5">
+              <div className="text-textDim mt-0.5 text-[11px] font-medium">
                 {isUpdating ? "Updating…" : cdSublabel}
               </div>
             </div>
           </div>
 
           {/* ── Desktop: original tall centered layout ── */}
-          <div className="hidden lg:flex flex-col items-center justify-center px-8 py-6 gap-1 min-w-40">
-            <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-textDim mb-1">
-              <Clock className="w-3 h-3" />
+          <div className="hidden min-w-40 flex-col items-center justify-center gap-1 px-8 py-6 lg:flex">
+            <div className="text-textDim mb-1 flex items-center gap-1.5 text-[10px] font-bold tracking-widest uppercase">
+              <Clock className="h-3 w-3" />
               Exam Countdown
             </div>
             <div
-              className="font-display font-black leading-none tracking-tighter"
+              className="font-display leading-none font-black tracking-tighter"
               style={{
                 fontSize:
                   daysLeft > 99 ? "3.5rem" : daysLeft < 0 ? "2rem" : "4.5rem",
@@ -248,21 +248,21 @@ const Dashboard: React.FC = () => {
             >
               {isUpdating ? "…" : cdLabel}
             </div>
-            <div className="text-xs text-textDim font-medium mt-0.5">
+            <div className="text-textDim mt-0.5 text-xs font-medium">
               {isUpdating ? "Updating…" : cdSublabel}
             </div>
-            <div className="w-full h-px bg-borderMuted my-2" />
-            <div className="flex items-center gap-1.5 text-[11px] text-textMuted">
-              <Calendar className="w-3 h-3 shrink-0" />
+            <div className="bg-borderMuted my-2 h-px w-full" />
+            <div className="text-textMuted flex items-center gap-1.5 text-[11px]">
+              <Calendar className="h-3 w-3 shrink-0" />
               <span className="text-center leading-tight">{formattedDate}</span>
             </div>
             {targetScore && (
-              <div className="mt-2 px-3 py-1 rounded-full bg-bgSurface border border-borderMuted text-[10px] text-textDim font-medium">
+              <div className="bg-bgSurface border-borderMuted text-textDim mt-2 rounded-full border px-3 py-1 text-[10px] font-medium">
                 Target: {targetScore}
               </div>
             )}
             {cdMotivation && (
-              <p className="mt-3 text-[10px] text-textDim text-center leading-relaxed max-w-35">
+              <p className="text-textDim mt-3 max-w-35 text-center text-[10px] leading-relaxed">
                 {cdMotivation}
               </p>
             )}
@@ -271,7 +271,7 @@ const Dashboard: React.FC = () => {
           {/* Urgency ring when ≤7 days */}
           {daysLeft >= 0 && daysLeft <= 7 && (
             <div
-              className="absolute inset-0 rounded-brand-xl pointer-events-none animate-pulse"
+              className="rounded-brand-xl pointer-events-none absolute inset-0 animate-pulse"
               style={{ boxShadow: `inset 0 0 0 1.5px ${cdColor}40` }}
             />
           )}
@@ -281,33 +281,33 @@ const Dashboard: React.FC = () => {
       {/* ══════════════════════════════════════════════════
           STATS ROW
       ══════════════════════════════════════════════════ */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+      <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
         {/* Best Score */}
-        <div className="bg-bgCard border border-borderMuted rounded-brand-xl p-4 md:p-5 flex flex-col gap-2">
+        <div className="bg-bgCard border-borderMuted rounded-brand-xl flex flex-col gap-2 border p-4 md:p-5">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-textDim">
+            <span className="text-textDim text-[10px] font-bold tracking-widest uppercase">
               Best Score
             </span>
-            <div className="w-8 h-8 rounded-xl bg-brand/10 flex items-center justify-center">
-              <Target className="w-4 h-4 text-brand" />
+            <div className="bg-brand/10 flex h-8 w-8 items-center justify-center rounded-xl">
+              <Target className="text-brand h-4 w-4" />
             </div>
           </div>
           {bestScore > 0 ? (
             <>
-              <p className="font-display text-3xl font-black tracking-tight text-textMain">
+              <p className="font-display text-textMain text-3xl font-black tracking-tight">
                 {bestScore}
               </p>
-              <p className="text-[11px] text-success font-medium flex items-center gap-1">
-                <TrendingUp className="w-3 h-3" />
+              <p className="text-success flex items-center gap-1 text-[11px] font-medium">
+                <TrendingUp className="h-3 w-3" />
                 Max JAMB Score
               </p>
             </>
           ) : (
             <>
-              <p className="font-display text-2xl font-black tracking-tight text-textDim">
+              <p className="font-display text-textDim text-2xl font-black tracking-tight">
                 —
               </p>
-              <p className="text-[11px] text-textDim leading-snug">
+              <p className="text-textDim text-[11px] leading-snug">
                 Take a mock exam to see
               </p>
             </>
@@ -315,30 +315,30 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Accuracy */}
-        <div className="bg-bgCard border border-borderMuted rounded-brand-xl p-4 md:p-5 flex flex-col gap-2">
+        <div className="bg-bgCard border-borderMuted rounded-brand-xl flex flex-col gap-2 border p-4 md:p-5">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-textDim">
+            <span className="text-textDim text-[10px] font-bold tracking-widest uppercase">
               Accuracy
             </span>
-            <div className="w-8 h-8 rounded-xl bg-success/10 flex items-center justify-center">
-              <CheckCircle2 className="w-4 h-4 text-success" />
+            <div className="bg-success/10 flex h-8 w-8 items-center justify-center rounded-xl">
+              <CheckCircle2 className="text-success h-4 w-4" />
             </div>
           </div>
           {questionsCompleted > 0 ? (
             <>
-              <p className="font-display text-3xl font-black tracking-tight text-textMain">
+              <p className="font-display text-textMain text-3xl font-black tracking-tight">
                 {accuracy}%
               </p>
-              <p className="text-[11px] text-textDim font-medium">
+              <p className="text-textDim text-[11px] font-medium">
                 from {previousAccuracy}% last week
               </p>
             </>
           ) : (
             <>
-              <p className="font-display text-2xl font-black tracking-tight text-textDim">
+              <p className="font-display text-textDim text-2xl font-black tracking-tight">
                 —
               </p>
-              <p className="text-[11px] text-textDim leading-snug">
+              <p className="text-textDim text-[11px] leading-snug">
                 Take your first quiz
               </p>
             </>
@@ -346,32 +346,32 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Questions Done */}
-        <div className="bg-bgCard border border-borderMuted rounded-brand-xl p-4 md:p-5 flex flex-col gap-2">
+        <div className="bg-bgCard border-borderMuted rounded-brand-xl flex flex-col gap-2 border p-4 md:p-5">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-textDim">
+            <span className="text-textDim text-[10px] font-bold tracking-widest uppercase">
               Questions
             </span>
-            <div className="w-8 h-8 rounded-xl bg-blue-500/10 flex items-center justify-center">
-              <BookOpen className="w-4 h-4 text-blue-400" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-500/10">
+              <BookOpen className="h-4 w-4 text-blue-400" />
             </div>
           </div>
           <p
             className={cn(
               "font-display font-black tracking-tight",
               questionsCompleted > 0
-                ? "text-3xl text-textMain"
-                : "text-2xl text-textDim",
+                ? "text-textMain text-3xl"
+                : "text-textDim text-2xl",
             )}
           >
             {questionsCompleted > 0 ? questionsCompleted.toLocaleString() : "0"}
           </p>
           {questionsCompleted > 0 ? (
             <div>
-              <div className="flex justify-between text-[10px] text-textDim mb-1">
+              <div className="text-textDim mb-1 flex justify-between text-[10px]">
                 <span>{questionsPct}% complete</span>
                 <span>{totalQuestions.toLocaleString()} total</span>
               </div>
-              <div className="h-1.5 rounded-full bg-bgSurface overflow-hidden">
+              <div className="bg-bgSurface h-1.5 overflow-hidden rounded-full">
                 <div
                   className="h-full rounded-full bg-blue-500 transition-all duration-500"
                   style={{ width: `${questionsPct}%` }}
@@ -379,27 +379,27 @@ const Dashboard: React.FC = () => {
               </div>
             </div>
           ) : (
-            <p className="text-[11px] text-textDim leading-snug">
+            <p className="text-textDim text-[11px] leading-snug">
               Start practising
             </p>
           )}
         </div>
 
         {/* Streak */}
-        <div className="bg-bgCard border border-borderMuted rounded-brand-xl p-4 md:p-5 flex flex-col gap-2">
+        <div className="bg-bgCard border-borderMuted rounded-brand-xl flex flex-col gap-2 border p-4 md:p-5">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-textDim">
+            <span className="text-textDim text-[10px] font-bold tracking-widest uppercase">
               Streak
             </span>
             <div
               className={cn(
-                "w-8 h-8 rounded-xl flex items-center justify-center",
+                "flex h-8 w-8 items-center justify-center rounded-xl",
                 streak > 0 ? "bg-orange-500/10" : "bg-bgSurface",
               )}
             >
               <Flame
                 className={cn(
-                  "w-4 h-4",
+                  "h-4 w-4",
                   streak > 0 ? "text-orange-400" : "text-textDim",
                 )}
               />
@@ -407,22 +407,22 @@ const Dashboard: React.FC = () => {
           </div>
           {streak > 0 ? (
             <>
-              <p className="font-display text-3xl font-black tracking-tight text-textMain">
+              <p className="font-display text-textMain text-3xl font-black tracking-tight">
                 {streak}
-                <span className="text-base font-semibold text-textDim ml-1">
+                <span className="text-textDim ml-1 text-base font-semibold">
                   days
                 </span>
               </p>
-              <p className="text-[11px] text-orange-400 font-medium flex items-center gap-1">
-                <Flame className="w-3 h-3" /> Keep it going!
+              <p className="flex items-center gap-1 text-[11px] font-medium text-orange-400">
+                <Flame className="h-3 w-3" /> Keep it going!
               </p>
             </>
           ) : (
             <>
-              <p className="font-display text-2xl font-black tracking-tight text-textDim">
+              <p className="font-display text-textDim text-2xl font-black tracking-tight">
                 0
               </p>
-              <p className="text-[11px] text-textDim leading-snug">
+              <p className="text-textDim text-[11px] leading-snug">
                 Start your streak today
               </p>
             </>
@@ -433,7 +433,7 @@ const Dashboard: React.FC = () => {
       {/* ══════════════════════════════════════════════════
           MIDDLE ROW
       ══════════════════════════════════════════════════ */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <SubjectProgress />
         <div className="space-y-4">
           <RecommendedSessions />

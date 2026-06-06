@@ -12,14 +12,14 @@
  */
 
 export interface GeminiMessage {
-  role: 'user' | 'model';
+  role: "user" | "model";
   parts: { text: string }[];
 }
 
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY as string | undefined;
 // gemini-2.5-flash: free tier on v1beta, best price-performance model
 // Model code confirmed at: https://ai.google.dev/gemini-api/docs/models/gemini-2.5-flash
-const MODEL = 'gemini-2.5-flash';
+const MODEL = "gemini-2.5-flash";
 const BASE_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}`;
 
 // ── System instruction injected into every request ────────────────────────────
@@ -53,10 +53,22 @@ function buildBody(history: GeminiMessage[], systemPrompt?: string) {
       maxOutputTokens: 1024,
     },
     safetySettings: [
-      { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-      { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-      { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-      { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+      {
+        category: "HARM_CATEGORY_HARASSMENT",
+        threshold: "BLOCK_MEDIUM_AND_ABOVE",
+      },
+      {
+        category: "HARM_CATEGORY_HATE_SPEECH",
+        threshold: "BLOCK_MEDIUM_AND_ABOVE",
+      },
+      {
+        category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+        threshold: "BLOCK_MEDIUM_AND_ABOVE",
+      },
+      {
+        category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+        threshold: "BLOCK_MEDIUM_AND_ABOVE",
+      },
     ],
   });
 }
@@ -71,14 +83,11 @@ export async function askAI(
     return "⚠️ AI is not configured yet. Add VITE_GEMINI_API_KEY to your .env file. Get a free key at https://aistudio.google.com/app/apikey";
   }
 
-  const res = await fetch(
-    `${BASE_URL}:generateContent?key=${API_KEY}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: buildBody(history, systemPrompt),
-    },
-  );
+  const res = await fetch(`${BASE_URL}:generateContent?key=${API_KEY}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: buildBody(history, systemPrompt),
+  });
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
@@ -87,7 +96,9 @@ export async function askAI(
   }
 
   const data = await res.json();
-  return data?.candidates?.[0]?.content?.parts?.[0]?.text ?? 'No response from AI.';
+  return (
+    data?.candidates?.[0]?.content?.parts?.[0]?.text ?? "No response from AI."
+  );
 }
 
 // ── Streaming: calls onChunk with each text delta ─────────────────────────────
@@ -100,7 +111,9 @@ export async function streamAI(
   systemPrompt?: string,
 ): Promise<void> {
   if (!API_KEY) {
-    onChunk("⚠️ AI is not configured yet. Add VITE_GEMINI_API_KEY to your .env file. Get a free key at https://aistudio.google.com/app/apikey");
+    onChunk(
+      "⚠️ AI is not configured yet. Add VITE_GEMINI_API_KEY to your .env file. Get a free key at https://aistudio.google.com/app/apikey",
+    );
     onDone();
     return;
   }
@@ -109,8 +122,8 @@ export async function streamAI(
     const res = await fetch(
       `${BASE_URL}:streamGenerateContent?alt=sse&key=${API_KEY}`,
       {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: buildBody(history, systemPrompt),
       },
     );
@@ -122,20 +135,20 @@ export async function streamAI(
 
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
-    let buffer = '';
+    let buffer = "";
 
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
 
       buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split('\n');
-      buffer = lines.pop() ?? '';
+      const lines = buffer.split("\n");
+      buffer = lines.pop() ?? "";
 
       for (const line of lines) {
-        if (!line.startsWith('data: ')) continue;
+        if (!line.startsWith("data: ")) continue;
         const json = line.slice(6).trim();
-        if (json === '[DONE]') continue;
+        if (json === "[DONE]") continue;
         try {
           const parsed = JSON.parse(json);
           const delta = parsed?.candidates?.[0]?.content?.parts?.[0]?.text;
@@ -165,9 +178,10 @@ export function buildQuestionContext(q: {
 }): string {
   const correctOption = q.options[q.answer];
   // More aggressive truncation for extremely long questions
-  const truncatedText = q.text.length > 500 ? q.text.substring(0, 500) + "..." : q.text;
+  const truncatedText =
+    q.text.length > 500 ? q.text.substring(0, 500) + "..." : q.text;
 
-  return `Analyze this JAMB ${q.subject ?? ''} question:
+  return `Analyze this JAMB ${q.subject ?? ""} question:
 "${truncatedText}"
 Answer is ${String.fromCharCode(65 + q.answer)}. ${correctOption}
 Briefly verify accuracy and explain why it's correct.`;

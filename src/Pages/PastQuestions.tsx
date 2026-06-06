@@ -142,19 +142,19 @@ const PastQuestions: React.FC = () => {
       setIsSidebarOpen={setIsSidebarOpen}
     >
       {/* <── Page header ── */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-6">
+      <div className="mb-6 flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
         <div>
-          <div className="flex items-center gap-2 mb-1">
+          <div className="mb-1 flex items-center gap-2">
             <h2 className="font-display text-2xl font-bold tracking-tight">
               Past Questions
             </h2>
             {isPro && (
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-warn/15 text-warn border border-warn/25">
+              <span className="bg-warn/15 text-warn border-warn/25 rounded-full border px-2 py-0.5 text-[10px] font-bold">
                 PRO
               </span>
             )}
           </div>
-          <p className="text-sm text-textMuted">
+          <p className="text-textMuted text-sm">
             {filtered.length} question{filtered.length !== 1 ? "s" : ""} found
             {filters.subject !== "All" ? ` in ${filters.subject}` : ""}
             {filters.year !== "All" ? ` · ${filters.year}` : ""}
@@ -162,12 +162,12 @@ const PastQuestions: React.FC = () => {
         </div>
 
         {/* <Tab switcher */}
-        <div className="flex gap-1 bg-bgSurface border border-borderMuted rounded-brand p-1">
+        <div className="bg-bgSurface border-borderMuted rounded-brand flex gap-1 border p-1">
           <button
             onClick={() => setActiveTab("browse")}
-            className={`px-4 py-1.5 rounded text-xs font-medium transition-all ${
+            className={`rounded px-4 py-1.5 text-xs font-medium transition-all ${
               activeTab === "browse"
-                ? "bg-bgCard text-textMain border border-borderMuted"
+                ? "bg-bgCard text-textMain border-borderMuted border"
                 : "text-textMuted hover:text-textMain"
             }`}
           >
@@ -175,15 +175,15 @@ const PastQuestions: React.FC = () => {
           </button>
           <button
             onClick={() => setActiveTab("offline")}
-            className={`flex items-center gap-1.5 px-4 py-1.5 rounded text-xs font-medium transition-all ${
+            className={`flex items-center gap-1.5 rounded px-4 py-1.5 text-xs font-medium transition-all ${
               activeTab === "offline"
-                ? "bg-bgCard text-textMain border border-borderMuted"
+                ? "bg-bgCard text-textMain border-borderMuted border"
                 : "text-textMuted hover:text-textMain"
             }`}
           >
             Offline packs
             {!isPro && (
-              <span className="text-[9px] px-1.5 py-0.5 bg-warn/15 text-warn rounded-full">
+              <span className="bg-warn/15 text-warn rounded-full px-1.5 py-0.5 text-[9px]">
                 PRO
               </span>
             )}
@@ -203,11 +203,11 @@ const PastQuestions: React.FC = () => {
           />
 
           {paginated.length === 0 ? (
-            <div className="text-center py-16 text-textDim">
-              <div className="text-4xl mb-3">🔍</div>
+            <div className="text-textDim py-16 text-center">
+              <div className="mb-3 text-4xl">🔍</div>
               <p className="text-sm">No questions match your filters.</p>
               <button
-                className="mt-3 text-xs text-brand-light hover:underline"
+                className="text-brand-light mt-3 text-xs hover:underline"
                 onClick={() =>
                   handleFilterChange({
                     subject: "All",
@@ -238,7 +238,7 @@ const PastQuestions: React.FC = () => {
 
               {/* <── Pagination ── */}
               {totalPages > 1 && (
-                <div className="flex items-center justify-between mt-6">
+                <div className="mt-6 flex items-center justify-between">
                   <Button
                     variant="secondary"
                     size="sm"
@@ -247,7 +247,7 @@ const PastQuestions: React.FC = () => {
                   >
                     ← Previous
                   </Button>
-                  <span className="text-xs text-textDim">
+                  <span className="text-textDim text-xs">
                     Page {page} of {totalPages} · {filtered.length} total
                   </span>
                   <Button
@@ -272,7 +272,7 @@ const PastQuestions: React.FC = () => {
             <ProGate />
           ) : (
             <>
-              <div className="bg-success/10 border border-success/20 rounded-brand-lg px-4 py-3 flex items-center gap-2 mb-5 text-sm text-success">
+              <div className="bg-success/10 border-success/20 rounded-brand-lg text-success mb-5 flex items-center gap-2 border px-4 py-3 text-sm">
                 ✓{" "}
                 <span>
                   Pro plan active — download any subject pack for offline
@@ -280,10 +280,10 @@ const PastQuestions: React.FC = () => {
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
+              <div className="mb-10 grid grid-cols-1 gap-6 lg:grid-cols-2">
                 <div className="space-y-3">
-                  <h3 className="text-xs font-black uppercase tracking-widest text-textDim flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-brand" />
+                  <h3 className="text-textDim flex items-center gap-2 text-xs font-black tracking-widest uppercase">
+                    <div className="bg-brand h-1.5 w-1.5 rounded-full" />
                     Available Packs
                   </h3>
                   <div className="flex flex-col gap-3">
@@ -294,20 +294,20 @@ const PastQuestions: React.FC = () => {
                 </div>
 
                 <div className="space-y-3">
-                  <h3 className="text-xs font-black uppercase tracking-widest text-textDim flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-success" />
+                  <h3 className="text-textDim flex items-center gap-2 text-xs font-black tracking-widest uppercase">
+                    <div className="bg-success h-1.5 w-1.5 rounded-full" />
                     Offline Browser
                   </h3>
-                  <div className="bg-bgCard border border-borderMuted rounded-brand-xl p-4 min-h-75">
+                  <div className="bg-bgCard border-borderMuted rounded-brand-xl min-h-75 border p-4">
                     {offlineQuestions.length === 0 ? (
-                      <div className="flex flex-col items-center justify-center h-full py-12 text-center">
-                        <div className="w-12 h-12 bg-bgSurface rounded-full flex items-center justify-center mb-3">
+                      <div className="flex h-full flex-col items-center justify-center py-12 text-center">
+                        <div className="bg-bgSurface mb-3 flex h-12 w-12 items-center justify-center rounded-full">
                           <WifiOff size={20} className="text-textDim" />
                         </div>
-                        <p className="text-sm font-bold text-textMain">
+                        <p className="text-textMain text-sm font-bold">
                           No questions downloaded yet
                         </p>
-                        <p className="text-xs text-textDim mt-1">
+                        <p className="text-textDim mt-1 text-xs">
                           Download a pack to view questions offline
                         </p>
                       </div>
@@ -331,7 +331,7 @@ const PastQuestions: React.FC = () => {
                           ]}
                           onChange={handleFilterChange}
                         />
-                        <div className="flex flex-col gap-2 max-h-125 overflow-y-auto pr-1 custom-scrollbar">
+                        <div className="custom-scrollbar flex max-h-125 flex-col gap-2 overflow-y-auto pr-1">
                           {paginated.map((q) => (
                             <QuestionRow
                               key={q.id}

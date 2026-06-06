@@ -54,7 +54,7 @@ const NavItem = ({ label, active, badge, icon, path }: any) => {
   return (
     <Link
       to={path}
-      className={`flex items-center gap-3 p-2.5 rounded-brand cursor-pointer text-[13.5px] transition-all mb-0.5 group ${
+      className={`rounded-brand group mb-0.5 flex cursor-pointer items-center gap-3 p-2.5 text-[13.5px] transition-all ${
         active
           ? "bg-brand-dim text-brand-light font-medium"
           : "text-textMuted hover:bg-bgCard hover:text-textMain"
@@ -66,7 +66,7 @@ const NavItem = ({ label, active, badge, icon, path }: any) => {
       />
       <span className="flex-1">{label}</span>
       {badge && (
-        <span className="bg-brand text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-4.5 text-center">
+        <span className="bg-brand min-w-4.5 rounded-full px-1.5 py-0.5 text-center text-[10px] font-bold text-white">
           {badge}
         </span>
       )}
@@ -93,7 +93,7 @@ const AppLayout: React.FC<LayoutProps> = ({
   const initials = getInitials(displayName);
 
   return (
-    <div className="min-h-screen bg-bgMain text-textMain font-sans selection:bg-brand/30">
+    <div className="bg-bgMain text-textMain selection:bg-brand/30 min-h-screen font-sans">
       {/* Network Status Toast */}
       <AnimatePresence>
         {!isOnline && (
@@ -101,9 +101,9 @@ const AppLayout: React.FC<LayoutProps> = ({
             initial={{ y: -50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: -50, opacity: 0 }}
-            className="fixed top-0 inset-x-0 z-999 flex justify-center p-4 pointer-events-none"
+            className="pointer-events-none fixed inset-x-0 top-0 z-999 flex justify-center p-4"
           >
-            <div className="network-banner-offline backdrop-blur-md px-6 py-2.5 rounded-full shadow-2xl flex items-center gap-3 border border-white/20">
+            <div className="network-banner-offline flex items-center gap-3 rounded-full border border-white/20 px-6 py-2.5 shadow-2xl backdrop-blur-md">
               <WifiOff size={18} className="animate-pulse text-white" />
               <span className="text-sm font-bold tracking-tight text-white">
                 You are offline. Some features may be limited.
@@ -116,9 +116,9 @@ const AppLayout: React.FC<LayoutProps> = ({
             initial={{ y: -50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: -50, opacity: 0 }}
-            className="fixed top-0 inset-x-0 z-999 flex justify-center p-4 pointer-events-none"
+            className="pointer-events-none fixed inset-x-0 top-0 z-999 flex justify-center p-4"
           >
-            <div className="network-banner-online backdrop-blur-md px-6 py-2.5 rounded-full shadow-2xl flex items-center gap-3 border border-white/20">
+            <div className="network-banner-online flex items-center gap-3 rounded-full border border-white/20 px-6 py-2.5 shadow-2xl backdrop-blur-md">
               <Wifi size={18} className="text-white" />
               <span className="text-sm font-bold tracking-tight text-white">
                 Back online! Syncing your progress...
@@ -137,26 +137,26 @@ const AppLayout: React.FC<LayoutProps> = ({
 
       {/* DESKTOP SIDEBAR */}
       {!hideSidebar && (
-        <aside className="fixed left-0 top-0 bottom-0 w-60 bg-bgSurface border-r border-borderMuted flex-col z-100 hidden lg:flex">
-          <div className="p-6 pb-4 flex items-center justify-between border-b border-borderMuted">
+        <aside className="bg-bgSurface border-borderMuted fixed top-0 bottom-0 left-0 z-100 hidden w-60 flex-col border-r lg:flex">
+          <div className="border-borderMuted flex items-center justify-between border-b p-6 pb-4">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-brand rounded-lg flex items-center justify-center font-display font-extrabold shadow-[0_8px_40px_rgba(91,59,255,0.3)]">
+              <div className="bg-brand font-display flex h-8 w-8 items-center justify-center rounded-lg font-extrabold shadow-[0_8px_40px_rgba(91,59,255,0.3)]">
                 J
               </div>
-              <div className="font-display font-bold text-[17px] tracking-tight">
+              <div className="font-display text-[17px] font-bold tracking-tight">
                 JAMB<span className="text-brand-light">IFY</span>
               </div>
             </div>
             {isPro && (
-              <div className="bg-brand/10 text-brand text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded border border-brand/20">
+              <div className="bg-brand/10 text-brand border-brand/20 rounded border px-1.5 py-0.5 text-[9px] font-black tracking-widest uppercase">
                 Pro
               </div>
             )}
           </div>
 
-          <nav className="flex-1 overflow-y-auto p-3 space-y-6">
+          <nav className="flex-1 space-y-6 overflow-y-auto p-3">
             <section>
-              <p className="text-[10px] tracking-widest uppercase text-textDim px-2 mb-2 font-medium">
+              <p className="text-textDim mb-2 px-2 text-[10px] font-medium tracking-widest uppercase">
                 Main
               </p>
               <NavItem
@@ -181,7 +181,7 @@ const AppLayout: React.FC<LayoutProps> = ({
             </section>
 
             <section>
-              <p className="text-[10px] tracking-widest uppercase text-textDim px-2 mb-2 font-medium">
+              <p className="text-textDim mb-2 px-2 text-[10px] font-medium tracking-widest uppercase">
                 Study
               </p>
               <NavItem label="Mock Exams" icon="clock" path="/mock-exams" />
@@ -198,28 +198,28 @@ const AppLayout: React.FC<LayoutProps> = ({
               {!isPro ? (
                 <Link
                   to="/pro"
-                  className="flex flex-col gap-2 p-3.5 rounded-2xl bg-linear-to-br from-brand/10 to-brand/5 border border-brand/20 text-brand-light hover:border-brand/40 transition-all group"
+                  className="from-brand/10 to-brand/5 border-brand/20 text-brand-light hover:border-brand/40 group flex flex-col gap-2 rounded-2xl border bg-linear-to-br p-3.5 transition-all"
                 >
                   <div className="flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 group-hover:rotate-12 transition-transform text-brand" />
-                    <span className="text-[12px] font-black uppercase tracking-wider">
+                    <Sparkles className="text-brand h-4 w-4 transition-transform group-hover:rotate-12" />
+                    <span className="text-[12px] font-black tracking-wider uppercase">
                       JAMBIFY Pro
                     </span>
                   </div>
-                  <p className="text-[10px] text-textDim leading-tight">
+                  <p className="text-textDim text-[10px] leading-tight">
                     Unlock AI Tutor, offline mode, and professional mock review.
                   </p>
                 </Link>
               ) : (
-                <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-success/5 border border-success/10 text-success">
-                  <div className="w-8 h-8 rounded-xl bg-success/10 flex items-center justify-center">
-                    <Trophy className="w-4 h-4" />
+                <div className="bg-success/5 border-success/10 text-success flex items-center gap-3 rounded-2xl border p-3.5">
+                  <div className="bg-success/10 flex h-8 w-8 items-center justify-center rounded-xl">
+                    <Trophy className="h-4 w-4" />
                   </div>
                   <div>
-                    <span className="text-[11px] font-black uppercase tracking-wider block">
+                    <span className="block text-[11px] font-black tracking-wider uppercase">
                       Pro Member
                     </span>
-                    <span className="text-[9px] text-success/70 font-medium italic">
+                    <span className="text-success/70 text-[9px] font-medium italic">
                       Premium access active
                     </span>
                   </div>
@@ -228,24 +228,24 @@ const AppLayout: React.FC<LayoutProps> = ({
             </section>
           </nav>
 
-          <div className="p-4 border-t border-borderMuted">
+          <div className="border-borderMuted border-t p-4">
             <Link
               to="/settings"
-              className="flex items-center gap-3 p-2 hover:bg-bgCard rounded-brand cursor-pointer transition-colors"
+              className="hover:bg-bgCard rounded-brand flex cursor-pointer items-center gap-3 p-2 transition-colors"
             >
-              <div className="w-8 h-8 rounded-full bg-brand flex items-center justify-center font-display text-xs font-bold text-white shadow-sm relative">
+              <div className="bg-brand font-display relative flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold text-white shadow-sm">
                 {initials}
                 {isPro && (
-                  <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-brand border-2 border-bgSurface rounded-full flex items-center justify-center">
-                    <div className="w-1 h-1 bg-white rounded-full" />
+                  <div className="bg-brand border-bgSurface absolute -top-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full border-2">
+                    <div className="h-1 w-1 rounded-full bg-white" />
                   </div>
                 )}
               </div>
               <div className="overflow-hidden">
-                <div className="text-sm font-medium truncate">
+                <div className="truncate text-sm font-medium">
                   {displayName}
                 </div>
-                <div className="text-[11px] text-textDim">
+                <div className="text-textDim text-[11px]">
                   {isPro
                     ? "Pro Active"
                     : targetScore
@@ -261,32 +261,32 @@ const AppLayout: React.FC<LayoutProps> = ({
       {/* MAIN CONTENT AREA */}
       <main className={cn("flex-1 pb-24 lg:pb-0", !hideSidebar && "lg:ml-60")}>
         {!hideSidebar && (
-          <header className="sticky top-0 z-50 h-14 bg-bgMain/85 backdrop-blur-md border-b border-borderMuted px-4 lg:px-7 flex items-center justify-between safe-area-top fixed-ios">
+          <header className="bg-bgMain/85 border-borderMuted safe-area-top fixed-ios sticky top-0 z-50 flex h-14 items-center justify-between border-b px-4 backdrop-blur-md lg:px-7">
             <div className="flex items-center gap-3">
               {/* HAMBURGER (ONLY MOBILE) */}
               <button
                 onClick={() => setIsSidebarOpen(true)}
-                className="lg:hidden p-2 rounded-md hover:bg-bgCard touch-target no-double-tap"
+                className="hover:bg-bgCard touch-target no-double-tap rounded-md p-2 lg:hidden"
                 aria-label="Open menu"
               >
                 <Menu size={22} />
               </button>
 
-              <h1 className="font-display font-semibold text-base">
+              <h1 className="font-display text-base font-semibold">
                 {currentPage.charAt(0).toUpperCase() + currentPage.slice(1)}
               </h1>
             </div>
 
             <div className="flex items-center gap-2 lg:gap-3">
-              <span className="text-xs text-textDim hidden sm:inline">
+              <span className="text-textDim hidden text-xs sm:inline">
                 Hi, {displayName.split(" ")[0]}!
               </span>
               {/* Dynamic Streak Badge */}
-              <div className="bg-orange-500/10 text-orange-400 border border-orange-500/20 px-2.5 lg:px-3 py-1 rounded-full text-[10px] lg:text-xs font-medium">
+              <div className="rounded-full border border-orange-500/20 bg-orange-500/10 px-2.5 py-1 text-[10px] font-medium text-orange-400 lg:px-3 lg:text-xs">
                 🔥 {streak} day{streak !== 1 ? "s" : ""}
               </div>
               {/* Dynamic Countdown Badge - No more hardcoded 47d! */}
-              <div className="bg-brand-dim text-brand-light border border-brand/20 px-2.5 lg:px-3 py-1 rounded-full text-[10px] lg:text-xs font-medium">
+              <div className="bg-brand-dim text-brand-light border-brand/20 rounded-full border px-2.5 py-1 text-[10px] font-medium lg:px-3 lg:text-xs">
                 ⏳ {daysLeft} day{daysLeft !== 1 ? "s" : ""}
               </div>
               <ThemeToggle />
@@ -307,16 +307,16 @@ const AppLayout: React.FC<LayoutProps> = ({
 
       {/* MOBILE BOTTOM NAVIGATION */}
       {!hideSidebar && (
-        <div className="fixed bottom-0 left-0 right-0 lg:hidden z-100 bg-bgSurface/98 backdrop-blur-2xl border-t border-borderMuted/30 safe-area-bottom shadow-nav">
-          <nav className="flex items-center justify-around h-18 px-1 relative">
+        <div className="bg-bgSurface/98 border-borderMuted/30 safe-area-bottom shadow-nav fixed right-0 bottom-0 left-0 z-100 border-t backdrop-blur-2xl lg:hidden">
+          <nav className="relative flex h-18 items-center justify-around px-1">
             <Link
               to="/"
-              className="flex flex-col items-center justify-center flex-1 h-full gap-1 transition-all active:scale-90 touch-target no-double-tap"
+              className="touch-target no-double-tap flex h-full flex-1 flex-col items-center justify-center gap-1 transition-all active:scale-90"
               aria-label="Dashboard"
             >
               <div
                 className={cn(
-                  "p-2 rounded-xl transition-colors",
+                  "rounded-xl p-2 transition-colors",
                   currentPage === "dashboard" ? "bg-brand/10" : "",
                 )}
               >
@@ -344,12 +344,12 @@ const AppLayout: React.FC<LayoutProps> = ({
 
             <Link
               to="/subjects"
-              className="flex flex-col items-center justify-center flex-1 h-full gap-1 transition-all active:scale-90 touch-target no-double-tap"
+              className="touch-target no-double-tap flex h-full flex-1 flex-col items-center justify-center gap-1 transition-all active:scale-90"
               aria-label="Subjects"
             >
               <div
                 className={cn(
-                  "p-2 rounded-xl transition-colors",
+                  "rounded-xl p-2 transition-colors",
                   currentPage === "subjects" ? "bg-brand/10" : "",
                 )}
               >
@@ -376,16 +376,16 @@ const AppLayout: React.FC<LayoutProps> = ({
             </Link>
 
             {/* Prominent Center Action */}
-            <div className="flex-1 flex justify-center h-full relative">
+            <div className="relative flex h-full flex-1 justify-center">
               <Link
                 to="/quiz"
-                className="absolute -top-6 flex flex-col items-center gap-1 group"
+                className="group absolute -top-6 flex flex-col items-center gap-1"
                 aria-label="Quiz"
               >
-                <div className="bg-brand w-15 h-15 rounded-2xl rotate-45 flex items-center justify-center shadow-[0_12px_30px_rgba(91,59,255,0.4)] transition-all group-hover:scale-105 group-active:scale-95 border-2 border-bgMain">
-                  <FileText size={26} className="text-white -rotate-45" />
+                <div className="bg-brand border-bgMain flex h-15 w-15 rotate-45 items-center justify-center rounded-2xl border-2 shadow-[0_12px_30px_rgba(91,59,255,0.4)] transition-all group-hover:scale-105 group-active:scale-95">
+                  <FileText size={26} className="-rotate-45 text-white" />
                 </div>
-                <span className="text-[10px] font-black text-brand-light mt-14 uppercase tracking-tighter">
+                <span className="text-brand-light mt-14 text-[10px] font-black tracking-tighter uppercase">
                   Practice
                 </span>
               </Link>
@@ -393,12 +393,12 @@ const AppLayout: React.FC<LayoutProps> = ({
 
             <Link
               to="/performance"
-              className="flex flex-col items-center justify-center flex-1 h-full gap-1 transition-all active:scale-90 touch-target no-double-tap"
+              className="touch-target no-double-tap flex h-full flex-1 flex-col items-center justify-center gap-1 transition-all active:scale-90"
               aria-label="Performance"
             >
               <div
                 className={cn(
-                  "p-2 rounded-xl transition-colors",
+                  "rounded-xl p-2 transition-colors",
                   currentPage === "performance" ? "bg-brand/10" : "",
                 )}
               >
@@ -426,12 +426,12 @@ const AppLayout: React.FC<LayoutProps> = ({
 
             <Link
               to="/settings"
-              className="flex flex-col items-center justify-center flex-1 h-full gap-1 transition-all active:scale-90 touch-target no-double-tap"
+              className="touch-target no-double-tap flex h-full flex-1 flex-col items-center justify-center gap-1 transition-all active:scale-90"
               aria-label="Profile"
             >
               <div
                 className={cn(
-                  "p-2 rounded-xl transition-colors",
+                  "rounded-xl p-2 transition-colors",
                   currentPage === "settings" ? "bg-brand/10" : "",
                 )}
               >

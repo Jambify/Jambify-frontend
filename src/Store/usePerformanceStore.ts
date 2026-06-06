@@ -1,13 +1,13 @@
 // src/Store/usePerformanceStore.ts
 
-import { create } from 'zustand';
+import { create } from "zustand";
 import {
   submitQuizSession,
   type WeeklyActivity,
-  type TopicStat
-} from '../Services/PerformanceService';
-import { useUserStore } from './useUserStore';
-import { supabase } from '../lib/supabase';
+  type TopicStat,
+} from "../Services/PerformanceService";
+import { useUserStore } from "./useUserStore";
+import { supabase } from "../lib/supabase";
 interface PerformanceState {
   // Data
   weeklyActivity: WeeklyActivity[];
@@ -32,7 +32,7 @@ interface PerformanceState {
     timeTaken: number,
     correctCount?: number,
     totalQuestions?: number,
-    topicPerformance?: Record<string, any> // Added
+    topicPerformance?: Record<string, any>, // Added
   ) => Promise<{
     correct: number;
     total: number;
@@ -44,13 +44,13 @@ interface PerformanceState {
 
 export const usePerformanceStore = create<PerformanceState>()((set, get) => ({
   weeklyActivity: [
-    { day: 'Sun', questions: 0 },
-    { day: 'Mon', questions: 0 },
-    { day: 'Tue', questions: 0 },
-    { day: 'Wed', questions: 0 },
-    { day: 'Thu', questions: 0 },
-    { day: 'Fri', questions: 0 },
-    { day: 'Sat', questions: 0 },
+    { day: "Sun", questions: 0 },
+    { day: "Mon", questions: 0 },
+    { day: "Tue", questions: 0 },
+    { day: "Wed", questions: 0 },
+    { day: "Thu", questions: 0 },
+    { day: "Fri", questions: 0 },
+    { day: "Sat", questions: 0 },
   ],
   topicStats: [],
   mockScores: [],
@@ -80,13 +80,13 @@ export const usePerformanceStore = create<PerformanceState>()((set, get) => ({
           topicStats: [],
           mockHistory: [],
           weeklyActivity: [
-            { day: 'Sun', questions: 0 },
-            { day: 'Mon', questions: 0 },
-            { day: 'Tue', questions: 0 },
-            { day: 'Wed', questions: 0 },
-            { day: 'Thu', questions: 0 },
-            { day: 'Fri', questions: 0 },
-            { day: 'Sat', questions: 0 },
+            { day: "Sun", questions: 0 },
+            { day: "Mon", questions: 0 },
+            { day: "Tue", questions: 0 },
+            { day: "Wed", questions: 0 },
+            { day: "Thu", questions: 0 },
+            { day: "Fri", questions: 0 },
+            { day: "Sat", questions: 0 },
           ],
           totalQuestions: 0,
           avgAccuracy: 0,
@@ -105,9 +105,12 @@ export const usePerformanceStore = create<PerformanceState>()((set, get) => ({
       }));
 
       // 2. Aggregate Topic Stats from topic_performance column
-      const topicAgg: Record<string, { subject: string; correct: number; total: number }> = {};
+      const topicAgg: Record<
+        string,
+        { subject: string; correct: number; total: number }
+      > = {};
 
-      sessions.forEach(s => {
+      sessions.forEach((s) => {
         const perf = s.topic_performance || {};
         Object.entries(perf).forEach(([key, data]: [string, any]) => {
           if (!topicAgg[key]) {
@@ -118,22 +121,26 @@ export const usePerformanceStore = create<PerformanceState>()((set, get) => ({
         });
       });
 
-      const topicStats: TopicStat[] = Object.entries(topicAgg).map(([name, data]) => ({
-        id: name,
-        name: name.split(':')[1] || name,
-        subject: data.subject,
-        accuracy: Math.round((data.correct / data.total) * 100),
-        totalQuestions: data.total,
-      }));
+      const topicStats: TopicStat[] = Object.entries(topicAgg).map(
+        ([name, data]) => ({
+          id: name,
+          name: name.split(":")[1] || name,
+          subject: data.subject,
+          accuracy: Math.round((data.correct / data.total) * 100),
+          totalQuestions: data.total,
+        }),
+      );
 
       // 3. Weekly Activity (last 7 days)
       const weeklyActivity = Array(7).fill(0);
       const now = new Date();
       sessions.forEach((s) => {
         const date = new Date(s.completed_at);
-        const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+        const diffDays = Math.floor(
+          (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24),
+        );
         if (diffDays < 7) {
-          const dayIndex = (6 - diffDays); // 0=Sun...6=Sat relative to now
+          const dayIndex = 6 - diffDays; // 0=Sun...6=Sat relative to now
           weeklyActivity[dayIndex] += s.total_questions;
         }
       });
@@ -145,7 +152,8 @@ export const usePerformanceStore = create<PerformanceState>()((set, get) => ({
         mockHistory,
         topicStats,
         totalQuestions: totalQs,
-        avgAccuracy: totalQs > 0 ? Math.round((totalCorrect / totalQs) * 100) : 0,
+        avgAccuracy:
+          totalQs > 0 ? Math.round((totalCorrect / totalQs) * 100) : 0,
         isLoading: false,
       });
     } catch (error) {
@@ -156,7 +164,7 @@ export const usePerformanceStore = create<PerformanceState>()((set, get) => ({
 
   addMockScore: (score: number) => {
     set((state) => ({
-      mockScores: [...state.mockScores, score]
+      mockScores: [...state.mockScores, score],
     }));
   },
 
@@ -164,7 +172,7 @@ export const usePerformanceStore = create<PerformanceState>()((set, get) => ({
   addActivity: (day: string, count: number) => {
     set((state) => ({
       weeklyActivity: state.weeklyActivity.map((d) =>
-        d.day === day ? { ...d, questions: d.questions + count } : d
+        d.day === day ? { ...d, questions: d.questions + count } : d,
       ),
     }));
   },
@@ -173,7 +181,7 @@ export const usePerformanceStore = create<PerformanceState>()((set, get) => ({
   updateTopic: (id: string, accuracy: number) => {
     set((state) => ({
       topicStats: state.topicStats.map((t) =>
-        t.id === id ? { ...t, accuracy } : t
+        t.id === id ? { ...t, accuracy } : t,
       ),
     }));
   },
@@ -216,13 +224,13 @@ export const usePerformanceStore = create<PerformanceState>()((set, get) => ({
   reset: () => {
     set({
       weeklyActivity: [
-        { day: 'Sun', questions: 0 },
-        { day: 'Mon', questions: 0 },
-        { day: 'Tue', questions: 0 },
-        { day: 'Wed', questions: 0 },
-        { day: 'Thu', questions: 0 },
-        { day: 'Fri', questions: 0 },
-        { day: 'Sat', questions: 0 },
+        { day: "Sun", questions: 0 },
+        { day: "Mon", questions: 0 },
+        { day: "Tue", questions: 0 },
+        { day: "Wed", questions: 0 },
+        { day: "Thu", questions: 0 },
+        { day: "Fri", questions: 0 },
+        { day: "Sat", questions: 0 },
       ],
       topicStats: [],
       mockScores: [],

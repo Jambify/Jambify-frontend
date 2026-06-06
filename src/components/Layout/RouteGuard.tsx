@@ -1,12 +1,12 @@
 // src/components/Layout/RouteGuard.tsx
-import React, { useEffect, useRef, useState } from 'react';
-import { Navigate, useLocation }               from 'react-router-dom';
-import { useUserStore }                         from '../../Store/useUserStore';
-import { supabase }                             from '../../lib/supabase';
+import React, { useEffect, useRef, useState } from "react";
+import { Navigate, useLocation } from "react-router-dom";
+import { useUserStore } from "../../Store/useUserStore";
+import { supabase } from "../../lib/supabase";
 
 // ── Route categories ──────────────────────────────────────────────────────────
 // Public: no auth needed at all
-const PUBLIC_ROUTES = ['/signin', '/signup', '/verify', '/guest'];
+const PUBLIC_ROUTES = ["/signin", "/signup", "/verify", "/guest"];
 
 // Semi-protected: auth required but onboarding check is SKIPPED.
 // /onboarding and /welcome MUST be here — they render between
@@ -14,13 +14,13 @@ const PUBLIC_ROUTES = ['/signin', '/signup', '/verify', '/guest'];
 // If they're NOT here, the guard creates a redirect loop:
 //   isAuthenticated=true + onboardingComplete=false → redirect to /onboarding
 //   /onboarding renders → guard fires again → redirect to /onboarding → ∞
-const SEMI_PROTECTED = ['/onboarding', '/welcome'];
+const SEMI_PROTECTED = ["/onboarding", "/welcome"];
 
 const RouteGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { pathname }       = useLocation();
-  const isAuthenticated    = useUserStore(s => s.isAuthenticated);
-  const onboardingComplete = useUserStore(s => s.onboardingComplete);
-  const syncProfile        = useUserStore(s => s.syncProfile);
+  const { pathname } = useLocation();
+  const isAuthenticated = useUserStore((s) => s.isAuthenticated);
+  const onboardingComplete = useUserStore((s) => s.onboardingComplete);
+  const syncProfile = useUserStore((s) => s.syncProfile);
 
   // isInitialising starts TRUE so we NEVER render a redirect before we've
   // confirmed the Supabase session. Without this, a page refresh on /dashboard
@@ -34,14 +34,16 @@ const RouteGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       hasSynced.current = true;
 
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
 
         if (session?.user) {
           // Restore identity BEFORE syncProfile so syncProfile can read the id
           useUserStore.setState({
             isAuthenticated: true,
-            id:    session.user.id,
-            email: session.user.email ?? '',
+            id: session.user.id,
+            email: session.user.email ?? "",
           });
 
           // force=true bypasses the 5-second cache so we always get fresh
@@ -50,7 +52,7 @@ const RouteGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           await syncProfile(true);
         }
       } catch (err) {
-        console.error('[RouteGuard] init error:', err);
+        console.error("[RouteGuard] init error:", err);
       } finally {
         // Only NOW allow the guard to make redirect decisions
         setIsInitialising(false);
@@ -65,9 +67,9 @@ const RouteGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Keeps ANY redirect decision from firing until we have real state.
   if (isInitialising) {
     return (
-      <div className="min-h-screen bg-bgMain flex items-center justify-center">
+      <div className="bg-bgMain flex min-h-screen items-center justify-center">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-brand border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+          <div className="border-brand mx-auto mb-3 h-12 w-12 animate-spin rounded-full border-4 border-t-transparent" />
           <p className="text-textDim text-sm">Loading…</p>
         </div>
       </div>
@@ -78,8 +80,12 @@ const RouteGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   // 1. Public routes — always accessible, no auth check
   // EXCEPT: If user is authenticated AND onboarded, we redirect them AWAY from signin/signup
-  if (PUBLIC_ROUTES.some(r => pathname.startsWith(r))) {
-    if (isAuthenticated && onboardingComplete && (pathname === '/signin' || pathname === '/signup')) {
+  if (PUBLIC_ROUTES.some((r) => pathname.startsWith(r))) {
+    if (
+      isAuthenticated &&
+      onboardingComplete &&
+      (pathname === "/signin" || pathname === "/signup")
+    ) {
       return <Navigate to="/" replace />;
     }
     return <>{children}</>;
@@ -92,7 +98,7 @@ const RouteGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   // 3. Onboarding & welcome — auth required but onboarding NOT required.
   //    This must come BEFORE the onboardingComplete check below.
-  if (SEMI_PROTECTED.some(r => pathname.startsWith(r))) {
+  if (SEMI_PROTECTED.some((r) => pathname.startsWith(r))) {
     return <>{children}</>;
   }
 

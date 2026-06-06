@@ -38,9 +38,12 @@ const OptionButton: React.FC<OptionButtonProps> = ({
 
   const OUTER = {
     idle: "bg-bgSurface border-borderMuted hover:border-brand/40 hover:bg-bgCard hover:shadow-lg cursor-pointer active:scale-[0.98]",
-    selected: "bg-brand/10 border-brand cursor-pointer ring-4 ring-brand/5 shadow-brand/10 shadow-xl",
-    correct: "bg-success/10 border-success pointer-events-none shadow-success/10 shadow-xl",
-    wrong: "bg-danger/10 border-danger pointer-events-none shadow-danger/10 shadow-xl",
+    selected:
+      "bg-brand/10 border-brand cursor-pointer ring-4 ring-brand/5 shadow-brand/10 shadow-xl",
+    correct:
+      "bg-success/10 border-success pointer-events-none shadow-success/10 shadow-xl",
+    wrong:
+      "bg-danger/10 border-danger pointer-events-none shadow-danger/10 shadow-xl",
     dimmed: "bg-bgSurface border-borderMuted opacity-40 pointer-events-none",
   };
 
@@ -62,7 +65,7 @@ const OptionButton: React.FC<OptionButtonProps> = ({
       whileHover={!answered ? { x: 4 } : {}}
       onClick={onSelect}
       className={cn(
-        "group w-full flex items-center gap-4 p-4 lg:p-5 rounded-2xl border-2 text-left",
+        "group flex w-full items-center gap-4 rounded-2xl border-2 p-4 text-left lg:p-5",
         "transition-all duration-200",
         OUTER[state],
       )}
@@ -70,8 +73,8 @@ const OptionButton: React.FC<OptionButtonProps> = ({
       {/* Letter badge */}
       <span
         className={cn(
-          "w-10 h-10 lg:w-12 lg:h-12 rounded-xl flex items-center justify-center text-sm lg:text-base font-display font-black",
-          "border-2 shrink-0 transition-all duration-200",
+          "font-display flex h-10 w-10 items-center justify-center rounded-xl text-sm font-black lg:h-12 lg:w-12 lg:text-base",
+          "shrink-0 border-2 transition-all duration-200",
           LETTER_BG[state],
         )}
       >
@@ -90,16 +93,24 @@ const OptionButton: React.FC<OptionButtonProps> = ({
       </span>
 
       <div className="flex-1">
-        <span className={cn(
-          "text-sm lg:text-base font-bold transition-colors",
-          state === "selected" ? "text-brand" : state === "correct" ? "text-success" : state === "wrong" ? "text-danger" : "text-textMain"
-        )}>
+        <span
+          className={cn(
+            "text-sm font-bold transition-colors lg:text-base",
+            state === "selected"
+              ? "text-brand"
+              : state === "correct"
+                ? "text-success"
+                : state === "wrong"
+                  ? "text-danger"
+                  : "text-textMain",
+          )}
+        >
           {text}
         </span>
       </div>
 
       {!answered && (
-        <span className="hidden lg:block text-[10px] font-black text-textDim opacity-0 group-hover:opacity-100 transition-opacity uppercase tracking-tighter">
+        <span className="text-textDim hidden text-[10px] font-black tracking-tighter uppercase opacity-0 transition-opacity group-hover:opacity-100 lg:block">
           Key {LETTERS[index]}
         </span>
       )}
