@@ -5,7 +5,7 @@ import AppLayout from "../components/Layout/AppLayout";
 import { useUserStore } from "../Store/useUserStore";
 import { useExamCountdown } from "../hooks/useExamCountdown";
 import SubjectProgress from "../components/Dashboard/SubjectProgress";
-import LeaderboardCard from "../components/Dashboard/LeaderboardCard";
+// import LeaderboardCard from "../components/Dashboard/LeaderboardCard";
 import RecommendedSessions from "../components/Dashboard/RecommendedSessions";
 import DailyGoals from "../components/Dashboard/DailyGoals";
 import {
