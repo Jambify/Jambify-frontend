@@ -15,6 +15,7 @@ export interface Subject {
   total: number;
   rank: number;
   weakTopics: string[];
+  topics?: string[];
 }
 
 interface SubjectProgressDB {
@@ -52,7 +53,29 @@ const ALL_SUBJECTS_MASTER = [
   { id: "eng", name: "English", icon: "📖", color: "#7B5FFF", total: 420 },
   { id: "math", name: "Mathematics", icon: "🔢", color: "#00C896", total: 380 },
   { id: "phy", name: "Physics", icon: "⚡", color: "#FFB020", total: 310 },
-  { id: "chem", name: "Chemistry", icon: "⚗️", color: "#FF4D6D", total: 340 },
+  {
+    id: "chem",
+    name: "Chemistry",
+    icon: "⚗️",
+    color: "#FF4D6D",
+    total: 340,
+    topics: [
+      "Rates of Chemical Reactions",
+      "Industrial Chemistry",
+      "Organic Chemistry",
+      "Gases & Gas Laws",
+      "Chemical Bonding",
+      "Thermodynamics",
+      "Inorganic Chemistry",
+      "Redox Reactions",
+      "States of Matter & Matter Properties",
+      "Atomic Structure",
+      "Acids, Bases, & Salts",
+      "Electrolysis",
+      "Water Chemistry",
+      "Environmental Chemistry",
+    ],
+  },
   { id: "bio", name: "Biology", icon: "🧬", color: "#00C896", total: 290 },
   { id: "econ", name: "Economics", icon: "📊", color: "#FFB020", total: 270 },
   { id: "gov", name: "Government", icon: "🏛️", color: "#EC4899", total: 300 },
@@ -163,6 +186,7 @@ const fetchUserSubjects = async (): Promise<Subject[]> => {
       total: master.total,
       rank: rank,
       weakTopics: lowestTopic,
+      topics: (master as any).topics || [],
     };
   });
 
