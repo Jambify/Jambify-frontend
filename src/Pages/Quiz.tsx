@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
+import { useSubjectStore } from "../Store/useSubjectStore";
 import { useNavigate } from "react-router-dom";
 import AppLayout from "../components/Layout/AppLayout";
 import { useQuizStore } from "../Store/useQuizStore";
@@ -7,7 +8,6 @@ import TimerBar from "../components/Quiz/TimeBar";
 import ResultsScreen from "../components/Quiz/ResultScreen";
 import Button from "../components/ui/Button";
 import {
-  fetchTopicsBySubject,
   fetchQuestionsByTopic,
   fetchQuestionsWithFallback,
 } from "../Services/questionService";
@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 
 import { useOfflineStore } from "../Store/useOfflineStore";
+import  type { Question } from "../Types";
 
 /** Subject filter options shown on the quiz start screen with icons and colors */
 const QUIZ_SUBJECTS = [
@@ -48,14 +49,7 @@ const Quiz: React.FC = () => {
   const [showAllSubjects, setShowAllSubjects] = useState(false);
   const [showExitModal, setShowExitModal] = useState(false);
   const [showResults, setShowResults] = useState(false);
-  const [isLoadingTopics, setIsLoadingTopics] = useState(false);
-  const [availableTopics, setAvailableTopics] = useState<string[]>([]);
-  const [isLoadingQuestions, setIsLoadingQuestions] = useState(false);
-  const [loadError, setLoadError] = useState<string | null>(null);
 
-  const visibleSubjects = showAllSubjects
-    ? QUIZ_SUBJECTS
-    : QUIZ_SUBJECTS.slice(0, 6);
   const {
     questions,
     currentIndex,
@@ -70,6 +64,26 @@ const Quiz: React.FC = () => {
     reset,
   } = useQuizStore();
 
+  // Get current subjects from store to find the topics for the selected one
+  const { subjects: storeSubjects } = useSubjectStore();
+  const currentSubjectData = useMemo(() => {
+    return storeSubjects.find((s) => s.name === selectedSubject);
+  }, [selectedSubject, storeSubjects]);
+
+  const availableTopics = useMemo(() => {
+    if (currentSubjectData?.topics && currentSubjectData.topics.length > 0) {
+      return ["All", ...currentSubjectData.topics];
+    }
+    return ["All"];
+  }, [currentSubjectData]);
+
+  const [isLoadingQuestions, setIsLoadingQuestions] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  const visibleSubjects = showAllSubjects
+    ? QUIZ_SUBJECTS
+    : QUIZ_SUBJECTS.slice(0, 6);
+
   const isFinished = useQuizStore((s) => s.isFinished);
 
   // Sync results state with store
@@ -79,20 +93,9 @@ const Quiz: React.FC = () => {
     }
   }, [isFinished]);
 
-  /** Fetch topics when subject changes */
+  /** Reset topic when subject changes */
   useEffect(() => {
-    if (selectedSubject && selectedSubject !== "All") {
-      setIsLoadingTopics(true);
-      fetchTopicsBySubject(selectedSubject)
-        .then((topics) => {
-          setAvailableTopics(topics);
-          setSelectedTopic("All");
-        })
-        .finally(() => setIsLoadingTopics(false));
-    } else {
-      setAvailableTopics([]);
-      setSelectedTopic("All");
-    }
+    setSelectedTopic("All");
   }, [selectedSubject, setSelectedTopic]);
 
   /** Clean up when leaving the page */
@@ -100,7 +103,7 @@ const Quiz: React.FC = () => {
     () => () => {
       reset();
     },
-    [],
+    [reset],
   );
 
   if (isLoadingQuestions) {
@@ -128,7 +131,7 @@ const Quiz: React.FC = () => {
       const isOnline = navigator.onLine;
       const offlineStore = useOfflineStore.getState();
 
-      let qs: any[] = [];
+      let qs: Question[] = [];
 
       // Try offline first if user is offline
       if (!isOnline) {
@@ -172,7 +175,7 @@ const Quiz: React.FC = () => {
               selectedDifficulty,
             );
           }
-        } catch (err) {
+        } catch {
           throw new Error(
             "CONNECTION_ERROR: Failed to fetch questions. Please check your internet connection and try again.",
           );
@@ -196,9 +199,11 @@ const Quiz: React.FC = () => {
       }
 
       loadQuestions(qs);
-    } catch (error: any) {
+    } catch (error) {
       console.error("Failed to load quiz questions:", error);
-      setLoadError(error.message);
+      setLoadError(
+        error instanceof Error ? error.message : "An unexpected error occurred",
+      );
     } finally {
       setIsLoadingQuestions(false);
     }
@@ -438,14 +443,7 @@ const Quiz: React.FC = () => {
               )}
             </div>
 
-            {isLoadingTopics ? (
-              <div className="bg-bgSurface/30 border-borderMuted flex flex-col items-center justify-center rounded-2xl border border-dashed p-12">
-                <Loader2 className="text-brand mb-2 h-6 w-6 animate-spin" />
-                <p className="text-textDim text-[10px] tracking-tighter uppercase">
-                  Fetching Topics...
-                </p>
-              </div>
-            ) : availableTopics.length > 0 ? (
+            {availableTopics.length > 0 ? (
               <div className="custom-scrollbar grid max-h-75 grid-cols-1 gap-2 overflow-y-auto pr-2 sm:grid-cols-2">
                 <button
                   onClick={() => setSelectedTopic("All")}
@@ -542,7 +540,9 @@ const Quiz: React.FC = () => {
               {["All", "Easy", "Medium", "Hard"].map((d) => (
                 <button
                   key={d}
-                  onClick={() => setSelectedDifficulty(d as any)}
+                  onClick={() =>
+                    setSelectedDifficulty(d as "All" | "Easy" | "Medium" | "Hard")
+                  }
                   className={`rounded-xl border py-3 text-[11px] font-bold transition-all active:scale-95 ${
                     selectedDifficulty === d
                       ? d === "Easy"
