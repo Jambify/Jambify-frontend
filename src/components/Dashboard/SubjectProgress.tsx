@@ -152,7 +152,7 @@ const SubjectProgress: React.FC = () => {
                   </div>
                 </div>
               </div>
-              <div className="bg-bgSurface border-borderMuted/30 h-1.5 overflow-hidden rounded-full border shadow-inner">
+              <div className="bg-bgTrack border-borderMuted/30 h-1.5 overflow-hidden rounded-full border shadow-inner">
                 <div
                   className={cn(
                     "h-full rounded-full transition-all duration-1000 ease-out",

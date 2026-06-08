@@ -33,8 +33,8 @@ const SubjectCard: React.FC<SubjectCardProps> = ({
       className={cn(
         "bg-bgCard rounded-brand-lg overflow-hidden border transition-all duration-200",
         isExpanded
-          ? "border-white/15"
-          : "border-borderMuted hover:border-white/10",
+          ? "border-brand/20 dark:border-white/15"
+          : "border-borderMuted hover:border-brand/20 dark:hover:border-white/10",
       )}
     >
       {/* <── Card top — always visible ── */}
@@ -105,7 +105,7 @@ const SubjectCard: React.FC<SubjectCardProps> = ({
         </div>
 
         {/* <Accuracy bar */}
-        <div className="bg-bgSurface mb-1 h-1.5 overflow-hidden rounded-full">
+        <div className="bg-bgTrack mb-1 h-1.5 overflow-hidden rounded-full">
           <div
             className="h-full rounded-full transition-all duration-700"
             style={{ width: `${subject.accuracy}%`, background: subject.color }}
@@ -151,7 +151,7 @@ const SubjectCard: React.FC<SubjectCardProps> = ({
                 e.stopPropagation();
                 navigate("/performance");
               }}
-              className="rounded-brand bg-bgSurface border-borderMuted text-textMuted hover:text-textMain border px-4 py-2 text-xs font-medium transition-all hover:border-white/15"
+              className="rounded-brand bg-bgSurface border-borderMuted text-textMuted hover:text-textMain border px-4 py-2 text-xs font-medium transition-all hover:border-brand/20 dark:hover:border-white/15"
             >
               View stats
             </button>

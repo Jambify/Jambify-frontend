@@ -31,6 +31,7 @@
   --color-bgMain: var(--bgMain);
   --color-bgSurface: var(--bgSurface);
   --color-bgCard: var(--bgCard);
+  --color-bgTrack: var(--bgTrack);
 
   /* Borders */
   --color-borderMuted: var(--borderMuted);
@@ -46,7 +47,7 @@
   --radius-brand-xl: 24px;
 
   /* Box shadows */
-  --shadow-brand: 0 4px 24px rgba(91, 59, 255, 0.35);
+  --shadow-brand: var(--shadow-brand-val);
   --shadow-success: 0 4px 16px rgba(0, 200, 150, 0.25);
   --shadow-danger: 0 4px 16px rgba(255, 77, 109, 0.25);
   --shadow-card: var(--shadow-card-val);
@@ -67,12 +68,15 @@
   --bgMain: #0a0a0f;
   --bgSurface: #111118;
   --bgCard: #18181f;
+  --bgTrack: rgba(255, 255, 255, 0.06);
   --borderMuted: rgba(255, 255, 255, 0.07);
   --textMain: #f0eff8;
   --textMuted: #9896b0;
   --textDim: #5c5a72;
   --shadow-card-val: 0 4px 32px rgba(0, 0, 0, 0.4);
   --shadow-nav-val: 0 -10px 40px rgba(0, 0, 0, 0.5);
+  --shadow-brand-val: 0 4px 24px rgba(91, 59, 255, 0.35);
+  --cd-opacity: 0.08;
   --scrollbar-thumb: rgba(255, 255, 255, 0.08);
   --scrollbar-thumb-hover: rgba(255, 255, 255, 0.15);
 }
@@ -116,40 +120,44 @@
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 [data-theme="light"] {
   /* ── Backgrounds ──────────────────────────────────────
-     Page bg is a bright, airy indigo-tinted white. This
-     gives it a "bright" energetic feel without being
-     sterile pure white. Cards are pure white to pop.     */
-  --bg: #f5f8ff; /* Very light Indigo-Blue — bright & airy */
-  --bgDeep: #e0e7ff; /* Indigo 100 — visible depth, hover     */
-  --bgMain: #f5f8ff; /* Same as bg                           */
-  --bgSurface: #eef2ff; /* Indigo 50 — sidebar, input bg        */
-  --bgCard: #fafbff; /* Slightly off-white Indigo — cards pop without glare */
+     Warm lavender-white base that complements the #5B3BFF
+     brand. Cards stay pure white to lift off the surface.
+     Much warmer and more inviting than cold indigo-blue.  */
+  --bg: #faf8ff; /* Warm lavender-white — inviting, not clinical */
+  --bgDeep: #ede5ff; /* Gentle purple depth — hover states       */
+  --bgMain: #faf8ff; /* Matches bg for consistency               */
+  --bgSurface: #f3eeff; /* Soft lilac surface — sidebar warmth      */
+  --bgCard: #ffffff; /* Pure white — cards pop against lavender   */
+  --bgTrack: rgba(91, 59, 255, 0.08); /* Dedicated progress bar track */
 
   /* ── Borders ──────────────────────────────────────────
-     Subtle borders using a transparent indigo to blend
-     perfectly with the bright theme.                      */
-  --borderMuted: rgba(91, 59, 255, 0.08); /* clean & modern      */
+     Slightly more defined edges for better card separation
+     on the warm background.                               */
+  --borderMuted: rgba(91, 59, 255, 0.10); /* clean & defined     */
 
   /* ── Text ─────────────────────────────────────────────
-     Modern Indigo-based hierarchy. Sharp but comfortable.
-     textMain: Indigo 950 — headings and primary labels
-     textMuted: Indigo 700 — body text and descriptions
-     textDim: Indigo 400 — timestamps and hints             */
-  --textMain: #1e1b4b; /* Deep Indigo 950                      */
-  --textMuted: #4338ca; /* Vibrant Indigo 700                   */
-  --textDim: #818cf8; /* Soft Indigo 400                      */
+     Purple-black hierarchy — warmer than neutral grays.
+     textMain: Deep purple-black — headings & primary labels
+     textMuted: Mid purple-gray — body text & descriptions
+     textDim: Soft purple-gray — timestamps & hints         */
+  --textMain: #1a1625; /* Deep purple-black — warm & readable    */
+  --textMuted: #5b5470; /* Mid purple-gray — clear hierarchy      */
+  --textDim: #7d789a; /* Soft purple-gray — subtle hints         */
 
   /* ── Shadows ──────────────────────────────────────────
-     Crisp, multi-layered shadows with a hint of indigo. */
+     Slightly deeper, layered shadows for card lift.       */
   --shadow-card-val:
-    0 1px 2px rgba(91, 59, 255, 0.04), 0 4px 12px rgba(91, 59, 255, 0.06);
+    0 1px 3px rgba(91, 59, 255, 0.05), 0 6px 20px rgba(91, 59, 255, 0.07);
 
   --shadow-nav-val:
-    0 -4px 12px rgba(91, 59, 255, 0.02), 0 -8px 24px rgba(91, 59, 255, 0.04);
+    0 -4px 12px rgba(91, 59, 255, 0.03), 0 -8px 24px rgba(91, 59, 255, 0.05);
+
+  --shadow-brand-val: 0 4px 20px rgba(91, 59, 255, 0.20);
+  --cd-opacity: 0.16;
 
   /* ── Scrollbar ────────────────────────────────────────  */
-  --scrollbar-thumb: rgba(91, 59, 255, 0.12);
-  --scrollbar-thumb-hover: rgba(91, 59, 255, 0.24);
+  --scrollbar-thumb: rgba(91, 59, 255, 0.15);
+  --scrollbar-thumb-hover: rgba(91, 59, 255, 0.28);
 }
 
 /* ── Light mode component overrides ──────────────────────
@@ -162,9 +170,60 @@
   background-color: var(--bgSurface);
 }
 
-/* Bottom nav in light mode — needs a white base */
+/* Bottom nav in light mode — needs a white base with subtle shadow */
 [data-theme="light"] .bg-bgSurface\/98 {
-  background-color: rgba(238, 242, 255, 0.98);
+  background-color: rgba(255, 255, 255, 0.95) !important;
+  box-shadow: 0 -1px 0 rgba(91, 59, 255, 0.06),
+              0 -4px 16px rgba(91, 59, 255, 0.04) !important;
+}
+
+/* Card elevation in light mode */
+[data-theme="light"] .bg-bgCard {
+  box-shadow: 
+    0 0 0 1px rgba(91, 59, 255, 0.04),
+    0 1px 3px rgba(91, 59, 255, 0.04),
+    0 4px 16px rgba(91, 59, 255, 0.03) !important;
+}
+
+/* Sticky header in light mode */
+[data-theme="light"] header.sticky {
+  background-color: rgba(250, 248, 255, 0.92) !important; /* Slightly more opaque */
+  border-bottom-color: rgba(91, 59, 255, 0.06) !important;
+}
+
+/* Desktop sidebar shadow in light mode */
+[data-theme="light"] aside.fixed {
+  border-right-color: rgba(91, 59, 255, 0.08) !important;
+  box-shadow: 1px 0 8px rgba(91, 59, 255, 0.04) !important;
+}
+
+/* Stat card icon backgrounds in light mode */
+[data-theme="light"] .bg-brand\/10 { background-color: rgba(91, 59, 255, 0.08) !important; }
+[data-theme="light"] .bg-success\/10 { background-color: rgba(0, 200, 150, 0.08) !important; }
+[data-theme="light"] .bg-blue-500\/10 { background-color: rgba(59, 130, 246, 0.08) !important; }
+[data-theme="light"] .bg-orange-500\/10 { background-color: rgba(249, 115, 22, 0.08) !important; }
+
+/* Active states for buttons in light mode */
+[data-theme="light"] button:active {
+  background-color: rgba(91, 59, 255, 0.05);
+}
+
+/* Ambient glow in light mode */
+[data-theme="light"] .ambient-glow {
+  background: radial-gradient(ellipse 70% 80% at 100% 50%, rgba(91, 59, 255, 0.07) 0%, rgba(91, 59, 255, 0.03) 40%, transparent 70%) !important;
+}
+
+/* Font weight adjustments for light mode readability */
+[data-theme="light"] .font-display.font-black {
+  font-weight: 800;
+}
+[data-theme="light"] .font-display.font-bold {
+  font-weight: 600;
+}
+
+/* Subtle background texture for light mode */
+[data-theme="light"] body {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.015'/%3E%3C/svg%3E");
 }
 
 /* Input fields — slightly off-white so they're distinct from cards */
@@ -183,13 +242,13 @@
 
 /* Selection highlight */
 [data-theme="light"] ::selection {
-  background: rgba(91, 59, 255, 0.15);
+  background: rgba(91, 59, 255, 0.20);
   color: var(--textMain);
 }
 
 /* Backdrop blur elements (header, modals) */
 [data-theme="light"] .backdrop-blur-md {
-  background-color: rgba(245, 248, 255, 0.88);
+  background-color: rgba(250, 248, 255, 0.88);
 }
 
 /* Scrollbar track in light mode */
@@ -214,27 +273,6 @@
     box-shadow 200ms cubic-bezier(0.4, 0, 0.2, 1),
     fill 200ms cubic-bezier(0.4, 0, 0.2, 1),
     stroke 200ms cubic-bezier(0.4, 0, 0.2, 1) !important;
-}
-
-/* ── Network Status Banners ── */
-.network-banner-offline {
-  background-color: #ff4d6d !important;
-  color: #ffffff !important;
-}
-.network-banner-online {
-  background-color: #00c896 !important;
-  color: #ffffff !important;
-}
-
-[data-theme="light"] .network-banner-offline {
-  background-color: #ff4d6d !important;
-  color: #ffffff !important;
-  box-shadow: 0 10px 25px -5px rgba(255, 77, 109, 0.4);
-}
-[data-theme="light"] .network-banner-online {
-  background-color: #00c896 !important;
-  color: #ffffff !important;
-  box-shadow: 0 10px 25px -5px rgba(0, 200, 150, 0.4);
 }
 
 /* ── Preload guard — suppresses ALL transitions on first paint ── */

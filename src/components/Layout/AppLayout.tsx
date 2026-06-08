@@ -382,7 +382,7 @@ const AppLayout: React.FC<LayoutProps> = ({
                 className="group absolute -top-6 flex flex-col items-center gap-1"
                 aria-label="Quiz"
               >
-                <div className="bg-brand border-bgMain flex h-15 w-15 rotate-45 items-center justify-center rounded-2xl border-2 shadow-[0_12px_30px_rgba(91,59,255,0.4)] transition-all group-hover:scale-105 group-active:scale-95">
+                <div className="bg-brand border-bgCard dark:border-bgMain flex h-15 w-15 rotate-45 items-center justify-center rounded-2xl border-2 shadow-[0_12px_30px_rgba(91,59,255,0.4)] transition-all group-hover:scale-105 group-active:scale-95">
                   <FileText size={26} className="-rotate-45 text-white" />
                 </div>
                 <span className="text-brand-light mt-14 text-[10px] font-black tracking-tighter uppercase">
