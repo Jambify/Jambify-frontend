@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { useSubjectStore } from "../Store/useSubjectStore";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import AppLayout from "../components/Layout/AppLayout";
 import { useQuizStore } from "../Store/useQuizStore";
 import QuestionCard from "../components/Quiz/QuestionCard";
@@ -22,7 +21,7 @@ import {
 } from "lucide-react";
 
 import { useOfflineStore } from "../Store/useOfflineStore";
-import  type { Question } from "../Types";
+import type { Question } from "../Types";
 
 /** Subject filter options shown on the quiz start screen with icons and colors */
 const QUIZ_SUBJECTS = [
@@ -41,10 +40,13 @@ const QUIZ_SUBJECTS = [
   { name: "History", icon: "📜", color: "from-amber-700 to-orange-900" },
   { name: "Geography", icon: "🌍", color: "from-blue-400 to-cyan-600" },
   { name: "CRS", icon: "✝️", color: "from-indigo-400 to-blue-600" },
+  { name: "IRS", icon: "🌙", color: "from-emerald-600 to-green-700" },
+  { name: "Commerce", icon: "💼", color: "from-amber-500 to-orange-600" },
 ];
 
 const Quiz: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showAllSubjects, setShowAllSubjects] = useState(false);
   const [showExitModal, setShowExitModal] = useState(false);
@@ -62,29 +64,117 @@ const Quiz: React.FC = () => {
     setSelectedDifficulty,
     loadQuestions,
     reset,
+    isFinished,
   } = useQuizStore();
 
-  // Get current subjects from store to find the topics for the selected one
-  const { subjects: storeSubjects } = useSubjectStore();
+  // ── Handle Incoming Navigation Parameters ───────────────────
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const subjectParam = params.get("subject");
+    const topicParam = params.get("topic");
+
+    if (subjectParam) {
+      const decodedSubject = decodeURIComponent(subjectParam);
+      // Only set if it's different to avoid loops
+      if (selectedSubject !== decodedSubject) {
+        setSelectedSubject(decodedSubject);
+      }
+    }
+    if (topicParam) {
+      const decodedTopic = decodeURIComponent(topicParam);
+      if (selectedTopic !== decodedTopic) {
+        setSelectedTopic(decodedTopic);
+      }
+    }
+  }, [location.search, setSelectedSubject, setSelectedTopic, selectedSubject, selectedTopic]);
+
+  // Use a stable reference to the master subjects with their topics
+  const subjectsMaster = useMemo(() => [
+    { name: "English", topics: [] },
+    { name: "Mathematics", topics: [] },
+    {
+      name: "Physics",
+      topics: [
+        "Mechanics",
+        "Thermal Physics",
+        "Optics",
+        "Electricity and Magnetism",
+        "Waves",
+        "Modern Physics",
+      ],
+    },
+    {
+      name: "Chemistry",
+      topics: [
+        "Rates of Chemical Reactions",
+        "Industrial Chemistry",
+        "Organic Chemistry",
+        "Gases & Gas Laws",
+        "Chemical Bonding",
+        "Thermodynamics",
+        "Inorganic Chemistry",
+        "Redox Reactions",
+        "States of Matter & Matter Properties",
+        "Atomic Structure",
+        "Acids, Bases, & Salts",
+        "Electrolysis",
+        "Water Chemistry",
+        "Environmental Chemistry",
+      ],
+    },
+    {
+      name: "Biology",
+      topics: [
+        "Adaptation",
+        "Cell Biology",
+        "Genetics",
+        "Ecology",
+        "Evolution",
+        "Circulatory System",
+        "Plant Biology",
+        "Public Health",
+      ],
+    },
+    { name: "Economics", topics: [] },
+    { name: "Government", topics: [] },
+    { name: "Literature in English", topics: [] },
+    { name: "History", topics: [] },
+    { name: "Geography", topics: [] },
+    { name: "CRS", topics: [] },
+    { name: "IRS", topics: [] },
+    { name: "Commerce", topics: [] },
+  ], []);
+
   const currentSubjectData = useMemo(() => {
-    return storeSubjects.find((s) => s.name === selectedSubject);
-  }, [selectedSubject, storeSubjects]);
+    return subjectsMaster.find((s) => s.name === selectedSubject);
+  }, [selectedSubject, subjectsMaster]);
 
   const availableTopics = useMemo(() => {
     if (currentSubjectData?.topics && currentSubjectData.topics.length > 0) {
-      return ["All", ...currentSubjectData.topics];
+      return currentSubjectData.topics.filter(t => t !== "All");
     }
-    return ["All"];
+    return [];
   }, [currentSubjectData]);
 
   const [isLoadingQuestions, setIsLoadingQuestions] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
-  const visibleSubjects = showAllSubjects
-    ? QUIZ_SUBJECTS
-    : QUIZ_SUBJECTS.slice(0, 6);
+  // ── Reorder Subjects based on selection ───────────────────
+  const sortedQuizSubjects = useMemo(() => {
+    if (!selectedSubject || selectedSubject === "All") return QUIZ_SUBJECTS;
+    
+    // Find the selected subject
+    const selected = QUIZ_SUBJECTS.find(s => s.name === selectedSubject);
+    if (!selected) return QUIZ_SUBJECTS;
 
-  const isFinished = useQuizStore((s) => s.isFinished);
+    // Filter out the selected one and put it at the start
+    const remaining = QUIZ_SUBJECTS.filter(s => s.name !== selectedSubject);
+    return [selected, ...remaining];
+  }, [selectedSubject]);
+
+  const visibleSubjects = showAllSubjects
+    ? sortedQuizSubjects
+    : sortedQuizSubjects.slice(0, 6);
 
   // Sync results state with store
   useEffect(() => {
@@ -93,17 +183,21 @@ const Quiz: React.FC = () => {
     }
   }, [isFinished]);
 
-  /** Reset topic when subject changes */
+  /** Reset topic when subject changes, UNLESS coming from a URL param */
   useEffect(() => {
-    setSelectedTopic("All");
-  }, [selectedSubject, setSelectedTopic]);
+    const params = new URLSearchParams(location.search);
+    if (!params.get("topic")) {
+      setSelectedTopic("All");
+    }
+  }, [selectedSubject, setSelectedTopic, location.search]);
 
   /** Clean up when leaving the page */
   useEffect(
     () => () => {
-      reset();
+      // Removed reset() from here to allow session persistence on refresh.
+      // Resetting is now handled by the user explicitly finishing or exiting the quiz.
     },
-    [reset],
+    [],
   );
 
   if (isLoadingQuestions) {
@@ -372,7 +466,7 @@ const Quiz: React.FC = () => {
 
           {/* 📱 Mobile Scrollable List */}
           <div className="scrollbar-none flex gap-2 overflow-x-auto pb-2 sm:hidden">
-            {QUIZ_SUBJECTS.map((s) => (
+            {sortedQuizSubjects.map((s) => (
               <button
                 key={s.name}
                 onClick={() => setSelectedSubject(s.name)}
@@ -436,96 +530,79 @@ const Quiz: React.FC = () => {
                 <Layers size={14} className="text-brand" />
                 2. Choose Topic
               </p>
-              {availableTopics.length > 0 && (
-                <span className="bg-brand/10 text-brand rounded-full px-2 py-0.5 text-[10px] font-bold">
-                  {availableTopics.length} Topics Found
-                </span>
-              )}
+              <span className="bg-brand/10 text-brand rounded-full px-2 py-0.5 text-[10px] font-bold">
+                {availableTopics.length + 1} Topics Found
+              </span>
             </div>
 
-            {availableTopics.length > 0 ? (
-              <div className="custom-scrollbar grid max-h-75 grid-cols-1 gap-2 overflow-y-auto pr-2 sm:grid-cols-2">
+            <div className="custom-scrollbar grid max-h-75 grid-cols-1 gap-2 overflow-y-auto pr-2 sm:grid-cols-2">
+              <button
+                onClick={() => setSelectedTopic("All")}
+                className={`relative overflow-hidden rounded-xl border px-4 py-4 text-left text-xs font-bold transition-all ${
+                  selectedTopic === "All"
+                    ? "bg-brand/10 border-brand text-brand ring-brand/30 ring-1"
+                    : "bg-bgSurface text-textDim border-borderMuted hover:border-brand/30 hover:bg-bgCard"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`flex h-8 w-8 items-center justify-center rounded-lg text-lg ${selectedTopic === "All" ? "bg-brand text-white" : "bg-bgDeep text-textDim"}`}
+                  >
+                    🎯
+                  </div>
+                  <div>
+                    <p
+                      className={
+                        selectedTopic === "All"
+                          ? "text-brand"
+                          : "text-textMain"
+                      }
+                    >
+                      General (Mix)
+                    </p>
+                    <p className="text-[10px] font-medium opacity-60">
+                      All available topics
+                    </p>
+                  </div>
+                </div>
+                {selectedTopic === "All" && (
+                  <div className="bg-brand absolute top-1/2 right-3 h-1.5 w-1.5 -translate-y-1/2 animate-pulse rounded-full" />
+                )}
+              </button>
+
+              {availableTopics.map((topic) => (
                 <button
-                  onClick={() => setSelectedTopic("All")}
+                  key={topic}
+                  onClick={() => setSelectedTopic(topic)}
                   className={`relative overflow-hidden rounded-xl border px-4 py-4 text-left text-xs font-bold transition-all ${
-                    selectedTopic === "All"
+                    selectedTopic === topic
                       ? "bg-brand/10 border-brand text-brand ring-brand/30 ring-1"
                       : "bg-bgSurface text-textDim border-borderMuted hover:border-brand/30 hover:bg-bgCard"
                   }`}
                 >
                   <div className="flex items-center gap-3">
                     <div
-                      className={`flex h-8 w-8 items-center justify-center rounded-lg text-lg ${selectedTopic === "All" ? "bg-brand text-white" : "bg-bgDeep text-textDim"}`}
+                      className={`flex h-8 w-8 items-center justify-center rounded-lg text-lg ${selectedTopic === topic ? "bg-brand text-white" : "bg-bgDeep text-textDim"}`}
                     >
-                      🎯
+                      <Sparkles size={14} />
                     </div>
                     <div>
                       <p
-                        className={
-                          selectedTopic === "All"
-                            ? "text-brand"
-                            : "text-textMain"
-                        }
+                        className={`line-clamp-1 ${selectedTopic === topic ? "text-brand" : "text-textMain"}`}
                       >
-                        General (Mix)
+                        {topic}
                       </p>
                       <p className="text-[10px] font-medium opacity-60">
-                        All available topics
+                        Specific practice
                       </p>
                     </div>
                   </div>
-                  {selectedTopic === "All" && (
+                  {selectedTopic === topic && (
                     <div className="bg-brand absolute top-1/2 right-3 h-1.5 w-1.5 -translate-y-1/2 animate-pulse rounded-full" />
                   )}
                 </button>
-
-                {availableTopics.map((topic) => (
-                  <button
-                    key={topic}
-                    onClick={() => setSelectedTopic(topic)}
-                    className={`relative overflow-hidden rounded-xl border px-4 py-4 text-left text-xs font-bold transition-all ${
-                      selectedTopic === topic
-                        ? "bg-brand/10 border-brand text-brand ring-brand/30 ring-1"
-                        : "bg-bgSurface text-textDim border-borderMuted hover:border-brand/30 hover:bg-bgCard"
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div
-                        className={`flex h-8 w-8 items-center justify-center rounded-lg text-lg ${selectedTopic === topic ? "bg-brand text-white" : "bg-bgDeep text-textDim"}`}
-                      >
-                        <Sparkles size={14} />
-                      </div>
-                      <div>
-                        <p
-                          className={`line-clamp-1 ${selectedTopic === topic ? "text-brand" : "text-textMain"}`}
-                        >
-                          {topic}
-                        </p>
-                        <p className="text-[10px] font-medium opacity-60">
-                          Specific practice
-                        </p>
-                      </div>
-                    </div>
-                    {selectedTopic === topic && (
-                      <div className="bg-brand absolute top-1/2 right-3 h-1.5 w-1.5 -translate-y-1/2 animate-pulse rounded-full" />
-                    )}
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <div className="bg-bgSurface/30 border-borderMuted rounded-2xl border border-dashed p-8 text-center">
-                <div className="bg-bgDeep mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full">
-                  <Layers size={20} className="text-textDim" />
-                </div>
-                <p className="text-textMain mb-1 text-sm font-bold">
-                  No Topics Found
-                </p>
-                <p className="text-textDim text-xs">
-                  We're still updating the database for {selectedSubject}. You
-                  can play in "General" mode!
-                </p>
-              </div>
-            )}
+              ))}
+            </div>
           </div>
         )}
 

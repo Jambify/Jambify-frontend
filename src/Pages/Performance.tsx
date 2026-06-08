@@ -5,7 +5,6 @@ import { useNavigate } from "react-router-dom";
 import AppLayout from "../components/Layout/AppLayout";
 import { usePerformanceStore } from "../Store/usePerformanceStore";
 import { useUserStore } from "../Store/useUserStore";
-import { useQuizStore } from "../Store/useQuizStore";
 import WeeklyChart from "../components/Performance/WeeklyChart";
 import TopicStats from "../components/Performance/TopicStats";
 import PageLoader from "../components/ui/PageLoader";
@@ -178,8 +177,7 @@ const Performance: React.FC = () => {
                 <button
                   key={s.name}
                   onClick={() => {
-                    useQuizStore.getState().setSelectedSubject(s.name);
-                    navigate("/quiz");
+                    navigate(`/quiz?subject=${encodeURIComponent(s.name)}`);
                   }}
                   className="rounded-brand-2xl bg-bgCard border-borderMuted hover:border-brand/40 group flex flex-col items-center gap-4 border p-5 shadow-sm transition-all hover:shadow-md active:scale-95"
                 >

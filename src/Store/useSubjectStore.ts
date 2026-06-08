@@ -52,7 +52,21 @@ interface SubjectState {
 const ALL_SUBJECTS_MASTER = [
   { id: "eng", name: "English", icon: "📖", color: "#7B5FFF", total: 420 },
   { id: "math", name: "Mathematics", icon: "🔢", color: "#00C896", total: 380 },
-  { id: "phy", name: "Physics", icon: "⚡", color: "#FFB020", total: 310 },
+  {
+    id: "phy",
+    name: "Physics",
+    icon: "⚡",
+    color: "#FFB020",
+    total: 310,
+    topics: [
+      "Mechanics",
+      "Thermal Physics",
+      "Optics",
+      "Electricity and Magnetism",
+      "Waves",
+      "Modern Physics",
+    ],
+  },
   {
     id: "chem",
     name: "Chemistry",
@@ -76,11 +90,29 @@ const ALL_SUBJECTS_MASTER = [
       "Environmental Chemistry",
     ],
   },
-  { id: "bio", name: "Biology", icon: "🧬", color: "#00C896", total: 290 },
+  {
+    id: "bio",
+    name: "Biology",
+    icon: "🧬",
+    color: "#00C896",
+    total: 290,
+    topics: [
+      "Adaptation",
+      "Cell Biology",
+      "Genetics",
+      "Ecology",
+      "Evolution",
+      "Circulatory System",
+      "Plant Biology",
+      "Public Health",
+    ],
+  },
   { id: "econ", name: "Economics", icon: "📊", color: "#FFB020", total: 270 },
   { id: "gov", name: "Government", icon: "🏛️", color: "#EC4899", total: 300 },
-  { id: "lit", name: "Literature", icon: "📚", color: "#F97316", total: 300 },
-  { id: "crs", name: "CRS/IRS", icon: "✝️", color: "#A855F7", total: 250 },
+  { id: "lit", name: "Literature in English", icon: "📚", color: "#F97316", total: 300 },
+  { id: "crs", name: "CRS", icon: "✝️", color: "#A855F7", total: 250 },
+  { id: "irs", name: "IRS", icon: "🌙", color: "#00C896", total: 250 },
+  { id: "com", name: "Commerce", icon: "💼", color: "#FFB020", total: 300 },
 ];
 
 // Map subject combo ID to list of subject names (matches your onboarding)
@@ -88,7 +120,9 @@ const SUBJECT_COMBO_MAP: Record<string, string[]> = {
   medicine: ["English", "Biology", "Chemistry", "Physics"],
   engineering: ["English", "Mathematics", "Physics", "Chemistry"],
   "social-sci": ["English", "Mathematics", "Economics", "Government"],
-  law: ["English", "Literature", "Government", "CRS/IRS"],
+  law: ["English", "Literature in English", "Government", "CRS"],
+  art: ["English", "Literature in English", "Government", "CRS"],
+  commerce: ["English", "Mathematics", "Economics", "Commerce"],
 };
 
 // Map subject name to master subject object
@@ -101,8 +135,10 @@ const getSubjectFromName = (name: string) => {
     Biology: ALL_SUBJECTS_MASTER.find((s) => s.name === "Biology"),
     Economics: ALL_SUBJECTS_MASTER.find((s) => s.name === "Economics"),
     Government: ALL_SUBJECTS_MASTER.find((s) => s.name === "Government"),
-    Literature: ALL_SUBJECTS_MASTER.find((s) => s.name === "Literature"),
-    "CRS/IRS": ALL_SUBJECTS_MASTER.find((s) => s.name === "CRS/IRS"),
+    "Literature in English": ALL_SUBJECTS_MASTER.find((s) => s.name === "Literature in English"),
+    CRS: ALL_SUBJECTS_MASTER.find((s) => s.name === "CRS"),
+    IRS: ALL_SUBJECTS_MASTER.find((s) => s.name === "IRS"),
+    Commerce: ALL_SUBJECTS_MASTER.find((s) => s.name === "Commerce"),
   };
   return nameMap[name];
 };

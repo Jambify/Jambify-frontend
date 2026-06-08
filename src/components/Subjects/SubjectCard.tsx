@@ -41,15 +41,21 @@ const SubjectCard: React.FC<SubjectCardProps> = ({
       <div className="cursor-pointer p-5" onClick={onToggle}>
         {/* <Header row */}
         <div className="mb-4 flex items-start justify-between gap-3">
-          <div className="flex items-center gap-3">
+          <div 
+            className="flex items-center gap-3 group/sub cursor-pointer"
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/quiz?subject=${encodeURIComponent(subject.name)}`);
+            }}
+          >
             <div
-              className="rounded-brand flex h-11 w-11 shrink-0 items-center justify-center text-xl"
+              className="rounded-brand flex h-11 w-11 shrink-0 items-center justify-center text-xl transition-transform group-hover/sub:scale-110"
               style={{ background: `${subject.color}18` }}
             >
               {subject.icon}
             </div>
             <div>
-              <h3 className="font-display text-base font-semibold tracking-tight">
+              <h3 className="font-display text-base font-semibold tracking-tight group-hover/sub:text-brand transition-colors">
                 {subject.name}
               </h3>
               <p className="text-textDim mt-0.5 text-[11px]">
@@ -130,7 +136,13 @@ const SubjectCard: React.FC<SubjectCardProps> = ({
                 <div className="bg-danger h-1 w-1 rounded-full"></div>
                 Lowest Topic
               </p>
-              <TopicList topics={subject.weakTopics} color={subject.color} />
+              <TopicList 
+                topics={subject.weakTopics} 
+                color={subject.color} 
+                onTopicClick={(topic) => {
+                  navigate(`/quiz?subject=${encodeURIComponent(subject.name)}&topic=${encodeURIComponent(topic)}`);
+                }}
+              />
             </div>
           )}
           {/* 
@@ -139,7 +151,7 @@ const SubjectCard: React.FC<SubjectCardProps> = ({
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                navigate("/quiz");
+                navigate(`/quiz?subject=${encodeURIComponent(subject.name)}`);
               }}
               className="rounded-brand flex-1 py-2 text-xs font-medium text-white transition-all active:scale-[0.98]"
               style={{ background: subject.color }}

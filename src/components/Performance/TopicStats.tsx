@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import { usePerformanceStore } from "../../Store/usePerformanceStore";
 import { useUserStore } from "../../Store/useUserStore";
-import { useQuizStore } from "../../Store/useQuizStore";
 import { useNavigate } from "react-router-dom";
 import { cn } from "../../lib/utils/utils";
 import { ArrowRight } from "lucide-react";
@@ -14,7 +13,6 @@ const TopicStats: React.FC = () => {
   const navigate = useNavigate();
   const { topicStats, isLoading } = usePerformanceStore();
   const { subjectCombo } = useUserStore();
-  const { setSelectedSubject, setSelectedTopic } = useQuizStore();
   const [filter, setFilter] = useState<Filter>("all");
   const [showAll, setShowAll] = useState(false);
 
@@ -41,9 +39,7 @@ const TopicStats: React.FC = () => {
   const hasMore = visibleTopics.length > 5;
 
   const handleTopicClick = (t: any) => {
-    setSelectedSubject(t.subject);
-    setSelectedTopic(t.name);
-    navigate("/quiz");
+    navigate(`/quiz?subject=${encodeURIComponent(t.subject)}&topic=${encodeURIComponent(t.name)}`);
   };
 
   const getBarColor = (acc: number) => {

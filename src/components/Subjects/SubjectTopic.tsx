@@ -1,11 +1,13 @@
 import React from "react";
+import { cn } from "../../lib/utils/utils";
 
 interface TopicListProps {
   topics: string[];
   color: string;
+  onTopicClick?: (topic: string) => void;
 }
 
-const TopicList: React.FC<TopicListProps> = ({ topics, color }) => {
+const TopicList: React.FC<TopicListProps> = ({ topics, color, onTopicClick }) => {
   if (topics.length === 0) return null;
 
   return (
@@ -13,7 +15,11 @@ const TopicList: React.FC<TopicListProps> = ({ topics, color }) => {
       {topics.map((topic) => (
         <div
           key={topic}
-          className="bg-bgSurface rounded-brand border-borderMuted flex items-center gap-2.5 border px-3 py-2"
+          onClick={() => onTopicClick?.(topic)}
+          className={cn(
+            "bg-bgSurface rounded-brand border-borderMuted flex items-center gap-2.5 border px-3 py-2 transition-all",
+            onTopicClick && "hover:border-brand/40 hover:bg-bgCard cursor-pointer active:scale-[0.98]"
+          )}
         >
           {/* <Colour dot */}
           <span

@@ -122,7 +122,11 @@ const SubjectProgress: React.FC = () => {
           if (filter === "weak" && weakTopics.length === 0) return null;
 
           return (
-            <div key={subj} className="group/item">
+            <div
+              key={subj}
+              className="group/item cursor-pointer"
+              onClick={() => navigate(`/quiz?subject=${encodeURIComponent(subj)}`)}
+            >
               <div className="mb-2 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="bg-bgSurface border-borderMuted flex h-8 w-8 items-center justify-center rounded-lg border text-lg">
