@@ -797,11 +797,44 @@ const GuestMockExam: React.FC = () => {
             </div>
 
             {error && (
-              <div className="bg-danger/15 border-danger/30 text-danger rounded-2xl mb-6 flex items-start gap-3 border p-5 text-sm shadow-sm dark:bg-danger/10">
-                <Info size={20} className="mt-0.5 shrink-0" />
-                <div className="flex-1">
-                  <p className="font-bold tracking-tight">System Alert</p>
-                  <p className="opacity-90">{error}</p>
+              <div
+                className={cn(
+                  "animate-in fade-in slide-in-from-top-4 mb-6 rounded-2xl border p-5 text-sm shadow-sm duration-300",
+                  error.includes("CONNECTION_ERROR") ||
+                    error.includes("OFFLINE")
+                    ? "network-error-alert"
+                    : "bg-danger/15 border-danger/30 text-danger dark:bg-danger/10",
+                )}
+              >
+                <div className="flex items-start gap-3">
+                  <div
+                    className={cn(
+                      "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl shadow-sm",
+                      error.includes("CONNECTION_ERROR") ||
+                        error.includes("OFFLINE")
+                        ? "bg-warn/20 text-warn"
+                        : "bg-danger/20 text-danger",
+                    )}
+                  >
+                    <Info size={20} />
+                  </div>
+                  <div className="flex-1">
+                    <p
+                      className={cn(
+                        "font-bold tracking-tight",
+                        error.includes("CONNECTION_ERROR") ||
+                          error.includes("OFFLINE")
+                          ? "text-amber-900 dark:text-amber-400"
+                          : "text-danger",
+                      )}
+                    >
+                      {error.includes("CONNECTION_ERROR") ||
+                      error.includes("OFFLINE")
+                        ? "Connection Alert"
+                        : "System Alert"}
+                    </p>
+                    <p className="mt-1 opacity-90">{error}</p>
+                  </div>
                 </div>
               </div>
             )}

@@ -198,6 +198,19 @@
 }
 
 /* Stat card icon backgrounds in light mode */
+
+/* ── Network Error Class ── */
+.network-error-alert {
+  background-color: #fff9f0 !important; /* Very light amber/cream for light mode */
+  border-color: #ffb020 !important;
+  color: #854d0e !important;
+}
+
+[data-theme="dark"] .network-error-alert {
+  background-color: rgba(255, 176, 32, 0.1) !important;
+  border-color: rgba(255, 176, 32, 0.3) !important;
+  color: #ffb020 !important;
+}
 [data-theme="light"] .bg-brand\/10 { background-color: rgba(91, 59, 255, 0.08) !important; }
 [data-theme="light"] .bg-success\/10 { background-color: rgba(0, 200, 150, 0.08) !important; }
 [data-theme="light"] .bg-blue-500\/10 { background-color: rgba(59, 130, 246, 0.08) !important; }

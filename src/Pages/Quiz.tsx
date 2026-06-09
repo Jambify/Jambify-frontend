@@ -19,7 +19,7 @@ import {
   CheckCircle2,
   AlertTriangle,
 } from "lucide-react";
-
+import { cn } from "../lib/utils/utils";
 import { useOfflineStore } from "../Store/useOfflineStore";
 import type { Question } from "../Types";
 
@@ -484,21 +484,62 @@ const Quiz: React.FC = () => {
       <div className="mx-auto max-w-2xl">
         {/* Error Message */}
         {loadError && (
-          <div className="bg-danger/15 border-danger/30 animate-in fade-in slide-in-from-top-4 mb-6 rounded-2xl border p-5 duration-300 shadow-sm dark:bg-danger/10">
+          <div
+            className={cn(
+              "animate-in fade-in slide-in-from-top-4 mb-6 rounded-2xl border p-5 shadow-sm duration-300",
+              loadError.includes("CONNECTION_ERROR") ||
+                loadError.includes("OFFLINE")
+                ? "network-error-alert"
+                : "bg-danger/15 border-danger/30 text-danger dark:bg-danger/10",
+            )}
+          >
             <div className="flex items-start gap-3">
-              <div className="bg-danger/20 text-danger flex h-10 w-10 shrink-0 items-center justify-center rounded-xl shadow-sm">
+              <div
+                className={cn(
+                  "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl shadow-sm",
+                  loadError.includes("CONNECTION_ERROR") ||
+                    loadError.includes("OFFLINE")
+                    ? "bg-warn/20 text-warn"
+                    : "bg-danger/20 text-danger",
+                )}
+              >
                 <AlertTriangle size={20} />
               </div>
               <div className="flex-1">
-                <p className="text-danger text-sm font-black tracking-tight">
-                  System Alert
+                <p
+                  className={cn(
+                    "text-sm font-black tracking-tight",
+                    loadError.includes("CONNECTION_ERROR") ||
+                      loadError.includes("OFFLINE")
+                      ? "text-amber-900 dark:text-amber-400"
+                      : "text-danger",
+                  )}
+                >
+                  {loadError.includes("CONNECTION_ERROR") ||
+                  loadError.includes("OFFLINE")
+                    ? "Connection Alert"
+                    : "System Alert"}
                 </p>
-                <p className="text-danger/90 mt-1 text-xs leading-relaxed font-medium">
+                <p
+                  className={cn(
+                    "mt-1 text-xs leading-relaxed font-medium",
+                    loadError.includes("CONNECTION_ERROR") ||
+                      loadError.includes("OFFLINE")
+                      ? "text-amber-900/90 dark:text-amber-400/90"
+                      : "text-danger/90",
+                  )}
+                >
                   {loadError}
                 </p>
                 <button
                   onClick={() => setLoadError(null)}
-                  className="bg-danger/10 hover:bg-danger/20 text-danger mt-3 rounded-lg px-3 py-1.5 text-[10px] font-black tracking-widest uppercase transition-colors"
+                  className={cn(
+                    "mt-3 rounded-lg px-3 py-1.5 text-[10px] font-black tracking-widest uppercase transition-colors",
+                    loadError.includes("CONNECTION_ERROR") ||
+                      loadError.includes("OFFLINE")
+                      ? "bg-amber-900/10 text-amber-900 hover:bg-amber-900/20 dark:text-amber-400"
+                      : "bg-danger/10 hover:bg-danger/20 text-danger",
+                  )}
                 >
                   Dismiss
                 </button>
