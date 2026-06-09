@@ -51,6 +51,9 @@ const Quiz: React.FC = () => {
   const [showAllSubjects, setShowAllSubjects] = useState(false);
   const [showExitModal, setShowExitModal] = useState(false);
   const [showResults, setShowResults] = useState(false);
+  const [selectedMode, setSelectedMode] = useState<"quick" | "standard">("standard");
+
+  const topicsRef = React.useRef<HTMLDivElement>(null);
 
   const {
     questions,
@@ -180,6 +183,8 @@ const Quiz: React.FC = () => {
   useEffect(() => {
     if (isFinished) {
       setShowResults(true);
+    } else {
+      setShowResults(false);
     }
   }, [isFinished]);
 
@@ -188,6 +193,13 @@ const Quiz: React.FC = () => {
     const params = new URLSearchParams(location.search);
     if (!params.get("topic")) {
       setSelectedTopic("All");
+    }
+
+    // Auto-scroll to topics if a subject is selected
+    if (selectedSubject && selectedSubject !== "All") {
+      setTimeout(() => {
+        topicsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
     }
   }, [selectedSubject, setSelectedTopic, location.search]);
 
@@ -217,6 +229,8 @@ const Quiz: React.FC = () => {
     setLoadError(null);
     setIsLoadingQuestions(true);
 
+    const targetCount = selectedMode === "quick" ? 10 : 20;
+
     // Wait a tiny bit for the loader to mount smoothly
     await new Promise((r) => setTimeout(r, 100));
 
@@ -230,14 +244,13 @@ const Quiz: React.FC = () => {
       // Try offline first if user is offline
       if (!isOnline) {
         console.log("📴 User is offline. Checking local cache...");
-        // Look for any pack that might contain this subject
         const packs = offlineStore.downloadedPacks.filter((p) =>
           p.startsWith(selectedSubject.toLowerCase().slice(0, 3)),
         );
         if (packs.length > 0) {
           const offlineQs = await offlineStore.getOfflineQuestions(packs[0]);
           if (offlineQs.length > 0) {
-            qs = offlineQs.sort(() => Math.random() - 0.5).slice(0, 20);
+            qs = offlineQs.sort(() => Math.random() - 0.5).slice(0, targetCount);
             console.log("✅ Loaded questions from offline pack:", packs[0]);
           }
         }
@@ -249,47 +262,76 @@ const Quiz: React.FC = () => {
         }
       }
 
-      // If still no questions (online or no offline cache)
+      // ── ONLINE FETCHING WITH ROBUST FALLBACK ──────────────────
       if (qs.length === 0) {
         try {
           if (selectedTopic === "All") {
-            // Get questions for the whole subject (Random years fallback)
+            // Get questions for the whole subject
             qs = await fetchQuestionsWithFallback(
               selectedSubject,
               "Random",
-              20,
+              targetCount,
               selectedDifficulty,
             );
           } else {
-            // Get questions for the specific topic
+            // 1. Try fetching from specific topic first
             qs = await fetchQuestionsByTopic(
               selectedSubject,
               selectedTopic,
-              20,
+              targetCount,
               selectedDifficulty,
             );
+
+            // 2. Fallback: If not enough questions in topic, fill from general subject
+            if (qs.length < targetCount) {
+              console.log(`⚠️ Only found ${qs.length} questions for topic "${selectedTopic}". Filling remaining ${targetCount - qs.length} from subject.`);
+              
+              const remainingCount = targetCount - qs.length;
+              const fallbackQs = await fetchQuestionsWithFallback(
+                selectedSubject,
+                "Random",
+                remainingCount * 2, // Fetch more to ensure diversity
+                selectedDifficulty,
+              );
+
+              // Filter out duplicates
+              const existingIds = new Set(qs.map(q => q.id));
+              const uniqueFallback = fallbackQs.filter(q => !existingIds.has(q.id));
+              
+              qs = [...qs, ...uniqueFallback].slice(0, targetCount);
+            }
           }
-        } catch {
+        } catch (err) {
+          console.error("Fetch error:", err);
           throw new Error(
             "CONNECTION_ERROR: Failed to fetch questions. Please check your internet connection and try again.",
           );
         }
       }
 
-      if (qs.length === 0) {
-        // Fallback to general questions if topic returns nothing
-        qs = await fetchQuestionsWithFallback(
+      // Final check: if still empty or not enough, try one last broad sweep
+      if (qs.length < targetCount) {
+        const lastResort = await fetchQuestionsWithFallback(
           selectedSubject,
           "Random",
-          20,
-          selectedDifficulty,
+          targetCount * 2,
+          "All", // Drop difficulty constraint for last resort
         );
+        
+        const existingIds = new Set(qs.map(q => q.id));
+        const uniqueLastResort = lastResort.filter(q => !existingIds.has(q.id));
+        qs = [...qs, ...uniqueLastResort].slice(0, targetCount);
       }
 
       if (qs.length === 0) {
         throw new Error(
           "NO_QUESTIONS: Could not find any questions for this selection. Try a different subject or year.",
         );
+      }
+
+      // Ensure we have EXACTLY targetCount if possible
+      if (qs.length > targetCount) {
+        qs = qs.slice(0, targetCount);
       }
 
       loadQuestions(qs);
@@ -328,7 +370,7 @@ const Quiz: React.FC = () => {
         <div className="mb-6 flex items-center gap-4">
           <button
             onClick={() => setShowExitModal(true)} // Trigger Modal
-            className="text-textMuted hover:text-textMain touch-target no-double-tap flex shrink-0 items-center gap-1.5 text-xs transition-colors active:scale-95"
+            className="bg-bgCard border-borderMuted text-textMain hover:border-danger/30 hover:text-danger touch-target no-double-tap flex shrink-0 items-center gap-1.5 rounded-full border px-4 py-2 text-xs font-bold transition-all shadow-sm active:scale-95"
           >
             <svg
               width="14"
@@ -336,11 +378,12 @@ const Quiz: React.FC = () => {
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
-              strokeWidth="2"
+              strokeWidth="2.5"
             >
-              <polyline points="15 18 9 12 15 6" />
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
             </svg>
-            <span className="hidden sm:inline">Exit</span>
+            <span>Exit Quiz</span>
           </button>
 
           {/* <Dot progress — mobile friendly */}
@@ -524,7 +567,10 @@ const Quiz: React.FC = () => {
 
         {/* Topic filter - Only if subject is selected */}
         {selectedSubject !== "All" && (
-          <div className="animate-in fade-in slide-in-from-bottom-4 mb-10 duration-500">
+          <div
+            ref={topicsRef}
+            className="animate-in fade-in slide-in-from-bottom-4 mb-10 duration-500"
+          >
             <div className="mb-4 flex items-center justify-between">
               <p className="text-textDim flex items-center gap-2 text-[11px] font-black tracking-widest uppercase">
                 <Layers size={14} className="text-brand" />
@@ -640,33 +686,28 @@ const Quiz: React.FC = () => {
         )}
 
         {/* <Mode cards */}
-        <div className="mb-8 grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div className="mb-8 grid grid-cols-1 gap-3 sm:grid-cols-2">
           {[
             {
+              id: "quick",
               icon: "⚡",
               label: "Quick Fire",
               desc: "10 Qs · 60s each",
-              active: true,
             },
             {
+              id: "standard",
               icon: "🎯",
               label: "Standard",
               desc: "20 Qs · 90s each",
-              active: false,
-            },
-            {
-              icon: "🏆",
-              label: "Mock Exam",
-              desc: "180 Qs · 2 hours",
-              active: false,
             },
           ].map((mode) => (
             <div
-              key={mode.label}
+              key={mode.id}
+              onClick={() => setSelectedMode(mode.id as "quick" | "standard")}
               className={`rounded-brand-lg cursor-pointer border p-4 transition-all ${
-                mode.active
-                  ? "bg-brand/10 border-brand/40 ring-brand/20 ring-1"
-                  : "bg-bgSurface border-borderMuted opacity-70 hover:border-brand/20 dark:hover:border-white/15"
+                selectedMode === mode.id
+                  ? "bg-brand/10 border-brand shadow-brand/10 ring-brand/20 ring-1"
+                  : "bg-bgSurface border-borderMuted hover:border-brand/20 dark:hover:border-white/15"
               }`}
             >
               <div className="mb-2 text-2xl">{mode.icon}</div>
@@ -674,11 +715,6 @@ const Quiz: React.FC = () => {
                 {mode.label}
               </p>
               <p className="text-textDim mt-0.5 text-[11px]">{mode.desc}</p>
-              {!mode.active && (
-                <p className="text-brand-light mt-1.5 text-[10px]">
-                  Coming soon
-                </p>
-              )}
             </div>
           ))}
         </div>
