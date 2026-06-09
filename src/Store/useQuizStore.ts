@@ -29,6 +29,7 @@ interface QuizState {
   setSelectedSubject: (s: string) => void;
   setSelectedTopic: (t: string) => void;
   setSelectedDifficulty: (d: "Easy" | "Medium" | "Hard" | "All") => void;
+  setSubjectAndTopic: (subject: string, topic: string) => void;
 }
 
 export const useQuizStore = create<QuizState>()(
@@ -105,6 +106,12 @@ export const useQuizStore = create<QuizState>()(
         }),
       setSelectedTopic: (t) => set({ selectedTopic: t }),
       setSelectedDifficulty: (d) => set({ selectedDifficulty: d }),
+      setSubjectAndTopic: (subject, topic) =>
+        set({
+          selectedSubject: subject,
+          selectedTopic: topic,
+          selectedDifficulty: "All",
+        }),
     }),
     {
       name: "jambify-quiz-storage",

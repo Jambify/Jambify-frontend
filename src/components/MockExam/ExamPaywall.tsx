@@ -28,62 +28,83 @@ const ExamPaywall: React.FC<ExamPaywallProps> = ({ onUpgrade, onBack }) => {
 
   const [step, setStep] = useState<"wall" | "pending" | "verify">("wall");
   const [isVerifying, setIsVerifying] = useState(false);
+  const [isInitiating, setIsInitiating] = useState(false);
   const [verifyError, setVerifyError] = useState<string | null>(null);
   const [txRef, setTxRef] = useState("");
 
   // ── Step 1: User clicks Upgrade ──────────────────────────────────────────
   const handleInitiatePayment = () => {
-    // Load Flutterwave script if not already present
+    setIsInitiating(true);
+    setVerifyError(null);
+
+    // Load Flutterwave script if not already present (it should be in index.html now)
     if (!(window as any).FlutterwaveCheckout) {
+      console.log("Loading Flutterwave script dynamically...");
       const script = document.createElement("script");
       script.src = "https://checkout.flutterwave.com/v3.js";
       script.async = true;
-      script.onload = () => processPayment();
+      script.onload = () => {
+        setIsInitiating(false);
+        processPayment();
+      };
+      script.onerror = () => {
+        setIsInitiating(false);
+        setVerifyError("Failed to load payment gateway. Please check your internet connection.");
+      };
       document.body.appendChild(script);
     } else {
+      setIsInitiating(false);
       processPayment();
     }
   };
 
   const processPayment = () => {
-    const flwKey =
-      import.meta.env.VITE_FLW_PUBLIC_KEY ||
-      "FLWPUBK_TEST-5e4a8f1a2b3c4d5e6f7g8h9i0j1k2l3m-X"; // Fallback for dev
+    const flwKey = import.meta.env.VITE_FLW_PUBLIC_KEY;
 
-    if (flwKey.includes("PBFPUBLIC")) {
-      setVerifyError("System configuration error: Invalid Public Key format.");
+    if (!flwKey) {
+      console.error("VITE_FLW_PUBLIC_KEY is not defined in environment variables.");
+      setVerifyError("System configuration error: Missing payment gateway key.");
       return;
     }
 
-    (window as any).FlutterwaveCheckout({
-      public_key: flwKey,
-      tx_ref: `jambify-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-      amount: 3000,
-      currency: "NGN",
-      payment_options: "card, banktransfer, ussd",
-      customer: {
-        email: email || "student@jambify.com",
-        name: name || "JAMBIFY Student",
-      },
-      customizations: {
-        title: "JAMBIFY Pro",
-        description: "Monthly subscription for professional JAMB prep tools",
-        logo: "https://jambify.vercel.app/hero.png",
-      },
-      callback: async (data: any) => {
-        console.log("Payment callback data:", data);
-        if (data.status === "successful" || data.status === "completed") {
-          // Grant Pro immediately in frontend for better UX, then verify
-          await upgradeToPro();
-          handlePaymentSuccess(data.tx_ref);
-        } else {
-          setVerifyError("Payment was not successful. Please try again.");
-        }
-      },
-      onclose: () => {
-        console.log("Payment modal closed");
-      },
-    });
+    if (flwKey.includes("PBFPUBLIC") || flwKey.startsWith("FLWPUBK_TEST")) {
+      console.warn("Using Flutterwave TEST key. Ensure this is intentional.");
+    }
+
+    try {
+      (window as any).FlutterwaveCheckout({
+        public_key: flwKey,
+        tx_ref: `jambify-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+        amount: 3000,
+        currency: "NGN",
+        payment_options: "card, banktransfer, ussd",
+        customer: {
+          email: email || "student@jambify.com",
+          name: name || "JAMBIFY Student",
+        },
+        customizations: {
+          title: "JAMBIFY Pro",
+          description: "Monthly subscription for professional JAMB prep tools",
+          logo: "https://jambify.vercel.app/hero.png",
+        },
+        callback: async (data: any) => {
+          console.log("Payment callback data:", data);
+          if (data.status === "successful" || data.status === "completed") {
+            // Grant Pro immediately in frontend for better UX, then verify
+            await upgradeToPro();
+            handlePaymentSuccess(data.tx_ref);
+          } else {
+            setVerifyError("Payment was not successful. Please try again.");
+          }
+        },
+        onclose: () => {
+          console.log("Payment modal closed");
+        },
+      });
+    } catch (err) {
+      console.error("Flutterwave initiation error:", err);
+      setVerifyError("Could not open payment gateway. Please try again.");
+    }
   };
 
   const handlePaymentSuccess = async (ref: string) => {
@@ -350,7 +371,8 @@ const ExamPaywall: React.FC<ExamPaywallProps> = ({ onUpgrade, onBack }) => {
             size="lg"
             fullWidth
             onClick={handleInitiatePayment}
-            icon={<span>⭐</span>}
+            loading={isInitiating}
+            icon={!isInitiating ? <span>⭐</span> : undefined}
           >
             Upgrade to Pro
           </Button>

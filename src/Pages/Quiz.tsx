@@ -51,7 +51,9 @@ const Quiz: React.FC = () => {
   const [showAllSubjects, setShowAllSubjects] = useState(false);
   const [showExitModal, setShowExitModal] = useState(false);
   const [showResults, setShowResults] = useState(false);
-  const [selectedMode, setSelectedMode] = useState<"quick" | "standard">("standard");
+  const [selectedMode, setSelectedMode] = useState<"quick" | "standard">(
+    "standard",
+  );
 
   const topicsRef = React.useRef<HTMLDivElement>(null);
 
@@ -68,6 +70,7 @@ const Quiz: React.FC = () => {
     loadQuestions,
     reset,
     isFinished,
+    setSubjectAndTopic,
   } = useQuizStore();
 
   // ── Handle Incoming Navigation Parameters ───────────────────
@@ -78,75 +81,89 @@ const Quiz: React.FC = () => {
 
     if (subjectParam) {
       const decodedSubject = decodeURIComponent(subjectParam);
-      // Only set if it's different to avoid loops
-      if (selectedSubject !== decodedSubject) {
-        setSelectedSubject(decodedSubject);
+      const decodedTopic = topicParam ? decodeURIComponent(topicParam) : "All";
+
+      if (
+        selectedSubject !== decodedSubject ||
+        selectedTopic !== decodedTopic
+      ) {
+        setSubjectAndTopic(decodedSubject, decodedTopic);
       }
     }
-    if (topicParam) {
-      const decodedTopic = decodeURIComponent(topicParam);
-      if (selectedTopic !== decodedTopic) {
-        setSelectedTopic(decodedTopic);
-      }
-    }
-  }, [location.search, setSelectedSubject, setSelectedTopic, selectedSubject, selectedTopic]);
+  }, [location.search, setSubjectAndTopic, selectedSubject, selectedTopic]);
 
   // Use a stable reference to the master subjects with their topics
-  const subjectsMaster = useMemo(() => [
-    { name: "English", topics: [] },
-    { name: "Mathematics", topics: [] },
-    {
-      name: "Physics",
-      topics: [
-        "Mechanics",
-        "Thermal Physics",
-        "Optics",
-        "Electricity and Magnetism",
-        "Waves",
-        "Modern Physics",
-      ],
-    },
-    {
-      name: "Chemistry",
-      topics: [
-        "Rates of Chemical Reactions",
-        "Industrial Chemistry",
-        "Organic Chemistry",
-        "Gases & Gas Laws",
-        "Chemical Bonding",
-        "Thermodynamics",
-        "Inorganic Chemistry",
-        "Redox Reactions",
-        "States of Matter & Matter Properties",
-        "Atomic Structure",
-        "Acids, Bases, & Salts",
-        "Electrolysis",
-        "Water Chemistry",
-        "Environmental Chemistry",
-      ],
-    },
-    {
-      name: "Biology",
-      topics: [
-        "Adaptation",
-        "Cell Biology",
-        "Genetics",
-        "Ecology",
-        "Evolution",
-        "Circulatory System",
-        "Plant Biology",
-        "Public Health",
-      ],
-    },
-    { name: "Economics", topics: [] },
-    { name: "Government", topics: [] },
-    { name: "Literature in English", topics: [] },
-    { name: "History", topics: [] },
-    { name: "Geography", topics: [] },
-    { name: "CRS", topics: [] },
-    { name: "IRS", topics: [] },
-    { name: "Commerce", topics: [] },
-  ], []);
+  const subjectsMaster = useMemo(
+    () => [
+      { name: "English", topics: [] },
+      { name: "Mathematics", topics: [] },
+      {
+        name: "Physics",
+        topics: [
+          "Mechanics",
+          "Thermal Physics",
+          "Optics",
+          "Electricity and Magnetism",
+          "Waves",
+          "Modern Physics",
+        ],
+      },
+      {
+        name: "Chemistry",
+        topics: [
+          "Rates of Chemical Reactions",
+          "Industrial Chemistry",
+          "Organic Chemistry",
+          "Gases & Gas Laws",
+          "Chemical Bonding",
+          "Thermodynamics",
+          "Inorganic Chemistry",
+          "Redox Reactions",
+          "States of Matter & Matter Properties",
+          "Atomic Structure",
+          "Acids, Bases, & Salts",
+          "Electrolysis",
+          "Water Chemistry",
+          "Environmental Chemistry",
+        ],
+      },
+      {
+        name: "Biology",
+        topics: [
+          "Adaptation",
+          "Cell Biology",
+          "Genetics",
+          "Ecology",
+          "Evolution",
+          "Circulatory System",
+          "Plant Biology",
+          "Public Health",
+        ],
+      },
+      {
+        name: "Economics",
+        topics: [
+          "Introduction to Economics (Scarcity & Choice)",
+          "Demand and Supply (Elasticity & Equilibrium)",
+          "Production Theory (PPF & Factors)",
+          "Macroeconomics (National Income & Growth)",
+          "Public Finance, Money & Banking",
+          "Market Structures (Competition & Monopoly)",
+          "International Trade & Organizations",
+          "Agricultural Economics",
+          "Statistics (Central Tendency & Variance)",
+        ],
+      },
+      { name: "Government", topics: [] },
+      { name: "Literature in English", topics: [] },
+      { name: "History", topics: [] },
+      { name: "Geography", topics: [] },
+      { name: "CRS", topics: [] },
+      { name: "IRS", topics: [] },
+      { name: "Commerce", topics: [] },
+    ],
+    [],
+  );
 
   const currentSubjectData = useMemo(() => {
     return subjectsMaster.find((s) => s.name === selectedSubject);
@@ -154,7 +171,7 @@ const Quiz: React.FC = () => {
 
   const availableTopics = useMemo(() => {
     if (currentSubjectData?.topics && currentSubjectData.topics.length > 0) {
-      return currentSubjectData.topics.filter(t => t !== "All");
+      return currentSubjectData.topics.filter((t) => t !== "All");
     }
     return [];
   }, [currentSubjectData]);
@@ -165,13 +182,13 @@ const Quiz: React.FC = () => {
   // ── Reorder Subjects based on selection ───────────────────
   const sortedQuizSubjects = useMemo(() => {
     if (!selectedSubject || selectedSubject === "All") return QUIZ_SUBJECTS;
-    
+
     // Find the selected subject
-    const selected = QUIZ_SUBJECTS.find(s => s.name === selectedSubject);
+    const selected = QUIZ_SUBJECTS.find((s) => s.name === selectedSubject);
     if (!selected) return QUIZ_SUBJECTS;
 
     // Filter out the selected one and put it at the start
-    const remaining = QUIZ_SUBJECTS.filter(s => s.name !== selectedSubject);
+    const remaining = QUIZ_SUBJECTS.filter((s) => s.name !== selectedSubject);
     return [selected, ...remaining];
   }, [selectedSubject]);
 
@@ -198,7 +215,10 @@ const Quiz: React.FC = () => {
     // Auto-scroll to topics if a subject is selected
     if (selectedSubject && selectedSubject !== "All") {
       setTimeout(() => {
-        topicsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+        topicsRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
       }, 100);
     }
   }, [selectedSubject, setSelectedTopic, location.search]);
@@ -250,7 +270,9 @@ const Quiz: React.FC = () => {
         if (packs.length > 0) {
           const offlineQs = await offlineStore.getOfflineQuestions(packs[0]);
           if (offlineQs.length > 0) {
-            qs = offlineQs.sort(() => Math.random() - 0.5).slice(0, targetCount);
+            qs = offlineQs
+              .sort(() => Math.random() - 0.5)
+              .slice(0, targetCount);
             console.log("✅ Loaded questions from offline pack:", packs[0]);
           }
         }
@@ -284,8 +306,10 @@ const Quiz: React.FC = () => {
 
             // 2. Fallback: If not enough questions in topic, fill from general subject
             if (qs.length < targetCount) {
-              console.log(`⚠️ Only found ${qs.length} questions for topic "${selectedTopic}". Filling remaining ${targetCount - qs.length} from subject.`);
-              
+              console.log(
+                `⚠️ Only found ${qs.length} questions for topic "${selectedTopic}". Filling remaining ${targetCount - qs.length} from subject.`,
+              );
+
               const remainingCount = targetCount - qs.length;
               const fallbackQs = await fetchQuestionsWithFallback(
                 selectedSubject,
@@ -295,9 +319,11 @@ const Quiz: React.FC = () => {
               );
 
               // Filter out duplicates
-              const existingIds = new Set(qs.map(q => q.id));
-              const uniqueFallback = fallbackQs.filter(q => !existingIds.has(q.id));
-              
+              const existingIds = new Set(qs.map((q) => q.id));
+              const uniqueFallback = fallbackQs.filter(
+                (q) => !existingIds.has(q.id),
+              );
+
               qs = [...qs, ...uniqueFallback].slice(0, targetCount);
             }
           }
@@ -317,9 +343,11 @@ const Quiz: React.FC = () => {
           targetCount * 2,
           "All", // Drop difficulty constraint for last resort
         );
-        
-        const existingIds = new Set(qs.map(q => q.id));
-        const uniqueLastResort = lastResort.filter(q => !existingIds.has(q.id));
+
+        const existingIds = new Set(qs.map((q) => q.id));
+        const uniqueLastResort = lastResort.filter(
+          (q) => !existingIds.has(q.id),
+        );
         qs = [...qs, ...uniqueLastResort].slice(0, targetCount);
       }
 
@@ -370,7 +398,7 @@ const Quiz: React.FC = () => {
         <div className="mb-6 flex items-center gap-4">
           <button
             onClick={() => setShowExitModal(true)} // Trigger Modal
-            className="bg-bgCard border-borderMuted text-textMain hover:border-danger/30 hover:text-danger touch-target no-double-tap flex shrink-0 items-center gap-1.5 rounded-full border px-4 py-2 text-xs font-bold transition-all shadow-sm active:scale-95"
+            className="bg-bgCard border-borderMuted text-textMain hover:border-danger/30 hover:text-danger touch-target no-double-tap flex shrink-0 items-center gap-1.5 rounded-full border px-4 py-2 text-xs font-bold shadow-sm transition-all active:scale-95"
           >
             <svg
               width="14"
@@ -416,7 +444,7 @@ const Quiz: React.FC = () => {
 
         {/* ── Exit Modal Overlay ── */}
         {showExitModal && (
-          <div className="animate-fadeIn fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/80 p-4 backdrop-blur-sm">
+          <div className="animate-fadeIn fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm dark:bg-black/80">
             <div className="bg-bgCard border-borderMuted rounded-brand-xl animate-slideDown w-full max-w-sm border p-6 shadow-2xl">
               <h3 className="font-display text-textMain mb-2 text-xl font-bold">
                 Quit Quiz?
@@ -534,7 +562,7 @@ const Quiz: React.FC = () => {
                 className={`group relative flex flex-col items-center justify-center overflow-hidden rounded-2xl border p-4 transition-all active:scale-95 ${
                   selectedSubject === s.name
                     ? "bg-brand border-brand shadow-brand/20 -translate-y-1 shadow-xl"
-                    : "bg-bgCard border-borderMuted hover:border-brand/30 dark:hover:border-brand/40 hover:shadow-sm dark:hover:bg-bgSurface"
+                    : "bg-bgCard border-borderMuted hover:border-brand/30 dark:hover:border-brand/40 dark:hover:bg-bgSurface hover:shadow-sm"
                 }`}
               >
                 {/* Background Gradient on Select */}
@@ -599,9 +627,7 @@ const Quiz: React.FC = () => {
                   <div>
                     <p
                       className={
-                        selectedTopic === "All"
-                          ? "text-brand"
-                          : "text-textMain"
+                        selectedTopic === "All" ? "text-brand" : "text-textMain"
                       }
                     >
                       General (Mix)
@@ -664,7 +690,9 @@ const Quiz: React.FC = () => {
                 <button
                   key={d}
                   onClick={() =>
-                    setSelectedDifficulty(d as "All" | "Easy" | "Medium" | "Hard")
+                    setSelectedDifficulty(
+                      d as "All" | "Easy" | "Medium" | "Hard",
+                    )
                   }
                   className={`rounded-xl border py-3 text-[11px] font-bold transition-all active:scale-95 ${
                     selectedDifficulty === d

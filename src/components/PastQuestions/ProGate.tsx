@@ -1,8 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { useUserStore } from "../../Store/useUserStore";
 import Button from "../ui/Button";
 import { APP_CONFIG } from "../../Store/useUserStore"; // Importing the app config for pricing details
-import { Crown } from "lucide-react";
+import { Crown,  } from "lucide-react";
 const PRO_FEATURES = [
   "Download all subject packs for offline use",
   "Access 4,180+ real JAMB questions (1990–2024)",
@@ -13,9 +13,76 @@ const PRO_FEATURES = [
 ];
 
 const ProGate: React.FC = () => {
-  const upgradeToPro = useUserStore((s) => s.upgradeToPro);
+  const { upgradeToPro, name, email } = useUserStore();
   // Destructure the "Standard" values here
   const { DISPLAY_PRICE_YEARLY, CURRENCY, DISPLAY_PRICE } = APP_CONFIG.PRICING;
+
+  const [isInitiating, setIsInitiating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleUpgrade = () => {
+    setIsInitiating(true);
+    setError(null);
+
+    if (!(window as any).FlutterwaveCheckout) {
+      const script = document.createElement("script");
+      script.src = "https://checkout.flutterwave.com/v3.js";
+      script.async = true;
+      script.onload = () => {
+        setIsInitiating(false);
+        processPayment();
+      };
+      script.onerror = () => {
+        setIsInitiating(false);
+        setError("Failed to load payment gateway.");
+      };
+      document.body.appendChild(script);
+    } else {
+      setIsInitiating(false);
+      processPayment();
+    }
+  };
+
+  const processPayment = () => {
+    const flwKey = import.meta.env.VITE_FLW_PUBLIC_KEY;
+
+    if (!flwKey) {
+      setError("Payment configuration missing.");
+      return;
+    }
+
+    try {
+      (window as any).FlutterwaveCheckout({
+        public_key: flwKey,
+        tx_ref: `jambify-pro-${Date.now()}`,
+        amount: 3000,
+        currency: "NGN",
+        payment_options: "card, banktransfer, ussd",
+        customer: {
+          email: email || "student@jambify.com",
+          name: name || "JAMBIFY Student",
+        },
+        customizations: {
+          title: "JAMBIFY Pro",
+          description: "Full access to all JAMB prep features",
+          logo: "https://jambify.vercel.app/hero.png",
+        },
+        callback: async (data: any) => {
+          if (data.status === "successful" || data.status === "completed") {
+            await upgradeToPro();
+            // Optional: refresh or show success
+          } else {
+            setError("Payment failed. Please try again.");
+          }
+        },
+        onclose: () => {
+          console.log("Payment modal closed");
+        },
+      });
+    } catch (err) {
+      setError("Could not initiate payment.");
+    }
+  };
 
   return (
     <div className="animate-fadeIn mx-auto max-w-md py-6">
@@ -71,12 +138,19 @@ const ProGate: React.FC = () => {
         </p>
       </div>
 
+      {error && (
+        <p className="text-danger mb-4 text-center text-xs font-medium">
+          {error}
+        </p>
+      )}
+
       <Button
         variant="primary"
         size="lg"
         fullWidth
-        onClick={upgradeToPro}
-        icon={<span>⭐</span>}
+        onClick={handleUpgrade}
+        loading={isInitiating}
+        icon={!isInitiating ? <span>⭐</span> : undefined}
       >
         Upgrade to Pro
       </Button>

@@ -107,7 +107,24 @@ const ALL_SUBJECTS_MASTER = [
       "Public Health",
     ],
   },
-  { id: "econ", name: "Economics", icon: "📊", color: "#FFB020", total: 270 },
+  {
+    id: "econ",
+    name: "Economics",
+    icon: "📊",
+    color: "#FFB020",
+    total: 270,
+    topics: [
+      "Introduction to Economics (Scarcity & Choice)",
+      "Demand and Supply (Elasticity & Equilibrium)",
+      "Production Theory (PPF & Factors)",
+      "Macroeconomics (National Income & Growth)",
+      "Public Finance, Money & Banking",
+      "Market Structures (Competition & Monopoly)",
+      "International Trade & Organizations",
+      "Agricultural Economics",
+      "Statistics (Central Tendency & Variance)",
+    ],
+  },
   { id: "gov", name: "Government", icon: "🏛️", color: "#EC4899", total: 300 },
   { id: "lit", name: "Literature in English", icon: "📚", color: "#F97316", total: 300 },
   { id: "crs", name: "CRS", icon: "✝️", color: "#A855F7", total: 250 },
@@ -321,10 +338,10 @@ export const useSubjectStore = create<SubjectState>()((set, get) => ({
         subjects: state.subjects.map((subject) =>
           subject.id === id
             ? {
-                ...subject,
-                accuracy,
-                completed,
-              }
+              ...subject,
+              accuracy,
+              completed,
+            }
             : subject,
         ),
       }));
