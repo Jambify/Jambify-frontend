@@ -797,14 +797,13 @@ const GuestMockExam: React.FC = () => {
             </div>
 
             {error && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                className="bg-danger/10 border-danger/20 text-danger mb-6 flex items-center gap-3 rounded-2xl border p-4 text-xs font-bold"
-              >
-                <Info size={16} />
-                {error}
-              </motion.div>
+              <div className="bg-danger/15 border-danger/30 text-danger rounded-2xl mb-6 flex items-start gap-3 border p-5 text-sm shadow-sm dark:bg-danger/10">
+                <Info size={20} className="mt-0.5 shrink-0" />
+                <div className="flex-1">
+                  <p className="font-bold tracking-tight">System Alert</p>
+                  <p className="opacity-90">{error}</p>
+                </div>
+              </div>
             )}
           </div>
 

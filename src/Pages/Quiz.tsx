@@ -484,21 +484,21 @@ const Quiz: React.FC = () => {
       <div className="mx-auto max-w-2xl">
         {/* Error Message */}
         {loadError && (
-          <div className="bg-danger/10 border-danger/20 animate-in fade-in slide-in-from-top-4 mb-6 rounded-2xl border p-4 duration-300">
+          <div className="bg-danger/15 border-danger/30 animate-in fade-in slide-in-from-top-4 mb-6 rounded-2xl border p-5 duration-300 shadow-sm dark:bg-danger/10">
             <div className="flex items-start gap-3">
-              <div className="bg-danger/20 text-danger flex h-8 w-8 shrink-0 items-center justify-center rounded-full">
-                <AlertTriangle size={16} />
+              <div className="bg-danger/20 text-danger flex h-10 w-10 shrink-0 items-center justify-center rounded-xl shadow-sm">
+                <AlertTriangle size={20} />
               </div>
               <div className="flex-1">
-                <p className="text-danger text-sm font-bold">
-                  Failed to start quiz
+                <p className="text-danger text-sm font-black tracking-tight">
+                  System Alert
                 </p>
-                <p className="text-danger/80 mt-1 text-xs leading-relaxed">
+                <p className="text-danger/90 mt-1 text-xs leading-relaxed font-medium">
                   {loadError}
                 </p>
                 <button
                   onClick={() => setLoadError(null)}
-                  className="text-danger mt-3 text-[10px] font-black tracking-widest uppercase hover:underline"
+                  className="bg-danger/10 hover:bg-danger/20 text-danger mt-3 rounded-lg px-3 py-1.5 text-[10px] font-black tracking-widest uppercase transition-colors"
                 >
                   Dismiss
                 </button>

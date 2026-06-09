@@ -373,9 +373,12 @@ const MockExam: React.FC = () => {
             )}
 
             {errorMessage && (
-              <div className="bg-danger/10 border-danger/20 text-danger rounded-brand mb-6 flex items-center gap-3 border p-4 text-sm">
-                <AlertTriangle size={18} />
-                {errorMessage}
+              <div className="bg-danger/15 border-danger/30 text-danger rounded-brand-lg dark:bg-danger/10 mb-6 flex items-start gap-3 border p-5 text-sm shadow-sm">
+                <AlertTriangle size={20} className="mt-0.5 shrink-0" />
+                <div className="flex-1">
+                  <p className="font-bold tracking-tight">System Alert</p>
+                  <p className="opacity-90">{errorMessage}</p>
+                </div>
               </div>
             )}
 
@@ -796,20 +799,23 @@ const MockExam: React.FC = () => {
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => setIsSidebarOpen(false)}
           />
-          <div className="bg-bgCard animate-in slide-in-from-right relative flex h-full w-80 max-w-[80%] flex-col duration-300">
-            <div className="border-borderMuted flex items-center justify-between border-b p-4">
-              <h2 className="font-bold">Exam Navigator</h2>
+          <div className="bg-bgCard animate-in slide-in-from-right relative flex h-full w-80 max-w-[85%] flex-col shadow-2xl duration-300">
+            <div className="border-borderMuted flex shrink-0 items-center justify-between border-b p-5">
+              <h2 className="font-display text-sm font-black tracking-widest uppercase">
+                Exam Navigator
+              </h2>
               <button
                 onClick={() => setIsSidebarOpen(false)}
-                className="hover:bg-bgSurface rounded-full p-1"
+                className="bg-bgSurface border-borderMuted hover:text-danger rounded-full border p-1.5 transition-colors active:scale-90"
               >
-                <X size={24} />
+                <X size={20} />
               </button>
             </div>
-            <div className="flex-1 space-y-8 overflow-y-auto p-4">
+            <div className="scrollbar-thin flex-1 space-y-10 overflow-y-auto px-5 py-8 pb-32">
               <div>
-                <h3 className="text-brand mb-4 text-[10px] font-bold tracking-widest uppercase">
-                  Subjects
+                <h3 className="text-brand mb-5 flex items-center gap-2 text-[10px] font-black tracking-[0.2em] uppercase">
+                  <div className="bg-brand h-3 w-1 rounded-full"></div>
+                  Subject List
                 </h3>
                 <SubjectSidebar
                   activeSubject={activeSubject}
@@ -822,25 +828,27 @@ const MockExam: React.FC = () => {
                 />
               </div>
               <div>
-                <h3 className="text-brand mb-4 text-[10px] font-bold tracking-widest uppercase">
-                  Question Palette
+                <h3 className="text-brand mb-5 flex items-center gap-2 text-[10px] font-black tracking-[0.2em] uppercase">
+                  <div className="bg-brand h-3 w-1 rounded-full"></div>
+                  Question Grid
                 </h3>
                 <QuestionPalette onJumpToQuestion={jumpToQuestion} />
               </div>
             </div>
 
-            {/* Mobile Submit Button */}
-            <div className="border-borderMuted bg-bgSurface/30 border-t p-4">
+            {/* Mobile Submit Button - Fixed at bottom */}
+            <div className="bg-bgCard border-borderMuted sticky bottom-0 border-t p-5 shadow-[0_-4px_20px_-5px_rgba(0,0,0,0.1)]">
               <Button
-                variant="primary"
+                variant="success"
                 fullWidth
+                size="lg"
                 onClick={() => {
                   setIsSidebarOpen(false);
                   setShowConfirmSubmit(true);
                 }}
-                className="shadow-brand/20 font-bold shadow-lg"
+                className="shadow-success/20 h-14 font-black shadow-lg"
               >
-                Submit Exam
+                Submit Exam Session
               </Button>
             </div>
           </div>
