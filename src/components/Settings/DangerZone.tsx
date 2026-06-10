@@ -1,15 +1,59 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUserStore } from "../../Store/useUserStore";
+import { usePerformanceStore } from "../../Store/usePerformanceStore";
+import { supabase } from "../../lib/supabase";
 import Button from "../ui/Button";
 import { Section } from "./Shared";
-import { LogOut, AlertCircle, Info, ShieldAlert } from "lucide-react";
+import { LogOut, AlertCircle, Info, ShieldAlert, Trash2 } from "lucide-react";
 
 const DangerZone: React.FC = () => {
   const navigate = useNavigate();
   const signOut = useUserStore((s) => s.signOut);
+  const resetPerformance = usePerformanceStore((s) => s.reset);
+  const resetUser = useUserStore((s) => s.reset);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDeleteAccount = async () => {
+    setIsDeleting(true);
+    try {
+      // First, clean up all user data from public tables
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error("User not authenticated");
+      }
+
+      // Delete public table data first (we can do this client-side with RLS)
+      await Promise.all([
+        supabase.from("subject_performance").delete().eq("user_id", user.id),
+        supabase.from("topic_progress").delete().eq("user_id", user.id),
+        supabase.from("quiz_sessions").delete().eq("user_id", user.id),
+        supabase.from("profiles").delete().eq("id", user.id),
+        // Add other tables if needed (daily_activity, topic_mastery)
+      ]);
+
+      // Clear local store
+      resetPerformance();
+      resetUser();
+
+      // Delete auth user (NOTE: This requires an Edge Function or service_role key!)
+      // For client side, the best we can do is clean up data and sign out
+      // For full auth user deletion, use a Supabase Edge Function
+      await signOut();
+      
+      // Redirect to sign in
+      navigate("/signin", { replace: true });
+      alert("Your data has been deleted successfully!");
+    } catch (error) {
+      console.error("Delete failed:", error);
+      alert("Failed to delete account. Please try again.");
+    } finally {
+      setIsDeleting(false);
+      setConfirmDelete(false);
+    }
+  };
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -111,9 +155,9 @@ const DangerZone: React.FC = () => {
                   <Button
                     variant="danger"
                     fullWidth
-                    onClick={() => {
-                      /* Handle delete logic if needed */
-                    }}
+                    onClick={handleDeleteAccount}
+                    loading={isDeleting}
+                    icon={<Trash2 className="h-4 w-4" />}
                     className="shadow-danger/20 rounded-xl py-4 shadow-lg"
                   >
                     Yes, Delete Everything

@@ -1,3 +1,4 @@
+
 // src/Store/usePerformanceStore.ts
 
 import { create } from "zustand";
@@ -5,11 +6,9 @@ import {
   submitQuizSession,
   getDetailedTopicStats,
   getSubjectPerformance,
-  getDailyActivity,
   type WeeklyActivity,
   type TopicStat,
   type SubjectPerformance,
-  type DailyActivity,
   updateSubjectPerformance,
 } from "../Services/PerformanceService";
 import { useUserStore } from "./useUserStore";
@@ -19,7 +18,6 @@ interface PerformanceState {
   weeklyActivity: WeeklyActivity[];
   topicStats: TopicStat[];
   subjectPerformance: SubjectPerformance[];
-  dailyActivity: DailyActivity[];
   mockScores: number[];
   mockHistory: any[]; // Added
   totalQuestions: number;
@@ -62,7 +60,6 @@ export const usePerformanceStore = create<PerformanceState>()((set, get) => ({
   ],
   topicStats: [],
   subjectPerformance: [],
-  dailyActivity: [],
   mockScores: [],
   mockHistory: [],
   totalQuestions: 0,
@@ -74,7 +71,10 @@ export const usePerformanceStore = create<PerformanceState>()((set, get) => ({
     set({ isLoading: true });
     try {
       const { id: userId } = useUserStore.getState();
-      if (!userId) return;
+      if (!userId) {
+        set({ isLoading: false });
+        return;
+      }
 
       // Fetch all mock and practice sessions
       const { data: sessions, error } = await supabase
@@ -85,29 +85,34 @@ export const usePerformanceStore = create<PerformanceState>()((set, get) => ({
 
       if (error) throw error;
 
-      if (!sessions || sessions.length === 0) {
-        set({
-          topicStats: [],
-          subjectPerformance: [],
-          mockHistory: [],
-          weeklyActivity: [
-            { day: "Sun", questions: 0 },
-            { day: "Mon", questions: 0 },
-            { day: "Tue", questions: 0 },
-            { day: "Wed", questions: 0 },
-            { day: "Thu", questions: 0 },
-            { day: "Fri", questions: 0 },
-            { day: "Sat", questions: 0 },
-          ],
-          totalQuestions: 0,
-          avgAccuracy: 0,
-          isLoading: false,
-        });
-        return;
-      }
+      // Get detailed topic stats from topic_progress table
+      const topicStats = await getDetailedTopicStats();
 
-      // 1. Process Mock History & Latest Score
-      const mockSessions = sessions.filter((s) => s.mode === "mock");
+      // Get subject performance
+      const subjectPerformance = await getSubjectPerformance();
+
+      // Calculate total questions and avg accuracy
+      const totalQs = sessions?.reduce((sum, s) => sum + s.total_questions, 0) || 0;
+      const totalCorrect = sessions?.reduce((sum, s) => sum + s.correct, 0) || 0;
+      const avgAcc = totalQs > 0 ? Math.round((totalCorrect / totalQs) * 100) : 0;
+
+      // Calculate weekly activity
+      const today = new Date();
+      const weeklyActivity = Array(7).fill(0).map((_, i) => {
+        const date = new Date(today);
+        date.setDate(today.getDate() - (6 - i));
+        const dayName = date.toLocaleDateString("en-US", { weekday: "short" });
+        const questionsForDay = sessions?.filter(s => {
+          const sessionDate = new Date(s.completed_at);
+          return (
+            sessionDate.toDateString() === date.toDateString()
+          );
+        }).reduce((sum, s) => sum + s.total_questions, 0) || 0;
+        return { day: dayName, questions: questionsForDay };
+      });
+
+      // Process mock history
+      const mockSessions = sessions?.filter((s) => s.mode === "mock") || [];
       const mockHistory = mockSessions.map((s) => ({
         id: s.id,
         date: s.completed_at,
@@ -115,45 +120,18 @@ export const usePerformanceStore = create<PerformanceState>()((set, get) => ({
         jambScore: Math.round((s.correct / 180) * 400),
       }));
 
-      // 2. Get detailed topic stats from topic_progress table
-      const topicStats = await getDetailedTopicStats();
-
-      // 2b. Get subject performance (best/worst scores)
-      const subjectPerformance = await getSubjectPerformance();
-
-      // 2c. Get daily activity (last 7 days)
-      const dailyActivity = await getDailyActivity();
-
-      // 3. Weekly Activity (last 7 days)
-      const weeklyActivity = Array(7).fill(0);
-      const now = new Date();
-      sessions.forEach((s) => {
-        const date = new Date(s.completed_at);
-        const diffDays = Math.floor(
-          (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24),
-        );
-        if (diffDays < 7) {
-          const dayIndex = 6 - diffDays; // 0=Sun...6=Sat relative to now
-          weeklyActivity[dayIndex] += s.total_questions;
-        }
-      });
-
-      const totalQs = sessions.reduce((sum, s) => sum + s.total_questions, 0);
-      const totalCorrect = sessions.reduce((sum, s) => sum + s.correct, 0);
-
       set({
-        mockHistory,
+        weeklyActivity,
         topicStats,
         subjectPerformance,
-        dailyActivity,
         totalQuestions: totalQs,
-        avgAccuracy:
-          totalQs > 0 ? Math.round((totalCorrect / totalQs) * 100) : 0,
+        avgAccuracy: avgAcc,
+        mockHistory,
         isLoading: false,
       });
     } catch (error) {
       console.error("Error loading performance data:", error);
-      set({ isLoading: false });
+      set({ isLoading: false, error: "Failed to load performance data" });
     }
   },
 
@@ -232,7 +210,6 @@ export const usePerformanceStore = create<PerformanceState>()((set, get) => ({
       ],
       topicStats: [],
       subjectPerformance: [],
-      dailyActivity: [],
       mockScores: [],
       mockHistory: [],
       totalQuestions: 0,

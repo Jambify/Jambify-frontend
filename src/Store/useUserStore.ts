@@ -77,6 +77,7 @@ interface UserState {
   updateProfile: (data: ProfileUpdate) => Promise<{ error: Error | null }>;
   updateExamSettings: (data: ExamUpdate) => Promise<{ error: Error | null }>;
   resetAccount: () => Promise<{ error: Error | null }>;
+  reset: () => void;
   markWelcomeAsSeen: () => void;
   setName: (name: string) => void;
   setEmail: (email: string) => void;
@@ -390,6 +391,11 @@ export const useUserStore = create<UserState>()(
       resetAccount: async () => {
         await get().signOut();
         return { error: null };
+      },
+
+      reset: () => {
+        set({ ...DEFAULTS });
+        localStorage.removeItem("jambready-user");
       },
 
       // ── Simple setters ────────────────────────────────

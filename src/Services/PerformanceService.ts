@@ -19,7 +19,6 @@ export interface TopicStat {
   name: string;
   subject: string;
   accuracy: number;
-  mastery_level: number; // 0=unstarted,1=learning,2=practicing,3=mastered
 }
 
 export interface SubjectPerformance {
@@ -33,17 +32,6 @@ export interface SubjectPerformance {
 export interface WeeklyActivity {
   day: string;
   questions: number;
-}
-
-export interface DailyActivity {
-  id: string;
-  user_id: string;
-  date: string;
-  questions_completed: number;
-  accuracy: number;
-  streak: number;
-  goals_completed: string[];
-  xp_earned: number;
 }
 
 export interface QuizSubmissionData {
@@ -65,58 +53,74 @@ const getDateKey = (date: Date): string => {
   return date.toISOString().split("T")[0];
 };
 
-// ===========================================================
-// FUNCTION TO UPDATE DAILY ACTIVITY (streak, daily questions, etc.)
-// ===========================================================
-export const updateDailyActivity = async (
-  questionsAdded: number,
-  accuracy: number,
-  goalsCompleted: string[] = [],
-  xpAdded: number = 0
-) => {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return;
-
+// Calculate and update streak
+export const calculateAndUpdateStreak = async (): Promise<number> => {
   try {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return 0;
+
+    // Fetch user's profile
+    const { data: profile, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (error || !profile) return 0;
+
     const today = new Date();
     const todayKey = getDateKey(today);
-    await supabase.rpc("update_daily_activity", {
-      p_user_id: user.id,
-      p_date: todayKey,
-      p_questions_added: questionsAdded,
-      p_accuracy: accuracy,
-      p_goals_completed: goalsCompleted,
-      p_xp_added: xpAdded
-    });
-  } catch (err) {
-    console.error("❌ [updateDailyActivity] Failed:", err);
-  }
-};
 
-// ===========================================================
-// FUNCTION TO UPDATE TOPIC MASTERY (per question, per topic)
-// ===========================================================
-export const updateTopicMastery = async (
-  subject: string,
-  topic: string,
-  correct: boolean
-) => {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return;
+    // Get last activity date from profile (if available)
+    // For simplicity, let's check quiz_sessions for last activity
+    const { data: sessions } = await supabase
+      .from("quiz_sessions")
+      .select("created_at")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(1);
 
-  try {
-    await supabase.rpc("update_topic_mastery", {
-      p_user_id: user.id,
-      p_subject: subject,
-      p_topic: topic,
-      p_correct: correct
-    });
+    let lastActivityDate: Date | null = null;
+
+    if (sessions && sessions.length > 0) {
+      lastActivityDate = new Date(sessions[0].created_at);
+    }
+
+    let newStreak = profile.streak || 1;
+
+    if (lastActivityDate) {
+      const lastActivityKey = getDateKey(lastActivityDate);
+
+      // If last activity was yesterday, increment streak
+      if (lastActivityKey === todayKey) {
+        // Already counted today
+      } else {
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayKey = getDateKey(yesterday);
+
+        if (lastActivityKey === yesterdayKey) {
+          // Increment streak
+          newStreak = (profile.streak || 0) + 1;
+        } else {
+          // Streak broken, reset to 1
+          newStreak = 1;
+        }
+      }
+    }
+
+    // Update the profile
+    await supabase
+      .from("profiles")
+      .update({ streak: newStreak })
+      .eq("id", user.id);
+
+    return newStreak;
   } catch (err) {
-    console.error("❌ [updateTopicMastery] Failed:", err);
+    console.error("❌ [calculateAndUpdateStreak] Failed:", err);
+    return 0;
   }
 };
 
@@ -134,19 +138,41 @@ export const updateSubjectPerformance = async (
 
   try {
     console.log(`Updating performance for ${subject}: ${score}%`);
-    await supabase.rpc("update_subject_performance", {
-      p_user_id: user.id,
-      p_subject: subject,
-      p_score: score
-    });
+
+    // Use topic_progress table logic manually for compatibility
+    const { data: existing } = await supabase
+      .from("subject_performance")
+      .select("*")
+      .eq("user_id", user.id)
+      .eq("subject", subject)
+      .maybeSingle();
+
+    if (existing) {
+      await supabase
+        .from("subject_performance")
+        .update({
+          best_score: Math.max(existing.best_score, score),
+          worst_score: Math.min(existing.worst_score, score),
+          total_attempts: (existing.total_attempts || 0) + 1,
+          last_score: score,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", existing.id);
+    } else {
+      await supabase.from("subject_performance").insert({
+        user_id: user.id,
+        subject: subject,
+        best_score: score,
+        worst_score: score,
+        total_attempts: 1,
+        last_score: score,
+      });
+    }
   } catch (err) {
     console.error("❌ [updateSubjectPerformance] Failed:", err);
   }
 };
 
-// ===========================================================
-// GET SUBJECT PERFORMANCE DATA
-// ===========================================================
 export const getSubjectPerformance = async (): Promise<
   SubjectPerformance[]
 > => {
@@ -170,59 +196,8 @@ export const getSubjectPerformance = async (): Promise<
 };
 
 // ===========================================================
-// GET DAILY ACTIVITY DATA
-// ===========================================================
-export const getDailyActivity = async (): Promise<DailyActivity[]> => {
-  try {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return [];
-
-    const { data, error } = await supabase
-      .from("daily_activity")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("date", { ascending: false })
-      .limit(7);
-
-    if (error) throw error;
-    return data || [];
-  } catch (err) {
-    console.error("❌ [getDailyActivity] Failed:", err);
-    return [];
-  }
-};
-
-// ===========================================================
-// GET TODAY'S DAILY ACTIVITY
-// ===========================================================
-export const getTodayActivity = async (): Promise<DailyActivity | null> => {
-  try {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return null;
-
-    const todayKey = getDateKey(new Date());
-
-    const { data, error } = await supabase
-      .from("daily_activity")
-      .select("*")
-      .eq("user_id", user.id)
-      .eq("date", todayKey)
-      .maybeSingle();
-
-    if (error) throw error;
-    return data;
-  } catch (err) {
-    console.error("❌ [getTodayActivity] Failed:", err);
-    return null;
-  }
-};
-
-// ===========================================================
-// FUNCTION TO UPDATE WEAK TOPIC PROGRESS (legacy, kept for compatibility)
+// FUNCTION TO UPDATE WEAK TOPIC PROGRESS
+// Only updates if new topic is weaker than existing one
 // ===========================================================
 export const updateWeakestTopic = async (
   subject: string,
@@ -241,19 +216,7 @@ export const updateWeakestTopic = async (
     console.log("Subject input:", subject);
     console.log("Topic performance object:", topicPerformance);
 
-    // Step 1: Update ALL topics using new topic_mastery
-    for (const [key, data] of Object.entries(topicPerformance)) {
-      if (data.subject === subject && data.total > 0) {
-        const topic = key.includes(":") ? key.split(":")[1] : key;
-        // Update for each question in topic
-        for (let i = 0; i < data.total; i++) {
-          const isCorrect = i < data.correct;
-          await updateTopicMastery(subject, topic, isCorrect);
-        }
-      }
-    }
-
-    // Step 2: Also update legacy topic_progress (for compatibility)
+    // Step 1: Find the weakest topic from the current quiz session for this subject
     let weakestTopic: {
       topic: string;
       correct: number;
@@ -262,48 +225,97 @@ export const updateWeakestTopic = async (
     } | null = null;
 
     for (const [key, data] of Object.entries(topicPerformance)) {
+      console.log(`Processing key: ${key}, data.subject: ${data.subject}`);
       if (data.subject === subject && data.total > 0) {
         const topic = key.includes(":") ? key.split(":")[1] : key;
         const accuracy = Math.round((data.correct / data.total) * 100);
+        console.log(`Topic: ${topic}, Accuracy: ${accuracy}%`);
 
-        if (accuracy < 50 && (
-          !weakestTopic || accuracy < weakestTopic.accuracy
-        )) {
-          weakestTopic = { topic, ...data, accuracy };
+        // If accuracy >=50%, skip this topic entirely (don't track mastered topics)
+        if (accuracy >= 50) {
+          console.log(`Skipping topic ${topic} (accuracy ${accuracy} >= 50)`);
+          continue;
+        }
+
+        if (
+          !weakestTopic ||
+          accuracy < weakestTopic.accuracy ||
+          (accuracy === weakestTopic.accuracy && data.total > weakestTopic.total)
+        ) {
+          weakestTopic = {
+            topic,
+            correct: data.correct,
+            total: data.total,
+            accuracy,
+          };
+          console.log(`New weakest topic selected: ${JSON.stringify(weakestTopic)}`);
         }
       }
     }
 
+    // If NO weak topics found (all >=50%), DELETE any existing row for this subject
     if (!weakestTopic) {
-      await supabase.from("topic_progress").delete().eq("user_id", user.id).eq("subject", subject);
+      console.log("No weak topics found! Deleting existing row if present...");
+      const deleteResult = await supabase
+        .from("topic_progress")
+        .delete()
+        .eq("user_id", user.id)
+        .eq("subject", subject);
+      console.log("Delete result:", deleteResult);
+      if (deleteResult.error) {
+        console.error("❌ Delete error:", deleteResult.error);
+      }
       return;
     }
 
-    const { data: existing } = await supabase.from("topic_progress").select("*").eq("user_id", user.id).eq("subject", subject).maybeSingle();
+    // Step 2: Check if we already have a weak topic for this subject
+    const { data: existing } = await supabase
+      .from("topic_progress")
+      .select("*")
+      .eq("user_id", user.id)
+      .eq("subject", subject)
+      .maybeSingle();
+
+    console.log("Existing row in DB:", existing);
 
     const newAccuracy = weakestTopic.accuracy;
 
     if (existing) {
-      if (existing.accuracy <= newAccuracy) return;
-      await supabase.from("topic_progress").update({
-        topic: weakestTopic.topic,
-        correct: weakestTopic.correct,
-        incorrect: weakestTopic.total - weakestTopic.correct,
-        total: weakestTopic.total,
-        accuracy: newAccuracy,
-        last_attempt_at: new Date().toISOString()
-      }).eq("id", existing.id);
+      // If existing topic's accuracy is better or same, do nothing
+      if (existing.accuracy <= newAccuracy) {
+        console.log(`Existing accuracy (${existing.accuracy}) <= new (${newAccuracy}) — doing nothing`);
+        return;
+      }
+
+      console.log("Updating existing row with new weaker topic...");
+      // Otherwise, update to the new weaker topic
+      await supabase
+        .from("topic_progress")
+        .update({
+          topic: weakestTopic.topic,
+          correct: weakestTopic.correct,
+          incorrect: weakestTopic.total - weakestTopic.correct,
+          total: weakestTopic.total,
+          accuracy: newAccuracy,
+          last_attempt_at: new Date().toISOString(),
+        })
+        .eq("id", existing.id);
     } else {
-      await supabase.from("topic_progress").insert({
-        user_id: user.id,
-        subject: subject,
-        topic: weakestTopic.topic,
-        correct: weakestTopic.correct,
-        incorrect: weakestTopic.total - weakestTopic.correct,
-        total: weakestTopic.total,
-        accuracy: newAccuracy,
-        last_attempt_at: new Date().toISOString()
-      });
+      console.log("Inserting new row for weakest topic...");
+      // No existing topic, insert the new one
+      const insertResult = await supabase
+        .from("topic_progress")
+        .insert({
+          user_id: user.id,
+          subject: subject,
+          topic: weakestTopic.topic,
+          correct: weakestTopic.correct,
+          incorrect: weakestTopic.total - weakestTopic.correct,
+          total: weakestTopic.total,
+          accuracy: newAccuracy,
+          last_attempt_at: new Date().toISOString(),
+        });
+      console.log("Insert result:", insertResult);
     }
   } catch (err) {
     console.error("❌ [updateWeakestTopic] Failed:", err);
@@ -311,7 +323,8 @@ export const updateWeakestTopic = async (
 };
 
 // ===========================================================
-// Get detailed topic stats from topic_mastery
+// Get detailed topic stats from topic_progress table
+// (One topic per subject ONLY)
 // ===========================================================
 export const getDetailedTopicStats = async (): Promise<TopicStat[]> => {
   try {
@@ -323,7 +336,7 @@ export const getDetailedTopicStats = async (): Promise<TopicStat[]> => {
     console.log("🔍 [getDetailedTopicStats] Fetching for user:", user.id);
 
     const { data, error } = await supabase
-      .from("topic_mastery")
+      .from("topic_progress")
       .select("*")
       .eq("user_id", user.id);
 
@@ -334,12 +347,12 @@ export const getDetailedTopicStats = async (): Promise<TopicStat[]> => {
 
     console.log("✅ [getDetailedTopicStats] Retrieved:", data);
 
-    const topics: TopicStat[] = (data || []).map((tm) => ({
-      id: `${tm.subject}:${tm.topic}`,
-      name: tm.topic,
-      subject: tm.subject,
-      accuracy: Math.round(tm.accuracy),
-      mastery_level: tm.mastery_level
+    // Ensure only one topic per subject (though DB should enforce with unique constraint)
+    const topics: TopicStat[] = (data || []).map((tp) => ({
+      id: `${tp.subject}:${tp.topic}`,
+      name: tp.topic,
+      subject: tp.subject,
+      accuracy: Math.round(tp.accuracy),
     }));
 
     return topics;
@@ -380,7 +393,7 @@ export const submitQuizSession = async (
   timeTakenSeconds: number,
   correctCount?: number,
   totalQuestions?: number,
-  topicPerformance?: Record<string, any>
+  topicPerformance?: Record<string, any>,
 ) => {
   const {
     data: { user },
@@ -415,7 +428,7 @@ export const submitQuizSession = async (
 
   if (!data) throw new Error("Failed to submit session");
 
-  // Update weakest topic & topic mastery
+  // Update weakest topic
   if (topicPerformance) {
     await updateWeakestTopic(subject, topicPerformance);
   }
@@ -423,19 +436,15 @@ export const submitQuizSession = async (
   // Update subject performance
   await updateSubjectPerformance(subject, finalAccuracy);
 
-  // Update daily activity
-  await updateDailyActivity(finalTotal, finalAccuracy, [], Math.round(finalAccuracy / 2));
-
-  // Get new streak from DB (via daily activity)
-  const todayActivity = await getTodayActivity();
+  // Calculate and update streak
+  const newStreak = await calculateAndUpdateStreak();
 
   return {
     session_id: data.session_id,
     correct: data.correct,
     total: data.total,
     accuracy: Math.min(data.accuracy, 100),
-    streak: todayActivity?.streak || 0,
+    streak: newStreak,
     subject
   };
 };
-
