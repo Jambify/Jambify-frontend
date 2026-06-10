@@ -49,7 +49,9 @@ const ExamPaywall: React.FC<ExamPaywallProps> = ({ onUpgrade, onBack }) => {
       };
       script.onerror = () => {
         setIsInitiating(false);
-        setVerifyError("Failed to load payment gateway. Please check your internet connection.");
+        setVerifyError(
+          "Failed to load payment gateway. Please check your internet connection.",
+        );
       };
       document.body.appendChild(script);
     } else {
@@ -62,8 +64,12 @@ const ExamPaywall: React.FC<ExamPaywallProps> = ({ onUpgrade, onBack }) => {
     const flwKey = import.meta.env.VITE_FLW_PUBLIC_KEY;
 
     if (!flwKey) {
-      console.error("VITE_FLW_PUBLIC_KEY is not defined in environment variables.");
-      setVerifyError("System configuration error: Missing payment gateway key.");
+      console.error(
+        "VITE_FLW_PUBLIC_KEY is not defined in environment variables.",
+      );
+      setVerifyError(
+        "System configuration error: Missing payment gateway key.",
+      );
       return;
     }
 
@@ -85,7 +91,7 @@ const ExamPaywall: React.FC<ExamPaywallProps> = ({ onUpgrade, onBack }) => {
         customizations: {
           title: "JAMBIFY Pro",
           description: "Monthly subscription for professional JAMB prep tools",
-          logo: "https://jambify.vercel.app/hero.png",
+          logo: "https://jambify.vercel.app/JAMBIFY.LOGO.png",
         },
         callback: async (data: any) => {
           console.log("Payment callback data:", data);

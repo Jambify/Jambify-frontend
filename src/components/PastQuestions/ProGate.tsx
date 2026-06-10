@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useUserStore } from "../../Store/useUserStore";
 import Button from "../ui/Button";
 import { APP_CONFIG } from "../../Store/useUserStore"; // Importing the app config for pricing details
-import { Crown,  } from "lucide-react";
+import { Crown } from "lucide-react";
 const PRO_FEATURES = [
   "Download all subject packs for offline use",
   "Access 4,180+ real JAMB questions (1990–2024)",
@@ -65,7 +65,7 @@ const ProGate: React.FC = () => {
         customizations: {
           title: "JAMBIFY Pro",
           description: "Full access to all JAMB prep features",
-          logo: "https://jambify.vercel.app/hero.png",
+          logo: "https://jambify.vercel.app/JAMBIFY.LOGO.png",
         },
         callback: async (data: any) => {
           if (data.status === "successful" || data.status === "completed") {
