@@ -129,10 +129,10 @@ const MockExam: React.FC = () => {
 
   // Effect to update active subject when current index changes
   useEffect(() => {
-    if (isStarted && questions[currentIndex]) {
+    if ((isStarted || isFinished) && questions[currentIndex]) {
       setActiveSubject(questions[currentIndex].subject);
     }
-  }, [currentIndex, isStarted, questions]);
+  }, [currentIndex, isStarted, isFinished, questions]);
 
   // Use the persist check to prevent reset on refresh
   useEffect(() => {
@@ -261,8 +261,6 @@ const MockExam: React.FC = () => {
     const timeTaken = MOCK_DURATION - timeLeft;
     finishExam(timeTaken);
     setShowConfirmSubmit(false);
-    // Clear persistence on successful manual finish
-    localStorage.removeItem("jambify-mock-exam");
 
     // Save result if logged in
     const { lastResult } = useMockStore.getState();
@@ -559,11 +557,15 @@ const MockExam: React.FC = () => {
         <MockResultsScreen
           onRetry={() => {
             resetExam();
+            localStorage.removeItem("jambify-mock-exam");
+            localStorage.removeItem("jambify-mock-exam-timer-end");
             setErrorMessage(null);
             setActiveSubject("English");
           }}
           onHome={() => {
             resetExam();
+            localStorage.removeItem("jambify-mock-exam");
+            localStorage.removeItem("jambify-mock-exam-timer-end");
             navigate("/");
           }}
         />

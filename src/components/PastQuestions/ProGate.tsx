@@ -19,6 +19,7 @@ const ProGate: React.FC = () => {
 
   const [isInitiating, setIsInitiating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
   const handleUpgrade = () => {
     setIsInitiating(true);
@@ -77,6 +78,7 @@ const ProGate: React.FC = () => {
         },
         onclose: () => {
           console.log("Payment modal closed");
+          setShowCancelConfirm(true);
         },
       });
     } catch (err) {
@@ -157,6 +159,45 @@ const ProGate: React.FC = () => {
       <p className="text-textDim mt-3 text-center text-[11px]">
         secured by flutterwave --- cancel any time
       </p>
+
+      {/* Custom Cancel Confirmation Modal */}
+      {showCancelConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="bg-bgCard border-borderMuted w-full max-w-sm rounded-3xl border p-6 shadow-2xl">
+            <div className="text-center">
+              <div className="bg-warn/10 border-warn/20 mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full border">
+                <Crown className="text-warn h-6 w-6" />
+              </div>
+              <h3 className="font-display mb-2 text-xl font-bold">
+                Are you sure?
+              </h3>
+              <p className="text-textMuted mb-6 text-sm">
+                You stopped the payment process. Would you like to go back or
+                try again?
+              </p>
+              <div className="flex gap-3">
+                <Button
+                  variant="secondary"
+                  fullWidth
+                  onClick={() => setShowCancelConfirm(false)}
+                >
+                  Go Back
+                </Button>
+                <Button
+                  variant="primary"
+                  fullWidth
+                  onClick={() => {
+                    setShowCancelConfirm(false);
+                    handleUpgrade();
+                  }}
+                >
+                  Try Again
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

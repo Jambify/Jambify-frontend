@@ -95,8 +95,34 @@ const Quiz: React.FC = () => {
   // Use a stable reference to the master subjects with their topics
   const subjectsMaster = useMemo(
     () => [
-      { name: "English", topics: [] },
-      { name: "Mathematics", topics: [] },
+      {
+        name: "English",
+        topics: ["Comprehension/Summary", "Lexis and Structure", "Oral Forms"],
+      },
+      {
+        name: "Mathematics",
+        topics: [
+          "Number Bases",
+          "Fractions, Decimals, Percentages",
+          "Indices, Logarithms, Surds",
+          "Sets",
+          "Polynomials",
+          "Variation",
+          "Inequalities",
+          "Progression",
+          "Binary Operations",
+          "Matrices and Determinants",
+          "Euclidean Geometry",
+          "Mensuration",
+          "Loci",
+          "Coordinate Geometry",
+          "Trigonometry",
+          "Differentiation",
+          "Integration",
+          "Statistics",
+          "Probability",
+        ],
+      },
       {
         name: "Physics",
         topics: [
@@ -204,6 +230,19 @@ const Quiz: React.FC = () => {
       setShowResults(false);
     }
   }, [isFinished]);
+
+  // Handle persistence reset on unmount if quiz is not active
+  useEffect(() => {
+    return () => {
+      // If we are leaving the page and the quiz is finished, we should reset
+      // so the next visit starts fresh.
+      // But we don't reset if the user is in the middle of a quiz.
+      const state = useQuizStore.getState();
+      if (state.isFinished) {
+        state.reset();
+      }
+    };
+  }, []);
 
   /** Reset topic when subject changes, UNLESS coming from a URL param */
   useEffect(() => {
@@ -375,14 +414,23 @@ const Quiz: React.FC = () => {
   };
 
   /* ── Results ───────────────────────────────────────── */
-  if (showResults) {
+  if (showResults || isFinished) {
     return (
       <AppLayout
         currentPage="quiz"
         isSidebarOpen={isSidebarOpen}
         setIsSidebarOpen={setIsSidebarOpen}
       >
-        <ResultsScreen onRetry={handleStart} onHome={() => navigate("/")} />
+        <ResultsScreen
+          onRetry={() => {
+            reset();
+            handleStart();
+          }}
+          onHome={() => {
+            reset();
+            navigate("/");
+          }}
+        />
       </AppLayout>
     );
   }
