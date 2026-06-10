@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import type { Subject } from "../../Store/useSubjectStore";
+import type { Subject } from "../../Types/subject";
 import TopicList from "./SubjectTopic";
 import { cn } from "../../lib/utils/utils";
 
@@ -8,18 +8,22 @@ interface SubjectCardProps {
   subject: Subject;
   isExpanded: boolean;
   onToggle: () => void;
+  isBest?: boolean;
+  isWorst?: boolean;
 }
 
 const SubjectCard: React.FC<SubjectCardProps> = ({
   subject,
   isExpanded,
   onToggle,
+  isBest,
+  isWorst,
 }) => {
   const navigate = useNavigate();
   const progressPct = Math.round((subject.completed / subject.total) * 100);
 
   const statusLabel =
-    subject.accuracy < 55
+    subject.weakTopics.length > 0 && subject.accuracy < 55
       ? { text: "Needs work", cls: "bg-danger/10 text-danger border-danger/20" }
       : subject.accuracy < 75
         ? { text: "In progress", cls: "bg-warn/10 text-warn border-warn/20" }
@@ -64,6 +68,16 @@ const SubjectCard: React.FC<SubjectCardProps> = ({
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {isBest && (
+              <span className="bg-success/20 text-success rounded border border-success/30 px-2 py-0.5 text-[10px] font-bold tracking-tight uppercase">
+                🏆 Best
+              </span>
+            )}
+            {isWorst && (
+              <span className="bg-danger/20 text-danger rounded border border-danger/30 px-2 py-0.5 text-[10px] font-bold tracking-tight uppercase">
+                ⚠️ Worst
+              </span>
+            )}
             <span
               className={cn(
                 "rounded border px-2 py-0.5 text-[10px] font-medium",

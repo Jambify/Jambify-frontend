@@ -7,13 +7,10 @@ import { useNavigate } from "react-router-dom";
 import { cn } from "../../lib/utils/utils";
 import { ArrowRight } from "lucide-react";
 
-type Filter = "all" | "weak" | "strong";
-
 const TopicStats: React.FC = () => {
   const navigate = useNavigate();
   const { topicStats, isLoading } = usePerformanceStore();
   const { subjectCombo } = useUserStore();
-  const [filter, setFilter] = useState<Filter>("all");
   const [showAll, setShowAll] = useState(false);
 
   // Filter stats based on user subject combo
@@ -24,16 +21,12 @@ const TopicStats: React.FC = () => {
     userSubjects.includes(t.subject),
   );
 
-  // Dynamic weak/strong topics from live data
-  const weakTopics = filteredTopicStats.filter((t) => t.accuracy < 60);
-  const strongTopics = filteredTopicStats.filter((t) => t.accuracy >= 75);
+  // Only show weakest topics (accuracy < 60)
+  const weakTopics = filteredTopicStats
+    .filter((t) => t.accuracy < 60)
+    .sort((a, b) => a.accuracy - b.accuracy); // Sort weakest first
 
-  const visibleTopics =
-    filter === "weak"
-      ? weakTopics
-      : filter === "strong"
-        ? strongTopics
-        : filteredTopicStats;
+  const visibleTopics = weakTopics;
 
   const displayedTopics = showAll ? visibleTopics : visibleTopics.slice(0, 5);
   const hasMore = visibleTopics.length > 5;
@@ -79,24 +72,8 @@ const TopicStats: React.FC = () => {
       {/* Controls Header */}
       <div className="bg-bgSurface/30 border-borderMuted/30 flex flex-col justify-between gap-4 rounded-2xl border p-4 sm:flex-row sm:items-center">
         <div className="flex items-center gap-4">
-          <div className="bg-bgDeep border-borderMuted/20 flex gap-1 rounded-xl border p-1">
-            {(["all", "weak", "strong"] as Filter[]).map((f) => (
-              <button
-                key={f}
-                onClick={() => setFilter(f)}
-                className={cn(
-                  "rounded-lg px-4 py-1.5 text-[11px] font-black tracking-wider uppercase transition-all",
-                  filter === f
-                    ? "bg-brand shadow-brand/20 text-white shadow-lg"
-                    : "text-textDim hover:text-textMain hover:bg-bgSurface",
-                )}
-              >
-                {f}
-              </button>
-            ))}
-          </div>
-          <span className="text-textDim hidden text-[10px] font-bold tracking-widest uppercase md:block">
-            {visibleTopics.length} Topics found
+          <span className="text-textDim text-[10px] font-bold tracking-widest uppercase">
+            {visibleTopics.length} Weak Topics found
           </span>
         </div>
 

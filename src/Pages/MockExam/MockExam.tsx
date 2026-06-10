@@ -26,6 +26,7 @@ import { cn } from "../../lib/utils/utils";
 
 import { fetchQuestionsWithFallback } from "../../Services/questionService";
 import LoadingScreen from "../../components/ui/LoadingScreen";
+import NetworkErrorAlert from "../../components/ui/NetworkErrorAlert";
 import {
   Menu,
   ChevronLeft,
@@ -371,60 +372,43 @@ const MockExam: React.FC = () => {
               </div>
             )}
 
-            {errorMessage && (
-              <div
-                className={cn(
-                  "animate-in fade-in slide-in-from-top-4 rounded-brand-lg mb-6 border p-5 text-sm shadow-sm duration-300",
-                  errorMessage.includes("CONNECTION_ERROR") ||
-                    errorMessage.includes("OFFLINE")
-                    ? "network-error-alert"
-                    : "bg-danger/15 border-danger/30 text-danger dark:bg-danger/10",
-                )}
-              >
-                <div className="flex items-start gap-3">
-                  <div
-                    className={cn(
-                      "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl shadow-sm",
-                      errorMessage.includes("CONNECTION_ERROR") ||
-                        errorMessage.includes("OFFLINE")
-                        ? "bg-warn/20 text-warn"
-                        : "bg-danger/20 text-danger",
-                    )}
-                  >
-                    <AlertTriangle size={20} />
-                  </div>
-                  <div className="flex-1">
-                    <p
-                      className={cn(
-                        "font-bold tracking-tight",
-                        errorMessage.includes("CONNECTION_ERROR") ||
-                          errorMessage.includes("OFFLINE")
-                          ? "text-amber-900 dark:text-amber-400"
-                          : "text-danger",
-                      )}
-                    >
-                      {errorMessage.includes("CONNECTION_ERROR") ||
-                      errorMessage.includes("OFFLINE")
-                        ? "Connection Alert"
-                        : "System Alert"}
-                    </p>
-                    <p className="mt-1 opacity-90">{errorMessage}</p>
-                    <button
-                      onClick={() => setErrorMessage(null)}
-                      className={cn(
-                        "mt-3 rounded-lg px-3 py-1.5 text-[10px] font-black tracking-widest uppercase transition-colors",
-                        errorMessage.includes("CONNECTION_ERROR") ||
-                          errorMessage.includes("OFFLINE")
-                          ? "bg-amber-900/10 text-amber-900 hover:bg-amber-900/20 dark:text-amber-400"
-                          : "bg-danger/10 hover:bg-danger/20 text-danger",
-                      )}
-                    >
-                      Dismiss
-                    </button>
+            {/* Network Error Alert */}
+            {(errorMessage?.includes("CONNECTION_ERROR") ||
+              errorMessage?.includes("OFFLINE")) && (
+              <NetworkErrorAlert
+                message={errorMessage}
+                onRetry={() => {
+                  setErrorMessage(null);
+                  handleStart();
+                }}
+                onDismiss={() => setErrorMessage(null)}
+              />
+            )}
+
+            {/* Error Message */}
+            {errorMessage &&
+              !errorMessage.includes("CONNECTION_ERROR") &&
+              !errorMessage.includes("OFFLINE") && (
+                <div className="animate-in fade-in slide-in-from-top-4 mb-6 rounded-brand-lg border bg-danger/15 border-danger/30 p-5 text-sm text-danger shadow-sm duration-300 dark:bg-danger/10">
+                  <div className="flex items-start gap-3">
+                    <div className="bg-danger/20 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-danger shadow-sm">
+                      <AlertTriangle size={20} />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-bold tracking-tight text-danger">
+                        System Alert
+                      </p>
+                      <p className="mt-1 opacity-90">{errorMessage}</p>
+                      <button
+                        onClick={() => setErrorMessage(null)}
+                        className="bg-danger/10 hover:bg-danger/20 mt-3 rounded-lg px-3 py-1.5 text-[10px] font-black tracking-widest uppercase text-danger transition-colors"
+                      >
+                        Dismiss
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
 
             <div className="mb-8 grid grid-cols-1 gap-8 md:grid-cols-2">
               <div className="space-y-6">

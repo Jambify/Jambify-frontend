@@ -1,6 +1,6 @@
 import { useQuizStore } from "../Store/useQuizStore";
 import { useUserStore } from "../Store/useUserStore";
-import { useSubjectStore } from "../Store/useSubjectStore";
+import { useSubjectStore, getSubjectFromName } from "../Store/useSubjectStore";
 import { usePerformanceStore } from "../Store/usePerformanceStore";
 import type { Question } from "../Types";
 
@@ -73,12 +73,14 @@ export function useQuizSession() {
     const subjMap: SubMap = {};
 
     questions.forEach((q: Question, i) => {
-      if (!subjMap[q.subject])
+      if (!subjMap[q.subject]) {
+        const master = getSubjectFromName(q.subject);
         subjMap[q.subject] = {
           correct: 0,
           total: 0,
-          id: q.subject.toLowerCase().slice(0, 4),
+          id: master?.id || q.subject.toLowerCase().slice(0, 3),
         };
+      }
       subjMap[q.subject].total++;
       if (answers[i] === q.answer) subjMap[q.subject].correct++;
     });

@@ -53,6 +53,10 @@ const RecommendedSessions: React.FC = () => {
     for (const s of sorted.slice(0, 2)) {
       const diff = getDifficulty(s.accuracy);
       const qCount = diff === "Hard" ? 10 : diff === "Medium" ? 8 : 5;
+      const topic = s.weakTopics[0] ?? "";
+      const route = topic
+        ? `/quiz?subject=${encodeURIComponent(s.name)}&topic=${encodeURIComponent(topic)}`
+        : `/quiz?subject=${encodeURIComponent(s.name)}`;
       built.push({
         id: `subj-${s.id}`,
         icon: s.icon,
@@ -62,7 +66,7 @@ const RecommendedSessions: React.FC = () => {
         minutes: Math.round(qCount * 1.4),
         tag: "recommended",
         difficulty: diff,
-        route: "/quiz",
+        route: route,
         subjectColor: s.color,
       });
     }

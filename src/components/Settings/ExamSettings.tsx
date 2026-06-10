@@ -28,23 +28,22 @@ const TARGET_SCORES = [
   },
 ];
 
-// Years users can choose from — extend as needed
-const EXAM_YEARS = ["2025", "2026", "2027", "2028"];
-
 const ExamSettings: React.FC = () => {
-  const { targetScore, examYear, examDate, updateExamSettings } =
+  const { targetScore, examDate, updateExamSettings } =
     useUserStore();
+
+  // Hardcode exam year to 2027
+  const EXAM_YEAR = "2027";
 
   // daysLeft is COMPUTED — never read from store
   const { daysLeft, formattedDate, isUpdating } = useExamCountdown();
 
-  const [form, setForm] = useState({ targetScore, examYear, examDate });
+  const [form, setForm] = useState({ targetScore, examYear: EXAM_YEAR, examDate });
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const isDirty =
     form.targetScore !== targetScore ||
-    form.examYear !== examYear ||
     form.examDate !== examDate;
 
   const handleSave = async () => {
@@ -140,25 +139,7 @@ const ExamSettings: React.FC = () => {
         )}
       </div>
 
-      {/* ── JAMB year ─────────────────────────────────── */}
-      <Section title="JAMB year">
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-          {EXAM_YEARS.map((yr) => (
-            <button
-              key={yr}
-              onClick={() => setForm((p) => ({ ...p, examYear: yr }))}
-              className={cn(
-                "rounded-brand border py-2.5 text-sm font-medium transition-all",
-                form.examYear === yr
-                  ? "bg-brand border-brand shadow-brand/20 text-white shadow-lg"
-                  : "bg-bgSurface border-borderMuted text-textMuted hover:text-textMain hover:border-white/20",
-              )}
-            >
-              {yr}
-            </button>
-          ))}
-        </div>
-      </Section>
+
 
       {/* ── Exam date ─────────────────────────────────── */}
       <Section title="Exam date">
@@ -242,7 +223,7 @@ const ExamSettings: React.FC = () => {
         {isDirty && (
           <button
             className="text-textDim hover:text-textMain text-sm transition-colors"
-            onClick={() => setForm({ targetScore, examYear, examDate })}
+            onClick={() => setForm({ targetScore, examYear: EXAM_YEAR, examDate })}
           >
             Discard
           </button>

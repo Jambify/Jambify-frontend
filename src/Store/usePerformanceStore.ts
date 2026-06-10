@@ -3,8 +3,12 @@
 import { create } from "zustand";
 import {
   submitQuizSession,
+  getDetailedTopicStats,
+  getSubjectPerformance,
   type WeeklyActivity,
   type TopicStat,
+  type SubjectPerformance,
+  updateSubjectPerformance,
 } from "../Services/PerformanceService";
 import { useUserStore } from "./useUserStore";
 import { supabase } from "../lib/supabase";
@@ -12,6 +16,7 @@ interface PerformanceState {
   // Data
   weeklyActivity: WeeklyActivity[];
   topicStats: TopicStat[];
+  subjectPerformance: SubjectPerformance[];
   mockScores: number[];
   mockHistory: any[]; // Added
   totalQuestions: number;
@@ -53,6 +58,7 @@ export const usePerformanceStore = create<PerformanceState>()((set, get) => ({
     { day: "Sat", questions: 0 },
   ],
   topicStats: [],
+  subjectPerformance: [],
   mockScores: [],
   mockHistory: [],
   totalQuestions: 0,
@@ -78,6 +84,7 @@ export const usePerformanceStore = create<PerformanceState>()((set, get) => ({
       if (!sessions || sessions.length === 0) {
         set({
           topicStats: [],
+          subjectPerformance: [],
           mockHistory: [],
           weeklyActivity: [
             { day: "Sun", questions: 0 },
@@ -104,32 +111,11 @@ export const usePerformanceStore = create<PerformanceState>()((set, get) => ({
         jambScore: Math.round((s.correct / 180) * 400),
       }));
 
-      // 2. Aggregate Topic Stats from topic_performance column
-      const topicAgg: Record<
-        string,
-        { subject: string; correct: number; total: number }
-      > = {};
+      // 2. Get detailed topic stats from topic_progress table
+      const topicStats = await getDetailedTopicStats();
 
-      sessions.forEach((s) => {
-        const perf = s.topic_performance || {};
-        Object.entries(perf).forEach(([key, data]: [string, any]) => {
-          if (!topicAgg[key]) {
-            topicAgg[key] = { subject: data.subject, correct: 0, total: 0 };
-          }
-          topicAgg[key].correct += data.correct || 0;
-          topicAgg[key].total += data.total || 0;
-        });
-      });
-
-      const topicStats: TopicStat[] = Object.entries(topicAgg).map(
-        ([name, data]) => ({
-          id: name,
-          name: name.split(":")[1] || name,
-          subject: data.subject,
-          accuracy: Math.round((data.correct / data.total) * 100),
-          totalQuestions: data.total,
-        }),
-      );
+      // 2b. Get subject performance (best/worst scores)
+      const subjectPerformance = await getSubjectPerformance();
 
       // 3. Weekly Activity (last 7 days)
       const weeklyActivity = Array(7).fill(0);
@@ -151,6 +137,7 @@ export const usePerformanceStore = create<PerformanceState>()((set, get) => ({
       set({
         mockHistory,
         topicStats,
+        subjectPerformance,
         totalQuestions: totalQs,
         avgAccuracy:
           totalQs > 0 ? Math.round((totalCorrect / totalQs) * 100) : 0,
@@ -213,6 +200,9 @@ export const usePerformanceStore = create<PerformanceState>()((set, get) => ({
 
       // Sync user profile after successful submission
       await useUserStore.getState().syncProfile(true);
+
+      // Update subject-level tracking
+      await updateSubjectPerformance(subject, result.accuracy);
 
       return result;
     } catch (error) {

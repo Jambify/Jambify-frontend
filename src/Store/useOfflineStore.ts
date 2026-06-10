@@ -2,6 +2,8 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import Dexie from "dexie";
 import type { Table } from "dexie";
+import { supabase } from "../lib/supabase";
+import type { Question } from "../Types";
 
 /**
  * IndexedDB setup for offline question storage
@@ -9,7 +11,7 @@ import type { Table } from "dexie";
 interface QuestionData {
   id?: number;
   packId: string;
-  questionData: any; // Store the actual question data
+  questionData: Question; // Store the actual question data
   downloadedAt: Date;
 }
 
@@ -26,38 +28,70 @@ class JambifyOfflineDB extends Dexie {
 
 const db = new JambifyOfflineDB();
 
+// Map pack IDs to subjects
+const PACK_TO_SUBJECT: Record<string, string> = {
+  "eng-all": "English",
+  "math-all": "Mathematics",
+  "phy-all": "Physics",
+  "chem-all": "Chemistry",
+  "bio-all": "Biology",
+};
+
 /**
- * Helper function to simulate fetching sample questions for different packs
+ * Helper function to fetch real questions from Supabase for a pack
  */
-async function fetchSampleQuestionsForPack(packId: string): Promise<any[]> {
-  // Simulate API delay
-  await new Promise((resolve) => setTimeout(resolve, 1500));
+async function fetchQuestionsForPack(packId: string): Promise<Question[]> {
+  const subject = PACK_TO_SUBJECT[packId];
+  if (!subject) return [];
 
-  // Return sample questions based on pack ID
-  const sampleQuestions = [
-    {
-      id: `${packId}-1`,
-      text: `Sample question 1 from ${packId}`,
-      subject: packId.split("-")[0],
-      year: 2023,
-      topic: "General",
-      difficulty: "Medium",
-      options: ["Option A", "Option B", "Option C", "Option D"],
-      answer: 0,
-    },
-    {
-      id: `${packId}-2`,
-      text: `Sample question 2 from ${packId}`,
-      subject: packId.split("-")[0],
-      year: 2023,
-      topic: "General",
-      difficulty: "Easy",
-      options: ["Option A", "Option B", "Option C", "Option D"],
-      answer: 1,
-    },
-  ];
+  // Fetch all questions for that subject from 2016-2025
+  const { data, error } = await supabase
+    .from("questions")
+    .select("*")
+    .eq("subject", subject)
+    .gte("year", 2016)
+    .lte("year", 2025);
 
-  return sampleQuestions;
+  if (error) {
+    console.error("[Offline] Error fetching questions:", error);
+    return [];
+  }
+
+  // Transform DB rows to our Question type
+  const questions = (data || []).map((row) => {
+    let options: string[] = [];
+    if (Array.isArray(row.options)) {
+      options = row.options;
+    } else if (typeof row.options === "string") {
+      try {
+        options = JSON.parse(row.options);
+      } catch (e) {
+        options = [row.option_a, row.option_b, row.option_c, row.option_d].filter(Boolean);
+      }
+    }
+
+    let answerIndex = 0;
+    if (typeof row.answer === "number") answerIndex = row.answer;
+    else if (typeof row.answer === "string") {
+      const idx = ["a", "b", "c", "d", "e"].indexOf(row.answer.toLowerCase());
+      answerIndex = idx >= 0 ? idx : parseInt(row.answer, 10) || 0;
+    }
+
+    return {
+      id: row.id.toString(),
+      subject: row.subject,
+      year: parseInt(row.year, 10),
+      difficulty: row.difficulty as "Easy" | "Medium" | "Hard",
+      text: row.text || row.question || "",
+      instruction: row.instruction || row.section || row.passage || "",
+      options: options.length ? options : ["Option A", "Option B", "Option C", "Option D"],
+      answer: answerIndex,
+      explanation: row.explanation || row.solution || "No explanation available.",
+      topic: row.topic || "General",
+    } as Question;
+  });
+
+  return questions;
 }
 
 /**
@@ -98,9 +132,8 @@ export const useOfflineStore = create<OfflineState>()(
         set({ downloadingId: id });
 
         try {
-          // Simulate fetching sample questions based on pack ID
-          // In a real app, this would fetch from an API
-          const sampleQuestions = await fetchSampleQuestionsForPack(id);
+          // Fetch real questions from Supabase for this pack
+          const questions = await fetchQuestionsForPack(id);
 
           // Store questions in IndexedDB
           await db.transaction("rw", db.questions, async () => {
@@ -108,7 +141,7 @@ export const useOfflineStore = create<OfflineState>()(
             await db.questions.where("packId").equals(id).delete();
 
             // Add new questions
-            const questionData = sampleQuestions.map((q) => ({
+            const questionData = questions.map((q) => ({
               packId: id,
               questionData: q,
               downloadedAt: new Date(),

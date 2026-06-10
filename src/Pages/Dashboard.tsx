@@ -46,6 +46,7 @@ function countdownMotivation(days: number): string {
 }
 
 import { usePerformanceStore } from "../Store/usePerformanceStore";
+import { SUBJECT_COMBO_MAP } from "../Store/useSubjectStore";
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -74,10 +75,10 @@ const Dashboard: React.FC = () => {
 
   // Filter stats based on user subject combo
   const userSubjects = subjectCombo
-    ? subjectCombo.split(",").map((s) => s.trim())
+    ? SUBJECT_COMBO_MAP[subjectCombo] || [subjectCombo]
     : [];
   const filteredTopicStats = topicStats.filter((t: any) =>
-    userSubjects.includes(t.subject),
+    userSubjects.some((s) => s.toLowerCase() === t.subject.toLowerCase()),
   );
 
   // Dynamic weak/strong topics from live data
@@ -283,95 +284,95 @@ const Dashboard: React.FC = () => {
       ══════════════════════════════════════════════════ */}
       <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
         {/* Best Score */}
-        <div className="bg-bgCard border-borderMuted rounded-brand-xl flex flex-col gap-2 border p-4 md:p-5">
+        <div className="bg-bgCard border-borderMuted rounded-brand-xl flex flex-col gap-1.5 border p-4 transition-all hover:border-brand/20 md:p-5">
           <div className="flex items-center justify-between">
-            <span className="text-textDim text-[10px] font-bold tracking-widest uppercase">
+            <span className="text-textDim text-[9px] font-bold tracking-widest uppercase sm:text-[10px]">
               Best Score
             </span>
-            <div className="bg-brand/10 flex h-8 w-8 items-center justify-center rounded-xl">
-              <Target className="text-brand h-4 w-4" />
+            <div className="bg-brand/10 flex h-7 w-7 items-center justify-center rounded-lg sm:h-8 sm:w-8">
+              <Target className="text-brand h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </div>
           </div>
           {bestScore > 0 ? (
             <>
-              <p className="font-display text-textMain text-3xl font-black tracking-tight">
+              <p className="font-display text-textMain text-2xl font-black tracking-tight sm:text-3xl">
                 {bestScore}
               </p>
-              <p className="text-success flex items-center gap-1 text-[11px] font-medium">
-                <TrendingUp className="h-3 w-3" />
-                Max JAMB Score
+              <p className="text-success flex items-center gap-1 text-[10px] font-medium sm:text-[11px]">
+                <TrendingUp className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                Max JAMB
               </p>
             </>
           ) : (
             <>
-              <p className="font-display text-textDim text-2xl font-black tracking-tight">
+              <p className="font-display text-textDim text-xl font-black tracking-tight sm:text-2xl">
                 —
               </p>
-              <p className="text-textDim text-[11px] leading-snug">
-                Take a mock exam to see
+              <p className="text-textDim text-[10px] leading-snug sm:text-[11px]">
+                Take mock exam
               </p>
             </>
           )}
         </div>
 
         {/* Accuracy */}
-        <div className="bg-bgCard border-borderMuted rounded-brand-xl flex flex-col gap-2 border p-4 md:p-5">
+        <div className="bg-bgCard border-borderMuted rounded-brand-xl flex flex-col gap-1.5 border p-4 transition-all hover:border-success/20 md:p-5">
           <div className="flex items-center justify-between">
-            <span className="text-textDim text-[10px] font-bold tracking-widest uppercase">
+            <span className="text-textDim text-[9px] font-bold tracking-widest uppercase sm:text-[10px]">
               Accuracy
             </span>
-            <div className="bg-success/10 flex h-8 w-8 items-center justify-center rounded-xl">
-              <CheckCircle2 className="text-success h-4 w-4" />
+            <div className="bg-success/10 flex h-7 w-7 items-center justify-center rounded-lg sm:h-8 sm:w-8">
+              <CheckCircle2 className="text-success h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </div>
           </div>
           {questionsCompleted > 0 ? (
             <>
-              <p className="font-display text-textMain text-3xl font-black tracking-tight">
+              <p className="font-display text-textMain text-2xl font-black tracking-tight sm:text-3xl">
                 {accuracy}%
               </p>
-              <p className="text-textDim text-[11px] font-medium">
-                from {previousAccuracy}% last week
+              <p className="text-textDim text-[10px] font-medium sm:text-[11px]">
+                Up from {previousAccuracy}%
               </p>
             </>
           ) : (
             <>
-              <p className="font-display text-textDim text-2xl font-black tracking-tight">
+              <p className="font-display text-textDim text-xl font-black tracking-tight sm:text-2xl">
                 —
               </p>
-              <p className="text-textDim text-[11px] leading-snug">
-                Take your first quiz
+              <p className="text-textDim text-[10px] leading-snug sm:text-[11px]">
+                Start first quiz
               </p>
             </>
           )}
         </div>
 
         {/* Questions Done */}
-        <div className="bg-bgCard border-borderMuted rounded-brand-xl flex flex-col gap-2 border p-4 md:p-5">
+        <div className="bg-bgCard border-borderMuted rounded-brand-xl flex flex-col gap-1.5 border p-4 transition-all hover:border-blue-500/20 md:p-5">
           <div className="flex items-center justify-between">
-            <span className="text-textDim text-[10px] font-bold tracking-widest uppercase">
+            <span className="text-textDim text-[9px] font-bold tracking-widest uppercase sm:text-[10px]">
               Questions
             </span>
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-500/10">
-              <BookOpen className="h-4 w-4 text-blue-400" />
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-500/10 sm:h-8 sm:w-8">
+              <BookOpen className="h-3.5 w-3.5 text-blue-400 sm:h-4 sm:w-4" />
             </div>
           </div>
           <p
             className={cn(
               "font-display font-black tracking-tight",
               questionsCompleted > 0
-                ? "text-textMain text-3xl"
-                : "text-textDim text-2xl",
+                ? "text-textMain text-2xl sm:text-3xl"
+                : "text-textDim text-xl sm:text-2xl",
             )}
           >
             {questionsCompleted > 0 ? questionsCompleted.toLocaleString() : "0"}
           </p>
           {questionsCompleted > 0 ? (
             <div>
-              <div className="text-textDim mb-1 flex justify-between text-[10px]">
-                <span>{questionsPct}% complete</span>
-                <span>{totalQuestions.toLocaleString()} total</span>
+              <div className="text-textDim mb-1 flex justify-between text-[9px] sm:text-[10px]">
+                <span>{questionsPct}%</span>
+                <span>{totalQuestions.toLocaleString()}</span>
               </div>
-              <div className="bg-bgTrack h-1.5 overflow-hidden rounded-full">
+              <div className="bg-bgTrack h-1 overflow-hidden rounded-full">
                 <div
                   className="h-full rounded-full bg-blue-500 transition-all duration-500"
                   style={{ width: `${questionsPct}%` }}
@@ -379,27 +380,27 @@ const Dashboard: React.FC = () => {
               </div>
             </div>
           ) : (
-            <p className="text-textDim text-[11px] leading-snug">
+            <p className="text-textDim text-[10px] leading-snug sm:text-[11px]">
               Start practising
             </p>
           )}
         </div>
 
         {/* Streak */}
-        <div className="bg-bgCard border-borderMuted rounded-brand-xl flex flex-col gap-2 border p-4 md:p-5">
+        <div className="bg-bgCard border-borderMuted rounded-brand-xl flex flex-col gap-1.5 border p-4 transition-all hover:border-orange-500/20 md:p-5">
           <div className="flex items-center justify-between">
-            <span className="text-textDim text-[10px] font-bold tracking-widest uppercase">
+            <span className="text-textDim text-[9px] font-bold tracking-widest uppercase sm:text-[10px]">
               Streak
             </span>
             <div
               className={cn(
-                "flex h-8 w-8 items-center justify-center rounded-xl",
+                "flex h-7 w-7 items-center justify-center rounded-lg sm:h-8 sm:w-8",
                 streak > 0 ? "bg-orange-500/10" : "bg-bgSurface",
               )}
             >
               <Flame
                 className={cn(
-                  "h-4 w-4",
+                  "h-3.5 w-3.5 sm:h-4 sm:w-4",
                   streak > 0 ? "text-orange-400" : "text-textDim",
                 )}
               />
@@ -407,23 +408,23 @@ const Dashboard: React.FC = () => {
           </div>
           {streak > 0 ? (
             <>
-              <p className="font-display text-textMain text-3xl font-black tracking-tight">
+              <p className="font-display text-textMain text-2xl font-black tracking-tight sm:text-3xl">
                 {streak}
-                <span className="text-textDim ml-1 text-base font-semibold">
+                <span className="text-textDim ml-1 text-xs font-semibold sm:text-base">
                   days
                 </span>
               </p>
-              <p className="flex items-center gap-1 text-[11px] font-medium text-orange-400">
-                <Flame className="h-3 w-3" /> Keep it going!
+              <p className="flex items-center gap-1 text-[10px] font-medium text-orange-400 sm:text-[11px]">
+                Keep it up!
               </p>
             </>
           ) : (
             <>
-              <p className="font-display text-textDim text-2xl font-black tracking-tight">
+              <p className="font-display text-textDim text-xl font-black tracking-tight sm:text-2xl">
                 0
               </p>
-              <p className="text-textDim text-[11px] leading-snug">
-                Start your streak today
+              <p className="text-textDim text-[10px] leading-snug sm:text-[11px]">
+                Start today
               </p>
             </>
           )}

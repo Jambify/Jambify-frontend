@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import { useUserStore } from "../../Store/useUserStore";
 import { useExamCountdown } from "../../hooks/useExamCountdown";
 import ThemeToggle from "../ui/ThemeToggle";
+import { Flame, Clock, Bell } from "lucide-react";
 
 const PAGE_TITLES: Record<string, string> = {
   "/": "Dashboard",
@@ -22,69 +23,84 @@ interface TopbarProps {
 const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
   const { pathname } = useLocation();
   const { streak } = useUserStore();
-  const { daysLeft } = useExamCountdown(); // ← Use hook for dynamic days
+  const { daysLeft } = useExamCountdown();
 
   const title = PAGE_TITLES[pathname] ?? "JAMBReady";
 
   return (
-    <header className="border-borderMuted bg-bgCard/80 sticky top-0 z-30 flex h-14 items-center justify-between border-b px-5 backdrop-blur-md">
+    <header className="border-borderMuted bg-bgCard/80 sticky top-0 z-30 flex h-16 items-center justify-between border-b px-4 backdrop-blur-md sm:px-6">
       <div className="flex items-center gap-3">
         {/* Mobile hamburger */}
         <button
           onClick={onMenuClick}
-          className="rounded-brand hover:bg-bgSurface text-textMuted flex h-8 w-8 items-center justify-center transition-colors lg:hidden"
+          className="rounded-brand hover:bg-bgSurface text-textMuted flex h-10 w-10 items-center justify-center transition-colors lg:hidden"
           aria-label="Open menu"
         >
           <svg
-            width="18"
-            height="18"
+            width="20"
+            height="20"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
-            strokeWidth="2"
+            strokeWidth="2.5"
+            strokeLinecap="round"
           >
             <line x1="3" y1="6" x2="21" y2="6" />
-            <line x1="3" y1="12" x2="21" y2="12" />
+            <line x1="3" y1="12" x2="16" y2="12" />
             <line x1="3" y1="18" x2="21" y2="18" />
           </svg>
         </button>
 
-        <h1 className="font-display text-[15px] font-semibold tracking-tight">
+        <h1 className="font-display hidden text-[16px] font-bold tracking-tight sm:block md:text-[18px]">
           {title}
         </h1>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex flex-1 items-center justify-end gap-2 sm:flex-none sm:gap-3">
         {/* Streak pill */}
-        <div className="hidden items-center gap-1.5 rounded-full border border-orange-500/20 bg-orange-500/10 px-3 py-1.5 text-xs font-medium text-orange-400 sm:flex">
-          🔥 {streak} day{streak !== 1 ? "s" : ""} streak
+        <div className="bg-orange-500/10 border-orange-500/20 group flex shrink-0 items-center gap-1.5 rounded-2xl border px-2 py-1 transition-all hover:bg-orange-500/20 sm:px-3 sm:py-1.5">
+          <div className="bg-orange-500/20 flex h-7 w-7 items-center justify-center rounded-xl shadow-inner sm:h-8 sm:w-8">
+            <Flame className="h-4 w-4 text-orange-400 sm:h-4.5 sm:w-4.5" />
+          </div>
+          <div className="flex flex-col leading-tight">
+            <span className="text-textMain text-[12px] font-black tracking-tight sm:text-[14px]">
+              {streak}
+            </span>
+            <span className="text-textDim text-[8px] font-bold uppercase tracking-wider">
+              Streak
+            </span>
+          </div>
         </div>
 
-        {/* Exam countdown pill - Dynamic! */}
-        <div className="bg-brand/10 border-brand/20 text-brand-light hidden items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium sm:flex">
-          ⏳ {daysLeft} day{daysLeft !== 1 ? "s" : ""}
+        {/* Exam countdown pill */}
+        <div className="bg-brand/10 border-brand/20 group flex shrink-0 items-center gap-1.5 rounded-2xl border px-2 py-1 transition-all hover:bg-brand/20 sm:px-3 sm:py-1.5">
+          <div className="bg-brand/20 flex h-7 w-7 items-center justify-center rounded-xl shadow-inner sm:h-8 sm:w-8">
+            <Clock className="text-brand-light h-4 w-4 sm:h-4.5 sm:w-4.5" />
+          </div>
+          <div className="flex flex-col leading-tight">
+            <span className="text-textMain text-[12px] font-black tracking-tight sm:text-[14px]">
+              {daysLeft}
+            </span>
+            <span className="text-textDim text-[8px] font-bold uppercase tracking-wider">
+              Days
+            </span>
+          </div>
         </div>
+
+        <div className="bg-borderMuted/40 mx-0.5 h-8 w-px sm:mx-1" />
 
         {/* Notifications */}
         <button
-          className="rounded-brand border-borderMuted hover:bg-bgSurface text-textMuted hover:text-textMain flex h-8 w-8 items-center justify-center border transition-colors"
+          className="rounded-brand border-borderMuted hover:bg-bgSurface text-textMuted hover:text-textMain flex h-9 w-9 items-center justify-center border transition-colors sm:h-10 sm:w-10"
           aria-label="Notifications"
         >
-          <svg
-            width="15"
-            height="15"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-          >
-            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-          </svg>
+          <Bell className="h-5 w-5" />
         </button>
 
         {/* Theme toggle */}
-        <ThemeToggle />
+        <div className="hidden sm:block">
+          <ThemeToggle />
+        </div>
       </div>
     </header>
   );

@@ -4,31 +4,7 @@ import { create } from "zustand";
 import { supabase } from "../lib/supabase";
 import { useUserStore } from "./useUserStore";
 import { getDetailedTopicStats } from "../Services/PerformanceService";
-
-export interface Subject {
-  id: string;
-  name: string;
-  icon: string;
-  color: string;
-  accuracy: number;
-  completed: number;
-  total: number;
-  rank: number;
-  weakTopics: string[];
-  topics?: string[];
-}
-
-interface SubjectProgressDB {
-  id: string;
-  user_id: string;
-  subject_id: string;
-  subject_name: string;
-  accuracy: number;
-  questions_attempted: number;
-  mastered: boolean;
-  updated_at: string;
-  created_at: string;
-}
+import type { Subject, SubjectProgress } from "../Types/subject";
 
 interface SubjectState {
   subjects: Subject[];
@@ -50,8 +26,48 @@ interface SubjectState {
 
 // Complete master list of all possible subjects with their details
 const ALL_SUBJECTS_MASTER = [
-  { id: "eng", name: "English", icon: "📖", color: "#7B5FFF", total: 420 },
-  { id: "math", name: "Mathematics", icon: "🔢", color: "#00C896", total: 380 },
+  {
+    id: "eng",
+    name: "English",
+    icon: "📖",
+    color: "#7B5FFF",
+    total: 420,
+    topics: [
+      "Comprehension",
+      "Lexis and Structure",
+      "Oral English",
+      "Sentence Interpretation",
+      "Figures of Speech",
+    ],
+  },
+  {
+    id: "math",
+    name: "Mathematics",
+    icon: "🔢",
+    color: "#00C896",
+    total: 380,
+    topics: [
+      "Number Bases",
+      "Fractions, Decimals and Percentages",
+      "Indices, Logarithms and Surds",
+      "Sets",
+      "Polynomials",
+      "Variation",
+      "Inequalities",
+      "Progressions",
+      "Binary Operations",
+      "Matrices and Determinants",
+      "Euclidean Geometry",
+      "Mensuration",
+      "Loci",
+      "Coordinate Geometry",
+      "Trigonometry",
+      "Differentiation",
+      "Integration",
+      "Statistics",
+      "Probability",
+    ],
+  },
   {
     id: "phy",
     name: "Physics",
@@ -133,7 +149,7 @@ const ALL_SUBJECTS_MASTER = [
 ];
 
 // Map subject combo ID to list of subject names (matches your onboarding)
-const SUBJECT_COMBO_MAP: Record<string, string[]> = {
+export const SUBJECT_COMBO_MAP: Record<string, string[]> = {
   medicine: ["English", "Biology", "Chemistry", "Physics"],
   engineering: ["English", "Mathematics", "Physics", "Chemistry"],
   "social-sci": ["English", "Mathematics", "Economics", "Government"],
@@ -143,7 +159,7 @@ const SUBJECT_COMBO_MAP: Record<string, string[]> = {
 };
 
 // Map subject name to master subject object
-const getSubjectFromName = (name: string) => {
+export const getSubjectFromName = (name: string) => {
   const nameMap: Record<string, any> = {
     English: ALL_SUBJECTS_MASTER.find((s) => s.name === "English"),
     Mathematics: ALL_SUBJECTS_MASTER.find((s) => s.name === "Mathematics"),
@@ -211,23 +227,27 @@ const fetchUserSubjects = async (): Promise<Subject[]> => {
   if (error) throw error;
 
   // Create a map of existing progress
-  const progressMap = new Map<string, SubjectProgressDB>();
+  const progressMap = new Map<string, SubjectProgress>();
   existingProgress?.forEach((p) => {
-    progressMap.set(p.subject_id, p);
+    progressMap.set(p.subject, p);
   });
 
   // Build subjects only for selected ones
   const subjects: Subject[] = selectedSubjectsMaster.map((master) => {
     const progress = progressMap.get(master.id);
     const accuracy = progress?.accuracy || 0;
-    const completed = progress?.questions_attempted || 0;
+    const completed = progress?.questions_done || 0;
     const rank = calculateRank(accuracy);
 
-    // Find the single lowest accuracy topic for this subject from real data
-    const subjectTopics = realTopicStats.filter(
-      (t) => t.subject === master.name,
-    );
-    const lowestTopic = subjectTopics.length > 0 ? [subjectTopics[0].name] : [];
+    // Collect weakest topic (only from real database data)
+    let weakTopics: string[] = [];
+    const subjectTopicStats = realTopicStats
+      .filter((t) => t.subject === master.name)
+      .sort((a, b) => a.accuracy - b.accuracy); // Sort weakest first
+
+    if (subjectTopicStats.length > 0) {
+      weakTopics = [subjectTopicStats[0].name];
+    }
 
     return {
       id: master.id,
@@ -238,7 +258,7 @@ const fetchUserSubjects = async (): Promise<Subject[]> => {
       completed: completed,
       total: master.total,
       rank: rank,
-      weakTopics: lowestTopic,
+      weakTopics: weakTopics,
       topics: (master as any).topics || [],
     };
   });
@@ -265,15 +285,13 @@ const initializeUserSubjects = async (): Promise<void> => {
     const { error } = await supabase.from("subject_progress").upsert(
       {
         user_id: user.id,
-        subject_id: master.id,
-        subject_name: master.name,
+        subject: master.id,
         accuracy: 0,
-        questions_attempted: 0,
-        mastered: false,
+        questions_done: 0,
         updated_at: new Date().toISOString(),
       },
       {
-        onConflict: "user_id,subject_id",
+        onConflict: "user_id,subject",
       },
     );
 
@@ -285,7 +303,7 @@ const initializeUserSubjects = async (): Promise<void> => {
 const updateSubjectProgressInDB = async (
   subjectId: string,
   newAccuracy: number,
-  questionsAttempted: number,
+  questionsDone: number,
 ): Promise<void> => {
   const {
     data: { user },
@@ -298,15 +316,13 @@ const updateSubjectProgressInDB = async (
   const { error } = await supabase.from("subject_progress").upsert(
     {
       user_id: user.id,
-      subject_id: subjectId,
-      subject_name: master.name,
+      subject: subjectId,
       accuracy: newAccuracy,
-      questions_attempted: questionsAttempted,
-      mastered: newAccuracy >= 80,
+      questions_done: questionsDone,
       updated_at: new Date().toISOString(),
     },
     {
-      onConflict: "user_id,subject_id",
+      onConflict: "user_id,subject",
     },
   );
 

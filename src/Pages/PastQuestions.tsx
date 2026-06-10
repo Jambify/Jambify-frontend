@@ -1,15 +1,19 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import AppLayout from "../components/Layout/AppLayout";
 import { useUserStore } from "../Store/useUserStore";
 import { useOfflineStore } from "../Store/useOfflineStore";
-import { SAMPLE_QUESTIONS } from "../Data/Question";
+import { SUBJECT_COMBO_MAP } from "../Store/useSubjectStore";
 import FilterBar from "../components/PastQuestions/FilterBar";
 import QuestionRow from "../components/PastQuestions/QuestionRow";
 import ProGate from "../components/PastQuestions/ProGate";
 import OfflinePackCard from "../components/PastQuestions/OfflinePackCard";
 import Button from "../components/ui/Button";
-import { WifiOff } from "lucide-react";
+import { WifiOff, Loader2 } from "lucide-react";
 import type { Question } from "../Types";
+import {
+  fetchAllQuestionsForBrowse,
+  fetchTopicsBySubject,
+} from "../Services/questionService";
 
 export interface Filters {
   subject: string;
@@ -19,39 +23,42 @@ export interface Filters {
   search: string;
 }
 
+// Pre-defined years: 2016-2025
+const VALID_YEARS = ["All", "2025", "2024", "2023", "2022", "2021", "2020", "2019", "2018", "2017", "2016"];
+
 const OFFLINE_PACKS = [
   {
     id: "eng-all",
     subject: "English",
-    years: "2010–2024",
+    years: "2016–2025",
     count: 240,
     size: "1.2 MB",
   },
   {
     id: "math-all",
     subject: "Mathematics",
-    years: "2010–2024",
+    years: "2016–2025",
     count: 220,
     size: "1.0 MB",
   },
   {
     id: "phy-all",
     subject: "Physics",
-    years: "2010–2024",
+    years: "2016–2025",
     count: 200,
     size: "0.9 MB",
   },
   {
     id: "chem-all",
     subject: "Chemistry",
-    years: "2010–2024",
+    years: "2016–2025",
     count: 210,
     size: "0.9 MB",
   },
   {
     id: "bio-all",
     subject: "Biology",
-    years: "2010–2024",
+    years: "2016–2025",
     count: 190,
     size: "0.8 MB",
   },
@@ -61,7 +68,11 @@ const PAGE_SIZE = 20;
 
 const PastQuestions: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const { isPro } = useUserStore();
+  const { isPro, subjectCombo: userSubjectComboId } = useUserStore();
+  const userSubjects = userSubjectComboId
+    ? SUBJECT_COMBO_MAP[userSubjectComboId] ?? []
+    : [];
+
   const [filters, setFilters] = useState<Filters>({
     subject: "All",
     year: "All",
@@ -74,9 +85,55 @@ const PastQuestions: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"browse" | "offline">("browse");
   const { downloadedPacks, getOfflineQuestions } = useOfflineStore();
   const [offlineQuestions, setOfflineQuestions] = useState<Question[]>([]);
+  const [browseQuestions, setBrowseQuestions] = useState<Question[]>([]);
+  const [availableTopics, setAvailableTopics] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Load all browse questions on mount and when filters change
+  useEffect(() => {
+    let isMounted = true;
+    async function loadData() {
+      setIsLoading(true);
+      try {
+        const qs = await fetchAllQuestionsForBrowse(
+          filters.subject,
+          filters.year,
+          filters.topic,
+          filters.difficulty,
+        );
+        if (isMounted) setBrowseQuestions(qs);
+      } catch (err) {
+        console.error("[PastQuestions] Error loading browse questions:", err);
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    }
+
+    loadData();
+    return () => {
+      isMounted = false;
+    };
+  }, [filters.subject, filters.year, filters.topic, filters.difficulty]);
+
+  // Load available topics when selected subject changes
+  useEffect(() => {
+    let isMounted = true;
+    async function loadTopics() {
+      if (filters.subject && filters.subject !== "All") {
+        const topics = await fetchTopicsBySubject(filters.subject);
+        if (isMounted) setAvailableTopics(topics);
+      } else {
+        setAvailableTopics([]);
+      }
+    }
+    loadTopics();
+    return () => {
+      isMounted = false;
+    };
+  }, [filters.subject]);
 
   /* ── Load offline questions if needed ─────────── */
-  React.useEffect(() => {
+  useEffect(() => {
     if (downloadedPacks.length > 0) {
       Promise.all(downloadedPacks.map((id) => getOfflineQuestions(id))).then(
         (results) => {
@@ -90,7 +147,7 @@ const PastQuestions: React.FC = () => {
 
   /* ── Filter questions ──────────────────────────── */
   const filtered = useMemo(() => {
-    const source = activeTab === "browse" ? SAMPLE_QUESTIONS : offlineQuestions;
+    const source = activeTab === "browse" ? browseQuestions : offlineQuestions;
     return (source as Question[]).filter((q) => {
       if (filters.subject !== "All" && q.subject !== filters.subject)
         return false;
@@ -109,31 +166,48 @@ const PastQuestions: React.FC = () => {
       }
       return true;
     });
-  }, [filters, activeTab, offlineQuestions]);
+  }, [filters, activeTab, offlineQuestions, browseQuestions]);
 
   /* ── Pagination ────────────────────────────────── */
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const handleFilterChange = (next: Partial<Filters>) => {
-    setFilters((f) => ({ ...f, ...next }));
-    setPage(1); // reset to page 1 on any filter change
+    // If we change subject, reset topic to "All"
+    if (next.subject && next.subject !== filters.subject) {
+      setFilters((f) => ({ ...f, ...next, topic: "All" }));
+    } else {
+      setFilters((f) => ({ ...f, ...next }));
+    }
+    setPage(1);
     setExpandedId(null);
   };
 
-  /* ── Derive filter options from data ─────────── */
-  const years = [
-    "All",
-    ...new Set(SAMPLE_QUESTIONS.map((q) => String(q.year))).values(),
-  ].sort((a, b) => (b > a ? 1 : -1));
-  const topics = [
-    "All",
-    ...new Set(SAMPLE_QUESTIONS.map((q) => q.topic)).values(),
-  ].sort();
-  const subjects = [
-    "All",
-    ...new Set(SAMPLE_QUESTIONS.map((q) => q.subject)).values(),
-  ].sort();
+  /* ── Derive filter options ─────────── */
+  // Subjects: user's subjects first, then others
+  const allPossibleSubjects = [
+    "English",
+    "Mathematics",
+    "Physics",
+    "Chemistry",
+    "Biology",
+    "Economics",
+    "Government",
+    "Literature in English",
+    "History",
+    "Geography",
+    "CRS",
+    "IRS",
+    "Commerce",
+  ];
+  const subjects = useMemo(() => {
+    const others = allPossibleSubjects.filter((s) => !userSubjects.includes(s));
+    return ["All", ...userSubjects, ...others];
+  }, [userSubjects]);
+
+  const topics = useMemo(() => {
+    return ["All", ...availableTopics];
+  }, [availableTopics]);
 
   return (
     <AppLayout
@@ -197,12 +271,16 @@ const PastQuestions: React.FC = () => {
           <FilterBar
             filters={filters}
             subjects={subjects}
-            years={years}
+            years={VALID_YEARS}
             topics={topics}
             onChange={handleFilterChange}
           />
 
-          {paginated.length === 0 ? (
+          {isLoading ? (
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="text-brand h-10 w-10 animate-spin" />
+            </div>
+          ) : paginated.length === 0 ? (
             <div className="text-textDim py-16 text-center">
               <div className="mb-3 text-4xl">🔍</div>
               <p className="text-sm">No questions match your filters.</p>
@@ -319,12 +397,7 @@ const PastQuestions: React.FC = () => {
                             "All",
                             ...new Set(offlineQuestions.map((q) => q.subject)),
                           ]}
-                          years={[
-                            "All",
-                            ...new Set(
-                              offlineQuestions.map((q) => String(q.year)),
-                            ),
-                          ]}
+                          years={VALID_YEARS}
                           topics={[
                             "All",
                             ...new Set(offlineQuestions.map((q) => q.topic)),

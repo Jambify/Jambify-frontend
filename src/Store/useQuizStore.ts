@@ -85,7 +85,9 @@ export const useQuizStore = create<QuizState>()(
         }
       },
 
-      reset: () =>
+      reset: () => {
+        // Clear the timer localStorage as well
+        localStorage.removeItem("jambify-quiz-session-timer-end");
         set({
           questions: [],
           currentIndex: 0,
@@ -94,9 +96,12 @@ export const useQuizStore = create<QuizState>()(
           isFinished: false,
           hasAnswered: false,
           isFinishedQuiz: false,
+          timeLeft: 0,
+          quizDuration: 1800,
           selectedTopic: "All",
           selectedDifficulty: "All",
-        }),
+        });
+      },
 
       setSelectedSubject: (s) =>
         set({
@@ -116,15 +121,8 @@ export const useQuizStore = create<QuizState>()(
     {
       name: "jambify-quiz-storage",
       storage: createJSONStorage(() => localStorage),
-      // Only persist essential state to keep it lightweight
+      // Only persist essential state to keep it lightweight - DO NOT persist timer or quiz flags
       partialize: (state) => ({
-        questions: state.questions,
-        currentIndex: state.currentIndex,
-        answers: state.answers,
-        isStarted: state.isStarted,
-        isFinished: state.isFinished,
-        timeLeft: state.timeLeft,
-        quizDuration: state.quizDuration,
         selectedSubject: state.selectedSubject,
         selectedTopic: state.selectedTopic,
         selectedDifficulty: state.selectedDifficulty,

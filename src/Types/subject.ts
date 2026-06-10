@@ -18,18 +18,15 @@ export interface Subject {
   total: number;
   rank: number;
   weakTopics: string[];
-  topics?: Topic[];
+  topics?: string[];
 }
 
 export interface SubjectProgress {
   id: string;
   user_id: string;
-  subject_id: string;
-  subject_name: string;
+  subject: string;
   accuracy: number;
-  questions_attempted: number;
-  total_questions: number;
-  mastered: boolean;
+  questions_done: number;
   updated_at: string;
 }
 

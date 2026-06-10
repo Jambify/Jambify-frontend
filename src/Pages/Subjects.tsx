@@ -5,18 +5,42 @@ import AppLayout from "../components/Layout/AppLayout";
 import { useSubjectStore } from "../Store/useSubjectStore";
 import SubjectCard from "../components/Subjects/SubjectCard";
 import PageLoader from "../components/ui/PageLoader";
+import { usePerformanceStore } from "../Store/usePerformanceStore";
 
 type SortKey = "name" | "accuracy" | "progress";
 
 const Subjects: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { subjects, isLoading, loadSubjects } = useSubjectStore();
+  const { topicStats, subjectPerformance, loadPerformanceData } = usePerformanceStore();
   const [sort, setSort] = useState<SortKey>("accuracy");
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   useEffect(() => {
     loadSubjects();
-  }, [loadSubjects]);
+    loadPerformanceData();
+  }, [loadSubjects, loadPerformanceData]);
+
+  // Determine best and worst subjects for badges
+  const bestSubjectName = (() => {
+    const subjectsWithWeakTopics = new Set(topicStats.map((t) => t.subject));
+    const noWeak = subjects.filter(s => !subjectsWithWeakTopics.has(s.name));
+    
+    if (noWeak.length > 0) {
+      const best = subjectPerformance
+        .filter(sp => noWeak.some(s => s.name === sp.subject))
+        .sort((a, b) => b.best_score - a.best_score)[0];
+      return best ? best.subject : noWeak[0].name;
+    }
+    
+    const top = [...subjectPerformance].sort((a, b) => b.best_score - a.best_score)[0];
+    return top ? top.subject : null;
+  })();
+
+  const worstSubjectName = (() => {
+    const bottom = [...subjectPerformance].sort((a, b) => a.worst_score - b.worst_score)[0];
+    return bottom ? bottom.subject : null;
+  })();
 
   const sorted = [...subjects].sort((a, b) => {
     if (sort === "name") return a.name.localeCompare(b.name);
@@ -123,6 +147,8 @@ const Subjects: React.FC = () => {
             key={subject.id}
             subject={subject}
             isExpanded={expandedId === subject.id}
+            isBest={subject.name === bestSubjectName}
+            isWorst={subject.name === worstSubjectName}
             onToggle={() =>
               setExpandedId((prev) => (prev === subject.id ? null : subject.id))
             }

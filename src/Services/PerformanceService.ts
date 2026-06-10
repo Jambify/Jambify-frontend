@@ -1,10 +1,16 @@
-// src/services/performanceService.ts
-
 import { supabase } from "../lib/supabase";
 
-export interface WeeklyActivity {
-  day: string;
-  questions: number;
+// ===========================================================
+// TYPES
+// ===========================================================
+export interface QuizSessionData {
+  id: string;
+  subject: string;
+  accuracy: number;
+  correct: number;
+  total: number;
+  created_at: string;
+  mode: "practice" | "mock";
 }
 
 export interface TopicStat {
@@ -14,243 +20,394 @@ export interface TopicStat {
   accuracy: number;
 }
 
-export interface MockScore {
-  score: number;
-  total: number;
-  date: string;
+export interface SubjectPerformance {
+  subject: string;
+  best_score: number;
+  worst_score: number;
+  total_attempts: number;
+  last_score: number;
 }
 
-export interface PerformanceSummary {
-  totalQuestions: number;
-  avgAccuracy: number;
-  mockScores: MockScore[];
-  sessionsCount: number;
-}
-
-interface SupabaseResponse<T> {
-  data: T | null;
-  error: any;
-}
-
-interface PerformanceSummaryData {
-  total_questions: number;
-  avg_accuracy: number;
-  mock_scores: MockScore[];
-  sessions_count: number;
-}
-
-interface WeeklyActivityData {
-  date: string;
+export interface WeeklyActivity {
+  day: string;
   questions: number;
 }
 
-interface TopicPerformanceData {
-  subject: string;
-  correct: number;
-  total: number;
-}
-
-interface QuizSubmissionData {
+export interface QuizSubmissionData {
   session_id: string;
   correct: number;
   total: number;
   accuracy: number;
   streak: number;
+  subject: string;
 }
 
-// Get performance summary from Supabase
-export const getPerformanceSummary = async (): Promise<PerformanceSummary> => {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
-
-  const { data, error } = (await supabase.rpc("get_performance_summary", {
-    p_user_id: user.id,
-  })) as SupabaseResponse<PerformanceSummaryData>;
-
-  if (error) throw error;
-
-  return {
-    totalQuestions: data?.total_questions || 0,
-    avgAccuracy: Math.min(data?.avg_accuracy || 0, 100), // Cap at 100%
-    mockScores: data?.mock_scores || [],
-    sessionsCount: data?.sessions_count || 0,
-  };
+type SupabaseResponse<T> = {
+  data: T | null;
+  error: any;
 };
 
-// Get weekly activity from Supabase
-export const getWeeklyActivity = async (): Promise<WeeklyActivity[]> => {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
+// Helper to get date string in YYYY-MM-DD format (local time)
+const getDateKey = (date: Date): string => {
+  return date.toISOString().split("T")[0];
+};
 
-  const { data, error } = (await supabase.rpc("get_weekly_activity", {
-    p_user_id: user.id,
-  })) as SupabaseResponse<WeeklyActivityData[]>;
+// Calculate and update streak
+export const calculateAndUpdateStreak = async (): Promise<number> => {
+  try {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return 0;
 
-  if (error) throw error;
+    // Fetch user's profile
+    const { data: profile, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id)
+      .maybeSingle();
 
-  // Map the data to day names
-  const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-  const result: WeeklyActivity[] = dayNames.map((day) => ({
-    day,
-    questions: 0,
-  }));
+    if (error || !profile) return 0;
 
-  if (data && Array.isArray(data)) {
-    data.forEach((item) => {
-      const date = new Date(item.date);
-      const dayIndex = date.getDay();
-      if (result[dayIndex]) {
-        result[dayIndex].questions = item.questions;
+    const today = new Date();
+    const todayKey = getDateKey(today);
+
+    // Get last activity date from profile (if available)
+    // Assuming profile has last_activity_date (or use quiz_sessions)
+    // For simplicity, let's check quiz_sessions for last activity
+    const { data: sessions } = await supabase
+      .from("quiz_sessions")
+      .select("created_at")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(1);
+
+    let lastActivityDate: Date | null = null;
+
+    if (sessions && sessions.length > 0) {
+      lastActivityDate = new Date(sessions[0].created_at);
+    }
+
+    let newStreak = profile.streak || 1;
+
+    if (lastActivityDate) {
+      const lastActivityKey = getDateKey(lastActivityDate);
+
+      // If last activity was yesterday, increment streak
+      if (lastActivityKey === todayKey) {
+        // Already counted today
+      } else {
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayKey = getDateKey(yesterday);
+
+        if (lastActivityKey === yesterdayKey) {
+          // Increment streak
+          newStreak = (profile.streak || 0) + 1;
+        } else {
+          // Streak broken, reset to 1
+          newStreak = 1;
+        }
       }
-    });
+    }
+
+    // Update the profile
+    await supabase
+      .from("profiles")
+      .update({ streak: newStreak })
+      .eq("id", user.id);
+
+    return newStreak;
+  } catch (err) {
+    console.error("❌ [calculateAndUpdateStreak] Failed:", err);
+    return 0;
   }
-
-  return result;
 };
 
-// Get topic stats from quiz sessions (detailed aggregation from JSONB)
-export const getDetailedTopicStats = async (): Promise<TopicStat[]> => {
+// ===========================================================
+// FUNCTION TO UPDATE SUBJECT PERFORMANCE (BEST/WORST SCORES)
+// ===========================================================
+export const updateSubjectPerformance = async (
+  subject: string,
+  score: number,
+) => {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
+  if (!user) return;
 
-  const { data: sessions, error } = await supabase
-    .from("quiz_sessions")
-    .select("topic_performance")
-    .eq("user_id", user.id);
+  try {
+    console.log(`Updating performance for ${subject}: ${score}%`);
 
-  if (error) throw error;
-  if (!sessions || sessions.length === 0) return [];
+    // We can use the RPC function we created or do it manually
+    // Manually is more robust if the user hasn't run the SQL script yet
+    const { data: existing } = await supabase
+      .from("subject_performance")
+      .select("*")
+      .eq("user_id", user.id)
+      .eq("subject", subject)
+      .maybeSingle();
 
-  const topicAgg: Record<
-    string,
-    { subject: string; correct: number; total: number }
-  > = {};
-
-  sessions.forEach((s) => {
-    const perf =
-      (s.topic_performance as Record<string, TopicPerformanceData>) || {};
-    Object.entries(perf).forEach(([key, data]) => {
-      if (!topicAgg[key]) {
-        topicAgg[key] = { subject: data.subject, correct: 0, total: 0 };
-      }
-      topicAgg[key].correct += data.correct || 0;
-      topicAgg[key].total += data.total || 0;
-    });
-  });
-
-  const topics: TopicStat[] = Object.entries(topicAgg).map(([name, data]) => ({
-    id: name,
-    name: name.split(":")[1] || name,
-    subject: data.subject,
-    accuracy: Math.round((data.correct / data.total) * 100),
-  }));
-
-  return topics.sort((a, b) => a.accuracy - b.accuracy);
+    if (existing) {
+      await supabase
+        .from("subject_performance")
+        .update({
+          best_score: Math.max(existing.best_score, score),
+          worst_score: Math.min(existing.worst_score, score),
+          total_attempts: (existing.total_attempts || 0) + 1,
+          last_score: score,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", existing.id);
+    } else {
+      await supabase.from("subject_performance").insert({
+        user_id: user.id,
+        subject: subject,
+        best_score: score,
+        worst_score: score,
+        total_attempts: 1,
+        last_score: score,
+      });
+    }
+  } catch (err) {
+    console.error("❌ [updateSubjectPerformance] Failed:", err);
+  }
 };
 
-// Get topic stats from quiz sessions (only subjects the user has actually practiced)
-export const getTopicStats = async (): Promise<TopicStat[]> => {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
+export const getSubjectPerformance = async (): Promise<
+  SubjectPerformance[]
+> => {
+  try {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return [];
 
-  // 1. Get ALL quiz sessions for this user to see what they've actually practiced
-  const { data, error } = await supabase
-    .from("quiz_sessions")
-    .select("subject, accuracy")
-    .eq("user_id", user.id);
+    const { data, error } = await supabase
+      .from("subject_performance")
+      .select("*")
+      .eq("user_id", user.id);
 
-  if (error) throw error;
-
-  // If no sessions found, return empty array
-  if (!data || data.length === 0) {
-    console.log("ℹ️ [getTopicStats] No quiz sessions found for user.");
+    if (error) throw error;
+    return data || [];
+  } catch (err) {
+    console.error("❌ [getSubjectPerformance] Failed:", err);
     return [];
   }
-
-  // 2. Create a map to calculate average accuracy per subject
-  const quizMap = new Map<string, { total: number; count: number }>();
-
-  data.forEach((session: { subject: string; accuracy: number }) => {
-    const subject = session.subject;
-    const accuracy = session.accuracy;
-
-    if (quizMap.has(subject)) {
-      const existing = quizMap.get(subject)!;
-      quizMap.set(subject, {
-        total: existing.total + accuracy,
-        count: existing.count + 1,
-      });
-    } else {
-      quizMap.set(subject, { total: accuracy, count: 1 });
-    }
-  });
-
-  // 3. Build topics ONLY for subjects found in the quiz_sessions
-  const topics: TopicStat[] = [];
-
-  quizMap.forEach((stats, subjectName) => {
-    const avgAccuracy = Math.min(Math.round(stats.total / stats.count), 100);
-
-    topics.push({
-      id: subjectName,
-      name: subjectName,
-      subject: subjectName,
-      accuracy: avgAccuracy,
-    });
-  });
-
-  console.log("🔵 Practiced topics (found in sessions):", topics);
-
-  // Sort by accuracy ascending (weakest first)
-  return topics.sort((a, b) => a.accuracy - b.accuracy);
 };
 
-// Submit quiz session (call from Quiz page)
+// ===========================================================
+// FUNCTION TO UPDATE WEAK TOPIC PROGRESS
+// Only updates if new topic is weaker than existing one
+// ===========================================================
+export const updateWeakestTopic = async (
+  subject: string,
+  topicPerformance: Record<
+    string,
+    { subject: string; correct: number; total: number }
+  >
+) => {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+
+  try {
+    console.log("=== updateWeakestTopic STARTED ===");
+    console.log("Subject input:", subject);
+    console.log("Topic performance object:", topicPerformance);
+
+    // Step 1: Find the weakest topic from the current quiz session for this subject
+    let weakestTopic: {
+      topic: string;
+      correct: number;
+      total: number;
+      accuracy: number;
+    } | null = null;
+
+    for (const [key, data] of Object.entries(topicPerformance)) {
+      console.log(`Processing key: ${key}, data.subject: ${data.subject}`);
+      if (data.subject === subject && data.total > 0) {
+        const topic = key.includes(":") ? key.split(":")[1] : key;
+        const accuracy = Math.round((data.correct / data.total) * 100);
+        console.log(`Topic: ${topic}, Accuracy: ${accuracy}%`);
+
+        // If accuracy >=50%, skip this topic entirely (don't track mastered topics)
+        if (accuracy >= 50) {
+          console.log(`Skipping topic ${topic} (accuracy ${accuracy} >= 50)`);
+          continue;
+        }
+
+        if (
+          !weakestTopic ||
+          accuracy < weakestTopic.accuracy ||
+          (accuracy === weakestTopic.accuracy && data.total > weakestTopic.total)
+        ) {
+          weakestTopic = {
+            topic,
+            correct: data.correct,
+            total: data.total,
+            accuracy,
+          };
+          console.log(`New weakest topic selected: ${JSON.stringify(weakestTopic)}`);
+        }
+      }
+    }
+
+    // If NO weak topics found (all >=50%), DELETE any existing row for this subject
+    if (!weakestTopic) {
+      console.log("No weak topics found! Deleting existing row if present...");
+      const deleteResult = await supabase
+        .from("topic_progress")
+        .delete()
+        .eq("user_id", user.id)
+        .eq("subject", subject);
+      console.log("Delete result:", deleteResult);
+      if (deleteResult.error) {
+        console.error("❌ Delete error:", deleteResult.error);
+      }
+      return;
+    }
+
+    // Step 2: Check if we already have a weak topic for this subject
+    const { data: existing } = await supabase
+      .from("topic_progress")
+      .select("*")
+      .eq("user_id", user.id)
+      .eq("subject", subject)
+      .maybeSingle();
+
+    console.log("Existing row in DB:", existing);
+
+    const newAccuracy = weakestTopic.accuracy;
+
+    if (existing) {
+      // If existing topic's accuracy is better or same, do nothing
+      if (existing.accuracy <= newAccuracy) {
+        console.log(`Existing accuracy (${existing.accuracy}) <= new (${newAccuracy}) — doing nothing`);
+        return;
+      }
+
+      console.log("Updating existing row with new weaker topic...");
+      // Otherwise, update to the new weaker topic
+      await supabase
+        .from("topic_progress")
+        .update({
+          topic: weakestTopic.topic,
+          correct: weakestTopic.correct,
+          incorrect: weakestTopic.total - weakestTopic.correct,
+          total: weakestTopic.total,
+          accuracy: newAccuracy,
+          last_attempt_at: new Date().toISOString(),
+        })
+        .eq("id", existing.id);
+    } else {
+      console.log("Inserting new row for weakest topic...");
+      // No existing topic, insert the new one
+      const insertResult = await supabase
+        .from("topic_progress")
+        .insert({
+          user_id: user.id,
+          subject: subject,
+          topic: weakestTopic.topic,
+          correct: weakestTopic.correct,
+          incorrect: weakestTopic.total - weakestTopic.correct,
+          total: weakestTopic.total,
+          accuracy: newAccuracy,
+          last_attempt_at: new Date().toISOString(),
+        });
+      console.log("Insert result:", insertResult);
+    }
+  } catch (err) {
+    console.error("❌ [updateWeakestTopic] Failed:", err);
+  }
+};
+
+// ===========================================================
+// Get detailed topic stats from topic_progress table
+// (One topic per subject)
+// ===========================================================
+export const getDetailedTopicStats = async (): Promise<TopicStat[]> => {
+  try {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) throw new Error("Not authenticated");
+
+    console.log("🔍 [getDetailedTopicStats] Fetching for user:", user.id);
+
+    const { data, error } = await supabase
+      .from("topic_progress")
+      .select("*")
+      .eq("user_id", user.id);
+
+    if (error) {
+      console.error("❌ [getDetailedTopicStats] Error:", error);
+      return [];
+    }
+
+    console.log("✅ [getDetailedTopicStats] Retrieved:", data);
+
+    const topics: TopicStat[] = (data || []).map((tp) => ({
+      id: `${tp.subject}:${tp.topic}`,
+      name: tp.topic,
+      subject: tp.subject,
+      accuracy: Math.round(tp.accuracy),
+    }));
+
+    return topics;
+  } catch (err) {
+    console.error("❌ [getDetailedTopicStats] Failed:", err);
+    return [];
+  }
+};
+
+// ===========================================================
+// Get quiz sessions history
+// ===========================================================
+export const getQuizSessions = async (): Promise<QuizSessionData[]> => {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+
+  const { data, error } = await supabase
+    .from("quiz_sessions")
+    .select("id, subject, accuracy, correct, total, created_at, mode")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false })
+    .limit(50);
+
+  if (error) throw error;
+  return data || [];
+};
+
+// ===========================================================
+// Submit quiz session
+// ===========================================================
 export const submitQuizSession = async (
   mode: "practice" | "mock",
   subject: string,
   questionIds: string[],
   clientAnswers: Record<number, number>,
   timeTakenSeconds: number,
-  correctCount?: number, // Optional: calculated by frontend
-  totalQuestions?: number, // Optional: calculated by frontend
-  topicPerformance?: Record<string, any>,
-): Promise<{
-  sessionId: string;
-  correct: number;
-  total: number;
-  accuracy: number;
-  streak: number;
-}> => {
+  correctCount?: number,
+  totalQuestions?: number,
+  topicPerformance?: Record<string, any>
+) => {
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
 
-  // Convert answers to JSONB format with proper typing
   const answersJson: Record<number, number> = {};
   Object.entries(clientAnswers).forEach(([index, answer]) => {
     answersJson[parseInt(index)] = answer;
   });
 
-  // Calculate local accuracy if not provided
   const finalTotal = totalQuestions || questionIds.length;
   const finalCorrect = correctCount !== undefined ? correctCount : 0;
   const finalAccuracy = finalTotal > 0 ? (finalCorrect / finalTotal) * 100 : 0;
-
-  console.log(`🚀 [submitQuizSession] Sending ${subject} (${mode}) to DB:`, {
-    correct: finalCorrect,
-    total: finalTotal,
-    accuracy: finalAccuracy.toFixed(2),
-  });
 
   const { data, error } = (await supabase.rpc("submit_quiz_session", {
     p_user_id: user.id,
@@ -271,14 +428,19 @@ export const submitQuizSession = async (
 
   if (!data) throw new Error("Failed to submit session");
 
-  const result = {
-    sessionId: data.session_id,
+  // Update weakest topic
+  if (topicPerformance) {
+    await updateWeakestTopic(subject, topicPerformance);
+  }
+
+  // Calculate and update streak
+  const newStreak = await calculateAndUpdateStreak();
+
+  return {
+    session_id: data.session_id,
     correct: data.correct,
     total: data.total,
     accuracy: Math.min(data.accuracy, 100),
-    streak: data.streak || 0,
+    streak: newStreak,
   };
-
-  console.log("✅ [submitQuizSession] Result:", result);
-  return result;
 };

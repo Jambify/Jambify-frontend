@@ -5,8 +5,8 @@ import { useNavigate } from "react-router-dom";
 import AppLayout from "../components/Layout/AppLayout";
 import { usePerformanceStore } from "../Store/usePerformanceStore";
 import { useUserStore } from "../Store/useUserStore";
+import { SUBJECT_COMBO_MAP } from "../Store/useSubjectStore";
 import WeeklyChart from "../components/Performance/WeeklyChart";
-import TopicStats from "../components/Performance/TopicStats";
 import PageLoader from "../components/ui/PageLoader";
 import { ArrowRight, Clock, Sparkles, Target, Trophy, Zap } from "lucide-react";
 
@@ -26,13 +26,14 @@ const Performance: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const {
     topicStats,
+    subjectPerformance,
     mockHistory, // Added from performance store
     totalQuestions,
     avgAccuracy,
     isLoading,
     loadPerformanceData,
   } = usePerformanceStore();
-  const { questionsCompleted, subjectCombo, bestScore, accuracy } =
+  const { name, questionsCompleted, subjectCombo, bestScore, accuracy } =
     useUserStore();
   // Removed mockHistory from useMockStore since it's fetched from DB in performanceStore
 
@@ -50,19 +51,47 @@ const Performance: React.FC = () => {
 
   // Filter stats based on user subject combo
   const userSubjects = subjectCombo
-    ? subjectCombo.split(",").map((s) => s.trim())
+    ? SUBJECT_COMBO_MAP[subjectCombo] || []
     : [];
-  const filteredTopicStats = topicStats.filter((t) =>
-    userSubjects.includes(t.subject),
-  );
 
-  // Highest and Lowest topic logic
-  const sortedTopics = [...filteredTopicStats].sort(
-    (a, b) => b.accuracy - a.accuracy,
-  );
-  const highestTopic = sortedTopics.length > 0 ? sortedTopics[0] : null;
-  const lowestTopic =
-    sortedTopics.length > 1 ? sortedTopics[sortedTopics.length - 1] : null;
+  // Best and Worst Subject logic
+  const bestSubject = (() => {
+    if (userSubjects.length === 0) return null;
+
+    // 1. Find subjects with no weak topics
+    const subjectsWithWeakTopics = new Set(topicStats.map((t) => t.subject));
+    const subjectsWithNoWeakTopics = userSubjects.filter(
+      (s) => !subjectsWithWeakTopics.has(s),
+    );
+
+    if (subjectsWithNoWeakTopics.length > 0) {
+      // Pick the one among these with the highest best_score
+      const bestOfNoWeak = subjectPerformance
+        .filter((sp) => subjectsWithNoWeakTopics.includes(sp.subject))
+        .sort((a, b) => b.best_score - a.best_score)[0];
+
+      if (bestOfNoWeak) return bestOfNoWeak;
+      // If no performance data yet for these, just pick the first one
+      return { subject: subjectsWithNoWeakTopics[0], best_score: 0 };
+    }
+
+    // 2. Fallback: just pick the one with highest best_score
+    const topSubject = [...subjectPerformance]
+      .filter((sp) => userSubjects.includes(sp.subject))
+      .sort((a, b) => b.best_score - a.best_score)[0];
+
+    return topSubject || null;
+  })();
+
+  const worstSubject = (() => {
+    if (userSubjects.length === 0) return null;
+
+    const bottomSubject = [...subjectPerformance]
+      .filter((sp) => userSubjects.includes(sp.subject))
+      .sort((a, b) => a.worst_score - b.worst_score)[0];
+
+    return bottomSubject || null;
+  })();
 
   const userSubjectsWithIcons = userSubjects.map((name) => ({
     name,
@@ -92,7 +121,7 @@ const Performance: React.FC = () => {
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
           <div>
             <h1 className="font-display text-textMain text-3xl font-bold tracking-tight lg:text-4xl">
-              Performance Insights
+              {name ? `${name.split(" ")[0]}'s` : "Your"} Performance
             </h1>
             <p className="text-textDim mt-1 lg:text-lg">
               Detailed breakdown of your academic progress
@@ -115,28 +144,30 @@ const Performance: React.FC = () => {
             iconBg="bg-brand/10"
           />
           <StatCard
-            label="Highest Topic"
-            value={highestTopic ? highestTopic.name : "—"}
+            label="Best Subject"
+            value={bestSubject ? bestSubject.subject : "—"}
             sub={
-              highestTopic
-                ? `${highestTopic.accuracy}% accuracy`
-                : "Practice to see"
+              bestSubject && "best_score" in bestSubject && bestSubject.best_score > 0
+                ? `Best: ${Math.round(bestSubject.best_score)}% score`
+                : "No weak topics found"
             }
             color="text-success"
             icon="🏆"
             iconBg="bg-success/10"
+            valueSize="text-2xl"
           />
           <StatCard
-            label="Lowest Topic"
-            value={lowestTopic ? lowestTopic.name : "—"}
+            label="Worst Subject"
+            value={worstSubject ? worstSubject.subject : "—"}
             sub={
-              lowestTopic
-                ? `${lowestTopic.accuracy}% accuracy`
+              worstSubject
+                ? `Lowest: ${Math.round(worstSubject.worst_score)}% score`
                 : "Practice to see"
             }
             color="text-danger"
             icon="⚠️"
             iconBg="bg-danger/10"
+            valueSize="text-2xl"
           />
           <StatCard
             label="Questions Done"
@@ -348,7 +379,7 @@ const Performance: React.FC = () => {
           </div>
         </div>
 
-        {/* Topic Breakdown */}
+        {/* Subject Breakdown */}
         <div className="space-y-6 pt-4">
           <div className="flex items-center justify-between">
             <h3 className="font-display text-textMain text-2xl font-bold">
@@ -356,7 +387,75 @@ const Performance: React.FC = () => {
             </h3>
             <div className="bg-borderMuted/50 mx-6 hidden h-px flex-1 md:block" />
           </div>
-          <TopicStats />
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            {userSubjects.map((subject) => {
+              const subjectTopicStats = topicStats.filter((t) => t.subject === subject);
+              const weakestTopic = subjectTopicStats.length > 0
+                ? [...subjectTopicStats].sort((a, b) => a.accuracy - b.accuracy)[0]
+                : null;
+
+              return (
+                <div
+                  key={subject}
+                  className="bg-bgCard border-borderMuted hover:border-brand/30 group cursor-pointer rounded-2xl border p-5 transition-all hover:shadow-md active:scale-[0.98]"
+                  onClick={() => navigate(`/quiz?subject=${encodeURIComponent(subject)}`)}
+                >
+                  <div className="mb-4 flex items-center gap-3">
+                    <div className="bg-brand/10 flex h-12 w-12 items-center justify-center rounded-xl text-2xl">
+                      {getSubjectIcon(subject)}
+                    </div>
+                    <div>
+                      <h4 className="font-display text-textMain group-hover:text-brand font-bold transition-colors">
+                        {subject}
+                      </h4>
+                      <p className="text-textDim text-[11px]">
+                        {subjectTopicStats.length > 0
+                          ? `${subjectTopicStats.length} topics tracked`
+                          : "No topics tracked yet"}
+                      </p>
+                    </div>
+                  </div>
+                  {weakestTopic && (
+                    <div
+                      className="bg-danger/5 border-danger/20 hover:border-danger/40 rounded-xl border p-3 cursor-pointer transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/quiz?subject=${encodeURIComponent(subject)}&topic=${encodeURIComponent(weakestTopic.name)}`);
+                      }}
+                    >
+                      <p className="text-danger mb-1 flex items-center gap-1.5 text-[11px] font-bold tracking-widest uppercase">
+                        <div className="bg-danger h-1.5 w-1.5 rounded-full"></div>
+                        Weakest Topic
+                      </p>
+                      <div className="flex items-center justify-between">
+                        <p className="text-textMain truncate text-sm font-medium group-hover:text-danger transition-colors">
+                          {weakestTopic.name}
+                        </p>
+                        <span className="text-danger text-xs font-bold">
+                          {Math.round(weakestTopic.accuracy)}%
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                  {!weakestTopic && subjectTopicStats.length > 0 && (
+                    <div className="bg-success/5 border-success/20 rounded-xl border p-3">
+                      <p className="text-success flex items-center gap-1.5 text-[11px] font-bold tracking-widest uppercase">
+                        <div className="bg-success h-1.5 w-1.5 rounded-full"></div>
+                        All topics are doing well!
+                      </p>
+                    </div>
+                  )}
+                  {!weakestTopic && subjectTopicStats.length === 0 && (
+                    <div className="bg-bgSurface rounded-xl p-3">
+                      <p className="text-textDim text-[11px] font-medium">
+                        Take a quiz in this subject to start tracking topics!
+                      </p>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
     </AppLayout>
@@ -371,6 +470,7 @@ interface StatCardProps {
   color: string;
   icon: string;
   iconBg: string;
+  valueSize?: string;
 }
 
 const StatCard: React.FC<StatCardProps> = ({
@@ -380,6 +480,7 @@ const StatCard: React.FC<StatCardProps> = ({
   color,
   icon,
   iconBg,
+  valueSize = "text-3xl lg:text-4xl",
 }) => (
   <div className="bg-bgCard border-borderMuted hover:border-brand/30 group relative overflow-hidden rounded-4xl border p-6 shadow-sm transition-all hover:shadow-md lg:p-7">
     <div
@@ -392,7 +493,7 @@ const StatCard: React.FC<StatCardProps> = ({
     </p>
     <div className="flex items-baseline gap-1">
       <h4
-        className={`font-display text-3xl font-black tracking-tighter lg:text-4xl ${color}`}
+        className={`font-display font-black tracking-tighter ${color} ${valueSize}`}
       >
         {value}
       </h4>

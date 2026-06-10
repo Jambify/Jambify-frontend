@@ -1,18 +1,24 @@
-import React, { useState } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import { usePerformanceStore } from "../../Store/usePerformanceStore";
 import { useUserStore } from "../../Store/useUserStore";
-import { cn } from "../../lib/utils/utils";
-import { BookOpen, AlertTriangle, ArrowRight, CheckCircle } from "lucide-react";
+import { useSubjectStore, SUBJECT_COMBO_MAP } from "../../Store/useSubjectStore";
+import { BookOpen, AlertTriangle, ArrowRight, CheckCircle, Sparkles } from "lucide-react";
 
 // Helper to get subject icons
 const getSubjectIcon = (subject: string) => {
   const icons: Record<string, string> = {
-    English: "📚",
+    English: "📖",
     Mathematics: "🔢",
-    Physics: "⚛️",
-    Chemistry: "🧪",
+    Physics: "⚡",
+    Chemistry: "⚗️",
     Biology: "🧬",
+    Economics: "📊",
+    Government: "🏛️",
+    "Literature in English": "📚",
+    CRS: "✝️",
+    IRS: "🌙",
+    Commerce: "💼",
   };
   return icons[subject] || "📖";
 };
@@ -21,35 +27,62 @@ const SubjectProgress: React.FC = () => {
   const navigate = useNavigate();
   const { topicStats, isLoading } = usePerformanceStore();
   const { subjectCombo } = useUserStore();
-  const [filter, setFilter] = useState<"all" | "weak">("all");
+  const { subjects } = useSubjectStore();
 
+  // Get user's subjects from combo ID (e.g. "medicine" -> ["English", "Biology", ...])
   const userSubjects = subjectCombo
-    ? subjectCombo.split(",").map((s) => s.trim())
+    ? SUBJECT_COMBO_MAP[subjectCombo] || [subjectCombo] // Fallback to raw string if not in map
     : [];
 
-  // Only show subjects that have data (been practiced)
-  const subjectsWithData = userSubjects.filter((subj) =>
-    topicStats.some((t) => t.subject === subj),
+  // Only use topicStats that are part of user's subject combo and have accuracy < 50
+  const comboWeakestTopics = topicStats.filter(
+    (t) => userSubjects.some(s => s.toLowerCase() === t.subject.toLowerCase()) && t.accuracy < 50
   );
 
-  // If no subjects practiced yet, show a placeholder
-  if (subjectsWithData.length === 0 && !isLoading) {
+  // Check if user has taken any exams or quizzes
+  const hasActivity = usePerformanceStore.getState().mockHistory.length > 0 || topicStats.length > 0;
+
+  // If no activity yet, show the "No Exam Taken" placeholder
+  if (!hasActivity && !isLoading) {
     return (
       <div className="bg-bgCard border-borderMuted rounded-brand-xl flex h-full flex-col items-center justify-center border p-6 text-center">
         <div className="bg-brand/10 mb-4 flex h-12 w-12 items-center justify-center rounded-full">
           <BookOpen className="text-brand h-6 w-6" />
         </div>
         <h3 className="font-display text-textMain mb-2 font-bold">
-          No Subject Progress Yet
+          No Exam Taken Yet
         </h3>
         <p className="text-textDim mb-6 max-w-60 text-sm">
-          Start a practice quiz to see your strengths and weaknesses here.
+          Take your first mock exam to unlock your personalized progress tracking.
         </p>
         <button
-          onClick={() => navigate("/quiz")}
+          onClick={() => navigate("/mock-exams")}
           className="bg-brand hover:bg-brand-light rounded-full px-6 py-2 text-sm font-bold text-white transition-all active:scale-95"
         >
-          Start Practice
+          Take Mock Exam
+        </button>
+      </div>
+    );
+  }
+
+  // If all topics mastered (no weak topics found), show "All Mastered" placeholder
+  if (comboWeakestTopics.length === 0 && !isLoading) {
+    return (
+      <div className="bg-bgCard border-borderMuted rounded-brand-xl flex h-full flex-col items-center justify-center border p-6 text-center">
+        <div className="bg-success/10 mb-4 flex h-12 w-12 items-center justify-center rounded-full">
+          <CheckCircle className="text-success h-6 w-6" />
+        </div>
+        <h3 className="font-display text-textMain mb-2 font-bold">
+          All Topics Mastered!
+        </h3>
+        <p className="text-textDim mb-6 max-w-60 text-sm">
+          You've reached over 50% accuracy in all your topics. Ready for the exam!
+        </p>
+        <button
+          onClick={() => navigate("/mock-exams")}
+          className="bg-success hover:bg-success-light rounded-full px-6 py-2 text-sm font-bold text-white transition-all active:scale-95"
+        >
+          Final Mock Exam
         </button>
       </div>
     );
@@ -60,10 +93,10 @@ const SubjectProgress: React.FC = () => {
       <div className="mb-6 flex items-center justify-between">
         <div className="flex flex-col gap-0.5">
           <h3 className="font-display text-textMain font-bold">
-            Subject Progress
+            Weakest Topics
           </h3>
           <p className="text-textDim text-[11px] font-medium">
-            Performance across your subjects
+            One critical area from each of your subjects
           </p>
         </div>
         <button
@@ -78,96 +111,60 @@ const SubjectProgress: React.FC = () => {
         </button>
       </div>
 
-      <div className="mb-6 flex gap-2">
-        <button
-          onClick={() => setFilter("all")}
-          className={cn(
-            "rounded-full px-4 py-1.5 text-[11px] font-black tracking-wider uppercase transition-all",
-            filter === "all"
-              ? "bg-brand shadow-brand/20 text-white shadow-lg"
-              : "bg-bgSurface text-textDim border-borderMuted hover:border-brand/40 border",
-          )}
-        >
-          All subjects
-        </button>
-        <button
-          onClick={() => setFilter("weak")}
-          className={cn(
-            "rounded-full px-4 py-1.5 text-[11px] font-black tracking-wider uppercase transition-all",
-            filter === "weak"
-              ? "bg-danger shadow-danger/20 text-white shadow-lg"
-              : "bg-bgSurface text-textDim border-borderMuted hover:border-danger/40 border",
-          )}
-        >
-          Needs work ({topicStats.filter((t: any) => t.accuracy < 60).length})
-        </button>
-      </div>
-
-      <div className="custom-scrollbar space-y-5 overflow-y-auto pr-1">
-        {subjectsWithData.map((subj) => {
-          // Get the general performance for this subject (average of topics)
-          const subjectTopics = topicStats.filter(
-            (t: any) => t.subject === subj,
-          );
-          const avgAccuracy = Math.round(
-            subjectTopics.reduce((sum, t) => sum + t.accuracy, 0) /
-              subjectTopics.length,
-          );
-
-          const weakTopics = subjectTopics
-            .filter((t) => t.accuracy < 60)
-            .map((t) => t.name);
-
-          // If filtering for weak and this subject has no weak topics, skip it
-          if (filter === "weak" && weakTopics.length === 0) return null;
+      <div className="custom-scrollbar space-y-3 overflow-y-auto pr-1">
+        {comboWeakestTopics.map((item, index) => {
+          const subjectData = subjects.find((s) => s.name === item.subject);
+          const progressColor =
+            item.accuracy < 30
+              ? "#FF4D6D"
+              : "#FFB020";
 
           return (
             <div
-              key={subj}
-              className="group/item cursor-pointer"
-              onClick={() => navigate(`/quiz?subject=${encodeURIComponent(subj)}`)}
+              key={`${item.subject}-${item.name}-${index}`}
+              className="group cursor-pointer transition-all hover:scale-[1.01]"
+              onClick={() =>
+                navigate(
+                  `/quiz?subject=${encodeURIComponent(item.subject)}&topic=${encodeURIComponent(item.name)}`
+                )
+              }
             >
-              <div className="mb-2 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="bg-bgSurface border-borderMuted flex h-8 w-8 items-center justify-center rounded-lg border text-lg">
-                    {getSubjectIcon(subj)}
-                  </div>
-                  <div>
-                    <p className="text-textMain group-hover/item:text-brand text-sm font-bold transition-colors">
-                      {subj}
-                    </p>
-                    {weakTopics.length > 0 && (
-                      <p className="text-danger line-clamp-1 text-[10px] font-medium">
-                        Weak: {weakTopics.join(", ")}
-                      </p>
+              <div className="bg-bgSurface border-borderMuted hover:border-brand/30 rounded-brand-lg flex items-center gap-3 border p-4 transition-all">
+                <div
+                  className="flex h-10 w-10 items-center justify-center rounded-lg text-xl"
+                  style={{ background: `${subjectData?.color || "#7B5FFF"}20` }}
+                >
+                  {getSubjectIcon(item.subject)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-textMain group-hover:text-brand text-sm font-bold transition-colors truncate">
+                    {item.name}
+                  </p>
+                  <p className="text-textDim text-[11px] font-medium">
+                    {item.subject}
+                  </p>
+                </div>
+                <div className="flex flex-col items-end gap-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-textMain text-xs font-bold">
+                      {Math.round(item.accuracy)}%
+                    </span>
+                    {item.accuracy < 30 ? (
+                      <AlertTriangle size={12} className="text-danger" />
+                    ) : (
+                      <Sparkles size={12} className="text-warn" />
                     )}
                   </div>
-                </div>
-                <div className="flex flex-col items-end">
-                  <span className="text-textMain text-xs font-bold">
-                    {avgAccuracy}%
-                  </span>
-                  <div className="flex items-center gap-1">
-                    {avgAccuracy < 50 ? (
-                      <AlertTriangle size={12} className="text-danger" />
-                    ) : avgAccuracy >= 75 ? (
-                      <CheckCircle size={12} className="text-success" />
-                    ) : null}
+                  <div className="bg-bgTrack w-20 h-1.5 overflow-hidden rounded-full">
+                    <div
+                      className="h-full rounded-full transition-all duration-300"
+                      style={{
+                        width: `${item.accuracy}%`,
+                        background: progressColor,
+                      }}
+                    />
                   </div>
                 </div>
-              </div>
-              <div className="bg-bgTrack border-borderMuted/30 h-1.5 overflow-hidden rounded-full border shadow-inner">
-                <div
-                  className={cn(
-                    "h-full rounded-full transition-all duration-1000 ease-out",
-                    avgAccuracy < 50
-                      ? "bg-danger"
-                      : avgAccuracy < 75
-                        ? "bg-warning"
-                        : "bg-success",
-                  )}
-                  style={{ width: `${avgAccuracy}%` }}
-                />
               </div>
             </div>
           );

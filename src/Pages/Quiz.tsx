@@ -11,6 +11,7 @@ import {
   fetchQuestionsWithFallback,
 } from "../Services/questionService";
 import LoadingScreen from "../components/ui/LoadingScreen";
+import NetworkErrorAlert from "../components/ui/NetworkErrorAlert";
 import {
   Loader2,
   BookOpen,
@@ -19,7 +20,6 @@ import {
   CheckCircle2,
   AlertTriangle,
 } from "lucide-react";
-import { cn } from "../lib/utils/utils";
 import { useOfflineStore } from "../Store/useOfflineStore";
 import type { Question } from "../Types";
 
@@ -73,6 +73,11 @@ const Quiz: React.FC = () => {
     setSubjectAndTopic,
   } = useQuizStore();
 
+  // Reset quiz state when component mounts to clear any old timer/state
+  useEffect(() => {
+    reset();
+  }, [reset]);
+
   // ── Handle Incoming Navigation Parameters ───────────────────
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -83,33 +88,32 @@ const Quiz: React.FC = () => {
       const decodedSubject = decodeURIComponent(subjectParam);
       const decodedTopic = topicParam ? decodeURIComponent(topicParam) : "All";
 
-      if (
-        selectedSubject !== decodedSubject ||
-        selectedTopic !== decodedTopic
-      ) {
-        setSubjectAndTopic(decodedSubject, decodedTopic);
-      }
+      // First reset any existing quiz state to clear the timer
+      reset();
+      
+      // Then set the new subject and topic
+      setSubjectAndTopic(decodedSubject, decodedTopic);
     }
-  }, [location.search, setSubjectAndTopic, selectedSubject, selectedTopic]);
+  }, [location.search, setSubjectAndTopic, reset]);
 
   // Use a stable reference to the master subjects with their topics
   const subjectsMaster = useMemo(
     () => [
       {
         name: "English",
-        topics: ["Comprehension/Summary", "Lexis and Structure", "Oral Forms"],
+        topics: ["Comprehension", "Lexis and Structure", "Oral English", "Sentence Interpretation", "Figures of Speech"],
       },
       {
         name: "Mathematics",
         topics: [
           "Number Bases",
-          "Fractions, Decimals, Percentages",
-          "Indices, Logarithms, Surds",
+          "Fractions, Decimals and Percentages",
+          "Indices, Logarithms and Surds",
           "Sets",
           "Polynomials",
           "Variation",
           "Inequalities",
-          "Progression",
+          "Progressions",
           "Binary Operations",
           "Matrices and Determinants",
           "Euclidean Geometry",
@@ -531,71 +535,45 @@ const Quiz: React.FC = () => {
       setIsSidebarOpen={setIsSidebarOpen}
     >
       <div className="mx-auto max-w-2xl">
+        {/* Network Error Alert */}
+        {(loadError?.includes("CONNECTION_ERROR") ||
+          loadError?.includes("OFFLINE")) && (
+          <NetworkErrorAlert
+            message={loadError}
+            onRetry={() => {
+              setLoadError(null);
+              handleStart();
+            }}
+            onDismiss={() => setLoadError(null)}
+          />
+        )}
+
         {/* Error Message */}
-        {loadError && (
-          <div
-            className={cn(
-              "animate-in fade-in slide-in-from-top-4 mb-6 rounded-2xl border p-5 shadow-sm duration-300",
-              loadError.includes("CONNECTION_ERROR") ||
-                loadError.includes("OFFLINE")
-                ? "network-error-alert"
-                : "bg-danger/15 border-danger/30 text-danger dark:bg-danger/10",
-            )}
-          >
-            <div className="flex items-start gap-3">
-              <div
-                className={cn(
-                  "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl shadow-sm",
-                  loadError.includes("CONNECTION_ERROR") ||
-                    loadError.includes("OFFLINE")
-                    ? "bg-warn/20 text-warn"
-                    : "bg-danger/20 text-danger",
-                )}
-              >
-                <AlertTriangle size={20} />
-              </div>
-              <div className="flex-1">
-                <p
-                  className={cn(
-                    "text-sm font-black tracking-tight",
-                    loadError.includes("CONNECTION_ERROR") ||
-                      loadError.includes("OFFLINE")
-                      ? "text-amber-900 dark:text-amber-400"
-                      : "text-danger",
-                  )}
-                >
-                  {loadError.includes("CONNECTION_ERROR") ||
-                  loadError.includes("OFFLINE")
-                    ? "Connection Alert"
-                    : "System Alert"}
-                </p>
-                <p
-                  className={cn(
-                    "mt-1 text-xs leading-relaxed font-medium",
-                    loadError.includes("CONNECTION_ERROR") ||
-                      loadError.includes("OFFLINE")
-                      ? "text-amber-900/90 dark:text-amber-400/90"
-                      : "text-danger/90",
-                  )}
-                >
-                  {loadError}
-                </p>
-                <button
-                  onClick={() => setLoadError(null)}
-                  className={cn(
-                    "mt-3 rounded-lg px-3 py-1.5 text-[10px] font-black tracking-widest uppercase transition-colors",
-                    loadError.includes("CONNECTION_ERROR") ||
-                      loadError.includes("OFFLINE")
-                      ? "bg-amber-900/10 text-amber-900 hover:bg-amber-900/20 dark:text-amber-400"
-                      : "bg-danger/10 hover:bg-danger/20 text-danger",
-                  )}
-                >
-                  Dismiss
-                </button>
+        {loadError &&
+          !loadError.includes("CONNECTION_ERROR") &&
+          !loadError.includes("OFFLINE") && (
+            <div className="animate-in fade-in slide-in-from-top-4 mb-6 rounded-2xl border bg-danger/15 border-danger/30 p-5 text-danger shadow-sm duration-300 dark:bg-danger/10">
+              <div className="flex items-start gap-3">
+                <div className="bg-danger/20 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-danger shadow-sm">
+                  <AlertTriangle size={20} />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-black tracking-tight text-danger">
+                    System Alert
+                  </p>
+                  <p className="mt-1 text-xs leading-relaxed font-medium text-danger/90">
+                    {loadError}
+                  </p>
+                  <button
+                    onClick={() => setLoadError(null)}
+                    className="bg-danger/10 hover:bg-danger/20 mt-3 rounded-lg px-3 py-1.5 text-[10px] font-black tracking-widest uppercase text-danger transition-colors"
+                  >
+                    Dismiss
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
         {/* <Hero */}
         <div className="mb-10 pt-4 text-center">

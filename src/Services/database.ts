@@ -2,9 +2,9 @@
 import { supabase } from "../lib/supabase";
 
 // Questions
-export const getQuestions = async (subjectId?: string) => {
+export const getQuestions = async (subject?: string) => {
   let query = supabase.from("questions").select("*");
-  if (subjectId) query = query.eq("subject_id", subjectId);
+  if (subject) query = query.eq("subject", subject);
   return await query;
 };
 
@@ -23,13 +23,17 @@ export const getQuizHistory = async () => {
 
 // Subject Progress
 export const updateSubjectProgress = async (
-  subjectId: string,
-  score: number,
+  subject: string,
+  accuracy: number,
+  questionsDone: number,
 ) => {
   return await supabase.from("subject_progress").upsert({
-    subject_id: subjectId,
-    score,
+    subject: subject,
+    accuracy,
+    questions_done: questionsDone,
     updated_at: new Date(),
+  }, {
+    onConflict: "user_id,subject"
   });
 };
 

@@ -23,10 +23,9 @@ export interface QuizSession {
 export interface SubjectProgress {
   id: string;
   user_id: string;
-  subject_id: string;
+  subject: string;
   accuracy: number;
-  questions_attempted: number;
-  mastered: boolean;
+  questions_done: number;
 }
 
 export interface LeaderboardEntry {

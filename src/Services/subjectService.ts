@@ -1,7 +1,7 @@
 // src/services/subjectService.ts
 
 import { supabase } from "../lib/supabase";
-import type { Subject, SubjectProgress } from "../Types/subject";
+import type { Subject } from "../Types/subject";
 
 // Master list of subjects (static data)
 const SUBJECTS_MASTER = [
@@ -67,16 +67,16 @@ export const fetchUserSubjects = async (): Promise<Subject[]> => {
   if (error) throw error;
 
   // Create a map of existing progress
-  const progressMap = new Map<string, SubjectProgress>();
+  const progressMap = new Map<string, any>();
   existingProgress?.forEach((p) => {
-    progressMap.set(p.subject_id, p);
+    progressMap.set(p.subject, p);
   });
 
   // Build subjects with real progress data
   const subjects: Subject[] = SUBJECTS_MASTER.map((master) => {
     const progress = progressMap.get(master.id);
     const accuracy = progress?.accuracy || 0;
-    const completed = progress?.questions_attempted || 0;
+    const completed = progress?.questions_done || 0;
     const rank = calculateRank(accuracy);
     const weakTopics = getWeakTopics(master.id, accuracy);
 
@@ -113,15 +113,13 @@ export const updateSubjectProgressInDB = async (
   const { error } = await supabase.from("subject_progress").upsert(
     {
       user_id: user.id,
-      subject_id: subjectId,
-      subject_name: master.name,
+      subject: subjectId,
       accuracy: newAccuracy,
-      questions_attempted: questionsAttempted,
-      mastered: newAccuracy >= 80,
+      questions_done: questionsAttempted,
       updated_at: new Date().toISOString(),
     },
     {
-      onConflict: "user_id,subject_id",
+      onConflict: "user_id,subject",
     },
   );
 
@@ -139,15 +137,13 @@ export const initializeUserSubjects = async (): Promise<void> => {
     const { error } = await supabase.from("subject_progress").upsert(
       {
         user_id: user.id,
-        subject_id: master.id,
-        subject_name: master.name,
+        subject: master.id,
         accuracy: 0,
-        questions_attempted: 0,
-        mastered: false,
+        questions_done: 0,
         updated_at: new Date().toISOString(),
       },
       {
-        onConflict: "user_id,subject_id",
+        onConflict: "user_id,subject",
       },
     );
 

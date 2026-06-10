@@ -445,6 +445,77 @@ export const fetchTopicsBySubject = async (
 };
 
 /**
+ * Fetch all questions for Past Questions browsing.
+ * Can filter by subject, year, topic, difficulty.
+ */
+export const fetchAllQuestionsForBrowse = async (
+  subject?: string,
+  year?: string | number,
+  topic?: string,
+  difficulty?: string,
+): Promise<Question[]> => {
+  try {
+    let q = supabase
+      .from("questions")
+      .select("*")
+      .gte("year", MIN_YEAR)
+      .lte("year", MAX_YEAR);
+
+    if (subject && subject !== "All") {
+      const formattedSubject =
+        subject.trim().charAt(0).toUpperCase() +
+        subject.trim().slice(1).toLowerCase();
+      q = q.eq("subject", formattedSubject);
+    }
+
+    if (year && year !== "All") {
+      const resolvedYear = resolveYear(year);
+      if (resolvedYear !== null) {
+        q = q.eq("year", resolvedYear);
+      }
+    }
+
+    if (topic && topic !== "All") {
+      q = q.eq("topic", topic);
+    }
+
+    const resolvedDiff = resolveDifficulty(difficulty);
+    if (resolvedDiff) {
+      q = q.eq("difficulty", resolvedDiff);
+    }
+
+    const { data, error } = await q;
+
+    if (error) {
+      console.error("[fetchAllQuestionsForBrowse] Error:", error);
+      return [];
+    }
+
+    if (data && data.length > 0) {
+      const seenContent = new Set<string>();
+      const finalQuestions: Question[] = [];
+
+      for (const row of data) {
+        const mapped = mapDbToQuestion(row, row.subject ?? "Unknown");
+        const contentKey = mapped.text.trim().toLowerCase();
+
+        if (!seenContent.has(contentKey)) {
+          seenContent.add(contentKey);
+          finalQuestions.push(mapped);
+        }
+      }
+
+      return finalQuestions;
+    }
+
+    return [];
+  } catch (err) {
+    console.error("[fetchAllQuestionsForBrowse] Critical failure:", err);
+    return [];
+  }
+};
+
+/**
  * Fetch questions by subject + topic.
  * Falls back to general subject questions if topic returns nothing.
  */
