@@ -1,19 +1,25 @@
-import React, { useState, useMemo, useEffect } from "react";
+
+import  { useState, useMemo, useEffect } from "react";
 import AppLayout from "../components/Layout/AppLayout";
 import { useUserStore } from "../Store/useUserStore";
-import { useOfflineStore } from "../Store/useOfflineStore";
 import { SUBJECT_COMBO_MAP } from "../Store/useSubjectStore";
-import FilterBar from "../components/PastQuestions/FilterBar";
-import QuestionRow from "../components/PastQuestions/QuestionRow";
-import ProGate from "../components/PastQuestions/ProGate";
-import OfflinePackCard from "../components/PastQuestions/OfflinePackCard";
 import Button from "../components/ui/Button";
-import { WifiOff, Loader2 } from "lucide-react";
+import {
+  Loader2,
+  Search,
+  X,
+  ChevronLeft,
+  ChevronRight,
+  Calendar,
+  Lightbulb,
+  CheckCircle2,
+} from "lucide-react";
 import type { Question } from "../Types";
 import {
   fetchAllQuestionsForBrowse,
   fetchTopicsBySubject,
 } from "../Services/questionService";
+import ProGate from "../components/PastQuestions/ProGate";
 
 export interface Filters {
   subject: string;
@@ -23,76 +29,75 @@ export interface Filters {
   search: string;
 }
 
-// Pre-defined years: 2016-2025
-const VALID_YEARS = ["All", "2025", "2024", "2023", "2022", "2021", "2020", "2019", "2018", "2017", "2016"];
+const VALID_YEARS = [
+  "All",
+  "2025",
+  "2024",
+  "2023",
+  "2022",
+  "2021",
+  "2020",
+  "2019",
+  "2018",
+  "2017",
+  "2016",
+] as const;
 
-const OFFLINE_PACKS = [
-  {
-    id: "eng-all",
-    subject: "English",
-    years: "2016–2025",
-    count: 240,
-    size: "1.2 MB",
-  },
-  {
-    id: "math-all",
-    subject: "Mathematics",
-    years: "2016–2025",
-    count: 220,
-    size: "1.0 MB",
-  },
-  {
-    id: "phy-all",
-    subject: "Physics",
-    years: "2016–2025",
-    count: 200,
-    size: "0.9 MB",
-  },
-  {
-    id: "chem-all",
-    subject: "Chemistry",
-    years: "2016–2025",
-    count: 210,
-    size: "0.9 MB",
-  },
-  {
-    id: "bio-all",
-    subject: "Biology",
-    years: "2016–2025",
-    count: 190,
-    size: "0.8 MB",
-  },
+const ALL_SUBJECTS = [
+  "English",
+  "Mathematics",
+  "Physics",
+  "Chemistry",
+  "Biology",
+  "Economics",
+  "Government",
+  "Literature in English",
+  "History",
+  "Geography",
+  "CRS",
+  "IRS",
+  "Commerce",
 ];
+
+const SUBJECT_COLORS: Record<string, string> = {
+  English: "#7B5FFF",
+  Mathematics: "#00C896",
+  Physics: "#FFB020",
+  Chemistry: "#FF4D6D",
+  Biology: "#00C896",
+  Economics: "#7B5FFF",
+  Government: "#FFB020",
+  "Literature in English": "#7B5FFF",
+  History: "#FF4D6D",
+  Geography: "#00C896",
+  CRS: "#7B5FFF",
+  IRS: "#00C896",
+  Commerce: "#FFB020",
+};
 
 const PAGE_SIZE = 20;
 
-const PastQuestions: React.FC = () => {
+const PastQuestions = () => {
+  const { subjectCombo, isPro } = useUserStore();
+  const userSubjects = subjectCombo ? SUBJECT_COMBO_MAP[subjectCombo] ?? [] : [];
+  
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const { isPro, subjectCombo: userSubjectComboId } = useUserStore();
-  const userSubjects = userSubjectComboId
-    ? SUBJECT_COMBO_MAP[userSubjectComboId] ?? []
-    : [];
-
   const [filters, setFilters] = useState<Filters>({
-    subject: "All",
+    subject: userSubjects[0] || "All",
     year: "All",
     topic: "All",
     difficulty: "All",
     search: "",
   });
   const [page, setPage] = useState(1);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"browse" | "offline">("browse");
-  const { downloadedPacks, getOfflineQuestions } = useOfflineStore();
-  const [offlineQuestions, setOfflineQuestions] = useState<Question[]>([]);
-  const [browseQuestions, setBrowseQuestions] = useState<Question[]>([]);
+  const [questions, setQuestions] = useState<Question[]>([]);
   const [availableTopics, setAvailableTopics] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  // Load all browse questions on mount and when filters change
   useEffect(() => {
     let isMounted = true;
-    async function loadData() {
+    const loadData = async () => {
       setIsLoading(true);
       try {
         const qs = await fetchAllQuestionsForBrowse(
@@ -101,113 +106,67 @@ const PastQuestions: React.FC = () => {
           filters.topic,
           filters.difficulty,
         );
-        if (isMounted) setBrowseQuestions(qs);
-      } catch (err) {
-        console.error("[PastQuestions] Error loading browse questions:", err);
+        if (isMounted) setQuestions(qs);
+      } catch (e) {
+        console.error("Error loading questions:", e);
       } finally {
         if (isMounted) setIsLoading(false);
       }
-    }
-
-    loadData();
-    return () => {
-      isMounted = false;
     };
+    loadData();
+    return () => { isMounted = false; };
   }, [filters.subject, filters.year, filters.topic, filters.difficulty]);
 
-  // Load available topics when selected subject changes
   useEffect(() => {
     let isMounted = true;
-    async function loadTopics() {
+    const loadTopics = async () => {
       if (filters.subject && filters.subject !== "All") {
         const topics = await fetchTopicsBySubject(filters.subject);
         if (isMounted) setAvailableTopics(topics);
       } else {
         setAvailableTopics([]);
       }
-    }
-    loadTopics();
-    return () => {
-      isMounted = false;
     };
+    loadTopics();
+    return () => { isMounted = false; };
   }, [filters.subject]);
 
-  /* ── Load offline questions if needed ─────────── */
-  useEffect(() => {
-    if (downloadedPacks.length > 0) {
-      Promise.all(downloadedPacks.map((id) => getOfflineQuestions(id))).then(
-        (results) => {
-          setOfflineQuestions(results.flat());
-        },
-      );
-    } else {
-      setOfflineQuestions([]);
-    }
-  }, [downloadedPacks, getOfflineQuestions]);
-
-  /* ── Filter questions ──────────────────────────── */
-  const filtered = useMemo(() => {
-    const source = activeTab === "browse" ? browseQuestions : offlineQuestions;
-    return (source as Question[]).filter((q) => {
-      if (filters.subject !== "All" && q.subject !== filters.subject)
-        return false;
-      if (filters.year !== "All" && String(q.year) !== filters.year)
-        return false;
-      if (filters.topic !== "All" && q.topic !== filters.topic) return false;
-      if (filters.difficulty !== "All" && q.difficulty !== filters.difficulty)
-        return false;
-      if (filters.search) {
-        const q_ = filters.search.toLowerCase();
-        if (
-          !q.text.toLowerCase().includes(q_) &&
-          !q.topic.toLowerCase().includes(q_)
-        )
-          return false;
-      }
-      return true;
+  const filteredQuestions = useMemo(() => {
+    return questions.filter(q => {
+      if (!filters.search) return true;
+      const search = filters.search.toLowerCase();
+      return q.text.toLowerCase().includes(search) || 
+             q.topic.toLowerCase().includes(search);
     });
-  }, [filters, activeTab, offlineQuestions, browseQuestions]);
+  }, [questions, filters.search]);
 
-  /* ── Pagination ────────────────────────────────── */
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const totalPages = Math.max(1, Math.ceil(filteredQuestions.length / PAGE_SIZE));
+  const paginated = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE;
+    return filteredQuestions.slice(start, start + PAGE_SIZE);
+  }, [filteredQuestions, page]);
 
   const handleFilterChange = (next: Partial<Filters>) => {
-    // If we change subject, reset topic to "All"
-    if (next.subject && next.subject !== filters.subject) {
-      setFilters((f) => ({ ...f, ...next, topic: "All" }));
-    } else {
-      setFilters((f) => ({ ...f, ...next }));
-    }
+    setFilters(prev => ({
+      ...prev,
+      ...next,
+      ...(next.subject && next.subject !== prev.subject ? { topic: "All" } : {}),
+    }));
     setPage(1);
     setExpandedId(null);
   };
 
-  /* ── Derive filter options ─────────── */
-  // Subjects: user's subjects first, then others
-  const allPossibleSubjects = [
-    "English",
-    "Mathematics",
-    "Physics",
-    "Chemistry",
-    "Biology",
-    "Economics",
-    "Government",
-    "Literature in English",
-    "History",
-    "Geography",
-    "CRS",
-    "IRS",
-    "Commerce",
-  ];
-  const subjects = useMemo(() => {
-    const others = allPossibleSubjects.filter((s) => !userSubjects.includes(s));
-    return ["All", ...userSubjects, ...others];
-  }, [userSubjects]);
-
-  const topics = useMemo(() => {
-    return ["All", ...availableTopics];
-  }, [availableTopics]);
+  if (!isPro) {
+    return (
+      <AppLayout
+        currentPage="past-questions"
+        isSidebarOpen={isSidebarOpen}
+        setIsSidebarOpen={setIsSidebarOpen}
+      >
+        <ProGate />
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout
@@ -215,218 +174,277 @@ const PastQuestions: React.FC = () => {
       isSidebarOpen={isSidebarOpen}
       setIsSidebarOpen={setIsSidebarOpen}
     >
-      {/* <── Page header ── */}
-      <div className="mb-6 flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
+      <div className="max-w-5xl mx-auto space-y-6 px-4 py-6">
+        {/* Header */}
         <div>
-          <div className="mb-1 flex items-center gap-2">
-            <h2 className="font-display text-2xl font-bold tracking-tight">
+          <div className="flex items-center gap-2 mb-1">
+            <h1 className="font-display text-3xl font-bold text-textMain">
               Past Questions
-            </h2>
-            {isPro && (
-              <span className="bg-warn/15 text-warn border-warn/25 rounded-full border px-2 py-0.5 text-[10px] font-bold">
-                PRO
-              </span>
-            )}
+            </h1>
+            <span className="bg-yellow-500/10 border-yellow-500/25 text-yellow-400 rounded-full border px-2.5 py-1 text-[10px] font-bold">
+              PRO
+            </span>
           </div>
-          <p className="text-textMuted text-sm">
-            {filtered.length} question{filtered.length !== 1 ? "s" : ""} found
-            {filters.subject !== "All" ? ` in ${filters.subject}` : ""}
-            {filters.year !== "All" ? ` · ${filters.year}` : ""}
+          <p className="text-textDim">
+            Practice real JAMB past questions from 2016 to 2025
           </p>
         </div>
 
-        {/* <Tab switcher */}
-        <div className="bg-bgSurface border-borderMuted rounded-brand flex gap-1 border p-1">
-          <button
-            onClick={() => setActiveTab("browse")}
-            className={`rounded px-4 py-1.5 text-xs font-medium transition-all ${
-              activeTab === "browse"
-                ? "bg-bgCard text-textMain border-borderMuted border"
-                : "text-textMuted hover:text-textMain"
-            }`}
-          >
-            Browse
-          </button>
-          <button
-            onClick={() => setActiveTab("offline")}
-            className={`flex items-center gap-1.5 rounded px-4 py-1.5 text-xs font-medium transition-all ${
-              activeTab === "offline"
-                ? "bg-bgCard text-textMain border-borderMuted border"
-                : "text-textMuted hover:text-textMain"
-            }`}
-          >
-            Offline packs
-            {!isPro && (
-              <span className="bg-warn/15 text-warn rounded-full px-1.5 py-0.5 text-[9px]">
-                PRO
-              </span>
-            )}
-          </button>
-        </div>
-      </div>
-
-      {/* <── BROWSE TAB ── */}
-      {activeTab === "browse" && (
-        <div className="animate-fadeIn">
-          <FilterBar
-            filters={filters}
-            subjects={subjects}
-            years={VALID_YEARS}
-            topics={topics}
-            onChange={handleFilterChange}
-          />
-
-          {isLoading ? (
-            <div className="flex items-center justify-center py-20">
-              <Loader2 className="text-brand h-10 w-10 animate-spin" />
-            </div>
-          ) : paginated.length === 0 ? (
-            <div className="text-textDim py-16 text-center">
-              <div className="mb-3 text-4xl">🔍</div>
-              <p className="text-sm">No questions match your filters.</p>
-              <button
-                className="text-brand-light mt-3 text-xs hover:underline"
-                onClick={() =>
-                  handleFilterChange({
-                    subject: "All",
-                    year: "All",
-                    topic: "All",
-                    difficulty: "All",
-                    search: "",
-                  })
-                }
+        {/* Filters */}
+        <div className="bg-bgCard rounded-2xl border border-borderMuted p-5 space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="space-y-1.5">
+              <label className="text-textDim text-xs font-semibold uppercase tracking-wider">
+                Subject
+              </label>
+              <select
+                value={filters.subject}
+                onChange={(e) => handleFilterChange({ subject: e.target.value })}
+                className="w-full bg-bgSurface border border-borderMuted text-textMain px-4 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/50"
               >
-                Clear all filters
-              </button>
-            </div>
-          ) : (
-            <>
-              <div className="flex flex-col gap-2">
-                {paginated.map((q) => (
-                  <QuestionRow
-                    key={q.id}
-                    question={q}
-                    isExpanded={expandedId === q.id}
-                    onToggle={() =>
-                      setExpandedId((prev) => (prev === q.id ? null : q.id))
-                    }
-                  />
+                <option value="All">All Subjects</option>
+                {userSubjects.map(s => (
+                  <option key={s} value={s}>{s}</option>
                 ))}
-              </div>
+                {ALL_SUBJECTS.filter(s => !userSubjects.includes(s)).map(s => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+            </div>
 
-              {/* <── Pagination ── */}
-              {totalPages > 1 && (
-                <div className="mt-6 flex items-center justify-between">
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    disabled={page === 1}
-                    onClick={() => setPage((p) => p - 1)}
+            <div className="space-y-1.5">
+              <label className="text-textDim text-xs font-semibold uppercase tracking-wider">
+                Year
+              </label>
+              <select
+                value={filters.year}
+                onChange={(e) => handleFilterChange({ year: e.target.value })}
+                className="w-full bg-bgSurface border border-borderMuted text-textMain px-4 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/50"
+              >
+                {VALID_YEARS.map(y => (
+                  <option key={y} value={y}>{y === "All" ? "All Years" : y}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-textDim text-xs font-semibold uppercase tracking-wider">
+                Topic
+              </label>
+              <select
+                value={filters.topic}
+                onChange={(e) => handleFilterChange({ topic: e.target.value })}
+                disabled={filters.subject === "All"}
+                className="w-full bg-bgSurface border border-borderMuted text-textMain px-4 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/50 disabled:opacity-50"
+              >
+                <option value="All">All Topics</option>
+                {availableTopics.map(t => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-textDim text-xs font-semibold uppercase tracking-wider">
+                Search
+              </label>
+              <div className="relative">
+                <Search size={18} className="text-textDim absolute left-4 top-1/2 -translate-y-1/2" />
+                <input
+                  value={filters.search}
+                  onChange={(e) => handleFilterChange({ search: e.target.value })}
+                  placeholder="Search..."
+                  className="w-full bg-bgSurface border border-borderMuted text-textMain pl-12 pr-4 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/50"
+                />
+                {filters.search && (
+                  <button
+                    onClick={() => handleFilterChange({ search: "" })}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-textDim hover:text-textMain"
                   >
-                    ← Previous
-                  </Button>
-                  <span className="text-textDim text-xs">
-                    Page {page} of {totalPages} · {filtered.length} total
-                  </span>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    disabled={page === totalPages}
-                    onClick={() => setPage((p) => p + 1)}
-                  >
-                    Next →
-                  </Button>
-                </div>
-              )}
-            </>
-          )}
+                    <X size={18} />
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
-      )}
 
-      {/* <── OFFLINE TAB ── */}
-      {activeTab === "offline" && (
-        <div className="animate-fadeIn">
-          {!isPro ? (
-            <ProGate />
-          ) : (
-            <>
-              <div className="bg-success/10 border-success/20 rounded-brand-lg text-success mb-5 flex items-center gap-2 border px-4 py-3 text-sm">
-                ✓{" "}
-                <span>
-                  Pro plan active — download any subject pack for offline
-                  access.
-                </span>
-              </div>
+        {/* Loading State */}
+        {isLoading && (
+          <div className="flex flex-col items-center justify-center py-20">
+            <Loader2 className="text-brand h-10 w-10 animate-spin mb-3" />
+            <p className="text-textDim text-lg">Loading questions...</p>
+          </div>
+        )}
 
-              <div className="mb-10 grid grid-cols-1 gap-6 lg:grid-cols-2">
-                <div className="space-y-3">
-                  <h3 className="text-textDim flex items-center gap-2 text-xs font-black tracking-widest uppercase">
-                    <div className="bg-brand h-1.5 w-1.5 rounded-full" />
-                    Available Packs
-                  </h3>
-                  <div className="flex flex-col gap-3">
-                    {OFFLINE_PACKS.map((pack) => (
-                      <OfflinePackCard key={pack.id} pack={pack} />
-                    ))}
-                  </div>
-                </div>
+        {/* No Results */}
+        {!isLoading && paginated.length === 0 && (
+          <div className="bg-bgCard border border-borderMuted rounded-2xl p-12 text-center">
+            <div className="text-5xl mb-4">📚</div>
+            <h3 className="text-textMain font-bold text-xl mb-2">
+              No questions found
+            </h3>
+            <p className="text-textDim mb-6">
+              Try adjusting your filters to find questions
+            </p>
+            <Button
+              variant="secondary"
+              onClick={() => handleFilterChange({
+                subject: userSubjects[0] || "All",
+                year: "All",
+                topic: "All",
+                difficulty: "All",
+                search: "",
+              })}
+            >
+              Reset Filters
+            </Button>
+          </div>
+        )}
 
-                <div className="space-y-3">
-                  <h3 className="text-textDim flex items-center gap-2 text-xs font-black tracking-widest uppercase">
-                    <div className="bg-success h-1.5 w-1.5 rounded-full" />
-                    Offline Browser
-                  </h3>
-                  <div className="bg-bgCard border-borderMuted rounded-brand-xl min-h-75 border p-4">
-                    {offlineQuestions.length === 0 ? (
-                      <div className="flex h-full flex-col items-center justify-center py-12 text-center">
-                        <div className="bg-bgSurface mb-3 flex h-12 w-12 items-center justify-center rounded-full">
-                          <WifiOff size={20} className="text-textDim" />
+        {/* Questions List */}
+        {!isLoading && paginated.length > 0 && (
+          <>
+            <div className="flex items-center justify-between">
+              <p className="text-textDim text-sm">
+                Showing <span className="text-textMain font-semibold">{paginated.length}</span> of{" "}
+                <span className="text-textMain font-semibold">{filteredQuestions.length}</span> questions
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              {paginated.map((q, idx) => {
+                const color = SUBJECT_COLORS[q.subject] || "#7B5FFF";
+                const isExpanded = expandedId === q.id;
+                const questionNum = (page - 1) * PAGE_SIZE + idx + 1;
+
+                return (
+                  <div
+                    key={q.id}
+                    className="bg-bgCard border border-borderMuted rounded-2xl overflow-hidden transition-all"
+                  >
+                    <button
+                      onClick={() => setExpandedId(isExpanded ? null : q.id)}
+                      className="w-full text-left p-5"
+                    >
+                      <div className="flex items-start gap-4">
+                        <div
+                          className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 font-bold"
+                          style={{ backgroundColor: `${color}20`, color }}
+                        >
+                          {questionNum}
                         </div>
-                        <p className="text-textMain text-sm font-bold">
-                          No questions downloaded yet
-                        </p>
-                        <p className="text-textDim mt-1 text-xs">
-                          Download a pack to view questions offline
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="space-y-2">
-                        <FilterBar
-                          filters={filters}
-                          subjects={[
-                            "All",
-                            ...new Set(offlineQuestions.map((q) => q.subject)),
-                          ]}
-                          years={VALID_YEARS}
-                          topics={[
-                            "All",
-                            ...new Set(offlineQuestions.map((q) => q.topic)),
-                          ]}
-                          onChange={handleFilterChange}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-3 mb-2 flex-wrap">
+                            <span
+                              className="text-xs font-semibold px-2.5 py-1 rounded-full"
+                              style={{ backgroundColor: `${color}20`, color }}
+                            >
+                              {q.subject}
+                            </span>
+                            <span className="text-textDim text-xs flex items-center gap-1">
+                              <Calendar size={14} /> {q.year}
+                            </span>
+                            <span className="text-textDim text-xs flex items-center gap-1">
+                              <Lightbulb size={14} /> {q.difficulty}
+                            </span>
+                          </div>
+                          <p className="text-textMain font-medium leading-relaxed">
+                            {q.text}
+                          </p>
+                        </div>
+                        <ChevronRight
+                          size={20}
+                          className={`text-textDim shrink-0 transition-transform ${isExpanded ? "rotate-90" : ""}`}
                         />
-                        <div className="custom-scrollbar flex max-h-125 flex-col gap-2 overflow-y-auto pr-1">
-                          {paginated.map((q) => (
-                            <QuestionRow
-                              key={q.id}
-                              question={q}
-                              isExpanded={expandedId === q.id}
-                              onToggle={() =>
-                                setExpandedId((prev) =>
-                                  prev === q.id ? null : q.id,
-                                )
-                              }
-                            />
+                      </div>
+                    </button>
+
+                    {isExpanded && (
+                      <div className="border-t border-borderMuted px-5 pb-5 pt-1">
+                        {q.instruction && (
+                          <div className="mb-4 p-4 bg-bgSurface rounded-xl">
+                            <p className="text-textDim text-sm">
+                              <span className="font-semibold text-textMain">Instruction: </span>
+                              {q.instruction}
+                            </p>
+                          </div>
+                        )}
+
+                        <div className="space-y-2.5 mb-4">
+                          {q.options.map((opt, optIdx) => (
+                            <div
+                              key={optIdx}
+                              className={`p-4 rounded-xl border flex items-center gap-3 ${
+                                optIdx === q.answer
+                                  ? "border-success/30 bg-success/5"
+                                  : "border-borderMuted bg-bgSurface"
+                              }`}
+                            >
+                              <span
+                                className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
+                                  optIdx === q.answer
+                                    ? "bg-success text-white"
+                                    : "bg-bgCard border border-borderMuted text-textDim"
+                                }`}
+                              >
+                                {String.fromCharCode(65 + optIdx)}
+                              </span>
+                              <span
+                                className={optIdx === q.answer ? "text-textMain font-semibold" : "text-textDim"}
+                              >
+                                {opt}
+                              </span>
+                              {optIdx === q.answer && (
+                                <CheckCircle2 size={18} className="text-success ml-auto" />
+                              )}
+                            </div>
                           ))}
+                        </div>
+
+                        <div className="bg-brand/5 border border-brand/10 p-4 rounded-xl">
+                          <h5 className="font-semibold text-brand-light text-sm mb-1">
+                            Explanation
+                          </h5>
+                          <p className="text-textMain text-sm">{q.explanation}</p>
                         </div>
                       </div>
                     )}
                   </div>
-                </div>
+                );
+              })}
+            </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between pt-4">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  disabled={page === 1}
+                  onClick={() => setPage(p => p - 1)}
+                  className="flex items-center gap-2"
+                >
+                  <ChevronLeft size={16} /> Previous
+                </Button>
+                <p className="text-textDim text-sm">
+                  Page <span className="text-textMain font-semibold">{page}</span> of{" "}
+                  <span className="text-textMain font-semibold">{totalPages}</span>
+                </p>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  disabled={page === totalPages}
+                  onClick={() => setPage(p => p + 1)}
+                  className="flex items-center gap-2"
+                >
+                  Next <ChevronRight size={16} />
+                </Button>
               </div>
-            </>
-          )}
-        </div>
-      )}
+            )}
+          </>
+        )}
+      </div>
     </AppLayout>
   );
 };
