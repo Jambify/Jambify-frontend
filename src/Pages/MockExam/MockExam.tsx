@@ -124,6 +124,7 @@ const MockExam: React.FC = () => {
     initialTime: MOCK_DURATION,
     onTimeUp: handleTimeUp,
     isActive: isStarted && !isFinished,
+    persistenceKey: "jambify-mock-exam-timer",
   });
 
   // Effect to update active subject when current index changes

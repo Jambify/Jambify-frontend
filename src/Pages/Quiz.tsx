@@ -362,7 +362,8 @@ const Quiz: React.FC = () => {
         qs = qs.slice(0, targetCount);
       }
 
-      loadQuestions(qs);
+      const duration = selectedMode === "quick" ? 10 * 60 : 30 * 60;
+      loadQuestions(qs, duration);
     } catch (error) {
       console.error("Failed to load quiz questions:", error);
       setLoadError(

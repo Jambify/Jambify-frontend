@@ -3,19 +3,20 @@ import { useQuizStore } from "../../Store/useQuizStore";
 import { useTimer } from "../../hooks/useTimer";
 import { cn } from "../../lib/utils/utils";
 
-// 30 minutes for the entire quiz (standard JAMB practice timing)
-const TOTAL_SECONDS = 30 * 60;
-
 const TimerBar: React.FC = () => {
   const isFinished = useQuizStore((s) => s.isFinished);
   const finishQuiz = useQuizStore((s) => s.finishQuiz);
   const updateTime = useQuizStore((s) => s.updateTime);
+  const quizDuration = useQuizStore((s) => s.quizDuration);
+  const isStarted = useQuizStore((s) => s.isStarted);
 
   const { timeLeft, formatted } = useTimer({
-    initialSeconds: TOTAL_SECONDS,
+    initialSeconds: quizDuration,
+    autoStart: isStarted && !isFinished,
     onExpire: () => {
       finishQuiz();
     },
+    persistenceKey: "jambify-quiz-session-timer",
   });
 
   // Sync timer with store for submission logic
@@ -23,7 +24,7 @@ const TimerBar: React.FC = () => {
     updateTime(timeLeft);
   }, [timeLeft, updateTime]);
 
-  const pct = (timeLeft / TOTAL_SECONDS) * 100;
+  const pct = (timeLeft / quizDuration) * 100;
 
   // Adjusted warnings for a longer duration
   // Warn at 5 minutes, Danger at 1 minute

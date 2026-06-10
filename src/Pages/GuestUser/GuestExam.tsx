@@ -1,6 +1,6 @@
 // src/Pages/Guest/GuestMockExam.tsx
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchQuestionsWithFallback } from "../../Services/questionService";
 import LoadingScreen from "../../components/ui/LoadingScreen";
@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import GuestLayout from "../../components/Layout/GuestLayout";
+import { useExamTimer } from "../../hooks/useExamTimer";
 
 const MOCK_DURATION = 7200; // 2 hours in seconds
 
@@ -63,13 +64,6 @@ const shuffleArray = <T,>(array: T[]): T[] => {
   return shuffled;
 };
 
-const formatTime = (s: number) => {
-  const h = Math.floor(s / 3600);
-  const m = Math.floor((s % 3600) / 60);
-  const sec = s % 60;
-  return `${h}:${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
-};
-
 const GuestMockExam: React.FC = () => {
   const navigate = useNavigate();
 
@@ -79,7 +73,6 @@ const GuestMockExam: React.FC = () => {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<number, number>>({});
-  const [timeLeft, setTimeLeft] = useState(MOCK_DURATION);
 
   // Setup state
   const [selectedYear, setSelectedYear] = useState("2025");
@@ -95,28 +88,13 @@ const GuestMockExam: React.FC = () => {
   const [activeSubject, setActiveSubject] = useState("English");
   const [jumpTo, setJumpTo] = useState("");
 
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  // Timer logic
-  useEffect(() => {
-    if (!isStarted || isFinished) {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-      return;
-    }
-    intervalRef.current = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(intervalRef.current!);
-          handleFinishExam();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, [isStarted, isFinished]);
+  // Timer logic using the persistent hook
+  const { formattedTime, status } = useExamTimer({
+    initialTime: MOCK_DURATION,
+    onTimeUp: () => handleFinishExam(),
+    isActive: isStarted && !isFinished,
+    persistenceKey: "jambify-guest-exam-timer",
+  });
 
   // Update active subject
   useEffect(() => {
@@ -126,7 +104,6 @@ const GuestMockExam: React.FC = () => {
   }, [currentIndex, isStarted, questions]);
 
   const handleFinishExam = () => {
-    if (intervalRef.current) clearInterval(intervalRef.current);
     setIsFinished(true);
   };
 
@@ -171,7 +148,6 @@ const GuestMockExam: React.FC = () => {
       setQuestions(finalQuestionsList);
       setAnswers({});
       setCurrentIndex(0);
-      setTimeLeft(MOCK_DURATION);
       setIsStarted(true);
       setActiveSubject(selectedCombination[0]);
     } catch (error: any) {
@@ -397,7 +373,6 @@ const GuestMockExam: React.FC = () => {
                 setQuestions([]);
                 setAnswers({});
                 setCurrentIndex(0);
-                setTimeLeft(MOCK_DURATION);
                 setError(null);
                 setShowConfirmExit(false);
                 setActiveSubject(selectedCombination[0]);
@@ -462,17 +437,17 @@ const GuestMockExam: React.FC = () => {
             <div
               className={cn(
                 "flex items-center gap-3 rounded-2xl border px-5 py-2.5 shadow-inner transition-all",
-                timeLeft <= 300
+                status === "red"
                   ? "bg-danger/10 border-danger/30 text-danger animate-pulse"
                   : "bg-bgSurface border-borderMuted text-textMain",
               )}
             >
               <Timer
                 size={18}
-                className={cn(timeLeft <= 300 && "animate-spin-slow")}
+                className={cn(status === "red" && "animate-spin-slow")}
               />
               <span className="font-mono text-xl font-black tracking-tighter tabular-nums">
-                {formatTime(timeLeft)}
+                {formattedTime}
               </span>
             </div>
           </div>
