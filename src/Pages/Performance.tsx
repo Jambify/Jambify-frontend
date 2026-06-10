@@ -54,9 +54,15 @@ const Performance: React.FC = () => {
     ? SUBJECT_COMBO_MAP[subjectCombo] || []
     : [];
 
+  // Check if user has taken any exams or has any performance data
+  const hasAnyPerformanceData =
+    totalQuestions > 0 ||
+    topicStats.length > 0 ||
+    subjectPerformance.some((sp) => sp.best_score > 0 || sp.worst_score > 0);
+
   // Best and Worst Subject logic
   const bestSubject = (() => {
-    if (userSubjects.length === 0) return null;
+    if (userSubjects.length === 0 || !hasAnyPerformanceData) return null;
 
     // 1. Find subjects with no weak topics
     const subjectsWithWeakTopics = new Set(topicStats.map((t) => t.subject));
@@ -84,7 +90,7 @@ const Performance: React.FC = () => {
   })();
 
   const worstSubject = (() => {
-    if (userSubjects.length === 0) return null;
+    if (userSubjects.length === 0 || !hasAnyPerformanceData) return null;
 
     const bottomSubject = [...subjectPerformance]
       .filter((sp) => userSubjects.includes(sp.subject))

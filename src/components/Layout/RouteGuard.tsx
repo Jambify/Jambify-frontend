@@ -20,6 +20,7 @@ const RouteGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { pathname } = useLocation();
   const isAuthenticated = useUserStore((s) => s.isAuthenticated);
   const onboardingComplete = useUserStore((s) => s.onboardingComplete);
+  const hasSeenWelcome = useUserStore((s) => s.hasSeenWelcome);
   const syncProfile = useUserStore((s) => s.syncProfile);
 
   // isInitialising starts TRUE so we NEVER render a redirect before we've
@@ -79,11 +80,12 @@ const RouteGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // ── Routing decisions (sync is complete, state is authoritative) ──────────
 
   // 1. Public routes — always accessible, no auth check
-  // EXCEPT: If user is authenticated AND onboarded, we redirect them AWAY from signin/signup
+  // EXCEPT: If user is fully onboarded and has seen welcome, redirect away from signin/signup
   if (PUBLIC_ROUTES.some((r) => pathname.startsWith(r))) {
     if (
       isAuthenticated &&
       onboardingComplete &&
+      hasSeenWelcome &&
       (pathname === "/signin" || pathname === "/signup")
     ) {
       return <Navigate to="/" replace />;
@@ -96,20 +98,22 @@ const RouteGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     return <Navigate to="/signin" replace />;
   }
 
-  // 3. Onboarding & welcome — auth required but onboarding NOT required.
-  //    This must come BEFORE the onboardingComplete check below.
+  // 3. Onboarding & welcome — auth required but onboarding/welcome check skipped
   if (SEMI_PROTECTED.some((r) => pathname.startsWith(r))) {
     return <>{children}</>;
   }
 
   // 4. Authenticated but onboarding not finished → send to onboarding
   if (!onboardingComplete) {
-    // If they are on a protected route (like /dashboard), send to onboarding
-    // But if they are on a public route (handled above) or semi-protected (handled above), they stay there.
     return <Navigate to="/onboarding" replace />;
   }
 
-  // 5. Fully authenticated and onboarded — allow
+  // 5. Authenticated and onboarding finished but haven't seen welcome → send to welcome
+  if (!hasSeenWelcome) {
+    return <Navigate to="/welcome" replace />;
+  }
+
+  // 6. Fully authenticated, onboarded, and seen welcome — allow
   return <>{children}</>;
 };
 

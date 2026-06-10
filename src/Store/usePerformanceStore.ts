@@ -5,9 +5,11 @@ import {
   submitQuizSession,
   getDetailedTopicStats,
   getSubjectPerformance,
+  getDailyActivity,
   type WeeklyActivity,
   type TopicStat,
   type SubjectPerformance,
+  type DailyActivity,
   updateSubjectPerformance,
 } from "../Services/PerformanceService";
 import { useUserStore } from "./useUserStore";
@@ -17,6 +19,7 @@ interface PerformanceState {
   weeklyActivity: WeeklyActivity[];
   topicStats: TopicStat[];
   subjectPerformance: SubjectPerformance[];
+  dailyActivity: DailyActivity[];
   mockScores: number[];
   mockHistory: any[]; // Added
   totalQuestions: number;
@@ -59,6 +62,7 @@ export const usePerformanceStore = create<PerformanceState>()((set, get) => ({
   ],
   topicStats: [],
   subjectPerformance: [],
+  dailyActivity: [],
   mockScores: [],
   mockHistory: [],
   totalQuestions: 0,
@@ -117,6 +121,9 @@ export const usePerformanceStore = create<PerformanceState>()((set, get) => ({
       // 2b. Get subject performance (best/worst scores)
       const subjectPerformance = await getSubjectPerformance();
 
+      // 2c. Get daily activity (last 7 days)
+      const dailyActivity = await getDailyActivity();
+
       // 3. Weekly Activity (last 7 days)
       const weeklyActivity = Array(7).fill(0);
       const now = new Date();
@@ -138,6 +145,7 @@ export const usePerformanceStore = create<PerformanceState>()((set, get) => ({
         mockHistory,
         topicStats,
         subjectPerformance,
+        dailyActivity,
         totalQuestions: totalQs,
         avgAccuracy:
           totalQs > 0 ? Math.round((totalCorrect / totalQs) * 100) : 0,
@@ -223,6 +231,8 @@ export const usePerformanceStore = create<PerformanceState>()((set, get) => ({
         { day: "Sat", questions: 0 },
       ],
       topicStats: [],
+      subjectPerformance: [],
+      dailyActivity: [],
       mockScores: [],
       mockHistory: [],
       totalQuestions: 0,

@@ -21,8 +21,14 @@ const Subjects: React.FC = () => {
     loadPerformanceData();
   }, [loadSubjects, loadPerformanceData]);
 
-  // Determine best and worst subjects for badges
-  const bestSubjectName = (() => {
+  // Check if user has any performance data
+  const hasAnyPerformanceData = 
+    (usePerformanceStore.getState().totalQuestions || 0) > 0 || 
+    topicStats.length > 0 || 
+    subjectPerformance.some(sp => sp.best_score > 0 || sp.worst_score > 0);
+
+  // Determine best and worst subjects for badges (only if user has data)
+  const bestSubjectName = hasAnyPerformanceData ? (() => {
     const subjectsWithWeakTopics = new Set(topicStats.map((t) => t.subject));
     const noWeak = subjects.filter(s => !subjectsWithWeakTopics.has(s.name));
     
@@ -35,12 +41,12 @@ const Subjects: React.FC = () => {
     
     const top = [...subjectPerformance].sort((a, b) => b.best_score - a.best_score)[0];
     return top ? top.subject : null;
-  })();
+  })() : null;
 
-  const worstSubjectName = (() => {
+  const worstSubjectName = hasAnyPerformanceData ? (() => {
     const bottom = [...subjectPerformance].sort((a, b) => a.worst_score - b.worst_score)[0];
     return bottom ? bottom.subject : null;
-  })();
+  })() : null;
 
   const sorted = [...subjects].sort((a, b) => {
     if (sort === "name") return a.name.localeCompare(b.name);
