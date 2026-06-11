@@ -1,6 +1,7 @@
 import React, { useMemo, useEffect } from "react";
 import { useGoalStore } from "../../Store/useGoal";
 import { useUserStore } from "../../Store/useUserStore";
+import { useStudyTrackingStore } from "../../Store/useStudyTrackingStore";
 import { cn } from "../../lib/utils/utils";
 import { Flame, CheckCircle2, Circle, Zap } from "lucide-react";
 
@@ -29,24 +30,37 @@ const DAILY_QUESTION_GOAL = 5;
 
 const DailyGoals: React.FC = () => {
   const { goals, checkAndCompleteGoals, resetForNewDay } = useGoalStore();
-  const { streak, questionsCompleted: totalQuestionsCompleted } =
-    useUserStore();
+  const { streak } = useUserStore();
+  const {
+    questionsCompletedToday,
+    topicsCompletedToday,
+    totalStudyTimeToday,
+    resetForNewDay: resetTrackingForNewDay,
+  } = useStudyTrackingStore();
 
-  // Mock data for other tracking for now (we'll integrate proper tracking later)
-  const todayQuestions = Math.min(totalQuestionsCompleted, DAILY_QUESTION_GOAL);
+  const todayQuestions = Math.min(questionsCompletedToday, DAILY_QUESTION_GOAL);
   const questionPct = Math.round((todayQuestions / DAILY_QUESTION_GOAL) * 100);
   const goalComplete = todayQuestions >= DAILY_QUESTION_GOAL;
 
   // Reset goals for new day on mount
   useEffect(() => {
     resetForNewDay();
-  }, [resetForNewDay]);
+    resetTrackingForNewDay();
+  }, [resetForNewDay, resetTrackingForNewDay]);
 
   // Check goals periodically (or when user activity changes)
   useEffect(() => {
-    // For now, use totalQuestionsCompleted as questionsCompletedToday and mock other values
-    checkAndCompleteGoals(totalQuestionsCompleted, [], 0);
-  }, [checkAndCompleteGoals, totalQuestionsCompleted]);
+    checkAndCompleteGoals(
+      questionsCompletedToday,
+      topicsCompletedToday,
+      totalStudyTimeToday,
+    );
+  }, [
+    checkAndCompleteGoals,
+    questionsCompletedToday,
+    topicsCompletedToday,
+    totalStudyTimeToday,
+  ]);
 
   const doneCount = goals.filter((g) => g.done).length;
   const totalXp = goals.reduce((sum, g) => sum + (g.done ? g.xp : 0), 0);

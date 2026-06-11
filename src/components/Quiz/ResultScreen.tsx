@@ -3,6 +3,7 @@ import { useQuizStore } from "../../Store/useQuizStore";
 import { useQuizSession } from "../../hooks/useQuizSession";
 import Button from "../ui/Button";
 import { cn } from "../../lib/utils/utils";
+import { useStudyTrackingStore } from "../../Store/useStudyTrackingStore";
 
 interface ResultsScreenProps {
   onRetry: () => void;
@@ -10,7 +11,7 @@ interface ResultsScreenProps {
 }
 
 const ResultsScreen: React.FC<ResultsScreenProps> = ({ onRetry, onHome }) => {
-  const { questions, answers } = useQuizStore();
+  const { questions, answers, selectedTopic } = useQuizStore();
   const { commitSession } = useQuizSession();
 
   // ✅ Fire once on mount — commit results to all stores
@@ -18,6 +19,16 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ onRetry, onHome }) => {
   useEffect(() => {
     if (!committed.current) {
       commitSession();
+
+      // If user selected a specific topic (not All) and completed all questions, mark it as complete
+      if (selectedTopic !== "All" && questions.length > 0) {
+        // Check if all questions in the quiz are from the same topic
+        const allSameTopic = questions.every((q) => q.topic === selectedTopic);
+        if (allSameTopic) {
+          useStudyTrackingStore.getState().addCompletedTopic(selectedTopic);
+        }
+      }
+
       committed.current = true;
     }
   }, []);

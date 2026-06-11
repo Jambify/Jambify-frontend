@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import type { Question } from "../Types";
+import { useStudyTrackingStore } from "./useStudyTrackingStore";
 
 interface QuizState {
   // Data
@@ -48,15 +49,18 @@ export const useQuizStore = create<QuizState>()(
       selectedDifficulty: "All",
       isFinishedQuiz: false,
 
-      finishQuiz: () =>
-        set({
+      finishQuiz: () => {
+        useStudyTrackingStore.getState().stopStudySession();
+        return set({
           isFinished: true,
           isStarted: false,
           isFinishedQuiz: true,
-        }),
+        });
+      },
 
-      loadQuestions: (qs, duration = 1800) =>
-        set({
+      loadQuestions: (qs, duration = 1800) => {
+        useStudyTrackingStore.getState().startStudySession();
+        return set({
           questions: qs,
           currentIndex: 0,
           answers: {},
@@ -65,15 +69,18 @@ export const useQuizStore = create<QuizState>()(
           hasAnswered: false,
           timeLeft: duration,
           quizDuration: duration,
-        }),
+        });
+      },
 
       updateTime: (seconds) => set({ timeLeft: seconds }),
 
-      submitAnswer: (qi, opt) =>
-        set((s) => ({
+      submitAnswer: (qi, opt) => {
+        useStudyTrackingStore.getState().incrementQuestionsCompleted();
+        return set((s) => ({
           answers: { ...s.answers, [qi]: opt },
           hasAnswered: true,
-        })),
+        }));
+      },
 
       next: () => {
         const { currentIndex, questions } = get();
@@ -86,6 +93,7 @@ export const useQuizStore = create<QuizState>()(
       },
 
       reset: () => {
+        useStudyTrackingStore.getState().stopStudySession();
         // Clear the timer localStorage as well
         localStorage.removeItem("jambify-quiz-session-timer-end");
         set({
