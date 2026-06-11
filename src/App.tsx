@@ -1,5 +1,5 @@
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   1. src/App.tsx — add /settings route
+   1. src/App.tsx — add /settings route and global network status
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
@@ -23,6 +23,8 @@ import AuthCallback from "./components/auth/AuthCallback";
 import GuestLanding from "./Pages/GuestUser/GuestLanding";
 import GuestQuiz from "./Pages/GuestUser/GuestQuiz";
 import GuestMock from "./Pages/GuestUser/GuestExam";
+import NetworkErrorAlert from "./components/ui/NetworkErrorAlert";
+import { useNetworkStatus } from "./hooks/useNetworkStatus";
 // In App.tsx, add this near the top
 import { supabase } from "./lib/supabase";
 
@@ -31,110 +33,135 @@ if (typeof window !== "undefined") {
   (window as any).supabase = supabase;
 }
 
-const App: React.FC = () => (
-  <Routes>
-    <Route path="/signup" element={<SignUp />} />
-    <Route path="/signin" element={<SignIn />} />
-    <Route path="/auth/callback" element={<AuthCallback />} />
+const App: React.FC = () => {
+  const { isOnline, quality, wasOffline } = useNetworkStatus();
+  const [showOfflineAlert, setShowOfflineAlert] = React.useState(false);
 
-    <Route path="/guest" element={<GuestLanding />} />
-    <Route path="/guest/quiz" element={<GuestQuiz />} />
-    <Route path="/guest/mock" element={<GuestMock />} />
-    <Route path="/guest/past-questions" element={<GuestQuiz />} />
-    <Route path="/onboarding" element={<Onboarding />} />
-    <Route path="/welcome" element={<Welcome />} />
-    <Route
-      path="/"
-      element={
-        <RouteGuard>
-          <Dashboard />
-        </RouteGuard>
-      }
-    />
-    <Route
-      path="/quiz"
-      element={
-        <RouteGuard>
-          <Quiz />
-        </RouteGuard>
-      }
-    />
-    <Route
-      path="/performance"
-      element={
-        <RouteGuard>
-          <Performance />
-        </RouteGuard>
-      }
-    />
-    <Route
-      path="/subjects"
-      element={
-        <RouteGuard>
-          <Subjects />
-        </RouteGuard>
-      }
-    />
-    <Route
-      path="/mock-exams"
-      element={
-        <RouteGuard>
-          <MockExam />
-        </RouteGuard>
-      }
-    />
-    <Route
-      path="/settings"
-      element={
-        <RouteGuard>
-          <Settings />
-        </RouteGuard>
-      }
-    />
-    <Route
-      path="/study-groups"
-      element={
-        <RouteGuard>
-          <StudyGroups />
-        </RouteGuard>
-      }
-    />
-    {/* chat with our mentor */}
-    <Route
-      path="/mentor"
-      element={
-        <RouteGuard>
-          <MentorChat />
-        </RouteGuard>
-      }
-    />
-    <Route
-      path="/past-questions"
-      element={
-        <RouteGuard>
-          <PastQuestions />
-        </RouteGuard>
-      }
-    />
-    <Route
-      path="/pro"
-      element={
-        <RouteGuard>
-          <ProPage />
-        </RouteGuard>
-      }
-    />
-    <Route
-      path="/review"
-      element={
-        <RouteGuard>
-          <ReviewScreen onBack={() => window.history.back()} />
-        </RouteGuard>
-      }
-    />
+  React.useEffect(() => {
+    if (!isOnline) {
+      setShowOfflineAlert(true);
+    } else if (wasOffline) {
+      setShowOfflineAlert(false);
+    }
+  }, [isOnline, wasOffline]);
 
-    <Route path="*" element={<Navigate to="/" replace />} />
-  </Routes>
-);
+  return (
+    <>
+      {!isOnline && showOfflineAlert && (
+        <NetworkErrorAlert
+          onDismiss={() => setShowOfflineAlert(false)}
+          message={
+            quality === "slow"
+              ? "Your network connection is slow. Some features may take longer to load."
+              : "You're currently offline. Please check your internet connection."
+          }
+        />
+      )}
+      <Routes>
+        <Route path="/signup" element={<SignUp />} />
+        <Route path="/signin" element={<SignIn />} />
+        <Route path="/auth/callback" element={<AuthCallback />} />
+
+        <Route path="/guest" element={<GuestLanding />} />
+        <Route path="/guest/quiz" element={<GuestQuiz />} />
+        <Route path="/guest/mock" element={<GuestMock />} />
+        <Route path="/guest/past-questions" element={<GuestQuiz />} />
+        <Route path="/onboarding" element={<Onboarding />} />
+        <Route path="/welcome" element={<Welcome />} />
+        <Route
+          path="/"
+          element={
+            <RouteGuard>
+              <Dashboard />
+            </RouteGuard>
+          }
+        />
+        <Route
+          path="/quiz"
+          element={
+            <RouteGuard>
+              <Quiz />
+            </RouteGuard>
+          }
+        />
+        <Route
+          path="/performance"
+          element={
+            <RouteGuard>
+              <Performance />
+            </RouteGuard>
+          }
+        />
+        <Route
+          path="/subjects"
+          element={
+            <RouteGuard>
+              <Subjects />
+            </RouteGuard>
+          }
+        />
+        <Route
+          path="/mock-exams"
+          element={
+            <RouteGuard>
+              <MockExam />
+            </RouteGuard>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <RouteGuard>
+              <Settings />
+            </RouteGuard>
+          }
+        />
+        <Route
+          path="/study-groups"
+          element={
+            <RouteGuard>
+              <StudyGroups />
+            </RouteGuard>
+          }
+        />
+        {/* chat with our mentor */}
+        <Route
+          path="/mentor"
+          element={
+            <RouteGuard>
+              <MentorChat />
+            </RouteGuard>
+          }
+        />
+        <Route
+          path="/past-questions"
+          element={
+            <RouteGuard>
+              <PastQuestions />
+            </RouteGuard>
+          }
+        />
+        <Route
+          path="/pro"
+          element={
+            <RouteGuard>
+              <ProPage />
+            </RouteGuard>
+          }
+        />
+        <Route
+          path="/review"
+          element={
+            <RouteGuard>
+              <ReviewScreen onBack={() => window.history.back()} />
+            </RouteGuard>
+          }
+        />
+
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </>
+  );
+};
 
 export default App;
