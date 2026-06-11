@@ -50,7 +50,7 @@ const QuestionCard: React.FC = () => {
           >
             ● {q.difficulty}
           </span>
-          <span className="text-textDim ml-auto hidden text-[11px] sm:inline">
+          <span className="text-textDim ml-auto hidden max-w-[40%] truncate text-[11px] sm:inline">
             Topic: {q.topic}
           </span>
         </div>

@@ -481,24 +481,33 @@ const Quiz: React.FC = () => {
             <span>Exit Quiz</span>
           </button>
 
-          {/* <Dot progress — mobile friendly */}
+          {/* Progress indicator — use text for many questions, dots otherwise */}
           <div className="flex flex-1 items-center justify-center gap-1">
-            {questions.map((_, i) => (
-              <div
-                key={i}
-                className="rounded-full transition-all duration-300"
-                style={{
-                  width: i === currentIndex ? "20px" : "6px",
-                  height: "6px",
-                  background:
-                    i < currentIndex
-                      ? "var(--color-success, #00C896)"
-                      : i === currentIndex
-                        ? "#7B5FFF"
-                        : "var(--borderMuted)",
-                }}
-              />
-            ))}
+            {questions.length <= 30 ? (
+              questions.map((_, i) => (
+                <div
+                  key={i}
+                  className="rounded-full transition-all duration-300"
+                  style={{
+                    width: i === currentIndex ? "20px" : "6px",
+                    height: "6px",
+                    background:
+                      i < currentIndex
+                        ? "var(--color-success, #00C896)"
+                        : i === currentIndex
+                          ? "#7B5FFF"
+                          : "var(--borderMuted)",
+                  }}
+                />
+              ))
+            ) : (
+              // For many questions, use a simple percentage or step indicator
+              <div className="flex items-center gap-2 text-textDim text-xs font-medium">
+                <span>
+                  {Math.round(((currentIndex + 1) / questions.length) * 100)}% Complete
+                </span>
+              </div>
+            )}
           </div>
 
           <span className="text-textDim shrink-0 font-mono text-xs">
@@ -588,7 +597,6 @@ const Quiz: React.FC = () => {
               </div>
             </div>
           )}
-
         {/* <Hero */}
         <div className="mb-10 pt-4 text-center">
           <div className="bg-brand/10 border-brand/20 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border text-3xl">
@@ -598,7 +606,12 @@ const Quiz: React.FC = () => {
             Practice Quiz
           </h2>
           <p className="text-textMuted mx-auto max-w-sm text-sm">
-            20 adaptive questions · 60 seconds each · Instant explanations
+            {selectedMode === "quick" &&
+              "10 adaptive questions · 60 seconds each · Instant explanations"}
+            {selectedMode === "standard" &&
+              "20 adaptive questions · 90 seconds each · Instant explanations"}
+            {selectedMode === "marathon" &&
+              "Unlimited adaptive questions · 15 minutes total · Instant explanations"}
           </p>
         </div>
 
