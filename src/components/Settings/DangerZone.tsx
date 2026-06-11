@@ -1,61 +1,45 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUserStore } from "../../Store/useUserStore";
-// import { usePerformanceStore } from "../../Store/usePerformanceStore";
-// import { supabase } from "../../lib/supabase";
+import { supabase } from "../../lib/supabase";
 import Button from "../ui/Button";
 import { Section } from "./Shared";
-// import { LogOut, AlertCircle, Info, ShieldAlert, Trash2 } from "lucide-react";
-import {Info} from "lucide-react";
-import { LogOut } from "lucide-react";
+import { LogOut, AlertCircle, Info, ShieldAlert, Trash2, TriangleAlert } from "lucide-react";
 
 const DangerZone: React.FC = () => {
   const navigate = useNavigate();
   const signOut = useUserStore((s) => s.signOut);
-  // const resetPerformance = usePerformanceStore((s) => s.reset);
-  // const resetUser = useUserStore((s) => s.reset);
-  // const [confirmDelete, setConfirmDelete] = useState(false);
+  const reset = useUserStore((s) => s.reset);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  // const [isDeleting, setIsDeleting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  // const handleDeleteAccount = async () => {
-  //   setIsDeleting(true);
-  //   try {
-  //     // First, clean up all user data from public tables
-  //     const { data: { user } } = await supabase.auth.getUser();
-  //     if (!user) {
-  //       throw new Error("User not authenticated");
-  //     }
+  const handleDeleteAccount = async () => {
+    setIsDeleting(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error("User not authenticated");
+      }
 
-      // Delete public table data first (we can do this client-side with RLS)
-      // await Promise.all([
-      //   supabase.from("subject_performance").delete().eq("user_id", user.id),
-      //   supabase.from("topic_progress").delete().eq("user_id", user.id),
-      //   supabase.from("quiz_sessions").delete().eq("user_id", user.id),
-      //   supabase.from("profiles").delete().eq("id", user.id),
-      //   // Add other tables if needed (daily_activity, topic_mastery)
-      // ]);
+      // Clean up profile data
+      await supabase.from("profiles").delete().eq("id", user.id);
 
       // Clear local store
-      // resetPerformance();
-      // resetUser();
-
-      // Delete auth user (NOTE: This requires an Edge Function or service_role key!)
-      // For client side, the best we can do is clean up data and sign out
-      // For full auth user deletion, use a Supabase Edge Function
-  //     await signOut();
+      reset();
       
-  //     // Redirect to sign in
-  //     navigate("/signin", { replace: true });
-  //     alert("Your data has been deleted successfully!");
-  //   } catch (error) {
-  //     console.error("Delete failed:", error);
-  //     alert("Failed to delete account. Please try again.");
-  //   } finally {
-  //     setIsDeleting(false);
-  //     setConfirmDelete(false);
-  //   }
-  // };
+      // Sign out
+      await signOut();
+      
+      // Redirect to sign in
+      navigate("/signin", { replace: true });
+    } catch (error) {
+      console.error("Delete failed:", error);
+    } finally {
+      setIsDeleting(false);
+      setConfirmDelete(false);
+    }
+  };
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -118,7 +102,7 @@ const DangerZone: React.FC = () => {
         </div>
       </Section>
 
-      {/* ── Security Zone ──────────────────────────────────
+      {/* ── Security Zone ────────────────────────────────── */}
       <Section title="Security Zone">
         <div className="bg-danger/5 border-danger/10 relative overflow-hidden rounded-2xl border p-5">
           <div className="pointer-events-none absolute top-0 right-0 p-4 opacity-10">
@@ -177,28 +161,9 @@ const DangerZone: React.FC = () => {
             )}
           </div>
         </div>
-      </Section> */}
+      </Section>
     </div>
   );
 };
-
-// const TriangleAlert = ({ className }: { className?: string }) => (
-//   <svg
-//     xmlns="http://www.w3.org/2000/svg"
-//     width="24"
-//     height="24"
-//     viewBox="0 0 24 24"
-//     fill="none"
-//     stroke="currentColor"
-//     strokeWidth="2"
-//     strokeLinecap="round"
-//     strokeLinejoin="round"
-//     className={className}
-//   >
-//     <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
-//     <path d="M12 9v4" />
-//     <path d="M12 17h.01" />
-//   </svg>
-// );
 
 export default DangerZone;

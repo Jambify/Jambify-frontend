@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "../../lib/supabase";
-import ThemeToggle from "../../components/ui/ThemeToggle";
+import AuthLayout from "../../components/auth/AuthLayout";
 import { toTitleCase } from "../../lib/utils/utils";
 
 type Step = "form" | "otp";
@@ -185,18 +185,44 @@ const SignUp: React.FC = () => {
     }
   };
 
+  const guestCta = (
+    <motion.div
+      initial={{ y: 20, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ delay: 0.3 }}
+    >
+      <button
+        onClick={() => navigate("/guest")}
+        className="auth-guest-cta hover:border-brand/40 group flex w-full items-center justify-between rounded-brand-xl border p-4 shadow-card transition-all active:scale-[0.98] lg:p-5"
+      >
+        <div className="flex items-center gap-4 text-left">
+          <div className="bg-brand/10 flex h-12 w-12 items-center justify-center rounded-2xl text-2xl shadow-inner transition-transform group-hover:scale-110">
+            🎯
+          </div>
+          <div>
+            <p className="text-brand mb-1 text-xs leading-none font-black tracking-widest uppercase">
+              Just Exploring?
+            </p>
+            <p className="text-textMain text-sm font-bold">
+              Take a free practice test
+            </p>
+          </div>
+        </div>
+        <div className="bg-brand/10 text-brand flex h-10 w-10 items-center justify-center rounded-full transition-all group-hover:translate-x-1">
+          <ArrowRight size={18} />
+        </div>
+      </button>
+    </motion.div>
+  );
+
   // ── OTP Screen ────────────────────────────────────────
   if (step === "otp") {
     return (
-      <div className="bg-bgMain relative flex min-h-screen items-center justify-center overflow-hidden p-4">
-        {/* Ambient Glows */}
-        <div className="bg-brand/10 pointer-events-none absolute top-0 left-1/4 h-125 w-125 rounded-full blur-[120px]" />
-        <div className="bg-brand/5 pointer-events-none absolute right-1/4 bottom-0 h-125 w-125 rounded-full blur-[120px]" />
-
+      <AuthLayout variant="otp">
         <motion.div
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="bg-bgCard border-borderMuted rounded-brand-2xl relative z-10 w-full max-w-md border p-8 shadow-2xl"
+          className="auth-form-card border-borderMuted rounded-brand-2xl relative w-full border p-8 shadow-2xl lg:rounded-none lg:border-0 lg:p-0"
         >
           <div className="mb-8 text-center">
             <div className="bg-brand shadow-brand/40 mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl shadow-lg">
@@ -288,38 +314,28 @@ const SignUp: React.FC = () => {
             </button>
           </div>
         </motion.div>
-      </div>
+      </AuthLayout>
     );
   }
 
   // ── Signup Form ───────────────────────────────────────
   return (
-    <div className="bg-bgMain relative flex min-h-screen flex-col items-center justify-center overflow-hidden p-4">
-      {/* Ambient Glows */}
-      <div className="bg-brand/10 pointer-events-none absolute top-0 left-1/4 h-125 w-125 rounded-full blur-[120px]" />
-      <div className="bg-brand/5 pointer-events-none absolute right-1/4 bottom-0 h-125 w-125 rounded-full blur-[120px]" />
-
+    <AuthLayout variant="signup" footer={guestCta}>
       <motion.div
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="bg-bgCard border-borderMuted rounded-brand-2xl relative z-10 w-full max-w-md border p-8 shadow-2xl"
+        className="auth-form-card border-borderMuted rounded-brand-2xl relative w-full border p-8 shadow-2xl lg:rounded-none lg:border-0 lg:p-0"
       >
-        <div className="mb-8 text-center">
-          <div className="relative mb-8">
-            {/* Theme Toggle - Top Right */}
-            <div className="absolute top-0 right-0">
-              <ThemeToggle />
-            </div>
-
-            {/* Centered Logo */}
-            <div className="flex justify-center">
+        <div className="mb-8 text-center lg:text-left">
+          <div className="relative mb-8 lg:mb-6">
+            <div className="flex justify-center lg:hidden">
               <div className="bg-brand shadow-brand/40 flex h-14 w-14 items-center justify-center rounded-xl shadow-lg">
                 <span className="text-2xl font-black text-white">J</span>
               </div>
             </div>
           </div>
 
-          <h1 className="font-display text-brand mb-2 text-3xl font-bold tracking-tight">
+          <h1 className="font-display text-textMain mb-2 text-3xl font-bold tracking-tight lg:text-4xl">
             Create Account
           </h1>
           <p className="text-textDim text-sm">
@@ -428,37 +444,7 @@ const SignUp: React.FC = () => {
           </div>
         </div>
       </motion.div>
-
-      {/* Professional Guest CTA - Outside the main card */}
-      <motion.div
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.3 }}
-        className="fixed bottom-10 left-1/2 z-20 w-full max-w-md -translate-x-1/2 px-4 lg:relative lg:bottom-auto lg:left-auto lg:z-10 lg:mt-8 lg:translate-x-0"
-      >
-        <button
-          onClick={() => navigate("/guest")}
-          className="bg-bgCard/40 border-brand/20 hover:border-brand/50 group shadow-brand/5 hover:shadow-brand/10 flex w-full items-center justify-between rounded-4xl border p-4 shadow-2xl backdrop-blur-xl transition-all active:scale-[0.98] lg:p-5"
-        >
-          <div className="flex items-center gap-4 text-left">
-            <div className="bg-brand/10 flex h-12 w-12 items-center justify-center rounded-2xl text-2xl shadow-inner transition-transform group-hover:scale-110">
-              🎯
-            </div>
-            <div>
-              <p className="text-brand mb-1 text-xs leading-none font-black tracking-widest uppercase">
-                Just Exploring?
-              </p>
-              <p className="text-textMain text-sm font-bold">
-                Take a free practice test
-              </p>
-            </div>
-          </div>
-          <div className="bg-brand/10 text-brand flex h-10 w-10 items-center justify-center rounded-full transition-all group-hover:translate-x-1">
-            <ArrowRight size={18} />
-          </div>
-        </button>
-      </motion.div>
-    </div>
+    </AuthLayout>
   );
 };
 

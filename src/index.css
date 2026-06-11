@@ -226,6 +226,46 @@
   background: radial-gradient(ellipse 70% 80% at 100% 50%, rgba(91, 59, 255, 0.07) 0%, rgba(91, 59, 255, 0.03) 40%, transparent 70%) !important;
 }
 
+/* Ambient glow in dark mode */
+:root .ambient-glow,
+html:not([data-theme="light"]) .ambient-glow {
+  background: radial-gradient(ellipse 70% 80% at 100% 50%, rgba(91, 59, 255, 0.10) 0%, rgba(91, 59, 255, 0.04) 40%, transparent 70%);
+}
+
+/* ── Auth pages — right form panel must follow theme ── */
+.auth-form-panel {
+  background-color: var(--bgMain);
+  color: var(--textMain);
+  border-color: var(--borderMuted);
+}
+
+.auth-form-card {
+  background-color: var(--bgCard);
+  border-color: var(--borderMuted);
+}
+
+@media (min-width: 1024px) {
+  .auth-form-card {
+    background-color: transparent;
+    box-shadow: none;
+  }
+}
+
+.auth-form-panel input {
+  background-color: var(--bgSurface);
+  color: var(--textMain);
+  border-color: var(--borderMuted);
+}
+
+.auth-form-panel input::placeholder {
+  color: var(--textDim);
+}
+
+.auth-form-panel .auth-guest-cta {
+  background-color: var(--bgCard);
+  border-color: var(--borderMuted);
+}
+
 /* Font weight adjustments for light mode readability */
 [data-theme="light"] .font-display.font-black {
   font-weight: 800;
@@ -353,6 +393,9 @@ html {
 }
 
 body {
+  background-color: var(--bgMain);
+  color: var(--textMain);
+
   /* iOS Safari 100vh bug fix */
   min-height: 100vh;
   min-height: -webkit-fill-available;

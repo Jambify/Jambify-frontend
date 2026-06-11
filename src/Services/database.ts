@@ -1,6 +1,21 @@
 // src/services/database.ts
 import { supabase } from "../lib/supabase";
 
+// Maps short subject ID to full name (for database enum)
+const SHORT_ID_TO_FULL_NAME: Record<string, string> = {
+  eng: "English",
+  math: "Mathematics",
+  phy: "Physics",
+  chem: "Chemistry",
+  bio: "Biology",
+  econ: "Economics",
+  gov: "Government",
+  lit: "Literature in English",
+  crs: "CRS",
+  irs: "IRS",
+  com: "Commerce",
+};
+
 // Questions
 export const getQuestions = async (subject?: string) => {
   let query = supabase.from("questions").select("*");
@@ -27,8 +42,9 @@ export const updateSubjectProgress = async (
   accuracy: number,
   questionsDone: number,
 ) => {
+  const fullName = SHORT_ID_TO_FULL_NAME[subject] || subject;
   return await supabase.from("subject_progress").upsert({
-    subject: subject,
+    subject: fullName,
     accuracy,
     questions_done: questionsDone,
     updated_at: new Date(),

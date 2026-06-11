@@ -82,6 +82,7 @@ const FALLBACK_UNIVERSITIES = [
 ];
 
 interface FormData {
+  name: string;
   university: string;
   subjectCombo: string;
   targetScore: string;
@@ -115,6 +116,7 @@ const Onboarding: React.FC = () => {
   const [showCancelModal, setShowCancelModal] = useState(false); // ← Add this
 
   const [form, setForm] = useState<FormData>({
+    name: userName,
     university: "",
     subjectCombo: "",
     targetScore: "",
@@ -276,6 +278,7 @@ const Onboarding: React.FC = () => {
 
   const validate = (): boolean => {
     const e: Partial<FormData> = {};
+    if (step === 1 && !form.name) e.name = "Please enter your full name";
     if (step === 1 && !form.university)
       e.university = "Please select a university";
     if (step === 2 && !form.subjectCombo)
@@ -299,7 +302,7 @@ const Onboarding: React.FC = () => {
 
     try {
       const { error } = await completeOnboarding({
-        name: userName,
+        name: form.name,
         university: form.university,
         subjectCombo: form.subjectCombo,
         targetScore: form.targetScore,
@@ -364,6 +367,18 @@ const Onboarding: React.FC = () => {
                 </h2>
                 <p className="text-textMuted">Let's set up your profile.</p>
               </header>
+
+              <Field label="Full Name" error={errors.name}>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={form.name}
+                    onChange={(e) => set("name", e.target.value)}
+                    placeholder="e.g. Adeola Okafor"
+                    className={inputCls(!!errors.name)}
+                  />
+                </div>
+              </Field>
 
               <Field label="Target University" error={errors.university}>
                 <div className="relative">

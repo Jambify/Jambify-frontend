@@ -148,6 +148,36 @@ const ALL_SUBJECTS_MASTER = [
   { id: "com", name: "Commerce", icon: "💼", color: "#FFB020", total: 300 },
 ];
 
+// Maps short subject ID to full name (for database enum)
+export const SHORT_ID_TO_FULL_NAME: Record<string, string> = {
+  eng: "English",
+  math: "Mathematics",
+  phy: "Physics",
+  chem: "Chemistry",
+  bio: "Biology",
+  econ: "Economics",
+  gov: "Government",
+  lit: "Literature in English",
+  crs: "CRS",
+  irs: "IRS",
+  com: "Commerce",
+};
+
+// Maps full subject name (from database enum) back to short ID
+export const FULL_NAME_TO_SHORT_ID: Record<string, string> = {
+  English: "eng",
+  Mathematics: "math",
+  Physics: "phy",
+  Chemistry: "chem",
+  Biology: "bio",
+  Economics: "econ",
+  Government: "gov",
+  "Literature in English": "lit",
+  CRS: "crs",
+  IRS: "irs",
+  Commerce: "com",
+};
+
 // Map subject combo ID to list of subject names (matches your onboarding)
 export const SUBJECT_COMBO_MAP: Record<string, string[]> = {
   medicine: ["English", "Biology", "Chemistry", "Physics"],
@@ -226,10 +256,11 @@ const fetchUserSubjects = async (): Promise<Subject[]> => {
 
   if (error) throw error;
 
-  // Create a map of existing progress
+  // Create a map of existing progress, using FULL_NAME_TO_SHORT_ID to map back
   const progressMap = new Map<string, SubjectProgress>();
   existingProgress?.forEach((p) => {
-    progressMap.set(p.subject, p);
+    const shortId = FULL_NAME_TO_SHORT_ID[p.subject];
+    if (shortId) progressMap.set(shortId, p);
   });
 
   // Build subjects only for selected ones
@@ -282,10 +313,12 @@ const initializeUserSubjects = async (): Promise<void> => {
   console.log("🔵 Initializing subjects for user:", selectedSubjectNames);
 
   for (const master of selectedSubjectsMaster) {
+    const fullName = SHORT_ID_TO_FULL_NAME[master.id];
+    if (!fullName) continue;
     const { error } = await supabase.from("subject_progress").upsert(
       {
         user_id: user.id,
-        subject: master.id,
+        subject: fullName,
         accuracy: 0,
         questions_done: 0,
         updated_at: new Date().toISOString(),
@@ -312,11 +345,13 @@ const updateSubjectProgressInDB = async (
 
   const master = ALL_SUBJECTS_MASTER.find((s) => s.id === subjectId);
   if (!master) throw new Error("Subject not found");
+  const fullName = SHORT_ID_TO_FULL_NAME[subjectId];
+  if (!fullName) throw new Error("Subject not found in mapping");
 
   const { error } = await supabase.from("subject_progress").upsert(
     {
       user_id: user.id,
-      subject: subjectId,
+      subject: fullName,
       accuracy: newAccuracy,
       questions_done: questionsDone,
       updated_at: new Date().toISOString(),

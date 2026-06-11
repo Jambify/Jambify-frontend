@@ -92,7 +92,7 @@ interface UserState {
   // ── Auth actions ─────────────────────────────────────
   signOut: () => Promise<void>;
   clearAuthError: () => void;
-  syncProfile: (force?: boolean) => Promise<{ onboardingComplete: boolean }>;
+  syncProfile: (force?: boolean) => Promise<{ onboardingComplete: boolean; profileExists: boolean }>;
 
   // Legacy — kept for compatibility but not used for OTP flow
   signUp: (
@@ -164,15 +164,15 @@ export const useUserStore = create<UserState>()(
       ...DEFAULTS,
 
       // ── syncProfile ────────────────────────────────────
-      // Returns { onboardingComplete } so callers can navigate
+      // Returns { onboardingComplete, profileExists } so callers can navigate
       // based on the FRESH value without reading stale Zustand state.
       syncProfile: async (force = false) => {
         const { id, _lastSync } = get();
-        if (!id) return { onboardingComplete: false };
+        if (!id) return { onboardingComplete: false, profileExists: false };
 
         const now = Date.now();
         if (!force && _lastSync && now - _lastSync < 5_000) {
-          return { onboardingComplete: get().onboardingComplete };
+          return { onboardingComplete: get().onboardingComplete, profileExists: true };
         }
 
         set({ isLoading: true, _lastSync: now });
@@ -184,7 +184,10 @@ export const useUserStore = create<UserState>()(
             .maybeSingle()) as { data: any; error: any };
 
           if (error) throw error;
-          if (!data) return { onboardingComplete: false };
+          if (!data) {
+            // If no profile exists, just return false
+            return { onboardingComplete: false, profileExists: false };
+          }
 
           const onboardingComplete = data.onboarding_complete === true;
 
@@ -210,10 +213,10 @@ export const useUserStore = create<UserState>()(
             isLoading: false,
           });
 
-          return { onboardingComplete };
+          return { onboardingComplete, profileExists: true };
         } catch (err) {
           console.error("[syncProfile]", err);
-          return { onboardingComplete: get().onboardingComplete };
+          return { onboardingComplete: get().onboardingComplete, profileExists: true };
         } finally {
           set({ isLoading: false });
         }
