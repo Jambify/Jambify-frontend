@@ -131,6 +131,14 @@ export const useQuizStore = create<QuizState>()(
       storage: createJSONStorage(() => localStorage),
       // Only persist essential state to keep it lightweight - DO NOT persist timer or quiz flags
       partialize: (state) => ({
+        questions: state.questions,
+        currentIndex: state.currentIndex,
+        answers: state.answers,
+        isStarted: state.isStarted,
+        isFinished: state.isFinished,
+        hasAnswered: state.hasAnswered,
+        quizDuration: state.quizDuration,
+        timeLeft: state.timeLeft,
         selectedSubject: state.selectedSubject,
         selectedTopic: state.selectedTopic,
         selectedDifficulty: state.selectedDifficulty,

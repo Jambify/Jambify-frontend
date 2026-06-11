@@ -73,10 +73,7 @@ const Quiz: React.FC = () => {
     setSubjectAndTopic,
   } = useQuizStore();
 
-  // Reset quiz state when component mounts to clear any old timer/state
-  useEffect(() => {
-    reset();
-  }, [reset]);
+  // NOTE: We no longer reset on mount, so we can resume the quiz if the user refreshes!
 
   // ── Handle Incoming Navigation Parameters ───────────────────
   useEffect(() => {
