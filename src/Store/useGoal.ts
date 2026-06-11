@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 export type Goal = {
   id: string;
@@ -8,30 +9,83 @@ export type Goal = {
 };
 
 type GoalState = {
+  date: string; // YYYY-MM-DD
   goals: Goal[];
-  toggleGoal: (id: string) => void;
-  resetGoals: () => void;
+  // Auto-complete goals based on user activity
+  checkAndCompleteGoals: (
+    questionsCompleted: number,
+    topicsCompleted: string[],
+    studyTimeMinutes: number
+  ) => void;
+  resetForNewDay: () => void;
 };
 
-const initialGoals: Goal[] = [
-  { id: "1", label: "Complete 2 practice tests", xp: 20, done: false },
-  { id: "2", label: "Study Mathematics (1 hour)", xp: 15, done: false },
-  { id: "3", label: "Revise Biology notes", xp: 10, done: false },
-  { id: "4", label: "Answer 20 past questions", xp: 25, done: false },
+const getTodayDateString = () => {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const getInitialGoals = (): Goal[] => [
+  { id: "complete-5-questions", label: "Solve 5 practice questions", xp: 50, done: false },
+  { id: "complete-1-topic", label: "Complete all questions in a single topic", xp: 100, done: false },
+  { id: "practice-10-minutes", label: "Study for at least 10 minutes", xp: 75, done: false },
 ];
 
-export const useGoalStore = create<GoalState>((set) => ({
-  goals: initialGoals,
+export const useGoalStore = create<GoalState>()(
+  persist(
+    (set, get) => ({
+      date: getTodayDateString(),
+      goals: getInitialGoals(),
 
-  toggleGoal: (id) =>
-    set((state) => ({
-      goals: state.goals.map((goal) =>
-        goal.id === id ? { ...goal, done: !goal.done } : goal,
-      ),
-    })),
+      resetForNewDay: () => {
+        const today = getTodayDateString();
+        if (get().date !== today) {
+          set({
+            date: today,
+            goals: getInitialGoals(),
+          });
+        }
+      },
 
-  resetGoals: () =>
-    set(() => ({
-      goals: initialGoals,
-    })),
-}));
+      checkAndCompleteGoals: (
+        questionsCompleted: number,
+        topicsCompleted: string[],
+        studyTimeMinutes: number
+      ) => {
+        get().resetForNewDay();
+        const currentGoals = get().goals;
+        let updatedGoals = [...currentGoals];
+        let hasChanges = false;
+
+        // Check each goal
+        const goal1 = updatedGoals.find((g) => g.id === "complete-5-questions");
+        if (goal1 && !goal1.done && questionsCompleted >= 5) {
+          goal1.done = true;
+          hasChanges = true;
+        }
+
+        const goal2 = updatedGoals.find((g) => g.id === "complete-1-topic");
+        if (goal2 && !goal2.done && topicsCompleted.length >= 1) {
+          goal2.done = true;
+          hasChanges = true;
+        }
+
+        const goal3 = updatedGoals.find((g) => g.id === "practice-10-minutes");
+        if (goal3 && !goal3.done && studyTimeMinutes >= 10) {
+          goal3.done = true;
+          hasChanges = true;
+        }
+
+        if (hasChanges) {
+          set({ goals: updatedGoals });
+        }
+      },
+    }),
+    {
+      name: "daily-goals-storage",
+    }
+  )
+);

@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useEffect } from "react";
 import { useGoalStore } from "../../Store/useGoal";
 import { useUserStore } from "../../Store/useUserStore";
 import { cn } from "../../lib/utils/utils";
@@ -25,24 +25,30 @@ function getMotivationalMessage(pct: number, streak: number): string {
     : "Daily goal complete! Great work today.";
 }
 
-const DAILY_QUESTION_GOAL = 10;
+const DAILY_QUESTION_GOAL = 5;
 
 const DailyGoals: React.FC = () => {
-  const { goals, toggleGoal } = useGoalStore();
-  const { questionsCompleted, streak } = useUserStore();
+  const { goals, checkAndCompleteGoals, resetForNewDay } = useGoalStore();
+  const { questionsCompleted, streak, questionsCompleted: totalQuestionsCompleted } = useUserStore();
+
+  // Mock data for other tracking for now (we'll integrate proper tracking later)
+  const todayQuestions = Math.min(totalQuestionsCompleted, DAILY_QUESTION_GOAL);
+  const questionPct = Math.round((todayQuestions / DAILY_QUESTION_GOAL) * 100);
+  const goalComplete = todayQuestions >= DAILY_QUESTION_GOAL;
+
+  // Reset goals for new day on mount
+  useEffect(() => {
+    resetForNewDay();
+  }, [resetForNewDay]);
+
+  // Check goals periodically (or when user activity changes)
+  useEffect(() => {
+    // For now, use totalQuestionsCompleted as questionsCompletedToday and mock other values
+    checkAndCompleteGoals(totalQuestionsCompleted, [], 0);
+  }, [checkAndCompleteGoals, totalQuestionsCompleted]);
 
   const doneCount = goals.filter((g) => g.done).length;
   const totalXp = goals.reduce((sum, g) => sum + (g.done ? g.xp : 0), 0);
-
-  // Simulate today's questions from questionsCompleted
-  // In a real app this would be today's session count from a daily activity store
-  const todayQuestions = Math.min(
-    questionsCompleted % DAILY_QUESTION_GOAL ||
-      (questionsCompleted > 0 ? DAILY_QUESTION_GOAL : 0),
-    DAILY_QUESTION_GOAL,
-  );
-  const questionPct = Math.round((todayQuestions / DAILY_QUESTION_GOAL) * 100);
-  const goalComplete = todayQuestions >= DAILY_QUESTION_GOAL;
 
   // Build 7-day streak bars: today = getTodayIndex(), past days filled based on streak
   const todayIdx = getTodayIndex();
@@ -115,15 +121,14 @@ const DailyGoals: React.FC = () => {
         {goals.map((goal) => (
           <div
             key={goal.id}
-            className="group flex cursor-pointer items-center gap-3 py-2.5 select-none"
-            onClick={() => toggleGoal(goal.id)}
+            className="flex items-center gap-3 py-2.5 select-none"
           >
             {/* Checkbox */}
             <div className="shrink-0">
               {goal.done ? (
                 <CheckCircle2 className="text-success h-4.5 w-4.5" />
               ) : (
-                <Circle className="text-borderMuted group-hover:text-textDim h-4.5 w-4.5 transition-colors" />
+                <Circle className="text-borderMuted h-4.5 w-4.5" />
               )}
             </div>
 

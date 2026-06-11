@@ -22,6 +22,7 @@ const RouteGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const onboardingComplete = useUserStore((s) => s.onboardingComplete);
   const hasSeenWelcome = useUserStore((s) => s.hasSeenWelcome);
   const syncProfile = useUserStore((s) => s.syncProfile);
+  const [profileExists, setProfileExists] = useState(true);
 
   // isInitialising starts TRUE so we NEVER render a redirect before we've
   // confirmed the Supabase session. Without this, a page refresh on /dashboard
@@ -50,7 +51,8 @@ const RouteGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           // force=true bypasses the 5-second cache so we always get fresh
           // onboarding_complete from DB, even if the user just signed out
           // and signed back in (signOut resets Zustand to DEFAULTS)
-          await syncProfile(true);
+          const { profileExists: exists } = await syncProfile(true);
+          setProfileExists(exists);
         }
       } catch (err) {
         console.error("[RouteGuard] init error:", err);
@@ -98,22 +100,27 @@ const RouteGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     return <Navigate to="/signin" replace />;
   }
 
-  // 3. Onboarding & welcome — auth required but onboarding/welcome check skipped
+  // 3. Profile doesn't exist → send to onboarding
+  if (!profileExists) {
+    return <Navigate to="/onboarding" replace />;
+  }
+
+  // 4. Onboarding & welcome — auth required but onboarding/welcome check skipped
   if (SEMI_PROTECTED.some((r) => pathname.startsWith(r))) {
     return <>{children}</>;
   }
 
-  // 4. Authenticated but onboarding not finished → send to onboarding
+  // 5. Authenticated but onboarding not finished → send to onboarding
   if (!onboardingComplete) {
     return <Navigate to="/onboarding" replace />;
   }
 
-  // 5. Authenticated and onboarding finished but haven't seen welcome → send to welcome
+  // 6. Authenticated and onboarding finished but haven't seen welcome → send to welcome
   if (!hasSeenWelcome) {
     return <Navigate to="/welcome" replace />;
   }
 
-  // 6. Fully authenticated, onboarded, and seen welcome — allow
+  // 7. Fully authenticated, onboarded, and seen welcome — allow
   return <>{children}</>;
 };
 

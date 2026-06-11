@@ -141,7 +141,26 @@ const ALL_SUBJECTS_MASTER = [
       "Statistics (Central Tendency & Variance)",
     ],
   },
-  { id: "gov", name: "Government", icon: "🏛️", color: "#EC4899", total: 300 },
+  {
+    id: "gov", name: "Government", icon: "🏛️", color: "#EC4899", total: 300, topics: [
+      "Political Science & Governance - Systems of Government",
+      "Political Science & Governance - Political Ideologies",
+      "Political Science & Governance - Public Opinion",
+      "Nigerian Government & History - Pre-colonial Administration",
+      "Nigerian Government & History - Colonial History",
+      "Nigerian Government & History - Post-Independence Political History",
+      "Nigerian Government & History - Nigerian Federalism",
+      "Constitutions & Legal Framework - Constitutional Development",
+      "Constitutions & Legal Framework - Rule of Law",
+      "International Relations & Organizations - Foreign Policy",
+      "International Relations & Organizations - International Organizations",
+      "Public Administration & Elections - Civil Service",
+      "Public Administration & Elections - Public Corporations",
+      "Public Administration & Elections - Electoral Processes",
+      "Arms of Government - Executive, Legislative, and Judiciary",
+      "Arms of Government - Pressure Groups"
+    ]
+  },
   { id: "lit", name: "Literature in English", icon: "📚", color: "#F97316", total: 300 },
   { id: "crs", name: "CRS", icon: "✝️", color: "#A855F7", total: 250 },
   { id: "irs", name: "IRS", icon: "🌙", color: "#00C896", total: 250 },
