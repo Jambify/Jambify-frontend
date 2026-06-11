@@ -19,7 +19,7 @@ export function useQuizSession() {
     useQuizStore();
   const { id: userId, isAuthenticated } = useUserStore();
   const { incrementQuestions, updateAccuracy } = useUserStore();
-  const { updateAccuracy: updateSubj, incrementCompleted } = useSubjectStore();
+  const { updateSubject: updateSubj } = useSubjectStore();
   const { addActivity, updateTopic, addQuizResult } = usePerformanceStore();
 
   const commitSession = async () => {
@@ -87,9 +87,7 @@ export function useQuizSession() {
 
     /* ── 3. Update useSubjectStore ───────────────────── */
     Object.entries(subjMap).forEach(([, data]) => {
-      const acc = Math.round((data.correct / data.total) * 100);
-      updateSubj(data.id, acc);
-      incrementCompleted(data.id, data.total);
+      updateSubj(data.id, data.correct, data.total);
     });
 
     /* ── 4. Update useUserStore ──────────────────────── */

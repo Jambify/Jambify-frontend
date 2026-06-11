@@ -16,11 +16,9 @@ interface SubjectState {
   loadSubjects: () => Promise<void>;
   updateSubject: (
     id: string,
-    accuracy: number,
-    completed: number,
+    quizCorrect: number,
+    quizTotal: number,
   ) => Promise<void>;
-  incrementCompleted: (id: string, count: number) => Promise<void>;
-  updateAccuracy: (id: string, accuracy: number) => Promise<void>;
   initialize: () => Promise<void>;
 }
 
@@ -148,7 +146,7 @@ const ALL_SUBJECTS_MASTER = [
       "Political Science & Governance - Public Opinion",
       "Nigerian Government & History - Pre-colonial Administration",
       "Nigerian Government & History - Colonial History",
-      "Nigerian Government & History - Post-Independence Political History",
+      "Nigerian Government & History - Post-independence Political History",
       "Nigerian Government & History - Nigerian Federalism",
       "Constitutions & Legal Framework - Constitutional Development",
       "Constitutions & Legal Framework - Rule of Law",
@@ -266,17 +264,15 @@ const fetchUserSubjects = async (): Promise<Subject[]> => {
     .filter((s) => s !== undefined);
 
   // Fetch existing progress and real topic stats
-  const [{ data: existingProgress, error }, realTopicStats] = await Promise.all(
-    [
-      supabase.from("subject_progress").select("*").eq("user_id", user.id),
-      getDetailedTopicStats(),
-    ],
-  );
+  const [{ data: existingProgress, error }, realTopicStats] = await Promise.all([
+    supabase.from("subject_accuracy").select("*").eq("user_id", user.id),
+    getDetailedTopicStats(),
+  ]);
 
   if (error) throw error;
 
   // Create a map of existing progress, using FULL_NAME_TO_SHORT_ID to map back
-  const progressMap = new Map<string, SubjectProgress>();
+  const progressMap = new Map<string, { total_correct: number; total_attempted: number }>();
   existingProgress?.forEach((p) => {
     const shortId = FULL_NAME_TO_SHORT_ID[p.subject];
     if (shortId) progressMap.set(shortId, p);
@@ -285,8 +281,9 @@ const fetchUserSubjects = async (): Promise<Subject[]> => {
   // Build subjects only for selected ones
   const subjects: Subject[] = selectedSubjectsMaster.map((master) => {
     const progress = progressMap.get(master.id);
-    const accuracy = progress?.accuracy || 0;
-    const completed = progress?.questions_done || 0;
+    const totalCorrect = progress?.total_correct || 0;
+    const totalAttempted = progress?.total_attempted || 0;
+    const accuracy = totalAttempted > 0 ? Math.round((totalCorrect / totalAttempted) * 100) : 0;
     const rank = calculateRank(accuracy);
 
     // Collect weakest topic (only from real database data)
@@ -305,7 +302,7 @@ const fetchUserSubjects = async (): Promise<Subject[]> => {
       icon: master.icon,
       color: master.color,
       accuracy: accuracy,
-      completed: completed,
+      completed: 0, // Removed questions done, as per user request
       total: master.total,
       rank: rank,
       weakTopics: weakTopics,
@@ -334,13 +331,12 @@ const initializeUserSubjects = async (): Promise<void> => {
   for (const master of selectedSubjectsMaster) {
     const fullName = SHORT_ID_TO_FULL_NAME[master.id];
     if (!fullName) continue;
-    const { error } = await supabase.from("subject_progress").upsert(
+    const { error } = await supabase.from("subject_accuracy").upsert(
       {
         user_id: user.id,
         subject: fullName,
-        accuracy: 0,
-        questions_done: 0,
-        updated_at: new Date().toISOString(),
+        total_correct: 0,
+        total_attempted: 0,
       },
       {
         onConflict: "user_id,subject",
@@ -351,11 +347,11 @@ const initializeUserSubjects = async (): Promise<void> => {
   }
 };
 
-// Update subject progress in database
+// Update subject progress in database (using new subject_accuracy table)
 const updateSubjectProgressInDB = async (
   subjectId: string,
-  quizAccuracy: number,
-  quizQuestions: number,
+  quizCorrect: number,
+  quizTotal: number,
 ): Promise<void> => {
   const {
     data: { user },
@@ -369,33 +365,21 @@ const updateSubjectProgressInDB = async (
 
   // Fetch existing progress first
   const { data: existing } = await supabase
-    .from("subject_progress")
+    .from("subject_accuracy")
     .select("*")
     .eq("user_id", user.id)
     .eq("subject", fullName)
     .maybeSingle();
 
-  let finalAccuracy: number;
-  let finalQuestionsDone: number;
+  const finalCorrect = (existing?.total_correct || 0) + quizCorrect;
+  const finalAttempted = (existing?.total_attempted || 0) + quizTotal;
 
-  if (existing) {
-    // Calculate cumulative accuracy: weighted average
-    const existingCorrect = Math.round((existing.accuracy / 100) * existing.questions_done);
-    const quizCorrect = Math.round((quizAccuracy / 100) * quizQuestions);
-    finalQuestionsDone = existing.questions_done + quizQuestions;
-    finalAccuracy = finalQuestionsDone > 0 ? Math.round(((existingCorrect + quizCorrect) / finalQuestionsDone) * 100) : 0;
-  } else {
-    finalAccuracy = quizAccuracy;
-    finalQuestionsDone = quizQuestions;
-  }
-
-  const { error } = await supabase.from("subject_progress").upsert(
+  const { error } = await supabase.from("subject_accuracy").upsert(
     {
       user_id: user.id,
       subject: fullName,
-      accuracy: finalAccuracy,
-      questions_done: finalQuestionsDone,
-      updated_at: new Date().toISOString(),
+      total_correct: finalCorrect,
+      total_attempted: finalAttempted,
     },
     {
       onConflict: "user_id,subject",
@@ -422,32 +406,15 @@ export const useSubjectStore = create<SubjectState>()((set, get) => ({
     }
   },
 
-  updateSubject: async (id: string, quizAccuracy: number, quizQuestions: number) => {
+  updateSubject: async (id: string, quizCorrect: number, quizTotal: number) => {
     try {
-      await updateSubjectProgressInDB(id, quizAccuracy, quizQuestions);
+      await updateSubjectProgressInDB(id, quizCorrect, quizTotal);
 
       // Reload subjects to get the updated cumulative numbers
       await get().loadSubjects();
     } catch (error) {
       console.error("Failed to update subject:", error);
     }
-  },
-
-  incrementCompleted: async (id: string, count: number) => {
-    const subject = get().subjects.find((s) => s.id === id);
-    if (!subject) return;
-
-    const newCompleted = Math.min(subject.completed + count, subject.total);
-    const newAccuracy = subject.accuracy;
-
-    await get().updateSubject(id, newAccuracy, newCompleted);
-  },
-
-  updateAccuracy: async (id: string, accuracy: number) => {
-    const subject = get().subjects.find((s) => s.id === id);
-    if (!subject) return;
-
-    await get().updateSubject(id, accuracy, subject.completed);
   },
 
   initialize: async () => {
