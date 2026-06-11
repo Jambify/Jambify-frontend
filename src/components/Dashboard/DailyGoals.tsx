@@ -29,7 +29,8 @@ const DAILY_QUESTION_GOAL = 5;
 
 const DailyGoals: React.FC = () => {
   const { goals, checkAndCompleteGoals, resetForNewDay } = useGoalStore();
-  const { questionsCompleted, streak, questionsCompleted: totalQuestionsCompleted } = useUserStore();
+  const { streak, questionsCompleted: totalQuestionsCompleted } =
+    useUserStore();
 
   // Mock data for other tracking for now (we'll integrate proper tracking later)
   const todayQuestions = Math.min(totalQuestionsCompleted, DAILY_QUESTION_GOAL);
