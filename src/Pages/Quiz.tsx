@@ -51,9 +51,9 @@ const Quiz: React.FC = () => {
   const [showAllSubjects, setShowAllSubjects] = useState(false);
   const [showExitModal, setShowExitModal] = useState(false);
   const [showResults, setShowResults] = useState(false);
-  const [selectedMode, setSelectedMode] = useState<"quick" | "standard">(
-    "standard",
-  );
+  const [selectedMode, setSelectedMode] = useState<
+    "quick" | "standard" | "marathon"
+  >("standard");
 
   const topicsRef = React.useRef<HTMLDivElement>(null);
 
@@ -90,7 +90,7 @@ const Quiz: React.FC = () => {
 
       // First reset any existing quiz state to clear the timer
       reset();
-      
+
       // Then set the new subject and topic
       setSubjectAndTopic(decodedSubject, decodedTopic);
     }
@@ -101,7 +101,13 @@ const Quiz: React.FC = () => {
     () => [
       {
         name: "English",
-        topics: ["Comprehension", "Lexis and Structure", "Oral English", "Sentence Interpretation", "Figures of Speech"],
+        topics: [
+          "Comprehension",
+          "Lexis and Structure",
+          "Oral English",
+          "Sentence Interpretation",
+          "Figures of Speech",
+        ],
       },
       {
         name: "Mathematics",
@@ -292,7 +298,11 @@ const Quiz: React.FC = () => {
     setLoadError(null);
     setIsLoadingQuestions(true);
 
-    const targetCount = selectedMode === "quick" ? 10 : 20;
+    // For marathon mode: use all topics, all difficulty, 15 min duration, large question count
+    const isMarathon = selectedMode === "marathon";
+    const adjustedTopic = isMarathon ? "All" : selectedTopic;
+    const adjustedDifficulty = isMarathon ? "All" : selectedDifficulty;
+    const targetCount = isMarathon ? 100 : selectedMode === "quick" ? 10 : 20;
 
     // Wait a tiny bit for the loader to mount smoothly
     await new Promise((r) => setTimeout(r, 100));
@@ -330,27 +340,27 @@ const Quiz: React.FC = () => {
       // ── ONLINE FETCHING WITH ROBUST FALLBACK ──────────────────
       if (qs.length === 0) {
         try {
-          if (selectedTopic === "All") {
+          if (adjustedTopic === "All") {
             // Get questions for the whole subject
             qs = await fetchQuestionsWithFallback(
               selectedSubject,
               "Random",
               targetCount,
-              selectedDifficulty,
+              adjustedDifficulty,
             );
           } else {
             // 1. Try fetching from specific topic first
             qs = await fetchQuestionsByTopic(
               selectedSubject,
-              selectedTopic,
+              adjustedTopic,
               targetCount,
-              selectedDifficulty,
+              adjustedDifficulty,
             );
 
             // 2. Fallback: If not enough questions in topic, fill from general subject
             if (qs.length < targetCount) {
               console.log(
-                `⚠️ Only found ${qs.length} questions for topic "${selectedTopic}". Filling remaining ${targetCount - qs.length} from subject.`,
+                `⚠️ Only found ${qs.length} questions for topic "${adjustedTopic}". Filling remaining ${targetCount - qs.length} from subject.`,
               );
 
               const remainingCount = targetCount - qs.length;
@@ -358,7 +368,7 @@ const Quiz: React.FC = () => {
                 selectedSubject,
                 "Random",
                 remainingCount * 2, // Fetch more to ensure diversity
-                selectedDifficulty,
+                adjustedDifficulty,
               );
 
               // Filter out duplicates
@@ -405,7 +415,11 @@ const Quiz: React.FC = () => {
         qs = qs.slice(0, targetCount);
       }
 
-      const duration = selectedMode === "quick" ? 10 * 60 : 30 * 60;
+      const duration = isMarathon
+        ? 15 * 60
+        : selectedMode === "quick"
+          ? 10 * 60
+          : 30 * 60;
       loadQuestions(qs, duration);
     } catch (error) {
       console.error("Failed to load quiz questions:", error);
@@ -552,21 +566,21 @@ const Quiz: React.FC = () => {
         {loadError &&
           !loadError.includes("CONNECTION_ERROR") &&
           !loadError.includes("OFFLINE") && (
-            <div className="animate-in fade-in slide-in-from-top-4 mb-6 rounded-2xl border bg-danger/15 border-danger/30 p-5 text-danger shadow-sm duration-300 dark:bg-danger/10">
+            <div className="animate-in fade-in slide-in-from-top-4 bg-danger/15 border-danger/30 text-danger dark:bg-danger/10 mb-6 rounded-2xl border p-5 shadow-sm duration-300">
               <div className="flex items-start gap-3">
-                <div className="bg-danger/20 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-danger shadow-sm">
+                <div className="bg-danger/20 text-danger flex h-10 w-10 shrink-0 items-center justify-center rounded-xl shadow-sm">
                   <AlertTriangle size={20} />
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-black tracking-tight text-danger">
+                  <p className="text-danger text-sm font-black tracking-tight">
                     System Alert
                   </p>
-                  <p className="mt-1 text-xs leading-relaxed font-medium text-danger/90">
+                  <p className="text-danger/90 mt-1 text-xs leading-relaxed font-medium">
                     {loadError}
                   </p>
                   <button
                     onClick={() => setLoadError(null)}
-                    className="bg-danger/10 hover:bg-danger/20 mt-3 rounded-lg px-3 py-1.5 text-[10px] font-black tracking-widest uppercase text-danger transition-colors"
+                    className="bg-danger/10 hover:bg-danger/20 text-danger mt-3 rounded-lg px-3 py-1.5 text-[10px] font-black tracking-widest uppercase transition-colors"
                   >
                     Dismiss
                   </button>
@@ -661,8 +675,8 @@ const Quiz: React.FC = () => {
           </div>
         </div>
 
-        {/* Topic filter - Only if subject is selected */}
-        {selectedSubject !== "All" && (
+        {/* Topic filter - Only if subject is selected and not marathon mode */}
+        {selectedSubject !== "All" && selectedMode !== "marathon" && (
           <div
             ref={topicsRef}
             className="animate-in fade-in slide-in-from-bottom-4 mb-10 duration-500"
@@ -747,7 +761,7 @@ const Quiz: React.FC = () => {
         )}
 
         {/* 3. Select Difficulty */}
-        {selectedSubject !== "All" && (
+        {selectedSubject !== "All" && selectedMode !== "marathon" && (
           <div className="animate-in fade-in slide-in-from-bottom-4 mb-10 duration-700">
             <p className="text-textDim mb-4 flex items-center gap-2 text-[11px] font-black tracking-widest uppercase">
               <Sparkles size={14} className="text-brand" />
@@ -782,7 +796,7 @@ const Quiz: React.FC = () => {
         )}
 
         {/* <Mode cards */}
-        <div className="mb-8 grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div className="mb-8 grid grid-cols-1 gap-3 sm:grid-cols-3">
           {[
             {
               id: "quick",
@@ -796,10 +810,18 @@ const Quiz: React.FC = () => {
               label: "Standard",
               desc: "20 Qs · 90s each",
             },
+            {
+              id: "marathon",
+              icon: "🏃",
+              label: "Marathon Quiz",
+              desc: "15 mins · Unlimited Qs",
+            },
           ].map((mode) => (
             <div
               key={mode.id}
-              onClick={() => setSelectedMode(mode.id as "quick" | "standard")}
+              onClick={() =>
+                setSelectedMode(mode.id as "quick" | "standard" | "marathon")
+              }
               className={`rounded-brand-lg cursor-pointer border p-4 transition-all ${
                 selectedMode === mode.id
                   ? "bg-brand/10 border-brand shadow-brand/10 ring-brand/20 ring-1"
