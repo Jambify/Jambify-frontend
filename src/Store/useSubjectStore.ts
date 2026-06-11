@@ -354,8 +354,8 @@ const initializeUserSubjects = async (): Promise<void> => {
 // Update subject progress in database
 const updateSubjectProgressInDB = async (
   subjectId: string,
-  newAccuracy: number,
-  questionsDone: number,
+  quizAccuracy: number,
+  quizQuestions: number,
 ): Promise<void> => {
   const {
     data: { user },
@@ -367,12 +367,34 @@ const updateSubjectProgressInDB = async (
   const fullName = SHORT_ID_TO_FULL_NAME[subjectId];
   if (!fullName) throw new Error("Subject not found in mapping");
 
+  // Fetch existing progress first
+  const { data: existing } = await supabase
+    .from("subject_progress")
+    .select("*")
+    .eq("user_id", user.id)
+    .eq("subject", fullName)
+    .maybeSingle();
+
+  let finalAccuracy: number;
+  let finalQuestionsDone: number;
+
+  if (existing) {
+    // Calculate cumulative accuracy: weighted average
+    const existingCorrect = Math.round((existing.accuracy / 100) * existing.questions_done);
+    const quizCorrect = Math.round((quizAccuracy / 100) * quizQuestions);
+    finalQuestionsDone = existing.questions_done + quizQuestions;
+    finalAccuracy = finalQuestionsDone > 0 ? Math.round(((existingCorrect + quizCorrect) / finalQuestionsDone) * 100) : 0;
+  } else {
+    finalAccuracy = quizAccuracy;
+    finalQuestionsDone = quizQuestions;
+  }
+
   const { error } = await supabase.from("subject_progress").upsert(
     {
       user_id: user.id,
       subject: fullName,
-      accuracy: newAccuracy,
-      questions_done: questionsDone,
+      accuracy: finalAccuracy,
+      questions_done: finalQuestionsDone,
       updated_at: new Date().toISOString(),
     },
     {
@@ -400,21 +422,12 @@ export const useSubjectStore = create<SubjectState>()((set, get) => ({
     }
   },
 
-  updateSubject: async (id: string, accuracy: number, completed: number) => {
+  updateSubject: async (id: string, quizAccuracy: number, quizQuestions: number) => {
     try {
-      await updateSubjectProgressInDB(id, accuracy, completed);
+      await updateSubjectProgressInDB(id, quizAccuracy, quizQuestions);
 
-      set((state) => ({
-        subjects: state.subjects.map((subject) =>
-          subject.id === id
-            ? {
-              ...subject,
-              accuracy,
-              completed,
-            }
-            : subject,
-        ),
-      }));
+      // Reload subjects to get the updated cumulative numbers
+      await get().loadSubjects();
     } catch (error) {
       console.error("Failed to update subject:", error);
     }
