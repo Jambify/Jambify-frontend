@@ -120,7 +120,7 @@ const GuestLanding: React.FC = () => {
         </div>
 
         <div className="relative z-10 flex flex-1 flex-col justify-center px-4 py-10 sm:px-6 lg:px-16 lg:py-12 xl:px-24">
-          <div className="mx-auto w-full max-w-md lg:mx-0 lg:max-w-[440px]">
+          <div className="mx-auto w-full max-w-md lg:mx-0 lg:max-w-110ad">
             {/* Mobile Logo */}
             <div className="mb-10 flex items-center justify-center gap-3 lg:hidden">
               <div className="bg-brand font-display shadow-brand/40 flex h-10 w-10 items-center justify-center rounded-xl text-xl font-bold text-white">

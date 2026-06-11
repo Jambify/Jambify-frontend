@@ -171,12 +171,12 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
             "lg:px-16 lg:py-12 xl:px-24",
           )}
         >
-          <div className="mx-auto w-full max-w-md lg:mx-0 lg:max-w-[440px]">
+          <div className="mx-auto w-full max-w-md lg:mx-0 lg:max-w-110">
             {children}
           </div>
 
           {footer && (
-            <div className="mx-auto mt-6 w-full max-w-md lg:mx-0 lg:max-w-[440px]">
+            <div className="mx-auto mt-6 w-full max-w-md lg:mx-0 lg:max-w-110">
               {footer}
             </div>
           )}
