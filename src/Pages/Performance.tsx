@@ -27,7 +27,7 @@ const Performance: React.FC = () => {
   const {
     topicStats,
     subjectPerformance,
-    mockHistory, // Added from performance store
+    mockHistory,
     totalQuestions,
     avgAccuracy,
     isLoading,
@@ -35,15 +35,14 @@ const Performance: React.FC = () => {
   } = usePerformanceStore();
   const { name, questionsCompleted, subjectCombo, bestScore, accuracy } =
     useUserStore();
-  // Removed mockHistory from useMockStore since it's fetched from DB in performanceStore
 
   useEffect(() => {
     console.log("🔵 Loading performance data...");
     loadPerformanceData();
   }, [loadPerformanceData]);
 
-  // Use the profile accuracy if available, fallback to session accuracy
-  const displayAccuracy = accuracy > 0 ? accuracy : avgAccuracy;
+  // FIXED: Prioritise live store computations over historical user profile cache layers to allow instant syncs
+  const displayAccuracy = avgAccuracy > 0 ? avgAccuracy : accuracy;
 
   // Use questionsCompleted as fallback if totalQuestions is 0
   const displayTotalQuestions =
@@ -208,7 +207,7 @@ const Performance: React.FC = () => {
               </div>
             </div>
 
-            {/* Subject Selection Grid - Only user subjects */}
+            {/* Subject Selection Grid */}
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
               {userSubjectsWithIcons.map((s) => (
                 <button
@@ -229,10 +228,9 @@ const Performance: React.FC = () => {
             </div>
           </div>
 
-          {/* Mock Performance Center - Right Sidebar/Column */}
+          {/* Mock Performance Center */}
           <div className="space-y-6 lg:col-span-5 xl:col-span-4">
             <div className="bg-bgCard border-borderMuted rounded-brand-2xl group relative flex h-full flex-col overflow-hidden border p-6 shadow-sm lg:p-8">
-              {/* Background Decorative Element */}
               <div className="bg-brand/5 group-hover:bg-brand/10 absolute top-0 right-0 -mt-32 -mr-32 h-64 w-64 rounded-full blur-3xl transition-colors"></div>
 
               <div className="relative z-10 mb-8 flex items-center justify-between">
@@ -255,7 +253,7 @@ const Performance: React.FC = () => {
                 </button>
               </div>
 
-              {/* Main Score Display */}
+              {/* Score Display Area */}
               <div className="relative z-10 grid flex-1 grid-cols-1 gap-6">
                 {/* Best Score Card */}
                 <div className="bg-bgSurface/40 border-borderMuted/60 rounded-brand-2xl hover:border-brand/40 hover:bg-bgSurface/60 group/card flex flex-col justify-between border p-6 transition-all">
@@ -332,7 +330,7 @@ const Performance: React.FC = () => {
                 </div>
               </div>
 
-              {/* Unified Progress Section */}
+              {/* Progress to Target Box */}
               <div className="bg-bgDeep/40 rounded-brand-2xl border-borderMuted/40 relative z-10 mt-8 border p-6 lg:p-7">
                 <div className="mb-6 flex items-center justify-between">
                   <div className="flex items-center gap-4">
@@ -385,7 +383,7 @@ const Performance: React.FC = () => {
           </div>
         </div>
 
-        {/* Subject Breakdown */}
+        {/* Subject Breakdown Area */}
         <div className="space-y-6 pt-4">
           <div className="flex items-center justify-between">
             <h3 className="font-display text-textMain text-2xl font-bold">
@@ -468,7 +466,6 @@ const Performance: React.FC = () => {
   );
 };
 
-/* Internal StatCard component for Performance page */
 interface StatCardProps {
   label: string;
   value: string;
@@ -506,7 +503,6 @@ const StatCard: React.FC<StatCardProps> = ({
     </div>
     <p className="text-textDim mt-2 text-[11px] font-medium">{sub}</p>
 
-    {/* Decorative gradient corner */}
     <div
       className={`absolute -right-2 -bottom-2 h-12 w-12 rounded-full opacity-0 blur-2xl transition-opacity group-hover:opacity-40 ${iconBg.replace(
         "/10",
