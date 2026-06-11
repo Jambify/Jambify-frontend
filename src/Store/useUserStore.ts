@@ -185,8 +185,7 @@ export const useUserStore = create<UserState>()(
 
           if (error) throw error;
           if (!data) {
-            // If no profile exists, sign the user out!
-            await get().signOut();
+            // If no profile exists, just return false (don't sign out yet)
             return { onboardingComplete: false, profileExists: false };
           }
 
