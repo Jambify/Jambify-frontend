@@ -20,7 +20,6 @@ const SubjectCard: React.FC<SubjectCardProps> = ({
   isWorst,
 }) => {
   const navigate = useNavigate();
-  const progressPct = Math.round((subject.completed / subject.total) * 100);
 
   const statusLabel =
     subject.weakTopics.length > 0 && subject.accuracy < 55
@@ -115,28 +114,14 @@ const SubjectCard: React.FC<SubjectCardProps> = ({
             </p>
             <p className="text-textDim mt-1 text-[11px]">accuracy</p>
           </div>
-          <div className="text-right">
-            <p className="text-textMain font-mono text-sm font-medium">
-              {subject.completed}
-              <span className="text-textDim">/{subject.total}</span>
-            </p>
-            <p className="text-textDim mt-0.5 text-[11px]">questions done</p>
-          </div>
         </div>
 
         {/* <Accuracy bar */}
-        <div className="bg-bgTrack mb-1 h-1.5 overflow-hidden rounded-full">
+        <div className="bg-bgTrack h-1.5 overflow-hidden rounded-full">
           <div
             className="h-full rounded-full transition-all duration-700"
             style={{ width: `${subject.accuracy}%`, background: subject.color }}
           />
-        </div>
-
-        {/* <Progress bar */}
-        <div className="flex items-center justify-between">
-          <span className="text-textDim text-[10px]">
-            {progressPct}% of questions attempted
-          </span>
         </div>
       </div>
 

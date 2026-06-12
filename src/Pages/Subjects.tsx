@@ -29,23 +29,15 @@ const Subjects: React.FC = () => {
 
   // Determine best and worst subjects for badges (only if user has data)
   const bestSubjectName = hasAnyPerformanceData ? (() => {
-    const subjectsWithWeakTopics = new Set(topicStats.map((t) => t.subject));
-    const noWeak = subjects.filter(s => !subjectsWithWeakTopics.has(s.name));
-    
-    if (noWeak.length > 0) {
-      const best = subjectPerformance
-        .filter(sp => noWeak.some(s => s.name === sp.subject))
-        .sort((a, b) => b.best_score - a.best_score)[0];
-      return best ? best.subject : noWeak[0].name;
-    }
-    
-    const top = [...subjectPerformance].sort((a, b) => b.best_score - a.best_score)[0];
-    return top ? top.subject : null;
+    // Sort subjects by current accuracy descending
+    const sorted = [...subjects].sort((a, b) => b.accuracy - a.accuracy);
+    return sorted[0]?.name || null;
   })() : null;
 
   const worstSubjectName = hasAnyPerformanceData ? (() => {
-    const bottom = [...subjectPerformance].sort((a, b) => a.worst_score - b.worst_score)[0];
-    return bottom ? bottom.subject : null;
+    // Sort subjects by current accuracy ascending
+    const sorted = [...subjects].sort((a, b) => a.accuracy - b.accuracy);
+    return sorted[0]?.name || null;
   })() : null;
 
   const sorted = [...subjects].sort((a, b) => {
