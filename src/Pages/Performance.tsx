@@ -26,7 +26,6 @@ const Performance: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const {
     topicStats,
-    subjectPerformance,
     mockHistory,
     totalQuestions,
     avgAccuracy,

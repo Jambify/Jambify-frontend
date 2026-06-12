@@ -4,7 +4,7 @@ import { create } from "zustand";
 import { supabase } from "../lib/supabase";
 import { useUserStore } from "./useUserStore";
 import { getDetailedTopicStats } from "../Services/PerformanceService";
-import type { Subject, SubjectProgress } from "../Types/subject";
+import type { Subject } from "../Types/subject";
 
 interface SubjectState {
   subjects: Subject[];
@@ -13,7 +13,7 @@ interface SubjectState {
   isInitialized: boolean;
 
   // Actions
-  loadSubjects: () => Promise<void>;
+  loadSubjects: (force?: boolean) => Promise<void>;
   updateSubject: (
     id: string,
     quizCorrect: number,

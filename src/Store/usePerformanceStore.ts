@@ -27,7 +27,7 @@ interface PerformanceState {
   isInitialized: boolean;
 
   // Actions
-  loadPerformanceData: () => Promise<void>;
+  loadPerformanceData: (force?: boolean) => Promise<void>;
   addMockScore: (score: number) => void;
   addActivity: (day: string, count: number) => void;
   updateTopic: (id: string, accuracy: number) => void;
