@@ -24,6 +24,7 @@ interface PerformanceState {
   avgAccuracy: number;
   isLoading: boolean;
   error: string | null;
+  isInitialized: boolean;
 
   // Actions
   loadPerformanceData: () => Promise<void>;
@@ -66,8 +67,12 @@ export const usePerformanceStore = create<PerformanceState>()((set, get) => ({
   avgAccuracy: 0,
   isLoading: false,
   error: null,
+  isInitialized: false,
 
-  loadPerformanceData: async () => {
+  loadPerformanceData: async (force = false) => {
+    if (get().isInitialized && !force) {
+      return;
+    }
     set({ isLoading: true });
     try {
       const { id: userId } = useUserStore.getState();
@@ -128,6 +133,7 @@ export const usePerformanceStore = create<PerformanceState>()((set, get) => ({
         avgAccuracy: avgAcc,
         mockHistory,
         isLoading: false,
+        isInitialized: true,
       });
     } catch (error) {
       console.error("Error loading performance data:", error);
@@ -182,7 +188,7 @@ export const usePerformanceStore = create<PerformanceState>()((set, get) => ({
       );
 
       // Refresh data after adding quiz result
-      await get().loadPerformanceData();
+      await get().loadPerformanceData(true);
 
       // Sync user profile after successful submission
       await useUserStore.getState().syncProfile(true);

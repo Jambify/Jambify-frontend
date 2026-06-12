@@ -23,8 +23,6 @@ import AuthCallback from "./components/auth/AuthCallback";
 import GuestLanding from "./Pages/GuestUser/GuestLanding";
 import GuestQuiz from "./Pages/GuestUser/GuestQuiz";
 import GuestMock from "./Pages/GuestUser/GuestExam";
-import NetworkErrorAlert from "./components/ui/NetworkErrorAlert";
-import { useNetworkStatus } from "./hooks/useNetworkStatus";
 // In App.tsx, add this near the top
 import { supabase } from "./lib/supabase";
 
@@ -34,29 +32,8 @@ if (typeof window !== "undefined") {
 }
 
 const App: React.FC = () => {
-  const { isOnline, quality, wasOffline } = useNetworkStatus();
-  const [showOfflineAlert, setShowOfflineAlert] = React.useState(false);
-
-  React.useEffect(() => {
-    if (!isOnline) {
-      setShowOfflineAlert(true);
-    } else if (wasOffline) {
-      setShowOfflineAlert(false);
-    }
-  }, [isOnline, wasOffline]);
-
   return (
     <>
-      {!isOnline && showOfflineAlert && (
-        <NetworkErrorAlert
-          onDismiss={() => setShowOfflineAlert(false)}
-          message={
-            quality === "slow"
-              ? "Your network connection is slow. Some features may take longer to load."
-              : "You're currently offline. Please check your internet connection."
-          }
-        />
-      )}
       <Routes>
         <Route path="/signup" element={<SignUp />} />
         <Route path="/signin" element={<SignIn />} />

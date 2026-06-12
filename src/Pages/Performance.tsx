@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import AppLayout from "../components/Layout/AppLayout";
 import { usePerformanceStore } from "../Store/usePerformanceStore";
 import { useUserStore } from "../Store/useUserStore";
-import { SUBJECT_COMBO_MAP } from "../Store/useSubjectStore";
+import { useSubjectStore, SUBJECT_COMBO_MAP } from "../Store/useSubjectStore";
 import WeeklyChart from "../components/Performance/WeeklyChart";
 import PageLoader from "../components/ui/PageLoader";
 import { ArrowRight, Clock, Sparkles, Target, Trophy, Zap } from "lucide-react";
@@ -32,14 +32,30 @@ const Performance: React.FC = () => {
     avgAccuracy,
     isLoading,
     loadPerformanceData,
+    isInitialized: performanceInitialized,
   } = usePerformanceStore();
+  const {
+    subjects,
+    loadSubjects,
+    isInitialized: subjectsInitialized,
+  } = useSubjectStore();
   const { name, questionsCompleted, subjectCombo, bestScore, accuracy } =
     useUserStore();
 
   useEffect(() => {
     console.log("🔵 Loading performance data...");
-    loadPerformanceData();
-  }, [loadPerformanceData]);
+    if (!performanceInitialized) {
+      loadPerformanceData();
+    }
+    if (!subjectsInitialized) {
+      loadSubjects();
+    }
+  }, [
+    loadPerformanceData,
+    loadSubjects,
+    performanceInitialized,
+    subjectsInitialized,
+  ]);
 
   // FIXED: Prioritise live store computations over historical user profile cache layers to allow instant syncs
   const displayAccuracy = avgAccuracy > 0 ? avgAccuracy : accuracy;
@@ -57,45 +73,21 @@ const Performance: React.FC = () => {
   const hasAnyPerformanceData =
     totalQuestions > 0 ||
     topicStats.length > 0 ||
-    subjectPerformance.some((sp) => sp.best_score > 0 || sp.worst_score > 0);
+    subjects.some((s) => s.accuracy > 0);
 
-  // Best and Worst Subject logic
+  // Best and Worst Subject logic - use current accuracy from useSubjectStore!
   const bestSubject = (() => {
     if (userSubjects.length === 0 || !hasAnyPerformanceData) return null;
-
-    // 1. Find subjects with no weak topics
-    const subjectsWithWeakTopics = new Set(topicStats.map((t) => t.subject));
-    const subjectsWithNoWeakTopics = userSubjects.filter(
-      (s) => !subjectsWithWeakTopics.has(s),
-    );
-
-    if (subjectsWithNoWeakTopics.length > 0) {
-      // Pick the one among these with the highest best_score
-      const bestOfNoWeak = subjectPerformance
-        .filter((sp) => subjectsWithNoWeakTopics.includes(sp.subject))
-        .sort((a, b) => b.best_score - a.best_score)[0];
-
-      if (bestOfNoWeak) return bestOfNoWeak;
-      // If no performance data yet for these, just pick the first one
-      return { subject: subjectsWithNoWeakTopics[0], best_score: 0 };
-    }
-
-    // 2. Fallback: just pick the one with highest best_score
-    const topSubject = [...subjectPerformance]
-      .filter((sp) => userSubjects.includes(sp.subject))
-      .sort((a, b) => b.best_score - a.best_score)[0];
-
-    return topSubject || null;
+    const sorted = [...subjects].sort((a, b) => b.accuracy - a.accuracy);
+    const sub = sorted[0];
+    return sub ? { subject: sub.name, best_score: sub.accuracy } : null;
   })();
 
   const worstSubject = (() => {
     if (userSubjects.length === 0 || !hasAnyPerformanceData) return null;
-
-    const bottomSubject = [...subjectPerformance]
-      .filter((sp) => userSubjects.includes(sp.subject))
-      .sort((a, b) => a.worst_score - b.worst_score)[0];
-
-    return bottomSubject || null;
+    const sorted = [...subjects].sort((a, b) => a.accuracy - b.accuracy);
+    const sub = sorted[0];
+    return sub ? { subject: sub.name, worst_score: sub.accuracy } : null;
   })();
 
   const userSubjectsWithIcons = userSubjects.map((name) => ({
@@ -152,7 +144,9 @@ const Performance: React.FC = () => {
             label="Best Subject"
             value={bestSubject ? bestSubject.subject : "—"}
             sub={
-              bestSubject && "best_score" in bestSubject && bestSubject.best_score > 0
+              bestSubject &&
+              "best_score" in bestSubject &&
+              bestSubject.best_score > 0
                 ? `Best: ${Math.round(bestSubject.best_score)}% score`
                 : "No weak topics found"
             }
@@ -393,16 +387,23 @@ const Performance: React.FC = () => {
           </div>
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             {userSubjects.map((subject) => {
-              const subjectTopicStats = topicStats.filter((t) => t.subject === subject);
-              const weakestTopic = subjectTopicStats.length > 0
-                ? [...subjectTopicStats].sort((a, b) => a.accuracy - b.accuracy)[0]
-                : null;
+              const subjectTopicStats = topicStats.filter(
+                (t) => t.subject === subject,
+              );
+              const weakestTopic =
+                subjectTopicStats.length > 0
+                  ? [...subjectTopicStats].sort(
+                      (a, b) => a.accuracy - b.accuracy,
+                    )[0]
+                  : null;
 
               return (
                 <div
                   key={subject}
                   className="bg-bgCard border-borderMuted hover:border-brand/30 group cursor-pointer rounded-2xl border p-5 transition-all hover:shadow-md active:scale-[0.98]"
-                  onClick={() => navigate(`/quiz?subject=${encodeURIComponent(subject)}`)}
+                  onClick={() =>
+                    navigate(`/quiz?subject=${encodeURIComponent(subject)}`)
+                  }
                 >
                   <div className="mb-4 flex items-center gap-3">
                     <div className="bg-brand/10 flex h-12 w-12 items-center justify-center rounded-xl text-2xl">
@@ -421,10 +422,12 @@ const Performance: React.FC = () => {
                   </div>
                   {weakestTopic && (
                     <div
-                      className="bg-danger/5 border-danger/20 hover:border-danger/40 rounded-xl border p-3 cursor-pointer transition-colors"
+                      className="bg-danger/5 border-danger/20 hover:border-danger/40 cursor-pointer rounded-xl border p-3 transition-colors"
                       onClick={(e) => {
                         e.stopPropagation();
-                        navigate(`/quiz?subject=${encodeURIComponent(subject)}&topic=${encodeURIComponent(weakestTopic.name)}`);
+                        navigate(
+                          `/quiz?subject=${encodeURIComponent(subject)}&topic=${encodeURIComponent(weakestTopic.name)}`,
+                        );
                       }}
                     >
                       <p className="text-danger mb-1 flex items-center gap-1.5 text-[11px] font-bold tracking-widest uppercase">
@@ -432,7 +435,7 @@ const Performance: React.FC = () => {
                         Weakest Topic
                       </p>
                       <div className="flex items-center justify-between">
-                        <p className="text-textMain truncate text-sm font-medium group-hover:text-danger transition-colors">
+                        <p className="text-textMain group-hover:text-danger truncate text-sm font-medium transition-colors">
                           {weakestTopic.name}
                         </p>
                         <span className="text-danger text-xs font-bold">

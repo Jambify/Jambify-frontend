@@ -11,34 +11,40 @@ type SortKey = "name" | "accuracy" | "progress";
 
 const Subjects: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const { subjects, isLoading, loadSubjects } = useSubjectStore();
-  const { topicStats, subjectPerformance, loadPerformanceData } = usePerformanceStore();
+  const { subjects, isLoading, loadSubjects, isInitialized } =
+    useSubjectStore();
+  const { topicStats, subjectPerformance } = usePerformanceStore();
   const [sort, setSort] = useState<SortKey>("accuracy");
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   useEffect(() => {
-    loadSubjects();
-    loadPerformanceData();
-  }, [loadSubjects, loadPerformanceData]);
+    if (!isInitialized) {
+      loadSubjects();
+    }
+  }, [loadSubjects, isInitialized]);
 
   // Check if user has any performance data
-  const hasAnyPerformanceData = 
-    (usePerformanceStore.getState().totalQuestions || 0) > 0 || 
-    topicStats.length > 0 || 
-    subjectPerformance.some(sp => sp.best_score > 0 || sp.worst_score > 0);
+  const hasAnyPerformanceData =
+    (usePerformanceStore.getState().totalQuestions || 0) > 0 ||
+    topicStats.length > 0 ||
+    subjectPerformance.some((sp) => sp.best_score > 0 || sp.worst_score > 0);
 
   // Determine best and worst subjects for badges (only if user has data)
-  const bestSubjectName = hasAnyPerformanceData ? (() => {
-    // Sort subjects by current accuracy descending
-    const sorted = [...subjects].sort((a, b) => b.accuracy - a.accuracy);
-    return sorted[0]?.name || null;
-  })() : null;
+  const bestSubjectName = hasAnyPerformanceData
+    ? (() => {
+        // Sort subjects by current accuracy descending
+        const sorted = [...subjects].sort((a, b) => b.accuracy - a.accuracy);
+        return sorted[0]?.name || null;
+      })()
+    : null;
 
-  const worstSubjectName = hasAnyPerformanceData ? (() => {
-    // Sort subjects by current accuracy ascending
-    const sorted = [...subjects].sort((a, b) => a.accuracy - b.accuracy);
-    return sorted[0]?.name || null;
-  })() : null;
+  const worstSubjectName = hasAnyPerformanceData
+    ? (() => {
+        // Sort subjects by current accuracy ascending
+        const sorted = [...subjects].sort((a, b) => a.accuracy - b.accuracy);
+        return sorted[0]?.name || null;
+      })()
+    : null;
 
   const sorted = [...subjects].sort((a, b) => {
     if (sort === "name") return a.name.localeCompare(b.name);

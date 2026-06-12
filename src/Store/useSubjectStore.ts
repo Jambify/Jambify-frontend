@@ -395,7 +395,10 @@ export const useSubjectStore = create<SubjectState>()((set, get) => ({
   error: null,
   isInitialized: false,
 
-  loadSubjects: async () => {
+  loadSubjects: async (force = false) => {
+    if (get().isInitialized && !force) {
+      return;
+    }
     set({ isLoading: true, error: null });
     try {
       const subjects = await fetchUserSubjects();
@@ -411,7 +414,7 @@ export const useSubjectStore = create<SubjectState>()((set, get) => ({
       await updateSubjectProgressInDB(id, quizCorrect, quizTotal);
 
       // Reload subjects to get the updated cumulative numbers
-      await get().loadSubjects();
+      await get().loadSubjects(true);
     } catch (error) {
       console.error("Failed to update subject:", error);
     }
@@ -421,7 +424,7 @@ export const useSubjectStore = create<SubjectState>()((set, get) => ({
     set({ isLoading: true });
     try {
       await initializeUserSubjects();
-      await get().loadSubjects();
+      await get().loadSubjects(true);
     } catch (error) {
       console.error("Failed to initialize subjects:", error);
       set({ error: "Failed to initialize subjects", isLoading: false });
