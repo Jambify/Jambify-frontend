@@ -105,8 +105,21 @@ export const useGoalStore = create<GoalState>()(
         studyTimeMinutes: number
       ) => {
         get().resetForNewDay();
+        
+        // First ensure all goals have their check functions restored!
+        const dayIndex = getDayOfWeek();
+        const todayGoalDefs = goalSets[dayIndex];
         const currentGoals = get().goals;
-        let updatedGoals = [...currentGoals];
+        
+        // Merge persisted done status with fresh goal definitions (to get check functions back)
+        let updatedGoals = todayGoalDefs.map(def => {
+          const persistedGoal = currentGoals.find(g => g.id === def.id);
+          return {
+            ...def,
+            done: persistedGoal?.done || false
+          };
+        });
+        
         let hasChanges = false;
 
         // Check each goal
@@ -117,13 +130,45 @@ export const useGoalStore = create<GoalState>()(
           }
         });
 
-        if (hasChanges) {
+        // Check if we need to update state (either because goals were completed OR because we restored check functions)
+        const needsUpdate = hasChanges || JSON.stringify(currentGoals.map(g => ({id:g.id, done:g.done}))) !== JSON.stringify(updatedGoals.map(g => ({id:g.id, done:g.done})));
+        
+        if (needsUpdate) {
           set({ goals: updatedGoals });
         }
       },
     }),
     {
       name: "daily-goals-storage",
+      // Only persist the serializable parts (not functions!), and restore them properly
+      partialize: (state) => ({
+        date: state.date,
+        goals: state.goals.map(g => ({ id: g.id, done: g.done })) // Only store id and done
+      }),
+      // When rehydrating, restore the full goal objects with check functions!
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          const dayIndex = getDayOfWeek();
+          const todayGoalDefs = goalSets[dayIndex];
+          const persistedDate = state.date;
+          const today = getTodayDateString();
+          
+          if (persistedDate === today) {
+            // Restore today's goals with persisted done status
+            state.goals = todayGoalDefs.map(def => {
+              const persistedGoal = state.goals?.find(g => g.id === def.id);
+              return {
+                ...def,
+                done: persistedGoal?.done || false
+              };
+            });
+          } else {
+            // New day, start fresh
+            state.date = today;
+            state.goals = getInitialGoals();
+          }
+        }
+      }
     }
   )
 );

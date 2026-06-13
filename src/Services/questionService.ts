@@ -157,7 +157,7 @@ export const fetchQuestionsWithFallback = async (
     difficulty === "All"
       ? undefined
       : ((difficulty.trim().charAt(0).toUpperCase() +
-          difficulty.trim().slice(1).toLowerCase()) as Difficulty);
+        difficulty.trim().slice(1).toLowerCase()) as Difficulty);
   const fetchedIds = new Set<string>(excludeIds);
   let finalQuestions: Question[] = [];
 
@@ -333,7 +333,7 @@ export const fetchQuestionsWithFallback = async (
 
 // ── Topic helpers ─────────────────────────────────────────────────────────────
 
-const LIKELY_TOPICS: Record<string, string[]> = {
+export const LIKELY_TOPICS: Record<string, string[]> = {
   English: [
     "Comprehension",
     "Lexis and Structure",
@@ -375,6 +375,7 @@ const LIKELY_TOPICS: Record<string, string[]> = {
     "Circulatory System",
     "Plant Biology",
     "Public Health",
+    "Digestive System",
   ],
   Economics: [
     "Demand and Supply",
@@ -406,6 +407,37 @@ const LIKELY_TOPICS: Record<string, string[]> = {
   Crs: ["Old Testament", "Life of Christ", "Acts of the Apostles", "Epistles"],
 };
 
+// Helper to normalize topic names to match LIKELY_TOPICS
+export const normalizeTopicName = (topic: string, subject: string): string => {
+  const subjectTopics = LIKELY_TOPICS[subject] || [];
+  const topicLower = topic.toLowerCase();
+  
+  // Check for exact match
+  for (const validTopic of subjectTopics) {
+    if (validTopic.toLowerCase() === topicLower) {
+      return validTopic;
+    }
+  }
+  
+  // Check for partial match (e.g., "Digestive" → "Digestive System")
+  for (const validTopic of subjectTopics) {
+    const validLower = validTopic.toLowerCase();
+    if (topicLower.includes(validLower.split(" ")[0])) {
+      return validTopic;
+    }
+  }
+  
+  // Check reverse partial
+  for (const validTopic of subjectTopics) {
+    if (validTopic.toLowerCase().includes(topicLower.split(" ")[0])) {
+      return validTopic;
+    }
+  }
+  
+  // Fallback: just capitalize first letter
+  return topic.charAt(0).toUpperCase() + topic.slice(1);
+};
+
 /**
  * Fetch unique topics for a subject from Supabase, merged with known defaults.
  */
@@ -429,8 +461,8 @@ export const fetchTopicsBySubject = async (
 
     const dbTopics = data
       ? (Array.from(
-          new Set(data.map((r) => r.topic).filter(Boolean)),
-        ) as string[])
+        new Set(data.map((r) => normalizeTopicName(r.topic || "", formattedSubject)).filter(Boolean)),
+      ) as string[])
       : [];
 
     const fallbackTopics = LIKELY_TOPICS[formattedSubject] ?? [];

@@ -1,5 +1,6 @@
 
 import { supabase } from "../lib/supabase";
+import { normalizeTopicName } from "./questionService";
 
 // ===========================================================
 // TYPES
@@ -227,9 +228,10 @@ export const updateWeakestTopic = async (
     for (const [key, data] of Object.entries(topicPerformance)) {
       console.log(`Processing key: ${key}, data.subject: ${data.subject}`);
       if (data.subject === subject && data.total > 0) {
-        const topic = key.includes(":") ? key.split(":")[1] : key;
+        const rawTopic = key.includes(":") ? key.split(":")[1] : key;
+        const topic = normalizeTopicName(rawTopic, subject);
         const accuracy = Math.round((data.correct / data.total) * 100);
-        console.log(`Topic: ${topic}, Accuracy: ${accuracy}%`);
+        console.log(`Topic (raw): ${rawTopic}, Topic (normalized): ${topic}, Accuracy: ${accuracy}%`);
 
         // If accuracy >=50%, skip this topic entirely (don't track mastered topics)
         if (accuracy >= 50) {
