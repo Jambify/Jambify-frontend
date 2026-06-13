@@ -84,7 +84,7 @@ const Subjects: React.FC = () => {
             Subjects
           </h2>
           <p className="text-textMuted mt-1 text-sm">
-            {subjects.length} subjects · overall accuracy 
+            {subjects.length} subjects · overall accuracy:{" "}   
             <span className="text-textMain font-medium">
               {overallAccuracy}%
             </span>
