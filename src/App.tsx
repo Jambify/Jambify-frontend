@@ -23,6 +23,7 @@ import AuthCallback from "./components/auth/AuthCallback";
 import GuestLanding from "./Pages/GuestUser/GuestLanding";
 import GuestQuiz from "./Pages/GuestUser/GuestQuiz";
 import GuestMock from "./Pages/GuestUser/GuestExam";
+import StudyTimeTracker from "./components/StudyTimeTracker";
 // In App.tsx, add this near the top
 import { supabase } from "./lib/supabase";
 
@@ -34,6 +35,7 @@ if (typeof window !== "undefined") {
 const App: React.FC = () => {
   return (
     <>
+      <StudyTimeTracker />
       <Routes>
         <Route path="/signup" element={<SignUp />} />
         <Route path="/signin" element={<SignIn />} />

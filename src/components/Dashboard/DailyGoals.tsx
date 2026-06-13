@@ -3,7 +3,7 @@ import { useGoalStore } from "../../Store/useGoal";
 import { useUserStore } from "../../Store/useUserStore";
 import { useStudyTrackingStore } from "../../Store/useStudyTrackingStore";
 import { cn } from "../../lib/utils/utils";
-import { Flame, CheckCircle2, Circle, Zap } from "lucide-react";
+import { Flame, CheckCircle2, Circle, Zap, PartyPopper } from "lucide-react";
 
 const DAYS_SHORT = ["M", "T", "W", "T", "F", "S", "S"];
 
@@ -26,8 +26,6 @@ function getMotivationalMessage(pct: number, streak: number): string {
     : "Daily goal complete! Great work today.";
 }
 
-const DAILY_QUESTION_GOAL = 5;
-
 const DailyGoals: React.FC = () => {
   const { goals, checkAndCompleteGoals, resetForNewDay, syncWithDatabase } =
     useGoalStore();
@@ -41,9 +39,13 @@ const DailyGoals: React.FC = () => {
     syncWithDatabase: syncTrackingWithDatabase,
   } = useStudyTrackingStore();
 
-  const todayQuestions = Math.min(questionsCompletedToday, DAILY_QUESTION_GOAL);
-  const questionPct = Math.round((todayQuestions / DAILY_QUESTION_GOAL) * 100);
-  const goalComplete = todayQuestions >= DAILY_QUESTION_GOAL;
+  // Calculate goal completion stats
+  const doneCount = goals.filter((g) => g.done).length;
+  const totalGoals = goals.length;
+  const goalsComplete = doneCount === totalGoals;
+  const goalsPct =
+    totalGoals > 0 ? Math.round((doneCount / totalGoals) * 100) : 0;
+  const totalXp = goals.reduce((sum, g) => sum + (g.done ? g.xp : 0), 0);
 
   // Reset goals for new day on mount and sync with DB
   useEffect(() => {
@@ -77,21 +79,18 @@ const DailyGoals: React.FC = () => {
     bestAccuracyToday,
   ]);
 
-  const doneCount = goals.filter((g) => g.done).length;
-  const totalXp = goals.reduce((sum, g) => sum + (g.done ? g.xp : 0), 0);
-
   // Build 7-day streak bars: today = getTodayIndex(), past days filled based on streak
   const todayIdx = getTodayIndex();
   const streakBars = useMemo(() => {
     return DAYS_SHORT.map((label, i) => {
       const daysAgo = (todayIdx - i + 7) % 7;
       const isToday = i === todayIdx;
-      const active = daysAgo < streak || (isToday && goalComplete);
+      const active = daysAgo < streak || (isToday && goalsComplete);
       return { label, isToday, active };
     });
-  }, [todayIdx, streak, goalComplete]);
+  }, [todayIdx, streak, goalsComplete]);
 
-  const motivationMsg = getMotivationalMessage(questionPct, streak);
+  const motivationMsg = getMotivationalMessage(goalsPct, streak);
 
   return (
     <div className="bg-bgCard border-borderMuted rounded-brand-lg border p-5">
@@ -101,7 +100,7 @@ const DailyGoals: React.FC = () => {
           Daily Goals
         </h3>
         <span className="text-textDim text-xs">
-          {doneCount}/{goals.length} done
+          {doneCount}/{totalGoals} done
           {totalXp > 0 && (
             <span className="text-warn ml-1.5 font-semibold">
               +{totalXp} XP
@@ -110,20 +109,35 @@ const DailyGoals: React.FC = () => {
         </span>
       </div>
 
-      {/* Daily question progress */}
+      {/* Congratulations message when all goals are done */}
+      {goalsComplete && (
+        <div className="bg-success/10 border-success/20 rounded-brand mb-4 flex items-center gap-2 border p-3">
+          <PartyPopper className="text-success h-5 w-5" />
+          <div>
+            <p className="text-success text-sm font-semibold">
+              🎉 Congratulations!
+            </p>
+            <p className="text-textDim text-xs">
+              You've completed all your goals for today! Keep it up!
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Goals progress */}
       <div className="bg-bgSurface border-borderMuted rounded-brand mb-4 border p-3">
         <div className="mb-2 flex items-center justify-between">
           <span className="text-textMain flex items-center gap-1.5 text-xs font-medium">
             <Zap className="text-brand h-3.5 w-3.5" />
-            Daily question goal
+            Daily goals progress
           </span>
           <span
             className={cn(
               "font-mono text-xs font-semibold",
-              goalComplete ? "text-success" : "text-textMuted",
+              goalsComplete ? "text-success" : "text-textMuted",
             )}
           >
-            {todayQuestions}/{DAILY_QUESTION_GOAL}
+            {doneCount}/{totalGoals}
           </span>
         </div>
         {/* Progress bar */}
@@ -131,19 +145,14 @@ const DailyGoals: React.FC = () => {
           <div
             className={cn(
               "h-full rounded-full transition-all duration-700",
-              goalComplete ? "bg-success" : "bg-brand",
+              goalsComplete ? "bg-success" : "bg-brand",
             )}
-            style={{ width: `${questionPct}%` }}
+            style={{ width: `${goalsPct}%` }}
           />
         </div>
         <p className="text-textDim mt-1.5 text-[11px] leading-snug">
           {motivationMsg}
         </p>
-        {!goalComplete && (
-          <p className="text-brand-light mt-1 text-[10px] font-medium">
-            🎁 Complete daily goal for bonus XP
-          </p>
-        )}
       </div>
 
       {/* Goal checklist */}
