@@ -185,7 +185,6 @@ export const useUserStore = create<UserState>()(
 
           if (error) throw error;
           if (!data) {
-            // If no profile exists, just return false (don't sign out yet)
             return { onboardingComplete: false, profileExists: false };
           }
 
@@ -372,19 +371,18 @@ export const useUserStore = create<UserState>()(
         }
         set({ isLoading: true });
         try {
-          const { error } = await supabase
-            .from("profiles")
-            .update({
-              target_score: data.targetScore,
-              exam_year: data.examYear,
-              exam_date: data.examDate,
-            })
-            .eq("id", id);
+          const { error } = await supabase.rpc("update_exam_settings", {
+            p_user_id: id,
+            p_target_score: data.targetScore,
+            p_exam_year: data.examYear,
+            p_exam_date: data.examDate,
+          });
           if (error) throw error;
           set(data);
-          await get().syncProfile();
+          await get().syncProfile(true); // Force sync
           return { error: null };
         } catch (err) {
+          console.error("updateExamSettings error:", err);
           return { error: err as Error };
         } finally {
           set({ isLoading: false });

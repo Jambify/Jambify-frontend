@@ -85,7 +85,7 @@ interface FormData {
   name: string;
   university: string;
   subjectCombo: string;
-  targetScore: string;
+  targetScore: string; // We'll store as string for database compatibility
   examYear: string;
   examDate: string;
 }
@@ -119,7 +119,7 @@ const Onboarding: React.FC = () => {
     name: userName,
     university: "",
     subjectCombo: "",
-    targetScore: "",
+    targetScore: "", // Will store numeric value as string
     examYear: "2027",
     examDate: "Apr 27",
   });

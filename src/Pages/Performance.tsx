@@ -12,11 +12,17 @@ import { ArrowRight, Clock, Sparkles, Target, Trophy, Zap } from "lucide-react";
 
 const getSubjectIcon = (subject: string) => {
   const icons: Record<string, string> = {
-    English: "📚",
+    English: "📖",
     Mathematics: "🔢",
-    Physics: "⚛️",
-    Chemistry: "🧪",
+    Physics: "⚡",
+    Chemistry: "⚗️",
     Biology: "🧬",
+    Economics: "📊",
+    Government: "🏛️",
+    "Literature in English": "📚",
+    CRS: "✝️",
+    IRS: "🌙",
+    Commerce: "💼",
   };
   return icons[subject] || "📖";
 };
@@ -38,8 +44,29 @@ const Performance: React.FC = () => {
     loadSubjects,
     isInitialized: subjectsInitialized,
   } = useSubjectStore();
-  const { name, questionsCompleted, subjectCombo, bestScore, accuracy } =
-    useUserStore();
+  const {
+    name,
+    questionsCompleted,
+    subjectCombo,
+    bestScore,
+    accuracy,
+    targetScore,
+  } = useUserStore();
+
+  // Helper function to get numeric target score from range string
+  const getNumericTarget = (range: string): number => {
+    if (range === "320+") return 320;
+    if (range === "280–319") return 280;
+    if (range === "250–279") return 250;
+    if (range === "200–249") return 200;
+    // If it's already a numeric string, parse it
+    const num = parseInt(range);
+    if (!isNaN(num)) return num;
+    // Default to 320 if we don't recognize the value
+    return 320;
+  };
+
+  const userTargetScore = getNumericTarget(targetScore);
 
   useEffect(() => {
     console.log("🔵 Loading performance data...");
@@ -138,6 +165,8 @@ const Performance: React.FC = () => {
             color="text-brand"
             icon="🎯"
             iconBg="bg-brand/10"
+            valueSize="text-3xl lg:text-4xl"
+            truncate={false}
           />
           <StatCard
             label="Best Subject"
@@ -174,6 +203,8 @@ const Performance: React.FC = () => {
             color="text-warn"
             icon="📚"
             iconBg="bg-warn/10"
+            valueSize="text-3xl lg:text-4xl"
+            truncate={false}
           />
         </div>
 
@@ -325,23 +356,27 @@ const Performance: React.FC = () => {
 
               {/* Progress to Target Box */}
               <div className="bg-bgDeep/40 rounded-brand-2xl border-borderMuted/40 relative z-10 mt-8 border p-6 lg:p-7">
-                <div className="mb-6 flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="bg-brand shadow-brand/20 flex h-12 w-12 items-center justify-center rounded-2xl text-white shadow-xl">
-                      <Trophy size={24} />
+                <div className="mb-6 flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-brand shadow-brand/20 flex h-10 w-10 items-center justify-center rounded-2xl text-white shadow-xl">
+                      <Trophy size={20} />
                     </div>
                     <div>
                       <h4 className="text-textMain text-xs font-black tracking-widest uppercase">
                         Progress to Target
                       </h4>
                       <p className="text-textDim text-[11px] font-medium">
-                        JAMB Admission Goal: 320 Points
+                        JAMB Admission Goal: {userTargetScore} Points
                       </p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="font-display text-brand text-3xl leading-none font-black">
-                      {Math.min(Math.round((bestScore / 320) * 100), 100)}%
+                    <div className="font-display text-brand text-2xl leading-none font-black whitespace-nowrap lg:text-3xl">
+                      {Math.min(
+                        Math.round((bestScore / userTargetScore) * 100),
+                        100,
+                      )}
+                      %
                     </div>
                     <span className="text-textDim text-[10px] font-bold tracking-tighter uppercase">
                       Completed
@@ -353,7 +388,7 @@ const Performance: React.FC = () => {
                   <div
                     className="from-brand/60 via-brand to-brand-light relative h-full rounded-full bg-linear-to-r shadow-[0_0_20px_rgba(123,95,255,0.5)] transition-all duration-1000 ease-out"
                     style={{
-                      width: `${Math.min((bestScore / 320) * 100, 100)}%`,
+                      width: `${Math.min((bestScore / userTargetScore) * 100, 100)}%`,
                     }}
                   >
                     <div className="absolute inset-0 animate-[shimmer_2s_linear_infinite] bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.2)_50%,transparent_75%)] bg-size-[20px_20px]"></div>
@@ -363,12 +398,12 @@ const Performance: React.FC = () => {
                 <div className="mt-5 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
                   <p className="text-textDim flex items-center gap-2 text-xs font-bold italic">
                     <Sparkles size={14} className="text-brand" />
-                    {bestScore >= 320
+                    {bestScore >= userTargetScore
                       ? "Target achieved! You're ready."
-                      : `Need ${320 - bestScore} more for target.`}
+                      : `Need ${userTargetScore - bestScore} more for target.`}
                   </p>
                   <span className="text-brand bg-brand/10 rounded-full px-3 py-1 text-[11px] font-black tracking-widest uppercase">
-                    Target: 320
+                    Target: {userTargetScore}
                   </span>
                 </div>
               </div>
@@ -476,6 +511,7 @@ interface StatCardProps {
   icon: string;
   iconBg: string;
   valueSize?: string;
+  truncate?: boolean;
 }
 
 const StatCard: React.FC<StatCardProps> = ({
@@ -485,24 +521,35 @@ const StatCard: React.FC<StatCardProps> = ({
   color,
   icon,
   iconBg,
-  valueSize = "text-3xl lg:text-4xl",
+  valueSize = "text-lg lg:text-xl",
+  truncate = true,
 }) => (
-  <div className="bg-bgCard border-borderMuted hover:border-brand/30 group relative overflow-hidden rounded-4xl border p-6 shadow-sm transition-all hover:shadow-md lg:p-7">
+  <div className="bg-bgCard border-borderMuted hover:border-brand/30 group relative flex h-full flex-col overflow-hidden rounded-4xl border p-6 shadow-sm transition-all hover:shadow-md lg:p-7">
     <div
       className={`mb-5 flex h-14 w-14 items-center justify-center rounded-2xl text-2xl shadow-sm transition-transform group-hover:scale-110 ${iconBg}`}
     >
       {icon}
     </div>
-    <p className="text-textDim mb-1.5 text-[11px] font-black tracking-widest uppercase lg:text-xs">
+
+    {/* Fixed height label — prevents wrapping from misaligning cards */}
+    <p className="text-textDim mb-1.5 h-6 overflow-hidden text-[10px] font-black tracking-widest text-ellipsis whitespace-nowrap uppercase lg:text-[11px]">
       {label}
     </p>
-    <div className="flex items-baseline gap-1">
+
+    {/* Fixed height value area to maintain alignment */}
+    <div className="mb-auto min-h-14">
       <h4
-        className={`font-display font-black tracking-tighter ${color} ${valueSize}`}
+        className={`font-display w-full font-black tracking-tighter ${color} ${valueSize} ${
+          truncate
+            ? "overflow-hidden text-ellipsis whitespace-nowrap"
+            : "wrap-break-word"
+        }`}
+        title={value}
       >
         {value}
       </h4>
     </div>
+
     <p className="text-textDim mt-2 text-[11px] font-medium">{sub}</p>
 
     <div

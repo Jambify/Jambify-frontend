@@ -29,8 +29,7 @@ const TARGET_SCORES = [
 ];
 
 const ExamSettings: React.FC = () => {
-  const { targetScore, examDate, updateExamSettings } =
-    useUserStore();
+  const { targetScore, examDate, updateExamSettings } = useUserStore();
 
   // Hardcode exam year to 2027
   const EXAM_YEAR = "2027";
@@ -38,13 +37,19 @@ const ExamSettings: React.FC = () => {
   // daysLeft is COMPUTED — never read from store
   const { daysLeft, formattedDate, isUpdating } = useExamCountdown();
 
-  const [form, setForm] = useState({ targetScore, examYear: EXAM_YEAR, examDate });
+  // Local form state
+  const [form, setForm] = useState({
+    targetScore,
+    examYear: EXAM_YEAR,
+    examDate,
+  });
+
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  // Check if form has unsaved changes
   const isDirty =
-    form.targetScore !== targetScore ||
-    form.examDate !== examDate;
+    form.targetScore !== targetScore || form.examDate !== examDate;
 
   const handleSave = async () => {
     setSaving(true);
@@ -139,8 +144,6 @@ const ExamSettings: React.FC = () => {
         )}
       </div>
 
-
-
       {/* ── Exam date ─────────────────────────────────── */}
       <Section title="Exam date">
         <Field>
@@ -223,7 +226,9 @@ const ExamSettings: React.FC = () => {
         {isDirty && (
           <button
             className="text-textDim hover:text-textMain text-sm transition-colors"
-            onClick={() => setForm({ targetScore, examYear: EXAM_YEAR, examDate })}
+            onClick={() =>
+              setForm({ targetScore, examYear: EXAM_YEAR, examDate })
+            }
           >
             Discard
           </button>
