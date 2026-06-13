@@ -29,7 +29,8 @@ function getMotivationalMessage(pct: number, streak: number): string {
 const DAILY_QUESTION_GOAL = 5;
 
 const DailyGoals: React.FC = () => {
-  const { goals, checkAndCompleteGoals, resetForNewDay } = useGoalStore();
+  const { goals, checkAndCompleteGoals, resetForNewDay, syncWithDatabase } =
+    useGoalStore();
   const { streak } = useUserStore();
   const {
     questionsCompletedToday,
@@ -37,17 +38,25 @@ const DailyGoals: React.FC = () => {
     getCurrentStudyTime,
     bestAccuracyToday,
     resetForNewDay: resetTrackingForNewDay,
+    syncWithDatabase: syncTrackingWithDatabase,
   } = useStudyTrackingStore();
 
   const todayQuestions = Math.min(questionsCompletedToday, DAILY_QUESTION_GOAL);
   const questionPct = Math.round((todayQuestions / DAILY_QUESTION_GOAL) * 100);
   const goalComplete = todayQuestions >= DAILY_QUESTION_GOAL;
 
-  // Reset goals for new day on mount
+  // Reset goals for new day on mount and sync with DB
   useEffect(() => {
     resetForNewDay();
     resetTrackingForNewDay();
-  }, [resetForNewDay, resetTrackingForNewDay]);
+    syncWithDatabase();
+    syncTrackingWithDatabase();
+  }, [
+    resetForNewDay,
+    resetTrackingForNewDay,
+    syncWithDatabase,
+    syncTrackingWithDatabase,
+  ]);
 
   // Check goals every second
   useEffect(() => {
