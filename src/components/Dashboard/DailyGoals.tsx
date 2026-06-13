@@ -34,7 +34,8 @@ const DailyGoals: React.FC = () => {
   const {
     questionsCompletedToday,
     topicsCompletedToday,
-    totalStudyTimeToday,
+    getCurrentStudyTime,
+    bestAccuracyToday,
     resetForNewDay: resetTrackingForNewDay,
   } = useStudyTrackingStore();
 
@@ -48,18 +49,23 @@ const DailyGoals: React.FC = () => {
     resetTrackingForNewDay();
   }, [resetForNewDay, resetTrackingForNewDay]);
 
-  // Check goals periodically (or when user activity changes)
+  // Check goals every second
   useEffect(() => {
-    checkAndCompleteGoals(
-      questionsCompletedToday,
-      topicsCompletedToday,
-      totalStudyTimeToday,
-    );
+    const intervalId = setInterval(() => {
+      checkAndCompleteGoals(
+        questionsCompletedToday,
+        topicsCompletedToday,
+        getCurrentStudyTime(),
+        bestAccuracyToday,
+      );
+    }, 1000);
+    return () => clearInterval(intervalId);
   }, [
     checkAndCompleteGoals,
+    getCurrentStudyTime,
     questionsCompletedToday,
     topicsCompletedToday,
-    totalStudyTimeToday,
+    bestAccuracyToday,
   ]);
 
   const doneCount = goals.filter((g) => g.done).length;

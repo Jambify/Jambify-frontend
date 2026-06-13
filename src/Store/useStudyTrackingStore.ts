@@ -8,6 +8,8 @@ interface StudyTrackingState {
   topicsCompletedToday: string[]; // store topic names or ids
   studyStartTime: number | null; // timestamp when user started active session
   totalStudyTimeToday: number; // in minutes
+  bestAccuracyToday: number; // Best accuracy percentage achieved today in any session
+  lastSessionAccuracy: number; // Accuracy of the last completed session
 }
 
 interface StudyTrackingActions {
@@ -16,6 +18,8 @@ interface StudyTrackingActions {
   stopStudySession: () => void;
   incrementQuestionsCompleted: (count?: number) => void;
   addCompletedTopic: (topicIdOrName: string) => void;
+  getCurrentStudyTime: () => number; // Get total current study time (including active session)
+  setSessionAccuracy: (accuracy: number) => void; // Set accuracy for the last completed session
 }
 
 const getTodayDateString = () => {
@@ -32,6 +36,8 @@ const getInitialState = (): StudyTrackingState => ({
   topicsCompletedToday: [],
   studyStartTime: null,
   totalStudyTimeToday: 0,
+  bestAccuracyToday: 0,
+  lastSessionAccuracy: 0,
 });
 
 export const useStudyTrackingStore = create<
@@ -65,6 +71,25 @@ export const useStudyTrackingStore = create<
             studyStartTime: null,
           });
         }
+      },
+
+      getCurrentStudyTime: () => {
+        const state = get();
+        let total = state.totalStudyTimeToday;
+        if (state.studyStartTime !== null) {
+          const elapsedMs = Date.now() - state.studyStartTime;
+          total += Math.floor(elapsedMs / 60000);
+        }
+        return total;
+      },
+
+      setSessionAccuracy: (accuracy: number) => {
+        get().resetForNewDay();
+        const currentBest = get().bestAccuracyToday;
+        set({
+          lastSessionAccuracy: accuracy,
+          bestAccuracyToday: Math.max(currentBest, accuracy),
+        });
       },
 
       incrementQuestionsCompleted: (count: number = 1) => {

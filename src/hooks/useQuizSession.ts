@@ -2,6 +2,7 @@ import { useQuizStore } from "../Store/useQuizStore";
 import { useUserStore } from "../Store/useUserStore";
 import { useSubjectStore, getSubjectFromName } from "../Store/useSubjectStore";
 import { usePerformanceStore } from "../Store/usePerformanceStore";
+import { useStudyTrackingStore } from "../Store/useStudyTrackingStore";
 import type { Question } from "../Types";
 
 /**
@@ -25,11 +26,20 @@ export function useQuizSession() {
   const commitSession = async () => {
     if (questions.length === 0) return;
 
-    /* ── 1. Score totals ─────────────────────────────── */
+    /* ── 1. Check if we completed a specific topic ───── */
+    const { selectedTopic } = useQuizStore.getState();
+    if (selectedTopic && selectedTopic !== "All") {
+      useStudyTrackingStore.getState().addCompletedTopic(selectedTopic);
+    }
+
+    /* ── 2. Score totals ─────────────────────────────── */
     const correct = questions.filter((q, i) => answers[i] === q.answer).length;
     const total = questions.length;
     const newAcc = Math.round((correct / total) * 100);
     const timeTaken = quizDuration - timeLeft;
+    
+    /* ── 3. Update study tracking with session accuracy ───── */
+    useStudyTrackingStore.getState().setSessionAccuracy(newAcc);
 
     /* ── 2. Calculate topic performance ──────────────── */
     const topicPerformance: Record<

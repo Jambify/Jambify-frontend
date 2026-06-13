@@ -6,7 +6,7 @@ export type Goal = {
   label: string;
   xp: number;
   done: boolean;
-  check: (questionsCompleted: number, topicsCompleted: string[], studyTimeMinutes: number) => boolean;
+  check: (questionsCompleted: number, topicsCompleted: string[], studyTimeMinutes: number, bestAccuracyToday: number) => boolean;
 };
 
 type GoalState = {
@@ -16,7 +16,8 @@ type GoalState = {
   checkAndCompleteGoals: (
     questionsCompleted: number,
     topicsCompleted: string[],
-    studyTimeMinutes: number
+    studyTimeMinutes: number,
+    bestAccuracyToday: number
   ) => void;
   resetForNewDay: () => void;
 };
@@ -44,7 +45,7 @@ const goalSets: Goal[][] = [
   [
     { id: "complete-10-questions", label: "Solve 10 practice questions", xp: 80, done: false, check: (q) => q >= 10 },
     { id: "practice-15-minutes", label: "Study for at least 15 minutes", xp: 100, done: false, check: (_, __, s) => s >= 15 },
-    { id: "score-80-percent", label: "Get 80% or more accuracy in a session", xp: 120, done: false, check: () => false } // Note: Requires more context
+    { id: "score-80-percent", label: "Get 80% or more accuracy in a session", xp: 120, done: false, check: (_, __, ___, a) => a >= 80 }
   ],
   // Tuesday
   [
@@ -102,7 +103,8 @@ export const useGoalStore = create<GoalState>()(
       checkAndCompleteGoals: (
         questionsCompleted: number,
         topicsCompleted: string[],
-        studyTimeMinutes: number
+        studyTimeMinutes: number,
+        bestAccuracyToday: number
       ) => {
         get().resetForNewDay();
         
@@ -124,7 +126,7 @@ export const useGoalStore = create<GoalState>()(
 
         // Check each goal
         updatedGoals.forEach(goal => {
-          if (!goal.done && goal.check(questionsCompleted, topicsCompleted, studyTimeMinutes)) {
+          if (!goal.done && goal.check(questionsCompleted, topicsCompleted, studyTimeMinutes, bestAccuracyToday)) {
             goal.done = true;
             hasChanges = true;
           }
@@ -152,7 +154,7 @@ export const useGoalStore = create<GoalState>()(
           const todayGoalDefs = goalSets[dayIndex];
           const persistedDate = state.date;
           const today = getTodayDateString();
-          
+
           if (persistedDate === today) {
             // Restore today's goals with persisted done status
             state.goals = todayGoalDefs.map(def => {
