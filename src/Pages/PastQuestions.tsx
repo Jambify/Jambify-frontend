@@ -1,5 +1,4 @@
-
-import  { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect } from "react";
 import AppLayout from "../components/Layout/AppLayout";
 import { useUserStore } from "../Store/useUserStore";
 import { SUBJECT_COMBO_MAP } from "../Store/useSubjectStore";
@@ -79,8 +78,12 @@ const PAGE_SIZE = 20;
 
 const PastQuestions = () => {
   const { subjectCombo, isPro } = useUserStore();
-  const userSubjects = subjectCombo ? SUBJECT_COMBO_MAP[subjectCombo] ?? [] : [];
-  
+  const userSubjects = Array.isArray(subjectCombo)
+    ? subjectCombo
+    : subjectCombo
+      ? (SUBJECT_COMBO_MAP[subjectCombo] ?? [])
+      : [];
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [filters, setFilters] = useState<Filters>({
     subject: userSubjects[0] || "All",
@@ -114,7 +117,9 @@ const PastQuestions = () => {
       }
     };
     loadData();
-    return () => { isMounted = false; };
+    return () => {
+      isMounted = false;
+    };
   }, [filters.subject, filters.year, filters.topic, filters.difficulty]);
 
   useEffect(() => {
@@ -128,29 +133,38 @@ const PastQuestions = () => {
       }
     };
     loadTopics();
-    return () => { isMounted = false; };
+    return () => {
+      isMounted = false;
+    };
   }, [filters.subject]);
 
   const filteredQuestions = useMemo(() => {
-    return questions.filter(q => {
+    return questions.filter((q) => {
       if (!filters.search) return true;
       const search = filters.search.toLowerCase();
-      return q.text.toLowerCase().includes(search) || 
-             q.topic.toLowerCase().includes(search);
+      return (
+        q.text.toLowerCase().includes(search) ||
+        q.topic.toLowerCase().includes(search)
+      );
     });
   }, [questions, filters.search]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredQuestions.length / PAGE_SIZE));
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredQuestions.length / PAGE_SIZE),
+  );
   const paginated = useMemo(() => {
     const start = (page - 1) * PAGE_SIZE;
     return filteredQuestions.slice(start, start + PAGE_SIZE);
   }, [filteredQuestions, page]);
 
   const handleFilterChange = (next: Partial<Filters>) => {
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
       ...next,
-      ...(next.subject && next.subject !== prev.subject ? { topic: "All" } : {}),
+      ...(next.subject && next.subject !== prev.subject
+        ? { topic: "All" }
+        : {}),
     }));
     setPage(1);
     setExpandedId(null);
@@ -174,14 +188,14 @@ const PastQuestions = () => {
       isSidebarOpen={isSidebarOpen}
       setIsSidebarOpen={setIsSidebarOpen}
     >
-      <div className="max-w-5xl mx-auto space-y-6 px-4 py-6">
+      <div className="mx-auto max-w-5xl space-y-6 px-4 py-6">
         {/* Header */}
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <h1 className="font-display text-3xl font-bold text-textMain">
+          <div className="mb-1 flex items-center gap-2">
+            <h1 className="font-display text-textMain text-3xl font-bold">
               Past Questions
             </h1>
-            <span className="bg-yellow-500/10 border-yellow-500/25 text-yellow-400 rounded-full border px-2.5 py-1 text-[10px] font-bold">
+            <span className="rounded-full border border-yellow-500/25 bg-yellow-500/10 px-2.5 py-1 text-[10px] font-bold text-yellow-400">
               PRO
             </span>
           </div>
@@ -191,75 +205,92 @@ const PastQuestions = () => {
         </div>
 
         {/* Filters */}
-        <div className="bg-bgCard rounded-2xl border border-borderMuted p-5 space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-bgCard border-borderMuted space-y-4 rounded-2xl border p-5">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div className="space-y-1.5">
-              <label className="text-textDim text-xs font-semibold uppercase tracking-wider">
+              <label className="text-textDim text-xs font-semibold tracking-wider uppercase">
                 Subject
               </label>
               <select
                 value={filters.subject}
-                onChange={(e) => handleFilterChange({ subject: e.target.value })}
-                className="w-full bg-bgSurface border border-borderMuted text-textMain px-4 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/50"
+                onChange={(e) =>
+                  handleFilterChange({ subject: e.target.value })
+                }
+                className="bg-bgSurface border-borderMuted text-textMain focus:ring-brand/50 w-full rounded-xl border px-4 py-2.5 focus:ring-2 focus:outline-none"
               >
                 <option value="All">All Subjects</option>
-                {userSubjects.map(s => (
-                  <option key={s} value={s}>{s}</option>
+                {userSubjects.map((s: string) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
                 ))}
-                {ALL_SUBJECTS.filter(s => !userSubjects.includes(s)).map(s => (
-                  <option key={s} value={s}>{s}</option>
+                {ALL_SUBJECTS.filter(
+                  (s: string) => !userSubjects.includes(s),
+                ).map((s: string) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
                 ))}
               </select>
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-textDim text-xs font-semibold uppercase tracking-wider">
+              <label className="text-textDim text-xs font-semibold tracking-wider uppercase">
                 Year
               </label>
               <select
                 value={filters.year}
                 onChange={(e) => handleFilterChange({ year: e.target.value })}
-                className="w-full bg-bgSurface border border-borderMuted text-textMain px-4 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/50"
+                className="bg-bgSurface border-borderMuted text-textMain focus:ring-brand/50 w-full rounded-xl border px-4 py-2.5 focus:ring-2 focus:outline-none"
               >
-                {VALID_YEARS.map(y => (
-                  <option key={y} value={y}>{y === "All" ? "All Years" : y}</option>
+                {VALID_YEARS.map((y) => (
+                  <option key={y} value={y}>
+                    {y === "All" ? "All Years" : y}
+                  </option>
                 ))}
               </select>
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-textDim text-xs font-semibold uppercase tracking-wider">
+              <label className="text-textDim text-xs font-semibold tracking-wider uppercase">
                 Topic
               </label>
               <select
                 value={filters.topic}
                 onChange={(e) => handleFilterChange({ topic: e.target.value })}
                 disabled={filters.subject === "All"}
-                className="w-full bg-bgSurface border border-borderMuted text-textMain px-4 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/50 disabled:opacity-50"
+                className="bg-bgSurface border-borderMuted text-textMain focus:ring-brand/50 w-full rounded-xl border px-4 py-2.5 focus:ring-2 focus:outline-none disabled:opacity-50"
               >
                 <option value="All">All Topics</option>
-                {availableTopics.map(t => (
-                  <option key={t} value={t}>{t}</option>
+                {availableTopics.map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
                 ))}
               </select>
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-textDim text-xs font-semibold uppercase tracking-wider">
+              <label className="text-textDim text-xs font-semibold tracking-wider uppercase">
                 Search
               </label>
               <div className="relative">
-                <Search size={18} className="text-textDim absolute left-4 top-1/2 -translate-y-1/2" />
+                <Search
+                  size={18}
+                  className="text-textDim absolute top-1/2 left-4 -translate-y-1/2"
+                />
                 <input
                   value={filters.search}
-                  onChange={(e) => handleFilterChange({ search: e.target.value })}
+                  onChange={(e) =>
+                    handleFilterChange({ search: e.target.value })
+                  }
                   placeholder="Search..."
-                  className="w-full bg-bgSurface border border-borderMuted text-textMain pl-12 pr-4 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/50"
+                  className="bg-bgSurface border-borderMuted text-textMain focus:ring-brand/50 w-full rounded-xl border py-2.5 pr-4 pl-12 focus:ring-2 focus:outline-none"
                 />
                 {filters.search && (
                   <button
                     onClick={() => handleFilterChange({ search: "" })}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-textDim hover:text-textMain"
+                    className="text-textDim hover:text-textMain absolute top-1/2 right-3 -translate-y-1/2"
                   >
                     <X size={18} />
                   </button>
@@ -272,16 +303,16 @@ const PastQuestions = () => {
         {/* Loading State */}
         {isLoading && (
           <div className="flex flex-col items-center justify-center py-20">
-            <Loader2 className="text-brand h-10 w-10 animate-spin mb-3" />
+            <Loader2 className="text-brand mb-3 h-10 w-10 animate-spin" />
             <p className="text-textDim text-lg">Loading questions...</p>
           </div>
         )}
 
         {/* No Results */}
         {!isLoading && paginated.length === 0 && (
-          <div className="bg-bgCard border border-borderMuted rounded-2xl p-12 text-center">
-            <div className="text-5xl mb-4">📚</div>
-            <h3 className="text-textMain font-bold text-xl mb-2">
+          <div className="bg-bgCard border-borderMuted rounded-2xl border p-12 text-center">
+            <div className="mb-4 text-5xl">📚</div>
+            <h3 className="text-textMain mb-2 text-xl font-bold">
               No questions found
             </h3>
             <p className="text-textDim mb-6">
@@ -289,13 +320,15 @@ const PastQuestions = () => {
             </p>
             <Button
               variant="secondary"
-              onClick={() => handleFilterChange({
-                subject: userSubjects[0] || "All",
-                year: "All",
-                topic: "All",
-                difficulty: "All",
-                search: "",
-              })}
+              onClick={() =>
+                handleFilterChange({
+                  subject: userSubjects[0] || "All",
+                  year: "All",
+                  topic: "All",
+                  difficulty: "All",
+                  search: "",
+                })
+              }
             >
               Reset Filters
             </Button>
@@ -307,8 +340,15 @@ const PastQuestions = () => {
           <>
             <div className="flex items-center justify-between">
               <p className="text-textDim text-sm">
-                Showing <span className="text-textMain font-semibold">{paginated.length}</span> of{" "}
-                <span className="text-textMain font-semibold">{filteredQuestions.length}</span> questions
+                Showing{" "}
+                <span className="text-textMain font-semibold">
+                  {paginated.length}
+                </span>{" "}
+                of{" "}
+                <span className="text-textMain font-semibold">
+                  {filteredQuestions.length}
+                </span>{" "}
+                questions
               </p>
             </div>
 
@@ -321,35 +361,35 @@ const PastQuestions = () => {
                 return (
                   <div
                     key={q.id}
-                    className="bg-bgCard border border-borderMuted rounded-2xl overflow-hidden transition-all"
+                    className="bg-bgCard border-borderMuted overflow-hidden rounded-2xl border transition-all"
                   >
                     <button
                       onClick={() => setExpandedId(isExpanded ? null : q.id)}
-                      className="w-full text-left p-5"
+                      className="w-full p-5 text-left"
                     >
                       <div className="flex items-start gap-4">
                         <div
-                          className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 font-bold"
+                          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full font-bold"
                           style={{ backgroundColor: `${color}20`, color }}
                         >
                           {questionNum}
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-3 mb-2 flex-wrap">
+                        <div className="min-w-0 flex-1">
+                          <div className="mb-2 flex flex-wrap items-center gap-3">
                             <span
-                              className="text-xs font-semibold px-2.5 py-1 rounded-full"
+                              className="rounded-full px-2.5 py-1 text-xs font-semibold"
                               style={{ backgroundColor: `${color}20`, color }}
                             >
                               {q.subject}
                             </span>
-                            <span className="text-textDim text-xs flex items-center gap-1">
+                            <span className="text-textDim flex items-center gap-1 text-xs">
                               <Calendar size={14} /> {q.year}
                             </span>
-                            <span className="text-textDim text-xs flex items-center gap-1">
+                            <span className="text-textDim flex items-center gap-1 text-xs">
                               <Lightbulb size={14} /> {q.difficulty}
                             </span>
                           </div>
-                          <p className="text-textMain font-medium leading-relaxed">
+                          <p className="text-textMain leading-relaxed font-medium">
                             {q.text}
                           </p>
                         </div>
@@ -361,52 +401,63 @@ const PastQuestions = () => {
                     </button>
 
                     {isExpanded && (
-                      <div className="border-t border-borderMuted px-5 pb-5 pt-1">
+                      <div className="border-borderMuted border-t px-5 pt-1 pb-5">
                         {q.instruction && (
-                          <div className="mb-4 p-4 bg-bgSurface rounded-xl">
+                          <div className="bg-bgSurface mb-4 rounded-xl p-4">
                             <p className="text-textDim text-sm">
-                              <span className="font-semibold text-textMain">Instruction: </span>
+                              <span className="text-textMain font-semibold">
+                                Instruction:{" "}
+                              </span>
                               {q.instruction}
                             </p>
                           </div>
                         )}
 
-                        <div className="space-y-2.5 mb-4">
+                        <div className="mb-4 space-y-2.5">
                           {q.options.map((opt, optIdx) => (
                             <div
                               key={optIdx}
-                              className={`p-4 rounded-xl border flex items-center gap-3 ${
+                              className={`flex items-center gap-3 rounded-xl border p-4 ${
                                 optIdx === q.answer
                                   ? "border-success/30 bg-success/5"
                                   : "border-borderMuted bg-bgSurface"
                               }`}
                             >
                               <span
-                                className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
+                                className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
                                   optIdx === q.answer
                                     ? "bg-success text-white"
-                                    : "bg-bgCard border border-borderMuted text-textDim"
+                                    : "bg-bgCard border-borderMuted text-textDim border"
                                 }`}
                               >
                                 {String.fromCharCode(65 + optIdx)}
                               </span>
                               <span
-                                className={optIdx === q.answer ? "text-textMain font-semibold" : "text-textDim"}
+                                className={
+                                  optIdx === q.answer
+                                    ? "text-textMain font-semibold"
+                                    : "text-textDim"
+                                }
                               >
                                 {opt}
                               </span>
                               {optIdx === q.answer && (
-                                <CheckCircle2 size={18} className="text-success ml-auto" />
+                                <CheckCircle2
+                                  size={18}
+                                  className="text-success ml-auto"
+                                />
                               )}
                             </div>
                           ))}
                         </div>
 
-                        <div className="bg-brand/5 border border-brand/10 p-4 rounded-xl">
-                          <h5 className="font-semibold text-brand-light text-sm mb-1">
+                        <div className="bg-brand/5 border-brand/10 rounded-xl border p-4">
+                          <h5 className="text-brand-light mb-1 text-sm font-semibold">
                             Explanation
                           </h5>
-                          <p className="text-textMain text-sm">{q.explanation}</p>
+                          <p className="text-textMain text-sm">
+                            {q.explanation}
+                          </p>
                         </div>
                       </div>
                     )}
@@ -422,20 +473,23 @@ const PastQuestions = () => {
                   variant="secondary"
                   size="sm"
                   disabled={page === 1}
-                  onClick={() => setPage(p => p - 1)}
+                  onClick={() => setPage((p) => p - 1)}
                   className="flex items-center gap-2"
                 >
                   <ChevronLeft size={16} /> Previous
                 </Button>
                 <p className="text-textDim text-sm">
-                  Page <span className="text-textMain font-semibold">{page}</span> of{" "}
-                  <span className="text-textMain font-semibold">{totalPages}</span>
+                  Page{" "}
+                  <span className="text-textMain font-semibold">{page}</span> of{" "}
+                  <span className="text-textMain font-semibold">
+                    {totalPages}
+                  </span>
                 </p>
                 <Button
                   variant="secondary"
                   size="sm"
                   disabled={page === totalPages}
-                  onClick={() => setPage(p => p + 1)}
+                  onClick={() => setPage((p) => p + 1)}
                   className="flex items-center gap-2"
                 >
                   Next <ChevronRight size={16} />

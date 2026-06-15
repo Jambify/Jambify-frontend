@@ -50,53 +50,12 @@ const goalSets: Goal[][] = [
   // Sunday
   [
     {
-      id: "complete-5-questions",
-      label: "Solve 5 practice questions",
-      xp: 50,
+      id: "complete-40-questions",
+      label: "Solve 40 practice questions",
+      xp: 200,
       done: false,
-      check: (q) => q >= 5,
+      check: (q) => q >= 40,
     },
-    {
-      id: "complete-1-topic",
-      label: "Complete all questions in a single topic",
-      xp: 100,
-      done: false,
-      check: (_, t) => t.length >= 1,
-    },
-    {
-      id: "practice-10-minutes",
-      label: "Study for at least 10 minutes",
-      xp: 75,
-      done: false,
-      check: (_, __, s) => s >= 10,
-    },
-  ],
-  // Monday
-  [
-    {
-      id: "complete-10-questions",
-      label: "Solve 10 practice questions",
-      xp: 80,
-      done: false,
-      check: (q) => q >= 10,
-    },
-    {
-      id: "practice-15-minutes",
-      label: "Study for at least 15 minutes",
-      xp: 100,
-      done: false,
-      check: (_, __, s) => s >= 15,
-    },
-    {
-      id: "score-80-percent",
-      label: "Get 80% or more accuracy in a session",
-      xp: 120,
-      done: false,
-      check: (_, __, ___, a) => a >= 80,
-    },
-  ],
-  // Tuesday
-  [
     {
       id: "complete-2-topics",
       label: "Complete all questions in 2 topics",
@@ -105,29 +64,39 @@ const goalSets: Goal[][] = [
       check: (_, t) => t.length >= 2,
     },
     {
-      id: "practice-20-minutes",
-      label: "Study for at least 20 minutes",
-      xp: 120,
+      id: "practice-180-minutes",
+      label: "Study for at least 3 hours",
+      xp: 250,
       done: false,
-      check: (_, __, s) => s >= 20,
-    },
-    {
-      id: "complete-7-questions",
-      label: "Solve 7 practice questions",
-      xp: 60,
-      done: false,
-      check: (q) => q >= 7,
+      check: (_, __, s) => s >= 180,
     },
   ],
-  // Wednesday
+  // Monday
   [
     {
-      id: "practice-25-minutes",
-      label: "Study for at least 25 minutes",
-      xp: 140,
+      id: "complete-45-questions",
+      label: "Solve 45 practice questions",
+      xp: 220,
       done: false,
-      check: (_, __, s) => s >= 25,
+      check: (q) => q >= 45,
     },
+    {
+      id: "practice-210-minutes",
+      label: "Study for at least 3.5 hours",
+      xp: 280,
+      done: false,
+      check: (_, __, s) => s >= 210,
+    },
+    {
+      id: "score-85-percent",
+      label: "Get 85% or more accuracy in a session",
+      xp: 150,
+      done: false,
+      check: (_, __, ___, a) => a >= 85,
+    },
+  ],
+  // Tuesday
+  [
     {
       id: "complete-3-topics",
       label: "Complete all questions in 3 topics",
@@ -136,28 +105,28 @@ const goalSets: Goal[][] = [
       check: (_, t) => t.length >= 3,
     },
     {
-      id: "complete-12-questions",
-      label: "Solve 12 practice questions",
-      xp: 90,
+      id: "practice-240-minutes",
+      label: "Study for at least 4 hours",
+      xp: 300,
       done: false,
-      check: (q) => q >= 12,
+      check: (_, __, s) => s >= 240,
+    },
+    {
+      id: "complete-50-questions",
+      label: "Solve 50 practice questions",
+      xp: 240,
+      done: false,
+      check: (q) => q >= 50,
     },
   ],
-  // Thursday
+  // Wednesday
   [
     {
-      id: "complete-15-questions",
-      label: "Solve 15 practice questions",
-      xp: 100,
+      id: "practice-270-minutes",
+      label: "Study for at least 4.5 hours",
+      xp: 330,
       done: false,
-      check: (q) => q >= 15,
-    },
-    {
-      id: "practice-30-minutes",
-      label: "Study for at least 30 minutes",
-      xp: 150,
-      done: false,
-      check: (_, __, s) => s >= 30,
+      check: (_, __, s) => s >= 270,
     },
     {
       id: "complete-4-topics",
@@ -166,46 +135,29 @@ const goalSets: Goal[][] = [
       done: false,
       check: (_, t) => t.length >= 4,
     },
-  ],
-  // Friday
-  [
     {
-      id: "practice-12-minutes",
-      label: "Study for at least 12 minutes",
-      xp: 85,
+      id: "complete-55-questions",
+      label: "Solve 55 practice questions",
+      xp: 260,
       done: false,
-      check: (_, __, s) => s >= 12,
-    },
-    {
-      id: "complete-8-questions",
-      label: "Solve 8 practice questions",
-      xp: 70,
-      done: false,
-      check: (q) => q >= 8,
-    },
-    {
-      id: "complete-1-topic-friday",
-      label: "Complete all questions in a single topic",
-      xp: 110,
-      done: false,
-      check: (_, t) => t.length >= 1,
+      check: (q) => q >= 55,
     },
   ],
-  // Saturday
+  // Thursday
   [
     {
-      id: "complete-20-questions",
-      label: "Solve 20 practice questions",
-      xp: 130,
+      id: "complete-60-questions",
+      label: "Solve 60 practice questions",
+      xp: 280,
       done: false,
-      check: (q) => q >= 20,
+      check: (q) => q >= 60,
     },
     {
-      id: "practice-40-minutes",
-      label: "Study for at least 40 minutes",
-      xp: 200,
+      id: "practice-300-minutes",
+      label: "Study for at least 5 hours",
+      xp: 360,
       done: false,
-      check: (_, __, s) => s >= 40,
+      check: (_, __, s) => s >= 300,
     },
     {
       id: "complete-5-topics",
@@ -213,6 +165,54 @@ const goalSets: Goal[][] = [
       xp: 300,
       done: false,
       check: (_, t) => t.length >= 5,
+    },
+  ],
+  // Friday
+  [
+    {
+      id: "practice-180-minutes-friday",
+      label: "Study for at least 3 hours",
+      xp: 220,
+      done: false,
+      check: (_, __, s) => s >= 180,
+    },
+    {
+      id: "complete-40-questions-friday",
+      label: "Solve 40 practice questions",
+      xp: 200,
+      done: false,
+      check: (q) => q >= 40,
+    },
+    {
+      id: "complete-2-topics-friday",
+      label: "Complete all questions in 2 topics",
+      xp: 170,
+      done: false,
+      check: (_, t) => t.length >= 2,
+    },
+  ],
+  // Saturday
+  [
+    {
+      id: "complete-70-questions",
+      label: "Solve 70 practice questions",
+      xp: 320,
+      done: false,
+      check: (q) => q >= 70,
+    },
+    {
+      id: "practice-360-minutes",
+      label: "Study for at least 6 hours",
+      xp: 400,
+      done: false,
+      check: (_, __, s) => s >= 360,
+    },
+    {
+      id: "complete-6-topics",
+      label: "Complete all questions in 6 topics",
+      xp: 350,
+      done: false,
+      check: (_, t) => t.length >= 6,
     },
   ],
 ];

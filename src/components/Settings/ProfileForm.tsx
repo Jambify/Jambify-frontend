@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useUserStore } from "../../Store/useUserStore";
 import Button from "../ui/Button";
+import ConfirmModal from "../ui/ConfirmModal";
 import { cn, toTitleCase } from "../../lib/utils/utils";
 import { Section, Field, inputCls } from "./Shared";
 import { Search, Loader2 } from "lucide-react"; // Added Loader2
+import CustomSubjectSelector from "./CustomSubjectSelector";
 
 const SUBJECT_COMBOS = [
   {
@@ -41,8 +43,13 @@ const ProfileForm: React.FC = () => {
     targetScore,
     examYear,
     examDate,
-    completeOnboarding,
+    updateProfile,
   } = useUserStore();
+
+  // Check if current subject combo is custom (array) or predefined
+  const isCustomComboCustom = Array.isArray(subjectCombo);
+  const [isCustomSubjectMode, setIsCustomSubjectMode] =
+    useState(isCustomComboCustom);
 
   const [form, setForm] = useState({
     name,
@@ -59,6 +66,10 @@ const ProfileForm: React.FC = () => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [saved, setSaved] = useState(false);
   const [errors, setErrors] = useState<{ name?: string }>({});
+  const [showConfirmComboChange, setShowConfirmComboChange] = useState(false);
+  const [pendingFormUpdate, setPendingFormUpdate] = useState<
+    typeof form | null
+  >(null);
 
   useEffect(() => {
     const fetchUniversities = async () => {
@@ -95,17 +106,51 @@ const ProfileForm: React.FC = () => {
       setErrors({ name: "Name cannot be empty" });
       return;
     }
+
+    // Check if subject combo changed
+    const hasComboChanged =
+      JSON.stringify(form.subjectCombo) !== JSON.stringify(subjectCombo);
+
+    if (hasComboChanged) {
+      setPendingFormUpdate(form);
+      setShowConfirmComboChange(true);
+      return;
+    }
+
     const formattedForm = { ...form, name: toTitleCase(form.name.trim()) };
-    completeOnboarding(formattedForm);
+    updateProfile({
+      name: formattedForm.name,
+      university: formattedForm.university,
+      subjectCombo: formattedForm.subjectCombo,
+    });
     setForm(formattedForm);
     setSaved(true);
     setTimeout(() => setSaved(false), 2500);
   };
 
+  const confirmComboChange = () => {
+    if (pendingFormUpdate) {
+      const formattedForm = {
+        ...pendingFormUpdate,
+        name: toTitleCase(pendingFormUpdate.name.trim()),
+      };
+      updateProfile({
+        name: formattedForm.name,
+        university: formattedForm.university,
+        subjectCombo: formattedForm.subjectCombo,
+      });
+      setForm(formattedForm);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2500);
+    }
+    setShowConfirmComboChange(false);
+    setPendingFormUpdate(null);
+  };
+
   const isDirty =
     form.name !== name ||
     form.university !== university ||
-    form.subjectCombo !== subjectCombo ||
+    JSON.stringify(form.subjectCombo) !== JSON.stringify(subjectCombo) ||
     form.targetScore !== targetScore ||
     form.examYear !== examYear;
 
@@ -207,44 +252,106 @@ const ProfileForm: React.FC = () => {
 
       {/* Updated Subject Combinations */}
       <Section title="Subject combination">
-        <div className="grid grid-cols-1 gap-2">
-          {SUBJECT_COMBOS.map((combo) => {
-            const isSelected = form.subjectCombo === combo.id;
-            return (
-              <button
-                key={combo.id}
-                type="button"
-                onClick={() =>
-                  setForm((p) => ({ ...p, subjectCombo: combo.id }))
-                }
-                className={cn(
-                  "rounded-brand flex w-full items-center gap-3 border px-4 py-3 text-left transition-all duration-200",
-                  isSelected
-                    ? "bg-brand/10 border-brand ring-brand/50 ring-1"
-                    : "bg-bgSurface border-borderMuted hover:border-white/20",
-                )}
-              >
-                <span className="text-xl grayscale-0">{combo.icon}</span>
-                <div className="flex-1">
-                  <p
-                    className={cn(
-                      "text-sm font-semibold",
-                      isSelected ? "text-brand-light" : "text-textMain",
-                    )}
-                  >
-                    {combo.label}
-                  </p>
-                  <p className="text-textDim mt-0.5 text-[11px] leading-tight">
-                    {combo.subjects.join(" · ")}
-                  </p>
-                </div>
-                {isSelected && (
-                  <div className="bg-brand shadow-brand h-2 w-2 rounded-full" />
-                )}
-              </button>
-            );
-          })}
+        {/* Toggle Custom/Predefined */}
+        <div className="mb-4 grid grid-cols-2 gap-2">
+          <button
+            onClick={() => {
+              setIsCustomSubjectMode(false);
+            }}
+            className={cn(
+              "rounded-xl border py-3 text-sm font-bold transition-all",
+              !isCustomSubjectMode
+                ? "bg-brand border-brand shadow-brand/20 text-white"
+                : "bg-bgSurface border-borderMuted text-textMuted",
+            )}
+          >
+            Predefined
+          </button>
+          <button
+            onClick={() => {
+              setIsCustomSubjectMode(true);
+              // Initialize custom mode if not already
+              if (!Array.isArray(form.subjectCombo)) {
+                setForm((prev) => ({
+                  ...prev,
+                  subjectCombo: [
+                    "English",
+                    "Mathematics",
+                    "Physics",
+                    "Chemistry",
+                  ],
+                }));
+              }
+            }}
+            className={cn(
+              "rounded-xl border py-3 text-sm font-bold transition-all",
+              isCustomSubjectMode
+                ? "bg-brand border-brand shadow-brand/20 text-white"
+                : "bg-bgSurface border-borderMuted text-textMuted",
+            )}
+          >
+            Custom Combo
+          </button>
         </div>
+
+        {/* Predefined Combos */}
+        {!isCustomSubjectMode && (
+          <div className="grid grid-cols-1 gap-2">
+            {SUBJECT_COMBOS.map((combo) => {
+              const isSelected = form.subjectCombo === combo.id;
+              return (
+                <button
+                  key={combo.id}
+                  type="button"
+                  onClick={() =>
+                    setForm((p) => ({ ...p, subjectCombo: combo.id }))
+                  }
+                  className={cn(
+                    "rounded-brand flex w-full items-center gap-3 border px-4 py-3 text-left transition-all duration-200",
+                    isSelected
+                      ? "bg-brand/10 border-brand ring-brand/50 ring-1"
+                      : "bg-bgSurface border-borderMuted hover:border-white/20",
+                  )}
+                >
+                  <span className="text-xl grayscale-0">{combo.icon}</span>
+                  <div className="flex-1">
+                    <p
+                      className={cn(
+                        "text-sm font-semibold",
+                        isSelected ? "text-brand-light" : "text-textMain",
+                      )}
+                    >
+                      {combo.label}
+                    </p>
+                    <p className="text-textDim mt-0.5 text-[11px] leading-tight">
+                      {combo.subjects.join(" · ")}
+                    </p>
+                  </div>
+                  {isSelected && (
+                    <div className="bg-brand shadow-brand h-2 w-2 rounded-full" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Custom Combo Selector */}
+        {isCustomSubjectMode && (
+          <CustomSubjectSelector
+            selectedSubjects={
+              Array.isArray(form.subjectCombo)
+                ? form.subjectCombo
+                : ["English", "Mathematics", "Physics", "Chemistry"]
+            }
+            onChange={(subjects) => {
+              setForm((prev) => ({
+                ...prev,
+                subjectCombo: subjects,
+              }));
+            }}
+          />
+        )}
       </Section>
 
       <div className="flex items-center gap-5">
@@ -259,7 +366,7 @@ const ProfileForm: React.FC = () => {
         {isDirty && (
           <button
             className="text-textDim hover:text-textMain text-sm transition-colors"
-            onClick={() =>
+            onClick={() => {
               setForm({
                 name,
                 email,
@@ -268,13 +375,29 @@ const ProfileForm: React.FC = () => {
                 targetScore,
                 examYear,
                 examDate,
-              })
-            }
+              });
+              setIsCustomSubjectMode(Array.isArray(subjectCombo));
+            }}
           >
             Discard
           </button>
         )}
       </div>
+
+      {/* Confirmation Modal for Subject Combo Change */}
+      <ConfirmModal
+        isOpen={showConfirmComboChange}
+        onClose={() => {
+          setShowConfirmComboChange(false);
+          setPendingFormUpdate(null);
+        }}
+        onConfirm={confirmComboChange}
+        title="Change Subject Combo?"
+        message="Your progress on existing subjects will be preserved. If you switch back to this combo later, your previous progress will be restored."
+        confirmText="Change Combo"
+        cancelText="Cancel"
+        type="warning"
+      />
     </div>
   );
 };

@@ -30,7 +30,9 @@ const SubjectProgress: React.FC = () => {
   const { subjects } = useSubjectStore();
 
   // Get user's subjects from combo ID (e.g. "medicine" -> ["English", "Biology", ...])
-  const userSubjects = subjectCombo
+  const userSubjects = Array.isArray(subjectCombo) 
+    ? subjectCombo 
+    : subjectCombo
     ? SUBJECT_COMBO_MAP[subjectCombo] || [subjectCombo] // Fallback to raw string if not in map
     : [];
 

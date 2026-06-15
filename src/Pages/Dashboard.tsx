@@ -74,7 +74,9 @@ const Dashboard: React.FC = () => {
   const accuracy = Math.round(avgAccuracy);
 
   // Filter stats based on user subject combo
-  const userSubjects = subjectCombo
+  const userSubjects = Array.isArray(subjectCombo) 
+    ? subjectCombo 
+    : subjectCombo
     ? SUBJECT_COMBO_MAP[subjectCombo] || [subjectCombo]
     : [];
   const filteredTopicStats = topicStats.filter((t: any) =>

@@ -5,7 +5,8 @@ import { usePerformanceStore } from "../../Store/usePerformanceStore";
 import { useUserStore } from "../../Store/useUserStore";
 import { useNavigate } from "react-router-dom";
 import { cn } from "../../lib/utils/utils";
-import { ArrowRight } from "lucide-react";
+import { SUBJECT_COMBO_MAP } from "../../Store/useSubjectStore";
+import { ArrowRight } from "lucide-react";  
 
 const TopicStats: React.FC = () => {
   const navigate = useNavigate();
@@ -14,8 +15,10 @@ const TopicStats: React.FC = () => {
   const [showAll, setShowAll] = useState(false);
 
   // Filter stats based on user subject combo
-  const userSubjects = subjectCombo
-    ? subjectCombo.split(",").map((s) => s.trim())
+  const userSubjects = Array.isArray(subjectCombo) 
+    ? subjectCombo 
+    : subjectCombo
+    ? SUBJECT_COMBO_MAP[subjectCombo] || subjectCombo.split(",").map((s) => s.trim())
     : [];
   const filteredTopicStats = topicStats.filter((t) =>
     userSubjects.includes(t.subject),

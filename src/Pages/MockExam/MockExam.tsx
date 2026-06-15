@@ -81,7 +81,7 @@ const shuffleArray = <T,>(array: T[]): T[] => {
 };
 const MockExam: React.FC = () => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useUserStore();
+  const { isAuthenticated, subjectCombo } = useUserStore();
   const { addQuizResult } = usePerformanceStore();
   const {
     isStarted,
@@ -101,6 +101,16 @@ const MockExam: React.FC = () => {
     clearResponse,
   } = useMockStore();
 
+  // Get user's subjects from combo
+  const userSubjects = Array.isArray(subjectCombo)
+    ? subjectCombo
+    : {
+        medicine: ["English", "Biology", "Chemistry", "Physics"],
+        engineering: ["English", "Mathematics", "Physics", "Chemistry"],
+        "social-sci": ["English", "Mathematics", "Economics", "Government"],
+        law: ["English", "Literature", "Government", "CRS"],
+      }[subjectCombo] || ["English", "Mathematics", "Physics", "Chemistry"];
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showConfirmExit, setShowConfirmExit] = useState(false);
   const [showConfirmSubmit, setShowConfirmSubmit] = useState(false);
@@ -108,10 +118,10 @@ const MockExam: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [selectedYear, setSelectedYear] = useState("2025");
   const [selectedCombination, setSelectedCombination] = useState<string[]>([
-    "English",
-    "",
-    "",
-    "",
+    userSubjects[0] || "English",
+    userSubjects[1] || "",
+    userSubjects[2] || "",
+    userSubjects[3] || "",
   ]);
   const [jumpTo, setJumpTo] = useState("");
   const [activeSubject, setActiveSubject] = useState("English");

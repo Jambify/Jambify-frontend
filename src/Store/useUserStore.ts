@@ -8,7 +8,7 @@ import { useSubjectStore } from "./useSubjectStore";
 interface OnboardingData {
   name: string;
   university: string;
-  subjectCombo: string;
+  subjectCombo: string | string[];
   targetScore: string;
   examYear: string;
   examDate?: string;
@@ -17,7 +17,7 @@ interface OnboardingData {
 interface ProfileUpdate {
   name: string;
   university: string;
-  subjectCombo: string;
+  subjectCombo: string | string[];
 }
 interface ExamUpdate {
   targetScore: string;
@@ -44,7 +44,7 @@ interface UserState {
   name: string;
   email: string;
   university: string;
-  subjectCombo: string;
+  subjectCombo: string | string[];
   targetScore: string;
   examYear: string;
   examDate: string;
@@ -137,25 +137,33 @@ const DEFAULTS = {
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-const getSubjectComboString = (id: string): string =>
-  (
+const getSubjectComboString = (idOrArray: string | string[]): string => {
+  if (Array.isArray(idOrArray)) {
+    return idOrArray.join(", ");
+  }
+  return (
     ({
       medicine: "English, Biology, Chemistry, Physics",
       engineering: "English, Mathematics, Physics, Chemistry",
       "social-sci": "English, Mathematics, Economics, Government",
       law: "English, Literature, Government, CRS/IRS",
     }) as Record<string, string>
-  )[id] ?? id;
+  )[idOrArray] ?? idOrArray;
+};
 
-const getSubjectComboId = (str: string): string =>
-  (
-    ({
-      "English, Biology, Chemistry, Physics": "medicine",
-      "English, Mathematics, Physics, Chemistry": "engineering",
-      "English, Mathematics, Economics, Government": "social-sci",
-      "English, Literature, Government, CRS/IRS": "law",
-    }) as Record<string, string>
-  )[str] ?? str;
+const getSubjectComboId = (str: string): string | string[] => {
+  const predefined: Record<string, string> = {
+    "English, Biology, Chemistry, Physics": "medicine",
+    "English, Mathematics, Physics, Chemistry": "engineering",
+    "English, Mathematics, Economics, Government": "social-sci",
+    "English, Literature, Government, CRS/IRS": "law",
+  };
+
+  if (predefined[str]) return predefined[str];
+
+  // If not predefined, split into array
+  return str.split(", ").map(s => s.trim());
+};
 
 // ── Store ─────────────────────────────────────────────────────────────────────
 export const useUserStore = create<UserState>()(
@@ -354,7 +362,9 @@ export const useUserStore = create<UserState>()(
             .eq("id", id);
           if (error) throw error;
           set(data);
-          await get().syncProfile();
+          // Initialize any new subjects without resetting existing ones
+          await useSubjectStore.getState().initialize();
+          await get().syncProfile(true);
           return { error: null };
         } catch (err) {
           return { error: err as Error };

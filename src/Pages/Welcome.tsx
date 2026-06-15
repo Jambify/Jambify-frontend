@@ -46,7 +46,10 @@ const Welcome: React.FC = () => {
     return () => clearTimeout(timer);
   }, []); // empty deps — only runs once on mount
 
-  const getSubjectLabel = (combo: string) => {
+  const getSubjectLabel = (combo: string | string[]) => {
+    if (Array.isArray(combo)) {
+      return combo.join(", ");
+    }
     const labels: Record<string, string> = {
       medicine: "Medicine & Pharmacy",
       engineering: "Engineering & Tech",

@@ -23,7 +23,7 @@ interface SubjectState {
 }
 
 // Complete master list of all possible subjects with their details
-const ALL_SUBJECTS_MASTER = [
+export const ALL_SUBJECTS_MASTER = [
   {
     id: "eng",
     name: "English",
@@ -235,15 +235,18 @@ const calculateRank = (accuracy: number): number => {
 
 // Get user's selected subjects based on their onboarding subject combo
 const getUserSelectedSubjects = (): string[] => {
-  const subjectComboId = useUserStore.getState().subjectCombo;
-  // Default to engineering if not set (fallback)
-  const subjects =
-    SUBJECT_COMBO_MAP[subjectComboId] || SUBJECT_COMBO_MAP["engineering"];
+  const subjectCombo = useUserStore.getState().subjectCombo;
+  let subjects: string[];
+  if (Array.isArray(subjectCombo)) {
+    subjects = subjectCombo;
+  } else {
+    subjects = SUBJECT_COMBO_MAP[subjectCombo] || SUBJECT_COMBO_MAP["engineering"];
+  }
   console.log(
     "🔵 User selected subjects:",
     subjects,
     "from combo:",
-    subjectComboId,
+    subjectCombo,
   );
   return subjects;
 };
@@ -314,6 +317,7 @@ const fetchUserSubjects = async (): Promise<Subject[]> => {
 };
 
 // Initialize subject progress for a new user (only selected subjects)
+// Will NOT reset progress if subject already exists!
 const initializeUserSubjects = async (): Promise<void> => {
   const {
     data: { user },
@@ -331,19 +335,27 @@ const initializeUserSubjects = async (): Promise<void> => {
   for (const master of selectedSubjectsMaster) {
     const fullName = SHORT_ID_TO_FULL_NAME[master.id];
     if (!fullName) continue;
-    const { error } = await supabase.from("subject_accuracy").upsert(
-      {
-        user_id: user.id,
-        subject: fullName,
-        total_correct: 0,
-        total_attempted: 0,
-      },
-      {
-        onConflict: "user_id,subject",
-      },
-    );
 
-    if (error) console.error(`Error initializing ${master.name}:`, error);
+    // Only insert if not already exists
+    const { data: existing } = await supabase
+      .from("subject_accuracy")
+      .select("*")
+      .eq("user_id", user.id)
+      .eq("subject", fullName)
+      .maybeSingle();
+
+    if (!existing) {
+      const { error } = await supabase.from("subject_accuracy").insert(
+        {
+          user_id: user.id,
+          subject: fullName,
+          total_correct: 0,
+          total_attempted: 0,
+        },
+      );
+
+      if (error) console.error(`Error initializing ${master.name}:`, error);
+    }
   }
 };
 

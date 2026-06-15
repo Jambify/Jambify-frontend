@@ -6,6 +6,7 @@ import Button from "../components/ui/Button";
 import ConfirmModal from "../components/ui/ConfirmModal";
 import { cn } from "../lib/utils/utils";
 import LoadingScreen from "../components/ui/LoadingScreen";
+import CustomSubjectSelector from "../components/Settings/CustomSubjectSelector";
 
 /* ── Updated Data with Professional Combos ── */
 const SUBJECT_COMBOS = [
@@ -84,7 +85,7 @@ const FALLBACK_UNIVERSITIES = [
 interface FormData {
   name: string;
   university: string;
-  subjectCombo: string;
+  subjectCombo: string | string[]; // Can be predefined ID or array of subject names
   targetScore: string; // We'll store as string for database compatibility
   examYear: string;
   examDate: string;
@@ -115,6 +116,7 @@ const Onboarding: React.FC = () => {
   const [isCompleting, setIsCompleting] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false); // ← Add this
 
+  const [isCustomSubjectMode, setIsCustomSubjectMode] = useState(false);
   const [form, setForm] = useState<FormData>({
     name: userName,
     university: "",
@@ -480,30 +482,97 @@ const Onboarding: React.FC = () => {
                 <h2 className="text-textMain mb-2 text-3xl font-bold">
                   Your Path
                 </h2>
-                <p className="text-textMuted">Choose your area of study.</p>
+                <p className="text-textMuted">
+                  Choose your area of study or create custom.
+                </p>
               </header>
-              <div className="space-y-3">
-                {SUBJECT_COMBOS.map((combo) => (
-                  <button
-                    key={combo.id}
-                    onClick={() => set("subjectCombo", combo.id)}
-                    className={cn(
-                      "flex w-full items-center gap-4 rounded-2xl border p-4 text-left transition-all",
-                      form.subjectCombo === combo.id
-                        ? "bg-brand/10 border-brand shadow-sm"
-                        : "bg-bgSurface border-borderMuted opacity-70 hover:opacity-100",
-                    )}
-                  >
-                    <span className="text-2xl">{combo.icon}</span>
-                    <div>
-                      <p className="text-textMain font-bold">{combo.label}</p>
-                      <p className="text-textDim text-xs">
-                        {combo.subjects.join(" + ")}
-                      </p>
-                    </div>
-                  </button>
-                ))}
+
+              {/* Toggle Custom/Predefined */}
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => {
+                    setIsCustomSubjectMode(false);
+                  }}
+                  className={cn(
+                    "rounded-xl border py-3 text-sm font-bold transition-all",
+                    !isCustomSubjectMode
+                      ? "bg-brand border-brand shadow-brand/20 text-white"
+                      : "bg-bgSurface border-borderMuted text-textMuted",
+                  )}
+                >
+                  Predefined
+                </button>
+                <button
+                  onClick={() => {
+                    setIsCustomSubjectMode(true);
+                    // Initialize custom mode with default custom subjects
+                    if (!Array.isArray(form.subjectCombo)) {
+                      setForm((prev) => ({
+                        ...prev,
+                        subjectCombo: [
+                          "English",
+                          "Mathematics",
+                          "Physics",
+                          "Chemistry",
+                        ],
+                      }));
+                    }
+                  }}
+                  className={cn(
+                    "rounded-xl border py-3 text-sm font-bold transition-all",
+                    isCustomSubjectMode
+                      ? "bg-brand border-brand shadow-brand/20 text-white"
+                      : "bg-bgSurface border-borderMuted text-textMuted",
+                  )}
+                >
+                  Custom Combo
+                </button>
               </div>
+
+              {/* Predefined Combos */}
+              {!isCustomSubjectMode && (
+                <div className="space-y-3">
+                  {SUBJECT_COMBOS.map((combo) => (
+                    <button
+                      key={combo.id}
+                      onClick={() => set("subjectCombo", combo.id)}
+                      className={cn(
+                        "flex w-full items-center gap-4 rounded-2xl border p-4 text-left transition-all",
+                        form.subjectCombo === combo.id
+                          ? "bg-brand/10 border-brand shadow-sm"
+                          : "bg-bgSurface border-borderMuted opacity-70 hover:opacity-100",
+                      )}
+                    >
+                      <span className="text-2xl">{combo.icon}</span>
+                      <div>
+                        <p className="text-textMain font-bold">{combo.label}</p>
+                        <p className="text-textDim text-xs">
+                          {combo.subjects.join(" + ")}
+                        </p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Custom Combo Selector */}
+              {isCustomSubjectMode && (
+                <div className="space-y-3">
+                  <CustomSubjectSelector
+                    selectedSubjects={
+                      Array.isArray(form.subjectCombo)
+                        ? form.subjectCombo
+                        : ["English", "Mathematics", "Physics", "Chemistry"]
+                    }
+                    onChange={(subjects) => {
+                      setForm((prev) => ({
+                        ...prev,
+                        subjectCombo: subjects,
+                      }));
+                    }}
+                  />
+                </div>
+              )}
             </div>
           )}
 

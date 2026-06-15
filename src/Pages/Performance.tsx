@@ -91,9 +91,11 @@ const Performance: React.FC = () => {
     totalQuestions > 0 ? totalQuestions : questionsCompleted;
 
   // Filter stats based on user subject combo
-  const userSubjects = subjectCombo
-    ? SUBJECT_COMBO_MAP[subjectCombo] || []
-    : [];
+  const userSubjects = Array.isArray(subjectCombo)
+    ? subjectCombo
+    : subjectCombo
+      ? SUBJECT_COMBO_MAP[subjectCombo] || []
+      : [];
 
   // Check if user has taken any exams or has any performance data
   const hasAnyPerformanceData =
