@@ -27,6 +27,22 @@ const getSubjectIcon = (subject: string) => {
   return icons[subject] || "📖";
 };
 
+// Type definitions for our structured best/worst subject objects
+type BestSubjectResult =
+  | { type: "subject"; subject: string; best_score: number }
+  | { type: "no_data" }
+  | { type: "no_subjects" };
+
+type WorstSubjectResult =
+  | {
+      type: "weak_topic" | "low_accuracy" | "subject";
+      subject: string;
+      worst_score: number;
+    }
+  | { type: "all_good" }
+  | { type: "no_data" }
+  | { type: "no_subjects" };
+
 const Performance: React.FC = () => {
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -97,37 +113,103 @@ const Performance: React.FC = () => {
       ? SUBJECT_COMBO_MAP[subjectCombo] || []
       : [];
 
-  // Check if user has taken any exams or has any performance data
-  const hasAnyPerformanceData =
-    totalQuestions > 0 ||
-    topicStats.length > 0 ||
-    subjects.some((s) => s.accuracy > 0);
 
-  // Best and Worst Subject logic - use current accuracy from useSubjectStore!
-  const bestSubject = (() => {
-    if (userSubjects.length === 0 || !hasAnyPerformanceData) return null;
-    // Only consider subjects with accuracy > 0 for best subject
+
+  // Best and Worst Subject logic with proper prioritization!
+  const bestSubject: BestSubjectResult = (() => {
+    if (userSubjects.length === 0) {
+      return { type: "no_subjects" };
+    }
+
+    // First priority: subjects with accuracy > 0
     const eligibleSubjects = subjects.filter((s) => s.accuracy > 0);
-    if (eligibleSubjects.length === 0) return null;
-    const sorted = [...eligibleSubjects].sort(
-      (a, b) => b.accuracy - a.accuracy,
-    );
-    const sub = sorted[0];
-    return sub ? { subject: sub.name, best_score: sub.accuracy } : null;
+    if (eligibleSubjects.length > 0) {
+      const sorted = [...eligibleSubjects].sort(
+        (a, b) => b.accuracy - a.accuracy,
+      );
+      const sub = sorted[0];
+      if (sub) {
+        return { type: "subject", subject: sub.name, best_score: sub.accuracy };
+      }
+    }
+
+    // If no performance data yet
+    return { type: "no_data" };
   })();
 
-  const worstSubject = (() => {
-    if (userSubjects.length === 0 || !hasAnyPerformanceData) return null;
-    // Only consider subjects with accuracy > 0 for worst subject
-    const eligibleSubjects = subjects.filter((s) => s.accuracy > 0);
-    if (eligibleSubjects.length === 0) return null;
-    const sorted = [...eligibleSubjects].sort(
-      (a, b) => a.accuracy - b.accuracy,
+  const worstSubject: WorstSubjectResult = (() => {
+    if (userSubjects.length === 0) {
+      return { type: "no_subjects" };
+    }
+
+    // 1. First priority: Any subject with a weak topic
+    const subjectsWithWeakTopics = subjects.filter(
+      (s) => s.weakTopics && s.weakTopics.length > 0,
     );
-    const sub = sorted[0];
-    // Don't show worst subject if it's the same as best subject
-    if (bestSubject && sub.name === bestSubject.subject) return null;
-    return sub ? { subject: sub.name, worst_score: sub.accuracy } : null;
+    if (subjectsWithWeakTopics.length > 0) {
+      // Among these, pick the one with lowest accuracy
+      const sorted = [...subjectsWithWeakTopics].sort(
+        (a, b) => a.accuracy - b.accuracy,
+      );
+      const sub = sorted[0];
+      if (sub) {
+        return {
+          type: "weak_topic",
+          subject: sub.name,
+          worst_score: sub.accuracy,
+        };
+      }
+    }
+
+    // 2. Second priority: Subjects with accuracy < 50% (and attempted)
+    const lowAccuracySubjects = subjects.filter(
+      (s) => s.accuracy > 0 && s.accuracy < 50,
+    );
+    if (lowAccuracySubjects.length > 0) {
+      const sorted = [...lowAccuracySubjects].sort(
+        (a, b) => a.accuracy - b.accuracy,
+      );
+      const sub = sorted[0];
+      if (sub) {
+        return {
+          type: "low_accuracy",
+          subject: sub.name,
+          worst_score: sub.accuracy,
+        };
+      }
+    }
+
+    // 3. Third priority: Any attempted subject (accuracy > 0)
+    const attemptedSubjects = subjects.filter((s) => s.accuracy > 0);
+    if (attemptedSubjects.length > 0) {
+      const sorted = [...attemptedSubjects].sort(
+        (a, b) => a.accuracy - b.accuracy,
+      );
+      const sub = sorted[0];
+      if (sub) {
+        // Check if it's same as best subject
+        if (bestSubject.type === "subject" && sub.name === bestSubject.subject) {
+          // If only one subject, show "You're doing great!" instead
+          if (attemptedSubjects.length === 1) {
+            return { type: "all_good" };
+          }
+          // Otherwise pick next one
+          const nextSub = sorted[1];
+          if (nextSub) {
+            return {
+              type: "subject",
+              subject: nextSub.name,
+              worst_score: nextSub.accuracy,
+            };
+          }
+        }
+
+        return { type: "subject", subject: sub.name, worst_score: sub.accuracy };
+      }
+    }
+
+    // 4. If no attempted subjects yet
+    return { type: "no_data" };
   })();
 
   const userSubjectsWithIcons = userSubjects.map((name) => ({
@@ -184,13 +266,19 @@ const Performance: React.FC = () => {
           />
           <StatCard
             label="Best Subject"
-            value={bestSubject ? bestSubject.subject : ""}
+            value={
+              bestSubject.type === "subject"
+                ? bestSubject.subject
+                : bestSubject.type === "no_data"
+                  ? "Start Practice"
+                  : "Select Subjects"
+            }
             sub={
-              bestSubject &&
-              "best_score" in bestSubject &&
-              bestSubject.best_score > 0
+              bestSubject.type === "subject"
                 ? `Best: ${Math.round(bestSubject.best_score)}% score`
-                : "Practice to see"
+                : bestSubject.type === "no_data"
+                  ? "Take a quiz to see"
+                  : "Choose your combo"
             }
             color="text-success"
             icon="🏆"
@@ -199,11 +287,29 @@ const Performance: React.FC = () => {
           />
           <StatCard
             label="Worst Subject"
-            value={worstSubject ? worstSubject.subject : ""}
+            value={
+              worstSubject.type === "weak_topic" ||
+              worstSubject.type === "low_accuracy" ||
+              worstSubject.type === "subject"
+                ? worstSubject.subject
+                : worstSubject.type === "all_good"
+                  ? "You're killing it!"
+                  : worstSubject.type === "no_data"
+                    ? "Start Practice"
+                    : "Select Subjects"
+            }
             sub={
-              worstSubject
-                ? `Lowest: ${Math.round(worstSubject.worst_score)}% score`
-                : "Practice to see"
+              worstSubject.type === "weak_topic"
+                ? "Weak topic needs attention"
+                : worstSubject.type === "low_accuracy"
+                  ? `Lowest: ${Math.round(worstSubject.worst_score)}% score`
+                  : worstSubject.type === "subject"
+                    ? `Lowest: ${Math.round(worstSubject.worst_score)}% score`
+                    : worstSubject.type === "all_good"
+                      ? "All subjects are strong!"
+                      : worstSubject.type === "no_data"
+                        ? "Take a quiz to see"
+                        : "Choose your combo"
             }
             color="text-danger"
             icon="⚠️"
