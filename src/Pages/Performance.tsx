@@ -106,15 +106,27 @@ const Performance: React.FC = () => {
   // Best and Worst Subject logic - use current accuracy from useSubjectStore!
   const bestSubject = (() => {
     if (userSubjects.length === 0 || !hasAnyPerformanceData) return null;
-    const sorted = [...subjects].sort((a, b) => b.accuracy - a.accuracy);
+    // Only consider subjects with accuracy > 0 for best subject
+    const eligibleSubjects = subjects.filter((s) => s.accuracy > 0);
+    if (eligibleSubjects.length === 0) return null;
+    const sorted = [...eligibleSubjects].sort(
+      (a, b) => b.accuracy - a.accuracy,
+    );
     const sub = sorted[0];
     return sub ? { subject: sub.name, best_score: sub.accuracy } : null;
   })();
 
   const worstSubject = (() => {
     if (userSubjects.length === 0 || !hasAnyPerformanceData) return null;
-    const sorted = [...subjects].sort((a, b) => a.accuracy - b.accuracy);
+    // Only consider subjects with accuracy > 0 for worst subject
+    const eligibleSubjects = subjects.filter((s) => s.accuracy > 0);
+    if (eligibleSubjects.length === 0) return null;
+    const sorted = [...eligibleSubjects].sort(
+      (a, b) => a.accuracy - b.accuracy,
+    );
     const sub = sorted[0];
+    // Don't show worst subject if it's the same as best subject
+    if (bestSubject && sub.name === bestSubject.subject) return null;
     return sub ? { subject: sub.name, worst_score: sub.accuracy } : null;
   })();
 
@@ -172,13 +184,13 @@ const Performance: React.FC = () => {
           />
           <StatCard
             label="Best Subject"
-            value={bestSubject ? bestSubject.subject : "—"}
+            value={bestSubject ? bestSubject.subject : ""}
             sub={
               bestSubject &&
               "best_score" in bestSubject &&
               bestSubject.best_score > 0
                 ? `Best: ${Math.round(bestSubject.best_score)}% score`
-                : "No weak topics found"
+                : "Practice to see"
             }
             color="text-success"
             icon="🏆"
@@ -187,7 +199,7 @@ const Performance: React.FC = () => {
           />
           <StatCard
             label="Worst Subject"
-            value={worstSubject ? worstSubject.subject : "—"}
+            value={worstSubject ? worstSubject.subject : ""}
             sub={
               worstSubject
                 ? `Lowest: ${Math.round(worstSubject.worst_score)}% score`

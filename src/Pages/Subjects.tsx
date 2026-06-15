@@ -32,17 +32,26 @@ const Subjects: React.FC = () => {
   // Determine best and worst subjects for badges (only if user has data)
   const bestSubjectName = hasAnyPerformanceData
     ? (() => {
+        // Only consider subjects with accuracy > 0
+        const eligible = subjects.filter((s) => s.accuracy > 0);
+        if (eligible.length === 0) return null;
         // Sort subjects by current accuracy descending
-        const sorted = [...subjects].sort((a, b) => b.accuracy - a.accuracy);
+        const sorted = [...eligible].sort((a, b) => b.accuracy - a.accuracy);
         return sorted[0]?.name || null;
       })()
     : null;
 
   const worstSubjectName = hasAnyPerformanceData
     ? (() => {
+        // Only consider subjects with accuracy > 0
+        const eligible = subjects.filter((s) => s.accuracy > 0);
+        if (eligible.length === 0) return null;
         // Sort subjects by current accuracy ascending
-        const sorted = [...subjects].sort((a, b) => a.accuracy - b.accuracy);
-        return sorted[0]?.name || null;
+        const sorted = [...eligible].sort((a, b) => a.accuracy - b.accuracy);
+        const worst = sorted[0]?.name || null;
+        // Don't show worst if it's the same as best
+        if (worst === bestSubjectName) return null;
+        return worst;
       })()
     : null;
 
@@ -84,7 +93,7 @@ const Subjects: React.FC = () => {
             Subjects
           </h2>
           <p className="text-textMuted mt-1 text-sm">
-            {subjects.length} subjects · overall accuracy:{" "}   
+            {subjects.length} subjects · overall accuracy:  
             <span className="text-textMain font-medium">
               {overallAccuracy}%
             </span>
