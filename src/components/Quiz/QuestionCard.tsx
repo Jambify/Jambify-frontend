@@ -56,9 +56,16 @@ const QuestionCard: React.FC = () => {
         </div>
 
         {/* Question text */}
-        <p className="text-textMain mb-6 text-base leading-relaxed font-normal sm:text-lg">
-          {q.text}
-        </p>
+        <p
+          className="text-textMain mb-6 text-base leading-relaxed font-normal sm:text-lg"
+          dangerouslySetInnerHTML={{
+            __html: q.text
+              // Bold/Italic: **text** or *text*
+              .replace(/\*\*(.*?)\*\*/g, '<em class="font-semibold text-brand">$1</em>')
+              .replace(/\*(.*?)\*/g, '<em class="text-brand">$1</em>')
+          }}
+        />
+        
         {/*<{/* Options */}
 
         <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">

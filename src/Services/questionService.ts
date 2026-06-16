@@ -340,6 +340,7 @@ export const LIKELY_TOPICS: Record<string, string[]> = {
     "Oral English",
     "Synonyms & Antonyms",
     "Sentence Interpretation",
+    "Novel",
   ],
   Mathematics: [
     "Number Bases",
@@ -611,21 +612,21 @@ export const LIKELY_TOPICS: Record<string, string[]> = {
 export const normalizeTopicName = (topic: string, subject: string): string => {
   const subjectTopics = LIKELY_TOPICS[subject] || [];
   const topicLower = topic.toLowerCase();
-  
+
   // 1. Check for EXACT match first (highest priority)
   for (const validTopic of subjectTopics) {
     if (validTopic.toLowerCase() === topicLower) {
       return validTopic;
     }
   }
-  
+
   // 2. Check for exact sub-match (e.g., "Digestive" is in "Digestive System")
   for (const validTopic of subjectTopics) {
     if (validTopic.toLowerCase().includes(topicLower) || topicLower.includes(validTopic.toLowerCase())) {
       return validTopic;
     }
   }
-  
+
   // 3. Check if any word in the topic matches any word in a valid topic
   const topicWords = topicLower.split(" ");
   for (const validTopic of subjectTopics) {
@@ -635,7 +636,7 @@ export const normalizeTopicName = (topic: string, subject: string): string => {
       return validTopic;
     }
   }
-  
+
   // 4. Fallback: just capitalize first letter
   return topic.charAt(0).toUpperCase() + topic.slice(1);
 };
@@ -761,6 +762,9 @@ export const fetchQuestionsByTopic = async (
   excludeIds: string[] = [],
 ): Promise<Question[]> => {
   try {
+    // Cap Novel questions at 10 max
+    const actualLimit = topic.toLowerCase() === "novel" ? Math.min(limit, 10) : limit;
+
     const formattedSubject =
       subject.trim().charAt(0).toUpperCase() +
       subject.trim().slice(1).toLowerCase();
@@ -783,7 +787,7 @@ export const fetchQuestionsByTopic = async (
       }
     }
 
-    const { data, error } = await q.limit(limit * 5);
+    const { data, error } = await q.limit(actualLimit * 5);
 
     if (error) throw error;
 
@@ -795,7 +799,7 @@ export const fetchQuestionsByTopic = async (
       const shuffled = [...data].sort(() => Math.random() - 0.5);
 
       for (const row of shuffled) {
-        if (finalQuestions.length >= limit) break;
+        if (finalQuestions.length >= actualLimit) break;
         const mapped = mapDbToQuestion(row, formattedSubject);
         const contentKey = mapped.text.trim().toLowerCase();
 
@@ -812,7 +816,7 @@ export const fetchQuestionsByTopic = async (
     return fetchQuestionsWithFallback(
       formattedSubject,
       "Random",
-      limit,
+      actualLimit,
       difficulty,
       excludeIds,
     );

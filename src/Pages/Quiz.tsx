@@ -97,15 +97,16 @@ const Quiz: React.FC = () => {
   const subjectsMaster = useMemo(
     () => [
       {
-        name: "English",
-        topics: [
-          "Comprehension",
-          "Lexis and Structure",
-          "Oral English",
-          "Sentence Interpretation",
-          "Figures of Speech",
-        ],
-      },
+      name: "English",
+      topics: [
+        "Comprehension",
+        "Lexis and Structure",
+        "Oral English",
+        "Sentence Interpretation",
+        "Figures of Speech",
+        "Novel",
+      ],
+    },
       {
         name: "Mathematics",
         topics: [
