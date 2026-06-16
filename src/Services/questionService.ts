@@ -4,6 +4,16 @@ import { supabase } from "../lib/supabase";
 import type { Question } from "../Types";
 import { getLocalQuestions } from "../Data/Questions";
 
+// Helper to normalize subject names to match the database enum
+const normalizeSubject = (subject: string): string => {
+  const lower: string = subject.toLowerCase();
+  if (lower === "crs") return "CRS";
+  if (lower === "irs") return "IRS";
+  if (lower === "literature") return "Literature";
+  // If it's already correctly cased, return as-is
+  return subject;
+};
+
 // ── Types ─────────────────────────────────────────────────────────────────────
 type Difficulty = "Easy" | "Medium" | "Hard";
 
@@ -136,10 +146,12 @@ function resolveDifficulty(d: string | undefined): Difficulty | undefined {
 // ── Main service function ─────────────────────────────────────────────────────
 
 /**
- * Fetches questions with a three-tier fallback:
- *  1. Supabase — exact year + subject (+ optional difficulty)
- *  2. Supabase — any year for the same subject (fills remaining gap)
- *  3. Local TypeScript data — ultimate fallback
+ * Fetches questions with a multi-tier fallback:
+ *  1. Try exact year + subject (+ optional difficulty)
+ *  2. If not enough, try nearby years (increment +1, -1, +2, -2, etc.)
+ *  3. If still not enough, relax difficulty
+ *  4. If still not enough, try any year/any difficulty
+ *  5. Last resort: local TypeScript data
  */
 export const fetchQuestionsWithFallback = async (
   subject: string,
@@ -172,139 +184,111 @@ export const fetchQuestionsWithFallback = async (
     excluding: excludeIds.length,
   });
 
+  // Helper to fetch questions for a specific year and difficulty
+  const fetchForYearAndDiff = async (
+    targetYear: number | null,
+    targetDiff: Difficulty | undefined,
+    needed: number,
+  ): Promise<Question[]> => {
+    let q = supabase
+      .from("questions")
+      .select("*")
+      .eq("subject", normalizeSubject(formattedSubject));
+
+    if (targetYear !== null) {
+      q = q.eq("year", targetYear);
+    } else {
+      q = q.gte("year", MIN_YEAR).lte("year", MAX_YEAR);
+    }
+
+    if (targetDiff) {
+      q = q.eq("difficulty", targetDiff);
+    }
+
+    if (fetchedIds.size > 0) {
+      const idList = Array.from(fetchedIds).filter(
+        (id) => !isNaN(Number(id)),
+      );
+      if (idList.length > 0) {
+        q = q.not("id", "in", `(${idList.join(",")})`);
+      }
+    }
+
+    const { data } = await q.limit(needed * 10);
+    const results: Question[] = [];
+
+    if (data && data.length > 0) {
+      const shuffled = [...data].sort(() => Math.random() - 0.5);
+      for (const row of shuffled) {
+        const mapped = mapDbToQuestion(row, formattedSubject);
+        const contentKey = mapped.text.trim().toLowerCase();
+
+        if (!fetchedIds.has(mapped.id) && !seenContent.has(contentKey)) {
+          fetchedIds.add(mapped.id);
+          seenContent.add(contentKey);
+          results.push(mapped);
+        }
+      }
+    }
+    return results;
+  };
+
   try {
-    // ── TIER 1: Primary Attempt (Strict Filter) ─────────────────────────────
-    {
-      let q = supabase
-        .from("questions")
-        .select("*")
-        .eq("subject", formattedSubject);
-
-      if (resolvedYear !== null) {
-        q = q.eq("year", resolvedYear);
-      } else {
-        q = q.gte("year", MIN_YEAR).lte("year", MAX_YEAR);
-      }
-
-      if (resolvedDiff) {
-        q = q.eq("difficulty", resolvedDiff);
-      }
-
-      if (fetchedIds.size > 0) {
-        // Use filtering by ID to ensure we don't get duplicates
-        const idList = Array.from(fetchedIds).filter(
-          (id) => !isNaN(Number(id)),
-        );
-        if (idList.length > 0) {
-          q = q.not("id", "in", `(${idList.join(",")})`);
-        }
-      }
-
-      const { data, error } = await q.limit(requiredCount * 10); // Fetch more for variety
-
-      if (error) {
-        console.error("❌ [Tier 1 fetch error]", error.message);
-        throw error;
-      }
-
-      if (data && data.length > 0) {
-        const shuffled = [...data].sort(() => Math.random() - 0.5);
-        for (const row of shuffled) {
-          if (finalQuestions.length >= requiredCount) break;
-          const mapped = mapDbToQuestion(row, formattedSubject);
-
-          const contentKey = mapped.text.trim().toLowerCase();
-          if (!fetchedIds.has(mapped.id) && !seenContent.has(contentKey)) {
-            fetchedIds.add(mapped.id);
-            seenContent.add(contentKey);
-            finalQuestions.push(mapped);
-          }
-        }
-      }
-    }
-
-    // ── TIER 2: Fallback (Relax Difficulty) ──────────────────────────────────
-    if (finalQuestions.length < requiredCount && resolvedDiff) {
-      const needed = requiredCount - finalQuestions.length;
-
-      let q = supabase
-        .from("questions")
-        .select("*")
-        .eq("subject", formattedSubject);
-
-      if (resolvedYear !== null) {
-        q = q.eq("year", resolvedYear);
-      } else {
-        q = q.gte("year", MIN_YEAR).lte("year", MAX_YEAR);
-      }
-
-      if (fetchedIds.size > 0) {
-        const idList = Array.from(fetchedIds).filter(
-          (id) => !isNaN(Number(id)),
-        );
-        if (idList.length > 0) {
-          q = q.not("id", "in", `(${idList.join(",")})`);
-        }
-      }
-
-      const { data } = await q.limit(needed * 5);
-
-      if (data && data.length > 0) {
-        const shuffled = [...data].sort(() => Math.random() - 0.5);
-        for (const row of shuffled) {
-          if (finalQuestions.length >= requiredCount) break;
-          const mapped = mapDbToQuestion(row, formattedSubject);
-
-          const contentKey = mapped.text.trim().toLowerCase();
-          if (!fetchedIds.has(mapped.id) && !seenContent.has(contentKey)) {
-            fetchedIds.add(mapped.id);
-            seenContent.add(contentKey);
-            finalQuestions.push(mapped);
-          }
-        }
-      }
-    }
-
-    // ── TIER 3: Last Resort (Any Year, Any Difficulty) ──────────────────────
+    // ── TIER 1: Primary Attempt (Exact Year + Specified Difficulty) ─────────
     if (finalQuestions.length < requiredCount) {
       const needed = requiredCount - finalQuestions.length;
+      const results = await fetchForYearAndDiff(resolvedYear, resolvedDiff, needed);
+      finalQuestions.push(...results);
+      console.log(`🎯 [Tier 1] Got ${results.length} questions`);
+    }
 
-      let q = supabase
-        .from("questions")
-        .select("*")
-        .eq("subject", formattedSubject);
+    // ── TIER 2: Try Nearby Years (Exact Difficulty) ────────────────────────
+    if (finalQuestions.length < requiredCount && resolvedYear !== null) {
+      // Generate nearby years in order: +1, -1, +2, -2, etc.
+      const nearbyYears: number[] = [];
+      let offset = 1;
+      while (nearbyYears.length < (MAX_YEAR - MIN_YEAR)) {
+        const higher: number = resolvedYear + offset;
+        const lower: number = resolvedYear - offset;
 
-      if (fetchedIds.size > 0) {
-        const idList = Array.from(fetchedIds).filter(
-          (id) => !isNaN(Number(id)),
-        );
-        if (idList.length > 0) {
-          q = q.not("id", "in", `(${idList.join(",")})`);
-        }
+        if (higher <= MAX_YEAR) nearbyYears.push(higher);
+        if (lower >= MIN_YEAR && lower !== resolvedYear) nearbyYears.push(lower);
+
+        offset++;
+        if (higher > MAX_YEAR && lower < MIN_YEAR) break;
       }
 
-      const { data } = await q.limit(needed * 5);
+      console.log(`🔍 [Tier 2] Trying nearby years:`, nearbyYears);
 
-      if (data && data.length > 0) {
-        const shuffled = [...data].sort(() => Math.random() - 0.5);
-        for (const row of shuffled) {
-          if (finalQuestions.length >= requiredCount) break;
-          const mapped = mapDbToQuestion(row, formattedSubject);
-
-          const contentKey = mapped.text.trim().toLowerCase();
-          if (!fetchedIds.has(mapped.id) && !seenContent.has(contentKey)) {
-            fetchedIds.add(mapped.id);
-            seenContent.add(contentKey);
-            finalQuestions.push(mapped);
-          }
-        }
+      for (const yr of nearbyYears) {
+        if (finalQuestions.length >= requiredCount) break;
+        const needed = requiredCount - finalQuestions.length;
+        const results = await fetchForYearAndDiff(yr, resolvedDiff, needed);
+        finalQuestions.push(...results);
+        console.log(`🔍 [Tier 2] Year ${yr}: Got ${results.length} questions`);
       }
     }
 
-    // ── TIER 4: Local Data ──────────────────────────────────────────────────
+    // ── TIER 3: Relax Difficulty (Exact Year + Any Difficulty) ──────────────
+    if (finalQuestions.length < requiredCount && resolvedYear !== null && resolvedDiff) {
+      const needed = requiredCount - finalQuestions.length;
+      const results = await fetchForYearAndDiff(resolvedYear, undefined, needed);
+      finalQuestions.push(...results);
+      console.log(`🎯 [Tier 3] Relaxed difficulty: Got ${results.length} questions`);
+    }
+
+    // ── TIER 4: Any Year, Any Difficulty ───────────────────────────────────
+    if (finalQuestions.length < requiredCount) {
+      const needed = requiredCount - finalQuestions.length;
+      const results = await fetchForYearAndDiff(null, undefined, needed);
+      finalQuestions.push(...results);
+      console.log(`🎯 [Tier 4] Any year/any difficulty: Got ${results.length} questions`);
+    }
+
+    // ── TIER 5: Local Data ──────────────────────────────────────────────────
     if (finalQuestions.length < requiredCount) {
       const remaining = requiredCount - finalQuestions.length;
-      console.log(`📦 [Tier 4] Pulling ${remaining} from local data`);
+      console.log(`📦 [Tier 5] Pulling ${remaining} from local data`);
 
       const local = getLocalQuestions(
         subject,
@@ -323,7 +307,7 @@ export const fetchQuestionsWithFallback = async (
     console.log(
       `🎁 [questionService] Returning ${finalQuestions.length} questions total`,
     );
-    return finalQuestions.sort(() => Math.random() - 0.5);
+    return finalQuestions.slice(0, requiredCount).sort(() => Math.random() - 0.5);
   } catch (err) {
     console.error("🔥 [questionService] Critical failure:", err);
     // Return local fallback
@@ -654,7 +638,7 @@ export const fetchTopicsBySubject = async (
     const { data, error } = await supabase
       .from("questions")
       .select("topic")
-      .eq("subject", formattedSubject)
+      .eq("subject", normalizeSubject(formattedSubject))
       .gte("year", MIN_YEAR)
       .lte("year", MAX_YEAR);
 
@@ -700,7 +684,7 @@ export const fetchAllQuestionsForBrowse = async (
       const formattedSubject =
         subject.trim().charAt(0).toUpperCase() +
         subject.trim().slice(1).toLowerCase();
-      q = q.eq("subject", formattedSubject);
+      q = q.eq("subject", normalizeSubject(formattedSubject));
     }
 
     if (year && year !== "All") {
@@ -773,7 +757,7 @@ export const fetchQuestionsByTopic = async (
     let q = supabase
       .from("questions")
       .select("*")
-      .eq("subject", formattedSubject)
+      .eq("subject", normalizeSubject(formattedSubject))
       .eq("topic", topic)
       .gte("year", MIN_YEAR)
       .lte("year", MAX_YEAR);
