@@ -216,12 +216,7 @@ const SignIn: React.FC = () => {
   if (step === "otp") {
     return (
       <AuthLayout variant="otp">
-        <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          className="auth-form-card border-borderMuted rounded-brand-2xl relative w-full border p-8 shadow-2xl lg:rounded-none lg:border-0 lg:p-0"
-        >
-          <div className="mb-8 text-center">
+                 <div className="mb-8 text-center">
             <div className="bg-brand shadow-brand/40 mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl shadow-lg">
               <Key className="h-7 w-7 text-white" />
             </div>
@@ -310,7 +305,6 @@ const SignIn: React.FC = () => {
               ← Back
             </button>
           </div>
-        </motion.div>
       </AuthLayout>
     );
   }
@@ -318,22 +312,6 @@ const SignIn: React.FC = () => {
   // ── Sign In Form ──────────────────────────────────────
   return (
     <AuthLayout variant="signin" footer={guestCta}>
-        {/* <div className="mb-8 text-center lg:text-left">
-          <div className="relative mb-8 lg:mb-6">
-            <div className="flex justify-center lg:hidden">
-              <div className="bg-brand shadow-brand/40 flex h-14 w-14 items-center justify-center rounded-xl shadow-lg">
-                <span className="text-2xl font-black text-white">J</span>
-              </div>
-            </div>
-          </div>
-          <h1 className="font-display text-textMain mb-2 text-3xl font-bold tracking-tight lg:text-4xl">
-            Sign In
-          </h1>
-          <p className="text-textDim text-sm">
-            We'll send a 6-digit code to your email.
-          </p>
-        </div> */}
-
         <AnimatePresence mode="wait">
           {error && (
             <motion.div
