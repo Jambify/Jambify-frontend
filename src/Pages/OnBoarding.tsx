@@ -672,7 +672,7 @@ const Field: React.FC<{
       </label>
     )}
     {children}
-    {error && <p className="ml-1 text-xs font-medium text-red-500">{error}</p>}
+    {error && <p className="text-danger ml-1 text-xs font-medium">{error}</p>}
   </div>
 );
 
@@ -680,7 +680,7 @@ const inputCls = (hasError: boolean) =>
   cn(
     "w-full px-5 py-4 bg-bgSurface rounded-2xl border text-textMain font-medium transition-all",
     "placeholder:text-textDim/50 focus:outline-none focus:ring-2 focus:ring-brand/20",
-    hasError ? "border-red-500" : "border-borderMuted focus:border-brand/50",
+    hasError ? "border-danger" : "border-borderMuted focus:border-brand/50",
   );
 
 export default Onboarding;

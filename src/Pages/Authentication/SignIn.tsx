@@ -318,12 +318,7 @@ const SignIn: React.FC = () => {
   // ── Sign In Form ──────────────────────────────────────
   return (
     <AuthLayout variant="signin" footer={guestCta}>
-      <motion.div
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        className="auth-form-card border-borderMuted rounded-brand-2xl relative w-full border p-8 shadow-2xl lg:rounded-none lg:border-0 lg:p-0"
-      >
-        <div className="mb-8 text-center lg:text-left">
+        {/* <div className="mb-8 text-center lg:text-left">
           <div className="relative mb-8 lg:mb-6">
             <div className="flex justify-center lg:hidden">
               <div className="bg-brand shadow-brand/40 flex h-14 w-14 items-center justify-center rounded-xl shadow-lg">
@@ -337,7 +332,7 @@ const SignIn: React.FC = () => {
           <p className="text-textDim text-sm">
             We'll send a 6-digit code to your email.
           </p>
-        </div>
+        </div> */}
 
         <AnimatePresence mode="wait">
           {error && (
@@ -427,11 +422,10 @@ const SignIn: React.FC = () => {
             </Link>
           </p>
           <div className="text-textMuted border-borderMuted/50 flex items-center justify-center gap-4 border-t pt-4 text-[10px] tracking-widest uppercase">
-            <ShieldCheck size={14} className="text-green-500" />
+            <ShieldCheck size={14} className="text-success" />
             Secure · No password · 6-digit code
           </div>
         </div>
-      </motion.div>
     </AuthLayout>
   );
 };

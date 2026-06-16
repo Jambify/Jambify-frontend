@@ -195,7 +195,7 @@ const PastQuestions = () => {
             <h1 className="font-display text-textMain text-3xl font-bold">
               Past Questions
             </h1>
-            <span className="rounded-full border border-yellow-500/25 bg-yellow-500/10 px-2.5 py-1 text-[10px] font-bold text-yellow-400">
+            <span className="border-warn/25 bg-warn/10 text-warn rounded-full border px-2.5 py-1 text-[10px] font-bold">
               PRO
             </span>
           </div>
