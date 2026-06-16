@@ -240,6 +240,26 @@ const MockExam: React.FC = () => {
           }
         }
 
+        // Cap Novel topic questions at 10 for English to prevent over-representation
+        if (subjectId === "English") {
+          const nonNovelQuestions = fetched.filter((q) => q.topic !== "Novel");
+          const novelQuestions = fetched.filter((q) => q.topic === "Novel").slice(0, 10);
+          fetched = [...nonNovelQuestions, ...novelQuestions];
+
+          // If we still need more questions (because we cut novel short), refill with non-novel
+          while (fetched.length < config.required) {
+            const remaining = config.required - fetched.length;
+            const extraNonNovel = nonNovelQuestions
+              .filter((q) => !fetched.some((fq) => fq.id === q.id))
+              .slice(0, remaining);
+            if (extraNonNovel.length === 0) break;
+            fetched = [...fetched, ...extraNonNovel];
+          }
+
+          // Shuffle to mix topics
+          fetched = shuffleArray(fetched).slice(0, config.required);
+        }
+
         // Randomize options for each question to prevent memorization
         const randomized = fetched.map((q: any) => {
           const correctOptionText = q.options[q.answer];

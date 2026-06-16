@@ -97,16 +97,16 @@ const Quiz: React.FC = () => {
   const subjectsMaster = useMemo(
     () => [
       {
-      name: "English",
-      topics: [
-        "Comprehension",
-        "Lexis and Structure",
-        "Oral English",
-        "Sentence Interpretation",
-        "Figures of Speech",
-        "Novel",
-      ],
-    },
+        name: "English",
+        topics: [
+          "Comprehension",
+          "Lexis and Structure",
+          "Oral English",
+          "Sentence Interpretation",
+          "Figures of Speech",
+          "Novel",
+        ],
+      },
       {
         name: "Mathematics",
         topics: [
@@ -722,9 +722,10 @@ const Quiz: React.FC = () => {
               ))
             ) : (
               // For many questions, use a simple percentage or step indicator
-              <div className="flex items-center gap-2 text-textDim text-xs font-medium">
+              <div className="text-textDim flex items-center gap-2 text-xs font-medium">
                 <span>
-                  {Math.round(((currentIndex + 1) / questions.length) * 100)}% Complete
+                  {Math.round(((currentIndex + 1) / questions.length) * 100)}%
+                  Complete
                 </span>
               </div>
             )}
