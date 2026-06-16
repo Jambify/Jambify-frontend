@@ -434,6 +434,7 @@ const Quiz: React.FC = () => {
 
   const [isLoadingQuestions, setIsLoadingQuestions] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [showSlowNetworkWarning, setShowSlowNetworkWarning] = useState(false);
 
   // ── Reorder Subjects based on selection ───────────────────
   const sortedQuizSubjects = useMemo(() => {
@@ -507,6 +508,10 @@ const Quiz: React.FC = () => {
         message="Preparing your quiz"
         submessage={`Fetching ${selectedSubject} questions for your practice session...`}
         estimatedTime={2}
+        showSlowNetworkWarning={showSlowNetworkWarning}
+        onCancel={() => {
+          setIsLoadingQuestions(false);
+        }}
       />
     );
   }
@@ -517,6 +522,12 @@ const Quiz: React.FC = () => {
     setShowExitModal(false);
     setLoadError(null);
     setIsLoadingQuestions(true);
+    setShowSlowNetworkWarning(false);
+
+    // Set timeout for slow network warning
+    const slowNetworkTimer = setTimeout(() => {
+      setShowSlowNetworkWarning(true);
+    }, 5000); // 5 seconds
 
     // For marathon mode: use all topics, all difficulty, 15 min duration, large question count
     const isMarathon = selectedMode === "marathon";
@@ -647,7 +658,9 @@ const Quiz: React.FC = () => {
         error instanceof Error ? error.message : "An unexpected error occurred",
       );
     } finally {
+      clearTimeout(slowNetworkTimer);
       setIsLoadingQuestions(false);
+      setShowSlowNetworkWarning(false);
     }
   };
 

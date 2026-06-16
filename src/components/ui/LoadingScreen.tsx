@@ -1,11 +1,14 @@
 // components/ui/LoadingScreen.tsx
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Button from "./Button";
 
 interface LoadingScreenProps {
   message?: string;
   submessage?: string;
   estimatedTime?: number; // seconds
+  onCancel?: () => void;
+  showSlowNetworkWarning?: boolean;
 }
 
 const LOADING_TIPS = [
@@ -21,6 +24,8 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
   message = "Setting up your account",
   submessage = "Preparing your personalized study experience",
   estimatedTime = 3,
+  onCancel,
+  showSlowNetworkWarning = false,
 }) => {
   const [tipIndex, setTipIndex] = useState(0);
   const [progress, setProgress] = useState(0);
@@ -99,7 +104,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
             transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }}
           />
 
-          <div className="space-y-8">
+          <div className="space-y-6">
             <div className="text-center">
               <h3 className="text-textMain mb-2 text-xl font-extrabold tracking-tight capitalize">
                 {message}
@@ -108,6 +113,28 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
                 {submessage}
               </p>
             </div>
+
+            {/* Slow Network Warning */}
+            {showSlowNetworkWarning && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-warning/10 border-warning/30 flex items-start gap-3 rounded-xl border p-4"
+              >
+                <div className="bg-warning/20 text-warning flex h-8 w-8 shrink-0 items-center justify-center rounded-lg">
+                  ⚠️
+                </div>
+                <div className="flex-1">
+                  <p className="text-warning text-xs font-bold tracking-tight">
+                    Slow network detected
+                  </p>
+                  <p className="text-textMuted text-[10px] font-medium">
+                    It's taking longer than expected. You can wait or cancel and
+                    try again later.
+                  </p>
+                </div>
+              </motion.div>
+            )}
 
             {/* Progress Section */}
             <div className="space-y-3">
@@ -121,8 +148,8 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
                   style={{ width: `${progress}%` }}
                 >
                   <div className="absolute inset-0 bg-linear-to-r from-white/30 to-transparent" />
-                  <motion.div 
-                    className="absolute right-0 top-0 h-full w-8 bg-white/40 blur-sm"
+                  <motion.div
+                    className="absolute top-0 right-0 h-full w-8 bg-white/40 blur-sm"
                     animate={{ x: [-20, 40], opacity: [0, 1, 0] }}
                     transition={{ duration: 1.5, repeat: Infinity }}
                   />
@@ -147,6 +174,19 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
                 </p>
               </motion.div>
             </AnimatePresence>
+
+            {/* Cancel Button */}
+            {onCancel && (
+              <Button
+                variant="secondary"
+                size="md"
+                fullWidth
+                onClick={onCancel}
+                className="mt-2"
+              >
+                Cancel & Go Back
+              </Button>
+            )}
           </div>
         </div>
 
@@ -156,7 +196,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
             Powered by JAMBIFY AI
           </p>
           <div className="flex gap-1">
-            {[1, 2, 3].map(i => (
+            {[1, 2, 3].map((i) => (
               <motion.div
                 key={i}
                 className="bg-brand h-1 w-1 rounded-full"

@@ -123,6 +123,7 @@ const MockExam: React.FC = () => {
     userSubjects[2] || "",
     userSubjects[3] || "",
   ]);
+  const [showSlowNetworkWarning, setShowSlowNetworkWarning] = useState(false);
   const [jumpTo, setJumpTo] = useState("");
   const [activeSubject, setActiveSubject] = useState("English");
 
@@ -176,6 +177,10 @@ const MockExam: React.FC = () => {
         message="Preparing Mock Exam"
         submessage="Gathering questions for all selected subjects..."
         estimatedTime={4}
+        showSlowNetworkWarning={showSlowNetworkWarning}
+        onCancel={() => {
+          setIsLoadingQuestions(false);
+        }}
       />
     );
   }
@@ -183,6 +188,12 @@ const MockExam: React.FC = () => {
   const handleStart = async () => {
     setIsLoadingQuestions(true);
     setErrorMessage(null);
+    setShowSlowNetworkWarning(false);
+
+    // Set timeout for slow network warning
+    const slowNetworkTimer = setTimeout(() => {
+      setShowSlowNetworkWarning(true);
+    }, 5000); // 5 seconds
 
     // Wait for loader to mount
     await new Promise((r) => setTimeout(r, 100));
@@ -243,17 +254,33 @@ const MockExam: React.FC = () => {
         // Cap Novel topic questions at 10 for English to prevent over-representation
         if (subjectId === "English") {
           const nonNovelQuestions = fetched.filter((q) => q.topic !== "Novel");
-          const novelQuestions = fetched.filter((q) => q.topic === "Novel").slice(0, 10);
+          const novelQuestions = fetched
+            .filter((q) => q.topic === "Novel")
+            .slice(0, 10);
           fetched = [...nonNovelQuestions, ...novelQuestions];
 
-          // If we still need more questions (because we cut novel short), refill with non-novel
+          // If we still need more questions (because we cut novel short), fetch more
           while (fetched.length < config.required) {
             const remaining = config.required - fetched.length;
-            const extraNonNovel = nonNovelQuestions
-              .filter((q) => !fetched.some((fq) => fq.id === q.id))
-              .slice(0, remaining);
+            const existingIds = fetched.map(q => q.id);
+            
+            // Fetch more questions, excluding the ones we already have
+            const extraQuestions = await fetchQuestionsWithFallback(
+              subjectId,
+              selectedYear,
+              remaining * 2, // Fetch more for variety
+              "All",
+              existingIds
+            );
+            
+            // Filter out Novel from extra and make sure no duplicates
+            const extraNonNovel = extraQuestions.filter(
+              (q) => q.topic !== "Novel" && !existingIds.includes(q.id)
+            );
+            
             if (extraNonNovel.length === 0) break;
-            fetched = [...fetched, ...extraNonNovel];
+            
+            fetched = [...fetched, ...extraNonNovel.slice(0, remaining)];
           }
 
           // Shuffle to mix topics
@@ -284,7 +311,9 @@ const MockExam: React.FC = () => {
           "Failed to load questions. Please check your connection.",
       );
     } finally {
+      clearTimeout(slowNetworkTimer);
       setIsLoadingQuestions(false);
+      setShowSlowNetworkWarning(false);
     }
   };
 
@@ -419,19 +448,19 @@ const MockExam: React.FC = () => {
             {errorMessage &&
               !errorMessage.includes("CONNECTION_ERROR") &&
               !errorMessage.includes("OFFLINE") && (
-                <div className="animate-in fade-in slide-in-from-top-4 mb-6 rounded-brand-lg border bg-danger/15 border-danger/30 p-5 text-sm text-danger shadow-sm duration-300 dark:bg-danger/10">
+                <div className="animate-in fade-in slide-in-from-top-4 rounded-brand-lg bg-danger/15 border-danger/30 text-danger dark:bg-danger/10 mb-6 border p-5 text-sm shadow-sm duration-300">
                   <div className="flex items-start gap-3">
-                    <div className="bg-danger/20 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-danger shadow-sm">
+                    <div className="bg-danger/20 text-danger flex h-10 w-10 shrink-0 items-center justify-center rounded-xl shadow-sm">
                       <AlertTriangle size={20} />
                     </div>
                     <div className="flex-1">
-                      <p className="font-bold tracking-tight text-danger">
+                      <p className="text-danger font-bold tracking-tight">
                         System Alert
                       </p>
                       <p className="mt-1 opacity-90">{errorMessage}</p>
                       <button
                         onClick={() => setErrorMessage(null)}
-                        className="bg-danger/10 hover:bg-danger/20 mt-3 rounded-lg px-3 py-1.5 text-[10px] font-black tracking-widest uppercase text-danger transition-colors"
+                        className="bg-danger/10 hover:bg-danger/20 text-danger mt-3 rounded-lg px-3 py-1.5 text-[10px] font-black tracking-widest uppercase transition-colors"
                       >
                         Dismiss
                       </button>
@@ -671,7 +700,7 @@ const MockExam: React.FC = () => {
               </div>
             </div>
 
-            <div className="ml-2 flex shrink-0 items-center gap-1.5 sm:gap-4">
+            <div className="ml-2 flex shrink-0 items-center gap-3 sm:gap-4">
               <div
                 className={cn(
                   "flex items-center gap-1 rounded-full border px-2.5 py-1.5 font-mono font-black tabular-nums shadow-sm transition-colors sm:gap-2 sm:px-4 sm:py-2",
