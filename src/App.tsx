@@ -24,6 +24,7 @@ import GuestLanding from "./Pages/GuestUser/GuestLanding";
 import GuestQuiz from "./Pages/GuestUser/GuestQuiz";
 import GuestMock from "./Pages/GuestUser/GuestExam";
 import StudyTimeTracker from "./components/StudyTimeTracker";
+import AuthErrorBoundary from "./components/ui/AuthErrorBoundary";
 // In App.tsx, add this near the top
 import { supabase } from "./lib/supabase";
 
@@ -34,7 +35,7 @@ if (typeof window !== "undefined") {
 
 const App: React.FC = () => {
   return (
-    <>
+    <AuthErrorBoundary>
       <StudyTimeTracker />
       <Routes>
         <Route path="/signup" element={<SignUp />} />
@@ -139,7 +140,7 @@ const App: React.FC = () => {
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </>
+    </AuthErrorBoundary>
   );
 };
 
