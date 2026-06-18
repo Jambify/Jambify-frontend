@@ -1,5 +1,5 @@
 // src/Pages/Dashboard.tsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import AppLayout from "../components/Layout/AppLayout";
 import { useUserStore } from "../Store/useUserStore";
@@ -8,6 +8,8 @@ import SubjectProgress from "../components/Dashboard/SubjectProgress";
 // import LeaderboardCard from "../components/Dashboard/LeaderboardCard";
 import RecommendedSessions from "../components/Dashboard/RecommendedSessions";
 import DailyGoals from "../components/Dashboard/DailyGoals";
+import StreakCelebrationModal from "../components/ui/StreakCelebrationModal";
+import { calculateAndUpdateStreak } from "../Services/PerformanceService";
 import {
   BookOpen,
   TrendingUp,
@@ -65,20 +67,42 @@ const Dashboard: React.FC = () => {
     targetScore,
     university,
     subjectCombo,
+    showStreakPopup,
+    currentStreakToShow,
+    setShowStreakPopup,
+    setLastSeenStreakPopup,
   } = useUserStore();
 
   React.useEffect(() => {
     loadPerformanceData();
+    
+    // Check and update streak on initial load
+    const checkStreak = async () => {
+      try {
+        const { streak, shouldShowPopup } = await calculateAndUpdateStreak(false);
+        
+        // Sync the updated streak to user store
+        await useUserStore.getState().syncProfile(true);
+        
+        if (shouldShowPopup) {
+          useUserStore.getState().setShowStreakPopup(true, streak);
+        }
+      } catch (err) {
+        console.error("Error checking streak:", err);
+      }
+    };
+    
+    checkStreak();
   }, [loadPerformanceData]);
 
   const accuracy = Math.round(avgAccuracy);
 
   // Filter stats based on user subject combo
-  const userSubjects = Array.isArray(subjectCombo) 
-    ? subjectCombo 
+  const userSubjects = Array.isArray(subjectCombo)
+    ? subjectCombo
     : subjectCombo
-    ? SUBJECT_COMBO_MAP[subjectCombo] || [subjectCombo]
-    : [];
+      ? SUBJECT_COMBO_MAP[subjectCombo] || [subjectCombo]
+      : [];
   const filteredTopicStats = topicStats.filter((t: any) =>
     userSubjects.some((s) => s.toLowerCase() === t.subject.toLowerCase()),
   );
@@ -122,7 +146,7 @@ const Dashboard: React.FC = () => {
         <div className="bg-bgCard border-borderMuted rounded-brand-xl relative overflow-hidden border p-6 md:p-8">
           {/* Subtle ambient glow */}
           <div
-            className="pointer-events-none absolute inset-0 ambient-glow"
+            className="ambient-glow pointer-events-none absolute inset-0"
             style={{
               background:
                 "radial-gradient(ellipse 70% 80% at 100% 50%, rgba(91,59,255,0.10) 0%, transparent 65%)",
@@ -286,7 +310,7 @@ const Dashboard: React.FC = () => {
       ══════════════════════════════════════════════════ */}
       <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
         {/* Best Score */}
-        <div className="bg-bgCard border-borderMuted rounded-brand-xl flex flex-col gap-1.5 border p-4 transition-all hover:border-brand/20 md:p-5">
+        <div className="bg-bgCard border-borderMuted rounded-brand-xl hover:border-brand/20 flex flex-col gap-1.5 border p-4 transition-all md:p-5">
           <div className="flex items-center justify-between">
             <span className="text-textDim text-[9px] font-bold tracking-widest uppercase sm:text-[10px]">
               Best Score
@@ -318,7 +342,7 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Accuracy */}
-        <div className="bg-bgCard border-borderMuted rounded-brand-xl flex flex-col gap-1.5 border p-4 transition-all hover:border-success/20 md:p-5">
+        <div className="bg-bgCard border-borderMuted rounded-brand-xl hover:border-success/20 flex flex-col gap-1.5 border p-4 transition-all md:p-5">
           <div className="flex items-center justify-between">
             <span className="text-textDim text-[9px] font-bold tracking-widest uppercase sm:text-[10px]">
               Accuracy
@@ -444,6 +468,16 @@ const Dashboard: React.FC = () => {
         </div>
         {/* <LeaderboardCard /> */}
       </div>
+
+      {/* Streak Celebration Modal */}
+      <StreakCelebrationModal
+        isOpen={showStreakPopup}
+        onClose={() => {
+          setShowStreakPopup(false);
+          setLastSeenStreakPopup(currentStreakToShow);
+        }}
+        streak={currentStreakToShow}
+      />
     </AppLayout>
   );
 };

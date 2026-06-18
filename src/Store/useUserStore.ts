@@ -64,6 +64,10 @@ interface UserState {
   hasSeenWelcome: boolean;
   downloadedData: DownloadedData;
   _lastSync: number | null;
+  showStreakPopup: boolean;
+  currentStreakToShow: number;
+  lastStreakWeek: string | null;
+  lastSeenStreakPopup: number;
 
   // ── Auth ─────────────────────────────────────────────
   isAuthenticated: boolean;
@@ -88,6 +92,8 @@ interface UserState {
   downgradeToPro: () => void;
   setDownloadedData: (data: DownloadedData) => void;
   addDownloadedData: (key: string, data: any) => void;
+  setShowStreakPopup: (show: boolean, streak?: number) => void;
+  setLastSeenStreakPopup: (streak: number) => Promise<void>;
 
   // ── Auth actions ─────────────────────────────────────
   signOut: () => Promise<void>;
@@ -134,6 +140,10 @@ const DEFAULTS = {
   isLoading: false,
   authError: null,
   _lastSync: null,
+  showStreakPopup: false,
+  currentStreakToShow: 0,
+  lastStreakWeek: null,
+  lastSeenStreakPopup: 0,
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -216,6 +226,8 @@ export const useUserStore = create<UserState>()(
             questionsCompleted: data.questions_completed || 0,
             totalQuestions: data.total_questions || 0,
             topicStats: data.topic_performance || [],
+            lastStreakWeek: data.last_streak_week || null,
+            lastSeenStreakPopup: data.last_seen_streak_popup || 0,
             onboardingComplete,
             isLoading: false,
           });
@@ -445,6 +457,23 @@ export const useUserStore = create<UserState>()(
         set((s) => ({
           downloadedData: { ...s.downloadedData, [k]: v },
         })),
+
+      setShowStreakPopup: (show, streak) =>
+        set({ showStreakPopup: show, currentStreakToShow: streak || 0 }),
+
+      setLastSeenStreakPopup: async (streak) => {
+        const { id } = get();
+        if (!id) return;
+        try {
+          await supabase
+            .from("profiles")
+            .update({ last_seen_streak_popup: streak })
+            .eq("id", id);
+          set({ lastSeenStreakPopup: streak });
+        } catch (err) {
+          console.error("[setLastSeenStreakPopup]", err);
+        }
+      },
     }),
 
     {
@@ -471,6 +500,10 @@ export const useUserStore = create<UserState>()(
         questionsCompleted: s.questionsCompleted,
         totalQuestions: s.totalQuestions,
         schoolRank: s.schoolRank,
+        lastStreakWeek: s.lastStreakWeek,
+        lastSeenStreakPopup: s.lastSeenStreakPopup,
+        showStreakPopup: s.showStreakPopup,
+        currentStreakToShow: s.currentStreakToShow,
         // daysToExam intentionally excluded — computed live by useExamCountdown
         isAuthenticated: s.isAuthenticated,
       }),

@@ -86,7 +86,7 @@ export const useQuizStore = create<QuizState>()(
         const { currentIndex, questions } = get();
         const nextIndex = currentIndex + 1;
         if (nextIndex >= questions.length) {
-          set({ isFinished: true, hasAnswered: false });
+          set({ isFinished: true }); // Don't set hasAnswered to false for last question!
         } else {
           set({ currentIndex: nextIndex, hasAnswered: false });
         }
@@ -136,7 +136,6 @@ export const useQuizStore = create<QuizState>()(
         answers: state.answers,
         isStarted: state.isStarted,
         isFinished: state.isFinished,
-        hasAnswered: state.hasAnswered,
         quizDuration: state.quizDuration,
         timeLeft: state.timeLeft,
         selectedSubject: state.selectedSubject,

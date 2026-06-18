@@ -13,6 +13,16 @@ import {
 } from "../Services/PerformanceService";
 import { useUserStore } from "./useUserStore";
 import { supabase } from "../lib/supabase";
+
+// Helper to get week number and year (same as in PerformanceService)
+const getWeekAndYear = (date: Date): string => {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7; // Make week start on Monday (1-7)
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  const weekNum = Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
+  return `${d.getUTCFullYear()}-W${weekNum}`;
+};
 interface PerformanceState {
   // Data
   weeklyActivity: WeeklyActivity[];
@@ -45,6 +55,8 @@ interface PerformanceState {
     total: number;
     accuracy: number;
     streak: number;
+    shouldShowPopup: boolean;
+    subject: string;
   }>;
   reset: () => void;
 }
@@ -101,18 +113,22 @@ export const usePerformanceStore = create<PerformanceState>()((set, get) => ({
       const totalCorrect = sessions?.reduce((sum, s) => sum + s.correct, 0) || 0;
       const avgAcc = totalQs > 0 ? Math.round((totalCorrect / totalQs) * 100) : 0;
 
-      // Calculate weekly activity
+      // Calculate weekly activity (only current week)
       const today = new Date();
+      const currentWeek = getWeekAndYear(today);
       const weeklyActivity = Array(7).fill(0).map((_, i) => {
         const date = new Date(today);
         date.setDate(today.getDate() - (6 - i));
         const dayName = date.toLocaleDateString("en-US", { weekday: "short" });
+
+        // Only include sessions from current week
         const questionsForDay = sessions?.filter(s => {
           const sessionDate = new Date(s.completed_at);
-          return (
-            sessionDate.toDateString() === date.toDateString()
-          );
+          const sessionWeek = getWeekAndYear(sessionDate);
+          return sessionWeek === currentWeek &&
+            sessionDate.toDateString() === date.toDateString();
         }).reduce((sum, s) => sum + s.total_questions, 0) || 0;
+
         return { day: dayName, questions: questionsForDay };
       });
 
@@ -195,6 +211,11 @@ export const usePerformanceStore = create<PerformanceState>()((set, get) => ({
 
       // Update subject-level tracking
       await updateSubjectPerformance(subject, result.accuracy);
+
+      // If we should show the streak popup, set it in useUserStore
+      if (result.shouldShowPopup) {
+        useUserStore.getState().setShowStreakPopup(true, result.streak);
+      }
 
       return result;
     } catch (error) {
