@@ -12,6 +12,8 @@ export interface DailyGoalProgress {
   id: string; // Same as DailyGoal id
   completed: boolean;
   completedAt: string | null; // ISO date string
+  goal_id: string;
+
 }
 
 export interface DailyGoalsState {

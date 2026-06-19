@@ -32,6 +32,7 @@ type GoalState = {
   ) => Promise<void>;
   resetForNewDay: () => void;
   syncWithDatabase: () => Promise<void>;
+  reset: () => void
 };
 
 const getTodayDateString = () => {
@@ -237,6 +238,7 @@ function debounce<T extends (...args: any[]) => any>(
 let debouncedGoalSync: (() => void) | null = null;
 
 export const useGoalStore = create<GoalState>()(
+
   persist(
     (set, get) => {
       const syncDb = async () => {
@@ -280,6 +282,14 @@ export const useGoalStore = create<GoalState>()(
               goals: getInitialGoals(),
             });
           }
+        },
+        reset: () => {
+          set({
+            date: getTodayDateString(),
+            goals: getInitialGoals(),
+            isLoading: false,
+          });
+          localStorage.removeItem("daily-goals-storage");
         },
 
         syncWithDatabase: async () => {
@@ -326,9 +336,11 @@ export const useGoalStore = create<GoalState>()(
           if (hasChanges) {
             set({ goals: updatedGoals });
           }
+
         },
       };
     },
+
     {
       name: "daily-goals-storage",
       partialize: (state) => ({
@@ -357,6 +369,8 @@ export const useGoalStore = create<GoalState>()(
         }
       },
     }
+
   )
+
 );
 

@@ -4,6 +4,15 @@ import { persist } from "zustand/middleware";
 import { supabase } from "../lib/supabase";
 import { useSubjectStore } from "./useSubjectStore";
 import { usePerformanceStore } from "./usePerformanceStore";
+import { useMockStore } from "./useMockStore";
+import { useDailyGoalsStore } from "./useDailyGoalsStore";
+import { useQuizStore } from "./useQuizStore";
+import { useStudyTrackingStore } from "./useStudyTrackingStore";
+import { useGoalStore } from "./useGoal";
+
+
+useStudyTrackingStore.getState().reset();
+
 // ── Interfaces ────────────────────────────────────────────────────────────────
 interface OnboardingData {
   name: string;
@@ -74,7 +83,7 @@ interface UserState {
   isLoading: boolean;
   authError: string | null;
   _profileReady: boolean
-  
+
 
   // ── Actions ──────────────────────────────────────────
   completeOnboarding: (
@@ -298,8 +307,6 @@ export const useUserStore = create<UserState>()(
       },
 
       // ── signOut ────────────────────────────────────────
-      // Clears everything including the persisted localStorage key.
-      // ── signOut ────────────────────────────────────────
       signOut: async () => {
         set({ isLoading: true });
         try {
@@ -307,19 +314,30 @@ export const useUserStore = create<UserState>()(
         } catch (err) {
           console.error("[signOut]", err);
         } finally {
-           useSubjectStore.getState().reset();
-           usePerformanceStore.getState().reset();
-          // 1. Wipe Zustand state to DEFAULTS
+          // ✅ 1. Clear auth service cache FIRST so next user gets clean DB calls
+          
+
+          // ✅ 2. Reset all in-memory stores
+          useSubjectStore.getState().reset();
+          usePerformanceStore.getState().reset();
+          useDailyGoalsStore.getState().reset();
+          useGoalStore.getState().reset();        // ← was missing entirely
+          useMockStore.getState().reset();
+          useQuizStore.getState().reset();
+          useStudyTrackingStore.getState().reset(); // ← had missing ()
+
+          // ✅ 3. Wipe Zustand user state
           set({ ...DEFAULTS, _profileReady: false });
-             
-          // 2. Nuke ALL jambify-related localStorage keys, not just one
+
+          // ✅ 4. Nuke all persisted localStorage
           Object.keys(localStorage)
-            .filter((k) => k.startsWith("jambready") || k.startsWith("daily-goals"))
-            .forEach((k) => localStorage.removeItem(k));
-          // 3. Also clear the supabase session from localStorage
-          Object.keys(localStorage)
-            .filter((k) => k.startsWith("sb-"))
-            .forEach((k) => localStorage.removeItem(k));
+            .filter(k =>
+              k.startsWith("jambready") ||
+              k.startsWith("daily-goals") ||
+              k.startsWith("study-tracking") ||
+              k.startsWith("sb-")
+            )
+            .forEach(k => localStorage.removeItem(k));
         }
       },
 
@@ -370,19 +388,19 @@ export const useUserStore = create<UserState>()(
 
       // ── markWelcomeAsSeen ─────────────────────────────
       markWelcomeAsSeen: () => {
-  const { id } = get();
-  set({ onboardingComplete: true, hasSeenWelcome: true });
-  // ✅ Persist to DB so sign-out/sign-in doesn't reset it
-  if (id) {
-    supabase
-      .from("profiles")
-      .update({ has_seen_welcome: true })
-      .eq("id", id)
-      .then(({ error }) => {
-        if (error) console.error("[markWelcomeAsSeen]", error);
-      });
-  }
-},
+        const { id } = get();
+        set({ onboardingComplete: true, hasSeenWelcome: true });
+        // ✅ Persist to DB so sign-out/sign-in doesn't reset it
+        if (id) {
+          supabase
+            .from("profiles")
+            .update({ has_seen_welcome: true })
+            .eq("id", id)
+            .then(({ error }) => {
+              if (error) console.error("[markWelcomeAsSeen]", error);
+            });
+        }
+      },
 
       // ── Profile updates ───────────────────────────────
       updateProfile: async (data) => {

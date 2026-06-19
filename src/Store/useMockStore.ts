@@ -14,6 +14,18 @@ export interface MockAttempt {
   results: ExamResult;
   timeTaken: number; // seconds
 }
+const initialState = {
+  questions: [],
+  currentIndex: 0,
+  answers: {},
+  visitedQuestions: [],
+  markedForReview: [],
+  timeLeft: 0,
+  isStarted: false,
+  isFinished: false,
+  lastResult: null,
+  attempts: [],
+};
 
 interface MockState {
   // Active exam state
@@ -25,6 +37,7 @@ interface MockState {
   timeLeft: number;
   isStarted: boolean;
   isFinished: boolean;
+
 
   // Results
   lastResult: ExamResult | null;
@@ -40,14 +53,17 @@ interface MockState {
   prevQuestion: () => void;
   finishExam: (timeTaken: number) => void;
   resetExam: () => void;
+  reset: () => void;
   tickTimer: () => void;
   clearResponse: (index: number) => void;
   updateTimeLeft: (seconds: number) => void;
 }
 
 export const useMockStore = create<MockState>()(
+
   persist(
     (set, get) => ({
+      ...initialState,
       questions: [],
       currentIndex: 0,
       answers: {},
@@ -151,7 +167,15 @@ export const useMockStore = create<MockState>()(
           isStarted: false,
           isFinished: false,
           lastResult: null,
+
         }),
+
+      // reset entire store (including attempts history)
+
+      reset: () => {
+        set(initialState);
+        localStorage.removeItem("jambify-mock-exam");
+      },
 
       tickTimer: () =>
         set((state) => ({

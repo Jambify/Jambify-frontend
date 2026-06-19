@@ -25,6 +25,7 @@ interface StudyTrackingActions {
   getCurrentStudyTime: () => number; // Get total current study time (including active session)
   setSessionAccuracy: (accuracy: number) => void; // Set accuracy for the last completed session
   syncWithDatabase: () => Promise<void>;
+  reset: () => void;
 }
 
 const getTodayDateString = () => {
@@ -185,8 +186,13 @@ export const useStudyTrackingStore = create<
         syncWithDatabase: async () => {
           debouncedSync?.();
         },
+        reset: () => {
+          set(getInitialState());
+          localStorage.removeItem("study-tracking-storage");
+        },
       };
     },
+
     {
       name: "study-tracking-storage",
     }

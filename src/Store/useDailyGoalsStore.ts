@@ -36,17 +36,19 @@ const getTodayDateString = () => {
 
 // Initial state factory
 const getInitialState = (): DailyGoalsState => ({
+
   date: getTodayDateString(),
   goals: DAILY_GOAL_TEMPLATES,
   progress: DAILY_GOAL_TEMPLATES.map((template) => ({
     id: template.id,
     completed: false,
     completedAt: null,
+    goal_id: template.id,
   })),
   totalXpEarnedToday: 0,
 });
 
-interface DailyGoalsStore extends DailyGoalsState {
+export interface DailyGoalsStore extends DailyGoalsState {
   // Actions
   resetForNewDay: () => void;
   markGoalCompleted: (goalId: string) => void;
@@ -55,6 +57,7 @@ interface DailyGoalsStore extends DailyGoalsState {
     topicsCompleted: string[],
     studyTimeMinutes: number
   ) => void;
+  reset: () => void;
 }
 
 export const useDailyGoalsStore = create<DailyGoalsStore>()(
@@ -89,6 +92,14 @@ export const useDailyGoalsStore = create<DailyGoalsStore>()(
         }
       },
 
+      reset: () => {
+        // ✅ Set clean state first — persist middleware will write this to localStorage
+        // automatically, overwriting any stale data. Then remove the key entirely.
+        set(getInitialState());
+        // Small timeout lets Zustand finish the persist write before we nuke the key
+        setTimeout(() => localStorage.removeItem("study-tracking-storage"), 0);
+      },
+
       checkAndUpdateGoalProgress: (
         questionsCompleted: number,
         topicsCompleted: string[],
@@ -114,5 +125,7 @@ export const useDailyGoalsStore = create<DailyGoalsStore>()(
     {
       name: "daily-goals-storage",
     }
+
+
   )
 );

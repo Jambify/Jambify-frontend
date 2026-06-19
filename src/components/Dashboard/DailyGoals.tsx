@@ -5,13 +5,12 @@ import { useStudyTrackingStore } from "../../Store/useStudyTrackingStore";
 import { cn } from "../../lib/utils/utils";
 import { Flame, CheckCircle2, Circle, Zap, PartyPopper } from "lucide-react";
 
+
+
 const DAYS_SHORT = ["M", "T", "W", "T", "F", "S", "S"];
 
-// Returns 0-indexed day of week where 0 = Monday
-function getTodayIndex(): number {
-  const d = new Date().getDay(); // 0=Sun … 6=Sat
-  return d === 0 ? 6 : d - 1;
-}
+
+
 
 function getMotivationalMessage(pct: number, streak: number): string {
   if (pct === 0) return "Start today — every expert was once a beginner.";
@@ -27,6 +26,7 @@ function getMotivationalMessage(pct: number, streak: number): string {
 }
 
 const DailyGoals: React.FC = () => {
+  const { isAuthenticated } = useUserStore();
   const { goals, checkAndCompleteGoals, resetForNewDay, syncWithDatabase } =
     useGoalStore();
   const { streak } = useUserStore();
@@ -46,6 +46,23 @@ const DailyGoals: React.FC = () => {
   const goalsPct =
     totalGoals > 0 ? Math.round((doneCount / totalGoals) * 100) : 0;
   const totalXp = goals.reduce((sum, g) => sum + (g.done ? g.xp : 0), 0);
+
+
+  useEffect(() => {
+  // ✅ Don't sync until we know who the user is
+  if (!isAuthenticated) return;
+
+  resetForNewDay();
+  resetTrackingForNewDay();
+  syncWithDatabase();
+  syncTrackingWithDatabase();
+}, [isAuthenticated, resetForNewDay, resetTrackingForNewDay, syncWithDatabase, syncTrackingWithDatabase])
+
+// Returns 0-indexed day of week where 0 = Monday
+function getTodayIndex(): number {
+  const d = new Date().getDay(); // 0=Sun … 6=Sat
+  return d === 0 ? 6 : d - 1;
+}
 
   // Reset goals for new day on mount and sync with DB
   useEffect(() => {
