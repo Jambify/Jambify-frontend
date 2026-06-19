@@ -4,17 +4,11 @@ import { Navigate, useLocation } from "react-router-dom";
 import { useUserStore } from "../../Store/useUserStore";
 import { supabase } from "../../lib/supabase";
 
-// ── Route categories ──────────────────────────────────────────────────────────
-// Public: no auth needed at all
 const PUBLIC_ROUTES = ["/signin", "/signup", "/verify", "/guest"];
-
-// Semi-protected: auth required but onboarding check is SKIPPED.
-// /onboarding and /welcome MUST be here — they render between
-// "just signed up" and "fully onboarded" states.
-// If they're NOT here, the guard creates a redirect loop:
-//   isAuthenticated=true + onboardingComplete=false → redirect to /onboarding
-//   /onboarding renders → guard fires again → redirect to /onboarding → ∞
 const SEMI_PROTECTED = ["/onboarding", "/welcome"];
+
+// ✅ Module-level flag — survives RouteGuard remounts
+let appInitialised = false;
 
 const RouteGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { pathname } = useLocation();
@@ -23,51 +17,50 @@ const RouteGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const hasSeenWelcome = useUserStore((s) => s.hasSeenWelcome);
   const syncProfile = useUserStore((s) => s.syncProfile);
   const [profileExists, setProfileExists] = useState(true);
-
-  // isInitialising starts TRUE so we NEVER render a redirect before we've
-  // confirmed the Supabase session. Without this, a page refresh on /dashboard
-  // shows isAuthenticated=false for one frame and flashes the signin page.
-  const [isInitialising, setIsInitialising] = useState(true);
-  const hasSynced = useRef(false);
+  const [isInitialising, setIsInitialising] = useState(!appInitialised);
 
   useEffect(() => {
-    const init = async () => {
-      if (hasSynced.current) return;
-      hasSynced.current = true;
+    // ✅ If we've already initialised this session, skip entirely
+    if (appInitialised) {
+      setIsInitialising(false);
+      return;
+    }
 
+    const init = async () => {
       try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
+        const { data: { session } } = await supabase.auth.getSession();
 
         if (session?.user) {
-          // Restore identity BEFORE syncProfile so syncProfile can read the id
           useUserStore.setState({
             isAuthenticated: true,
             id: session.user.id,
             email: session.user.email ?? "",
           });
 
-          // force=true bypasses the 5-second cache so we always get fresh
-          // onboarding_complete from DB, even if the user just signed out
-          // and signed back in (signOut resets Zustand to DEFAULTS)
           const { profileExists: exists } = await syncProfile(true);
           setProfileExists(exists);
         }
       } catch (err) {
         console.error("[RouteGuard] init error:", err);
       } finally {
-        // Only NOW allow the guard to make redirect decisions
+        appInitialised = true; // ✅ Set BEFORE setIsInitialising to avoid race
         setIsInitialising(false);
       }
     };
 
     init();
-  }, []); // runs exactly once per mount
+  }, []);
 
-  // ── Spinner while initialising ────────────────────────────────────────────
-  // Typically 200–500 ms (one Supabase round-trip + one DB query).
-  // Keeps ANY redirect decision from firing until we have real state.
+  // ✅ Also reset appInitialised when user signs out so the next
+  // user gets a fresh init cycle
+  const prevAuthenticated = useRef(isAuthenticated);
+  useEffect(() => {
+    if (prevAuthenticated.current && !isAuthenticated) {
+      appInitialised = false;
+    }
+    prevAuthenticated.current = isAuthenticated;
+  }, [isAuthenticated]);
+
   if (isInitialising) {
     return (
       <div className="bg-bgMain flex min-h-screen items-center justify-center">
@@ -79,10 +72,6 @@ const RouteGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     );
   }
 
-  // ── Routing decisions (sync is complete, state is authoritative) ──────────
-
-  // 1. Public routes — always accessible, no auth check
-  // EXCEPT: If user is fully onboarded and has seen welcome, redirect away from signin/signup
   if (PUBLIC_ROUTES.some((r) => pathname.startsWith(r))) {
     if (
       isAuthenticated &&
@@ -95,32 +84,12 @@ const RouteGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     return <>{children}</>;
   }
 
-  // 2. Not authenticated → send to sign-in
-  if (!isAuthenticated) {
-    return <Navigate to="/signin" replace />;
-  }
+  if (!isAuthenticated) return <Navigate to="/signin" replace />;
+  if (!profileExists) return <Navigate to="/onboarding" replace />;
+  if (SEMI_PROTECTED.some((r) => pathname.startsWith(r))) return <>{children}</>;
+  if (!onboardingComplete) return <Navigate to="/onboarding" replace />;
+  if (!hasSeenWelcome) return <Navigate to="/welcome" replace />;
 
-  // 3. Profile doesn't exist → send to onboarding
-  if (!profileExists) {
-    return <Navigate to="/onboarding" replace />;
-  }
-
-  // 4. Onboarding & welcome — auth required but onboarding/welcome check skipped
-  if (SEMI_PROTECTED.some((r) => pathname.startsWith(r))) {
-    return <>{children}</>;
-  }
-
-  // 5. Authenticated but onboarding not finished → send to onboarding
-  if (!onboardingComplete) {
-    return <Navigate to="/onboarding" replace />;
-  }
-
-  // 6. Authenticated and onboarding finished but haven't seen welcome → send to welcome
-  if (!hasSeenWelcome) {
-    return <Navigate to="/welcome" replace />;
-  }
-
-  // 7. Fully authenticated, onboarded, and seen welcome — allow
   return <>{children}</>;
 };
 

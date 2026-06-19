@@ -11,6 +11,7 @@ interface SubjectState {
   isLoading: boolean;
   error: string | null;
   isInitialized: boolean;
+   reset: () => void; // ← ADD THIS
 
   // Actions
   loadSubjects: (force?: boolean) => Promise<void>;
@@ -442,4 +443,5 @@ export const useSubjectStore = create<SubjectState>()((set, get) => ({
       set({ error: "Failed to initialize subjects", isLoading: false });
     }
   },
+   reset: () => set({ subjects: [], isLoading: false, error: null, isInitialized: false }),
 }));

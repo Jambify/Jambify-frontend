@@ -35,7 +35,7 @@ interface PerformanceState {
   isLoading: boolean;
   error: string | null;
   isInitialized: boolean;
-
+  
   // Actions
   loadPerformanceData: (force?: boolean) => Promise<void>;
   addMockScore: (score: number) => void;
@@ -243,6 +243,7 @@ export const usePerformanceStore = create<PerformanceState>()((set, get) => ({
       avgAccuracy: 0,
       isLoading: false,
       error: null,
+      isInitialized: false,
     });
   },
 }));

@@ -25,7 +25,7 @@ const getSubjectIcon = (subject: string) => {
 
 const SubjectProgress: React.FC = () => {
   const navigate = useNavigate();
-  const { topicStats, isLoading } = usePerformanceStore();
+  const { topicStats, isLoading, mockHistory } = usePerformanceStore();
   const { subjectCombo } = useUserStore();
   const { subjects } = useSubjectStore();
 
@@ -42,7 +42,8 @@ const SubjectProgress: React.FC = () => {
   );
 
   // Check if user has taken any exams or quizzes
-  const hasActivity = usePerformanceStore.getState().mockHistory.length > 0 || topicStats.length > 0;
+  // const hasActivity = usePerformanceStore.getState().mockHistory.length > 0 || topicStats.length > 0;
+  const hasActivity = mockHistory.length > 0 || topicStats.length > 0;
 
   // If no activity yet, show the "No Exam Taken" placeholder
   if (!hasActivity && !isLoading) {
@@ -66,7 +67,16 @@ const SubjectProgress: React.FC = () => {
       </div>
     );
   }
-
+if(isLoading) {
+  return (
+    <div className="bg-bgCard border-borderMuted rounded-brand-xl flex h-full flex-col items-center justify-center border p-6 text-center">
+      <div className="border-brand mb-4 h-8 w-8 animate-spin rounded-full border-4 border-t-transparent" />
+      <p className="text-textDim mb-6 max-w-60 text-sm">
+        Please wait while we fetch your subject progress data.
+      </p>
+    </div>
+  );
+}
   // If all topics mastered (no weak topics found), show "All Mastered" placeholder
   if (comboWeakestTopics.length === 0 && !isLoading) {
     return (

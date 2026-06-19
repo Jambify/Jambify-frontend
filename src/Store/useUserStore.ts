@@ -3,7 +3,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { supabase } from "../lib/supabase";
 import { useSubjectStore } from "./useSubjectStore";
-
+import { usePerformanceStore } from "./usePerformanceStore";
 // ── Interfaces ────────────────────────────────────────────────────────────────
 interface OnboardingData {
   name: string;
@@ -73,6 +73,8 @@ interface UserState {
   isAuthenticated: boolean;
   isLoading: boolean;
   authError: string | null;
+  _profileReady: boolean
+  
 
   // ── Actions ──────────────────────────────────────────
   completeOnboarding: (
@@ -144,6 +146,7 @@ const DEFAULTS = {
   currentStreakToShow: 0,
   lastStreakWeek: null,
   lastSeenStreakPopup: 0,
+  _profileReady: false,
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -180,6 +183,7 @@ export const useUserStore = create<UserState>()(
   persist(
     (set, get) => ({
       ...DEFAULTS,
+      _profileReady: false,
 
       // ── syncProfile ────────────────────────────────────
       // Returns { onboardingComplete, profileExists } so callers can navigate
@@ -230,6 +234,8 @@ export const useUserStore = create<UserState>()(
             lastSeenStreakPopup: data.last_seen_streak_popup || 0,
             onboardingComplete,
             isLoading: false,
+            _profileReady: true,
+            hasSeenWelcome: data.has_seen_welcome ?? false,
           });
 
           return { onboardingComplete, profileExists: true };
@@ -293,16 +299,27 @@ export const useUserStore = create<UserState>()(
 
       // ── signOut ────────────────────────────────────────
       // Clears everything including the persisted localStorage key.
+      // ── signOut ────────────────────────────────────────
       signOut: async () => {
         set({ isLoading: true });
         try {
           await supabase.auth.signOut();
-          set({ ...DEFAULTS });
-          localStorage.removeItem("jambready-user");
         } catch (err) {
           console.error("[signOut]", err);
         } finally {
-          set({ isLoading: false });
+           useSubjectStore.getState().reset();
+           usePerformanceStore.getState().reset();
+          // 1. Wipe Zustand state to DEFAULTS
+          set({ ...DEFAULTS, _profileReady: false });
+             
+          // 2. Nuke ALL jambify-related localStorage keys, not just one
+          Object.keys(localStorage)
+            .filter((k) => k.startsWith("jambready") || k.startsWith("daily-goals"))
+            .forEach((k) => localStorage.removeItem(k));
+          // 3. Also clear the supabase session from localStorage
+          Object.keys(localStorage)
+            .filter((k) => k.startsWith("sb-"))
+            .forEach((k) => localStorage.removeItem(k));
         }
       },
 
@@ -352,8 +369,20 @@ export const useUserStore = create<UserState>()(
       },
 
       // ── markWelcomeAsSeen ─────────────────────────────
-      markWelcomeAsSeen: () =>
-        set({ onboardingComplete: true, hasSeenWelcome: true }),
+      markWelcomeAsSeen: () => {
+  const { id } = get();
+  set({ onboardingComplete: true, hasSeenWelcome: true });
+  // ✅ Persist to DB so sign-out/sign-in doesn't reset it
+  if (id) {
+    supabase
+      .from("profiles")
+      .update({ has_seen_welcome: true })
+      .eq("id", id)
+      .then(({ error }) => {
+        if (error) console.error("[markWelcomeAsSeen]", error);
+      });
+  }
+},
 
       // ── Profile updates ───────────────────────────────
       updateProfile: async (data) => {
@@ -479,33 +508,43 @@ export const useUserStore = create<UserState>()(
     {
       name: "jambready-user",
       partialize: (s) => ({
-        // Persist auth identity and profile so page refresh works
-        id: s.id,
-        name: s.name,
-        email: s.email,
-        university: s.university,
-        subjectCombo: s.subjectCombo,
-        targetScore: s.targetScore,
+        ...(s._profileReady ? {
+          // Persist auth identity and profile so page refresh works
+          id: s.id,
+          name: s.name,
+          email: s.email,
+          university: s.university,
+          subjectCombo: s.subjectCombo,
+          targetScore: s.targetScore,
+          examYear: s.examYear,
+          examDate: s.examDate,
+          onboardingComplete: s.onboardingComplete,
+          isPro: s.isPro,
+          hasSeenWelcome: s.hasSeenWelcome,
+          downloadedData: s.downloadedData,
+          streak: s.streak,
+          bestScore: s.bestScore,
+          weeklyScoreChange: s.weeklyScoreChange,
+          accuracy: s.accuracy,
+          previousAccuracy: s.previousAccuracy,
+          questionsCompleted: s.questionsCompleted,
+          totalQuestions: s.totalQuestions,
+          schoolRank: s.schoolRank,
+          lastStreakWeek: s.lastStreakWeek,
+          lastSeenStreakPopup: s.lastSeenStreakPopup,
+          showStreakPopup: s.showStreakPopup,
+          currentStreakToShow: s.currentStreakToShow,
+          // daysToExam intentionally excluded — computed live by useExamCountdown
+          isAuthenticated: s.isAuthenticated,
+
+        } : {
+          id: null,
+          isAuthenticated: false,
+          _profileReady: false,
+        }),
         examYear: s.examYear,
         examDate: s.examDate,
-        onboardingComplete: s.onboardingComplete,
-        isPro: s.isPro,
-        hasSeenWelcome: s.hasSeenWelcome,
         downloadedData: s.downloadedData,
-        streak: s.streak,
-        bestScore: s.bestScore,
-        weeklyScoreChange: s.weeklyScoreChange,
-        accuracy: s.accuracy,
-        previousAccuracy: s.previousAccuracy,
-        questionsCompleted: s.questionsCompleted,
-        totalQuestions: s.totalQuestions,
-        schoolRank: s.schoolRank,
-        lastStreakWeek: s.lastStreakWeek,
-        lastSeenStreakPopup: s.lastSeenStreakPopup,
-        showStreakPopup: s.showStreakPopup,
-        currentStreakToShow: s.currentStreakToShow,
-        // daysToExam intentionally excluded — computed live by useExamCountdown
-        isAuthenticated: s.isAuthenticated,
       }),
     },
   ),

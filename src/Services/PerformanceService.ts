@@ -65,14 +65,13 @@ const getWeekAndYear = (date: Date): string => {
 };
 
 // Calculate and update streak
-export const calculateAndUpdateStreak = async (isQuizSubmission = false): Promise<{ streak: number; shouldShowPopup: boolean }> => {
+export const calculateAndUpdateStreak = async (
+  isQuizSubmission = false
+): Promise<{ streak: number; shouldShowPopup: boolean }> => {
   try {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { streak: 0, shouldShowPopup: false };
 
-    // Fetch user's profile
     const { data: profile, error } = await supabase
       .from("profiles")
       .select("*")
@@ -84,9 +83,7 @@ export const calculateAndUpdateStreak = async (isQuizSubmission = false): Promis
     const today = new Date();
     const todayKey = getDateKey(today);
     const currentWeek = getWeekAndYear(today);
-    const lastStreakWeek = profile.last_streak_week || null;
 
-    // Get last activity date from quiz_sessions
     const { data: sessions } = await supabase
       .from("quiz_sessions")
       .select("created_at")
@@ -94,76 +91,74 @@ export const calculateAndUpdateStreak = async (isQuizSubmission = false): Promis
       .order("created_at", { ascending: false })
       .limit(1);
 
-    let lastActivityDate: Date | null = null;
-
-    if (sessions && sessions.length > 0) {
-      lastActivityDate = new Date(sessions[0].created_at);
-    }
+    const lastActivityDate = sessions?.length
+      ? new Date(sessions[0].created_at)
+      : null;
 
     let newStreak = profile.streak || 0;
     let shouldShowPopup = false;
-
-    // First, check if it's a new week — reset streak if needed
-    if (lastStreakWeek && lastStreakWeek !== currentWeek) {
-      newStreak = 0;
-    }
+    let needsDbUpdate = false;
 
     if (lastActivityDate) {
       const lastActivityKey = getDateKey(lastActivityDate);
 
-      // If last activity was today, do nothing
       if (lastActivityKey === todayKey) {
-        // Do nothing
+        // Already active today — nothing to change
       } else {
         const yesterday = new Date(today);
         yesterday.setDate(yesterday.getDate() - 1);
         const yesterdayKey = getDateKey(yesterday);
 
-        // Check if last activity was before yesterday
-        const lastActivityDateOnly = new Date(lastActivityKey);
-        const yesterdayDateOnly = new Date(yesterdayKey);
-
         if (lastActivityKey === yesterdayKey) {
+          // Last active yesterday — streak is intact unless it's a quiz submission
           if (isQuizSubmission) {
-            // Increment streak since user just completed a quiz today
             newStreak = (profile.streak || 0) + 1;
+            needsDbUpdate = true;
           }
-          // else, if just checking on app load, leave streak as is
-        } else if (lastActivityDateOnly < yesterdayDateOnly) {
-          // Streak was broken!
+          // On app load: leave streak as-is, don't touch DB
+        } else {
+          // Missed a day — streak is broken
           if (isQuizSubmission) {
-            // Start a new streak at 1 since user just completed a quiz today
             newStreak = 1;
           } else {
-            // Just checking on app load — reset streak to 0
-            newStreak = 0;
+            // Only reset if it's not already 0 (avoid pointless writes)
+            if (newStreak !== 0) {
+              newStreak = 0;
+              needsDbUpdate = true;
+            }
           }
+          if (newStreak !== profile.streak) needsDbUpdate = true;
         }
       }
     } else {
-      // No activity at all
+      // No activity ever
       if (isQuizSubmission) {
-        newStreak = 1; // First quiz ever!
-      } else {
-        newStreak = 0; // No activity
+        newStreak = 1;
+        needsDbUpdate = true;
       }
     }
 
-    // Check if we should show a popup for this streak
+    // Check popup eligibility (quiz submissions only)
     const lastSeenStreakPopup = profile.last_seen_streak_popup || 0;
-    if (newStreak > lastSeenStreakPopup && [1, 2, 3, 4, 5, 6, 7].includes(newStreak) && isQuizSubmission) {
+    if (
+      isQuizSubmission &&
+      newStreak > lastSeenStreakPopup &&
+      [1, 2, 3, 4, 5, 6, 7].includes(newStreak)
+    ) {
       shouldShowPopup = true;
     }
 
-    // Update the profile
-    await supabase
-      .from("profiles")
-      .update({
-        streak: newStreak,
-        last_streak_week: currentWeek,
-        last_seen_streak_popup: shouldShowPopup ? newStreak : lastSeenStreakPopup
-      })
-      .eq("id", user.id);
+    // ✅ Only write to DB when something actually changed
+    if (needsDbUpdate) {
+      await supabase
+        .from("profiles")
+        .update({
+          streak: newStreak,
+          last_streak_week: currentWeek,
+          ...(shouldShowPopup && { last_seen_streak_popup: newStreak }),
+        })
+        .eq("id", user.id);
+    }
 
     return { streak: newStreak, shouldShowPopup };
   } catch (err) {

@@ -1,7 +1,7 @@
 // src/Store/useDailyGoalsStore.ts
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { DailyGoal, DailyGoalProgress, DailyGoalsState } from "../Types/dailyGoals";
+import type { DailyGoalsState } from "../Types/dailyGoals";
 
 // Define our 3 daily goals that work for all subject combos
 const DAILY_GOAL_TEMPLATES = [
