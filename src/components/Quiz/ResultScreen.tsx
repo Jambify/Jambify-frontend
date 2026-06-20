@@ -8,9 +8,10 @@ import { useStudyTrackingStore } from "../../Store/useStudyTrackingStore";
 interface ResultsScreenProps {
   onRetry: () => void;
   onHome: () => void;
+  onPerformance: () => void;
 }
 
-const ResultsScreen: React.FC<ResultsScreenProps> = ({ onRetry, onHome }) => {
+const ResultsScreen: React.FC<ResultsScreenProps> = ({ onRetry, onHome, onPerformance }) => {
   const { questions, answers, selectedTopic } = useQuizStore();
   const { commitSession } = useQuizSession();
 
@@ -143,7 +144,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ onRetry, onHome }) => {
         <Button variant="secondary" fullWidth onClick={onHome}>
           ← Dashboard
         </Button>
-        <Button variant="secondary" fullWidth onClick={onHome}>
+        <Button variant="secondary" fullWidth onClick={onPerformance}>
           📊 Performance
         </Button>
       </div>

@@ -681,7 +681,13 @@ const Quiz: React.FC = () => {
             reset();
             navigate("/");
           }}
+
+           onPerformance={()=>{
+            reset();
+            navigate("/performance")
+        }}
         />
+       
       </AppLayout>
     );
   }

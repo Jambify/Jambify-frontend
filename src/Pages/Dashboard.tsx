@@ -10,6 +10,7 @@ import RecommendedSessions from "../components/Dashboard/RecommendedSessions";
 import DailyGoals from "../components/Dashboard/DailyGoals";
 import StreakCelebrationModal from "../components/ui/StreakCelebrationModal";
 import { calculateAndUpdateStreak } from "../Services/PerformanceService";
+import { supabase } from "../lib/supabase";
 import {
   BookOpen,
   TrendingUp,
@@ -77,20 +78,25 @@ const Dashboard: React.FC = () => {
     loadPerformanceData();
     
     // Check and update streak on initial load
-    const checkStreak = async () => {
-      try {
-        const { streak, shouldShowPopup } = await calculateAndUpdateStreak(false);
-        
-        // Sync the updated streak to user store
-        await useUserStore.getState().syncProfile(true);
-        
-        if (shouldShowPopup) {
-          useUserStore.getState().setShowStreakPopup(true, streak);
-        }
-      } catch (err) {
-        console.error("Error checking streak:", err);
-      }
-    };
+   const checkStreak = async () => {
+  // ✅ Confirm session active before checking
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) return;
+
+  try {
+    const { streak: updatedStreak, shouldShowPopup } = 
+      await calculateAndUpdateStreak(false); // app load, not submission
+
+    // Sync full profile to get fresh streak value
+    await useUserStore.getState().syncProfile(true);
+
+    if (shouldShowPopup) {
+      useUserStore.getState().setShowStreakPopup(true, updatedStreak);
+    }
+  } catch (err) {
+    console.error("Error checking streak:", err);
+  }
+};
     
     checkStreak();
   }, [loadPerformanceData]);

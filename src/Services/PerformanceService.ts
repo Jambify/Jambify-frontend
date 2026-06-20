@@ -49,22 +49,32 @@ type SupabaseResponse<T> = {
   error: any;
 };
 
-// Helper to get date string in YYYY-MM-DD format (local time)
-const getDateKey = (date: Date): string => {
-  return date.toISOString().split("T")[0];
+
+const getLocalDateStr = (): string => {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
 };
 
-// Helper to get week number and year
-const getWeekAndYear = (date: Date): string => {
-  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-  const dayNum = d.getUTCDay() || 7; // Make week start on Monday (1-7)
-  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-  const weekNum = Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
-  return `${d.getUTCFullYear()}-W${weekNum}`;
+const getYesterdayStr = (): string => {
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
 };
+
+
 
 // Calculate and update streak
+// ===========================================================
+// STREAK — uses last_active_date DATE column as single source of truth
+// Popup shows at every 7-day interval (7, 14, 21, 28...)
+// Misses a day → resets to 0
+// ===========================================================
 export const calculateAndUpdateStreak = async (
   isQuizSubmission = false
 ): Promise<{ streak: number; shouldShowPopup: boolean }> => {
@@ -74,87 +84,62 @@ export const calculateAndUpdateStreak = async (
 
     const { data: profile, error } = await supabase
       .from("profiles")
-      .select("*")
+      .select("streak, last_active_date, last_seen_streak_popup")
       .eq("id", user.id)
       .maybeSingle();
 
     if (error || !profile) return { streak: 0, shouldShowPopup: false };
 
-    const today = new Date();
-    const todayKey = getDateKey(today);
-    const currentWeek = getWeekAndYear(today);
+    const todayStr = getLocalDateStr();
+    const yesterdayStr = getYesterdayStr();
 
-    const { data: sessions } = await supabase
-      .from("quiz_sessions")
-      .select("created_at")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-      .limit(1);
+    const lastActiveDate = profile.last_active_date as string | null;
+    const currentStreak = profile.streak || 0;
+    const lastSeenStreakPopup = profile.last_seen_streak_popup || 0;
 
-    const lastActivityDate = sessions?.length
-      ? new Date(sessions[0].created_at)
-      : null;
-
-    let newStreak = profile.streak || 0;
+    let newStreak = currentStreak;
     let shouldShowPopup = false;
     let needsDbUpdate = false;
 
-    if (lastActivityDate) {
-      const lastActivityKey = getDateKey(lastActivityDate);
+    // Already counted today — return immediately, no DB touch
+    if (lastActiveDate === todayStr) {
+      return { streak: currentStreak, shouldShowPopup: false };
+    }
 
-      if (lastActivityKey === todayKey) {
-        // Already active today — nothing to change
+    if (isQuizSubmission) {
+      if (!lastActiveDate) {
+        // First quiz ever
+        newStreak = 1;
+      } else if (lastActiveDate === yesterdayStr) {
+        // Consecutive day — increment
+        newStreak = currentStreak + 1;
       } else {
-        const yesterday = new Date(today);
-        yesterday.setDate(yesterday.getDate() - 1);
-        const yesterdayKey = getDateKey(yesterday);
+        // Missed one or more days — reset to 1
+        newStreak = 1;
+      }
 
-        if (lastActivityKey === yesterdayKey) {
-          // Last active yesterday — streak is intact unless it's a quiz submission
-          if (isQuizSubmission) {
-            newStreak = (profile.streak || 0) + 1;
-            needsDbUpdate = true;
-          }
-          // On app load: leave streak as-is, don't touch DB
-        } else {
-          // Missed a day — streak is broken
-          if (isQuizSubmission) {
-            newStreak = 1;
-          } else {
-            // Only reset if it's not already 0 (avoid pointless writes)
-            if (newStreak !== 0) {
-              newStreak = 0;
-              needsDbUpdate = true;
-            }
-          }
-          if (newStreak !== profile.streak) needsDbUpdate = true;
-        }
+      needsDbUpdate = true;
+
+      // ✅ Show popup at every 7-day interval (7, 14, 21, 28...)
+      // and only if the user hasn't already seen this level
+      if (newStreak % 7 === 0 && newStreak > lastSeenStreakPopup) {
+        shouldShowPopup = true;
       }
     } else {
-      // No activity ever
-      if (isQuizSubmission) {
-        newStreak = 1;
+      // App load — check if streak needs resetting
+      if (lastActiveDate && currentStreak > 0 && lastActiveDate < yesterdayStr) {
+        // Last active was before yesterday — streak broken
+        newStreak = 0;
         needsDbUpdate = true;
       }
     }
 
-    // Check popup eligibility (quiz submissions only)
-    const lastSeenStreakPopup = profile.last_seen_streak_popup || 0;
-    if (
-      isQuizSubmission &&
-      newStreak > lastSeenStreakPopup &&
-      [1, 2, 3, 4, 5, 6, 7].includes(newStreak)
-    ) {
-      shouldShowPopup = true;
-    }
-
-    // ✅ Only write to DB when something actually changed
     if (needsDbUpdate) {
       await supabase
         .from("profiles")
         .update({
           streak: newStreak,
-          last_streak_week: currentWeek,
+          last_active_date: isQuizSubmission ? todayStr : lastActiveDate,
           ...(shouldShowPopup && { last_seen_streak_popup: newStreak }),
         })
         .eq("id", user.id);

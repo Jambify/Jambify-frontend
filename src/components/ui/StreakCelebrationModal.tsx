@@ -1,5 +1,5 @@
 import React from "react";
-import { X, Trophy, Flame } from "lucide-react";
+import { X, Trophy, Flame, Zap, Star } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Button from "./Button";
 
@@ -9,57 +9,63 @@ interface StreakCelebrationModalProps {
   streak: number;
 }
 
-const getStreakMessage = (streak: number): { title: string; message: string; emoji: string } => {
-  switch (streak) {
-    case 1:
-      return {
-        title: "Great Start!",
-        message: "You've completed your first day! Keep this momentum going!",
-        emoji: "🌟"
-      };
-    case 2:
-      return {
-        title: "Two Days in a Row!",
-        message: "Awesome! Consistency is key to success in JAMB!",
-        emoji: "🔥"
-      };
-    case 3:
-      return {
-        title: "Three-Day Streak!",
-        message: "You're on fire! Keep up the amazing work!",
-        emoji: "🎉"
-      };
-    case 4:
-      return {
-        title: "Four Days Strong!",
-        message: "Your dedication is impressive! Don't stop now!",
-        emoji: "💪"
-      };
-    case 5:
-      return {
-        title: "Five-Day Streak!",
-        message: "Wow! You're halfway to a full week! Keep it up!",
-        emoji: "⭐"
-      };
-    case 6:
-      return {
-        title: "Almost a Week!",
-        message: "One more day to hit a 7-day streak! You've got this!",
-        emoji: "🎯"
-      };
-    case 7:
-      return {
-        title: "7-Day Streak!",
-        message: "Incredible! You've completed a full week of practice! You're a JAMB champion!",
-        emoji: "🏆"
-      };
-    default:
-      return {
-        title: "Keep Going!",
-        message: "Your consistency is amazing! Keep practicing daily!",
-        emoji: "✨"
-      };
+const getStreakContent = (streak: number): {
+  title: string;
+  message: string;
+  icon: React.ReactNode;
+  accentColor: string;
+  badge: string;
+} => {
+  const week = streak / 7;
+
+  if (streak === 7) {
+    return {
+      title: "One Full Week!",
+      message: "You've completed 7 consecutive days of practice. That's real dedication — keep this momentum going!",
+      icon: <Flame size={40} className="text-orange-400" />,
+      accentColor: "from-orange-500/20 to-transparent",
+      badge: "🔥 Week 1 Complete",
+    };
   }
+
+  if (streak === 14) {
+    return {
+      title: "Two Weeks Strong!",
+      message: "14 days straight! You're building a habit that will carry you through JAMB. Most students never make it this far.",
+      icon: <Star size={40} className="text-yellow-400" />,
+      accentColor: "from-yellow-500/20 to-transparent",
+      badge: "⭐ Week 2 Complete",
+    };
+  }
+
+  if (streak === 21) {
+    return {
+      title: "Three Week Champion!",
+      message: "21 days — scientists say habits form at 21 days. You've officially made daily practice part of who you are.",
+      icon: <Trophy size={40} className="text-brand" />,
+      accentColor: "from-brand/20 to-transparent",
+      badge: "🏆 Week 3 Complete",
+    };
+  }
+
+  if (streak === 28) {
+    return {
+      title: "One Month Warrior!",
+      message: "28 days of non-stop grinding. You are in rare company. JAMB success is inevitable at this rate.",
+      icon: <Trophy size={40} className="text-yellow-500" />,
+      accentColor: "from-yellow-600/20 to-transparent",
+      badge: "👑 One Month Strong",
+    };
+  }
+
+  // Generic for 35, 42, 49... 
+  return {
+    title: `${week} Weeks Unstoppable!`,
+    message: `${streak} days of consistent practice. You're proof that dedication beats talent every single time. JAMB doesn't stand a chance.`,
+    icon: <Zap size={40} className="text-brand" />,
+    accentColor: "from-brand/20 to-transparent",
+    badge: `🚀 ${streak}-Day Streak`,
+  };
 };
 
 const StreakCelebrationModal: React.FC<StreakCelebrationModalProps> = ({
@@ -67,50 +73,53 @@ const StreakCelebrationModal: React.FC<StreakCelebrationModalProps> = ({
   onClose,
   streak,
 }) => {
-  const { title, message,  } = getStreakMessage(streak);
+  const { title, message, icon, accentColor, badge } = getStreakContent(streak);
 
   return (
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
           <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            initial={{ opacity: 0, scale: 0.88, y: 24 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="bg-bgCard border-borderMuted relative w-full max-w-sm overflow-hidden rounded-[2.5rem] border p-8 shadow-2xl"
+            exit={{ opacity: 0, scale: 0.88, y: 24 }}
+            transition={{ type: "spring", stiffness: 300, damping: 24 }}
+            className="bg-bgCard border-borderMuted relative w-full max-w-sm overflow-hidden rounded-[2.5rem] border shadow-2xl"
           >
-            {/* Decorative top bar */}
-            <div className="bg-brand absolute top-0 left-0 h-2 w-full" />
+            {/* Top accent gradient */}
+            <div className={`absolute top-0 left-0 right-0 h-32 bg-linear-to-b ${accentColor} pointer-events-none`} />
 
-            <div className="text-center">
-              {/* Emoji with animation */}
+            {/* Top bar */}
+            <div className="bg-brand absolute top-0 left-0 h-1.5 w-full" />
+
+            <div className="relative p-8 text-center">
+              {/* Animated icon */}
               <motion.div
-                animate={{ 
-                  scale: [1, 1.1, 1],
-                  rotate: [0, 5, -5, 0]
-                }}
-                transition={{ 
-                  duration: 1.5,
-                  repeat: Infinity,
-                  repeatType: "reverse"
-                }}
-                className="bg-brand/10 border-brand/20 mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-3xl border text-4xl"
+                animate={{ scale: [1, 1.12, 1], rotate: [0, 6, -6, 0] }}
+                transition={{ duration: 2, repeat: Infinity, repeatType: "reverse" }}
+                className="bg-bgSurface border-borderMuted mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-3xl border shadow-lg"
               >
-                {streak >= 7 ? <Trophy size={40} className="text-brand" /> : <Flame size={40} className="text-orange-500" />}
+                {icon}
               </motion.div>
 
-              <h2 className="font-display mb-2 text-2xl font-black tracking-tight">
-                {title}
-              </h2>
-              
-              <div className="mb-6">
-                <span className="text-textMain font-display text-5xl font-black">
-                  {streak}
-                </span>
-                <span className="text-textDim ml-1 font-bold">day streak!</span>
+              {/* Badge pill */}
+              <div className="bg-brand/10 border-brand/20 text-brand-light mx-auto mb-4 inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] font-black tracking-widest uppercase">
+                {badge}
               </div>
 
-              <p className="text-textMuted mb-8 text-sm leading-relaxed font-medium">
+              <h2 className="font-display text-textMain mb-2 text-2xl font-black tracking-tight">
+                {title}
+              </h2>
+
+              {/* Big streak number */}
+              <div className="my-4 flex items-baseline justify-center gap-1">
+                <span className="font-display text-brand text-6xl font-black leading-none tracking-tighter">
+                  {streak}
+                </span>
+                <span className="text-textDim text-lg font-bold">days</span>
+              </div>
+
+              <p className="text-textMuted mb-8 text-sm leading-relaxed">
                 {message}
               </p>
 
@@ -121,7 +130,7 @@ const StreakCelebrationModal: React.FC<StreakCelebrationModalProps> = ({
                 onClick={onClose}
                 className="shadow-brand/20 font-black shadow-lg"
               >
-                Keep Practicing!
+                Keep the Streak Alive! 🔥
               </Button>
             </div>
 
