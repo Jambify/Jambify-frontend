@@ -19,9 +19,8 @@ export function useQuizSession() {
   const { questions, answers, timeLeft, quizDuration, selectedSubject } =
     useQuizStore();
   const { id: userId, isAuthenticated } = useUserStore();
-  const { incrementQuestions, updateAccuracy } = useUserStore();
   const { updateSubject: updateSubj } = useSubjectStore();
-  const { addActivity, updateTopic, addQuizResult } = usePerformanceStore();
+  const { updateTopic, addQuizResult } = usePerformanceStore();
 
   const commitSession = async () => {
     if (questions.length === 0) return;
@@ -37,7 +36,7 @@ export function useQuizSession() {
     const total = questions.length;
     const newAcc = Math.round((correct / total) * 100);
     const timeTaken = quizDuration - timeLeft;
-    
+
     /* ── 3. Update study tracking with session accuracy ───── */
     useStudyTrackingStore.getState().setSessionAccuracy(newAcc);
 
@@ -100,18 +99,7 @@ export function useQuizSession() {
       updateSubj(data.id, data.correct, data.total);
     });
 
-    /* ── 4. Update useUserStore ──────────────────────── */
-    // Practice quizzes don't update JAMB best score, just stats
-    incrementQuestions(total);
-    updateAccuracy(newAcc);
-
-    /* ── 5. Update usePerformanceStore ───────────────── */
-    const today = new Date()
-      .toLocaleDateString("en-GB", { weekday: "short" })
-      .slice(0, 3); // "Mon" | "Tue" etc.
-    addActivity(today, total);
-
-    /* ── 6. Update weak topics per question ──────────── */
+    /* ── 4. Update weak topics per question ──────────── */
     const topicAccMap: Record<string, { correct: number; total: number }> = {};
     questions.forEach((q: Question, i) => {
       const key = `${q.subject}::${q.topic}`;

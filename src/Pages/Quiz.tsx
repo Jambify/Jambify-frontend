@@ -101,10 +101,15 @@ const Quiz: React.FC = () => {
         topics: [
           "Comprehension",
           "Lexis and Structure",
-          "Oral English",
+          "Phonetics",
           "Sentence Interpretation",
           "Figures of Speech",
           "Novel",
+          "Spelling",
+          "Vocabulary",
+          "Grammar",
+          "Croze Passage"
+
         ],
       },
       {

@@ -89,7 +89,7 @@ export const usePerformanceStore = create<PerformanceState>()((set, get) => ({
     if (get().isInitialized && !force) {
       return;
     }
-    set({ isLoading: true });
+    set({ isLoading: true, error: null }); // Clear error on start
     try {
       const { id: userId } = useUserStore.getState();
       if (!userId) {
@@ -159,7 +159,10 @@ export const usePerformanceStore = create<PerformanceState>()((set, get) => ({
       });
     } catch (error) {
       console.error("Error loading performance data:", error);
-      set({ isLoading: false, error: "Failed to load performance data" });
+      set({ 
+        isLoading: false, 
+        error: "We couldn't load your performance data right now. Please check your internet connection and try again." 
+      });
     }
   },
 

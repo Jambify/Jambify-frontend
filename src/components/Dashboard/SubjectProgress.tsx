@@ -26,7 +26,7 @@ const LOADING_MESSAGES = [
 
 const SubjectProgress: React.FC = () => {
   const navigate = useNavigate();
-  const { topicStats, isLoading, mockHistory, hasFetched } = usePerformanceStore();
+  const { topicStats, isLoading, mockHistory, hasFetched, loadPerformanceData } = usePerformanceStore();
   const { subjectCombo } = useUserStore();
   const { subjects } = useSubjectStore();
 
@@ -63,7 +63,11 @@ const SubjectProgress: React.FC = () => {
     };
   }, [isWaiting]);
 
-  const handleRetry = () => window.location.reload();
+  const handleRetry = () => {
+    setIsTimeoutError(false);
+    setLoadingStep(0);
+    loadPerformanceData(true);
+  };
 
   const userSubjects = Array.isArray(subjectCombo)
     ? subjectCombo
