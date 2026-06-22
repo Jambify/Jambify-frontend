@@ -1,4 +1,4 @@
-// src/Pages/Subjects.tsx (Updated version)
+// src/Pages/Subjects.tsx (Updated with mobile fixes)
 
 import React, { useState, useEffect } from "react";
 import AppLayout from "../components/Layout/AppLayout";
@@ -8,6 +8,7 @@ import PageLoader from "../components/ui/PageLoader";
 import { usePerformanceStore } from "../Store/usePerformanceStore";
 import { useUserStore } from "../Store/useUserStore";
 import { SUBJECT_COMBO_MAP } from "../Store/useSubjectStore";
+import { RefreshCw, AlertCircle } from "lucide-react";
 
 type SortKey = "name" | "accuracy" | "progress";
 
@@ -29,8 +30,14 @@ type WorstSubjectResult =
 
 const Subjects: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const { subjects, isLoading, loadSubjects, isInitialized } =
-    useSubjectStore();
+  const {
+    subjects,
+    isLoading,
+    loadSubjects,
+    isInitialized,
+    hasFetched,
+    error,
+  } = useSubjectStore();
   const {} = usePerformanceStore();
   const { subjectCombo } = useUserStore();
   const [sort, setSort] = useState<SortKey>("accuracy");
@@ -41,6 +48,9 @@ const Subjects: React.FC = () => {
       loadSubjects();
     }
   }, [loadSubjects, isInitialized]);
+
+  // Check if we have any existing subject data
+  const hasData = hasFetched && subjects.length > 0;
 
   // Filter stats based on user subject combo (same as in Performance.tsx)
   const userSubjects = Array.isArray(subjectCombo)
@@ -177,7 +187,8 @@ const Subjects: React.FC = () => {
         )
       : 0;
 
-  if (isLoading) {
+  // Show full-page loader only on initial load (no data yet)
+  if (isLoading && !hasFetched) {
     return (
       <AppLayout
         currentPage="subjects"
@@ -189,92 +200,174 @@ const Subjects: React.FC = () => {
     );
   }
 
+  // Show full-page error only if error AND no data
+  if (error && !hasData) {
+    return (
+      <AppLayout
+        currentPage="subjects"
+        isSidebarOpen={isSidebarOpen}
+        setIsSidebarOpen={setIsSidebarOpen}
+      >
+        <div className="mx-auto flex max-w-350 flex-col items-center justify-center gap-6 px-2 py-20 lg:px-4">
+          <div className="bg-danger/10 flex h-20 w-20 items-center justify-center rounded-3xl">
+            <AlertCircle className="text-danger h-10 w-10" />
+          </div>
+          <div className="space-y-2 text-center">
+            <h2 className="font-display text-textMain text-2xl font-bold">
+              Oops, something went wrong
+            </h2>
+            <p className="text-textDim mx-auto max-w-sm text-sm">{error}</p>
+          </div>
+          <button
+            onClick={() => loadSubjects(true)}
+            className="bg-brand hover:bg-brand-light flex items-center gap-2 rounded-full px-8 py-3 text-sm font-bold text-white transition-all active:scale-95"
+          >
+            <RefreshCw size={16} className={isLoading ? "animate-spin" : ""} />
+            {isLoading ? "Refreshing..." : "Try Again"}
+          </button>
+        </div>
+      </AppLayout>
+    );
+  }
+
   return (
     <AppLayout
       currentPage="subjects"
       isSidebarOpen={isSidebarOpen}
       setIsSidebarOpen={setIsSidebarOpen}
     >
-      <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-        <div>
-          <h2 className="font-display text-2xl font-bold tracking-tight">
-            Subjects
-          </h2>
-          <p className="text-textMuted mt-1 text-sm">
-            {subjects.length} subjects · overall accuracy:  
-            <span className="text-textMain font-medium">
+      <div className="animate-fadeIn mx-auto max-w-350 space-y-6 px-2 lg:px-4">
+        {/* Warning Banner */}
+        {error && hasData && (
+          <div className="bg-warning/10 border-warning/30 flex flex-col gap-3 rounded-xl border p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-3">
+              <AlertCircle className="text-warning h-5 w-5 shrink-0" />
+              <div>
+                <p className="text-textMain text-sm font-semibold">
+                  Unable to refresh your latest subject data
+                </p>
+                <p className="text-textDim mt-0.5 text-xs">
+                  Showing your most recent saved results
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => loadSubjects(true)}
+              className="bg-warning hover:bg-warning/90 flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-bold text-white transition-all active:scale-95 sm:w-auto"
+            >
+              <RefreshCw
+                size={14}
+                className={isLoading ? "animate-spin" : ""}
+              />
+              {isLoading ? "Retrying..." : "Retry"}
+            </button>
+          </div>
+        )}
+
+        {/* Header Section */}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 className="font-display text-2xl font-bold tracking-tight">
+              Subjects
+            </h2>
+            <p className="text-textDim mt-1 text-sm">
+              {subjects.length} subjects · overall accuracy:{" "}
+              <span className="text-textMain font-medium">
+                {overallAccuracy}%
+              </span>
+            </p>
+          </div>
+
+          {/* Controls */}
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            {/* Refresh Button */}
+            <button
+              onClick={() => loadSubjects(true)}
+              className="text-textDim hover:text-brand bg-bgCard border-borderMuted hover:border-brand/30 group flex w-full items-center justify-center gap-2 rounded-full border px-4 py-2 text-xs font-bold transition-all active:scale-95 sm:w-auto"
+            >
+              <RefreshCw
+                size={16}
+                className={`transition-transform ${isLoading ? "animate-spin" : "group-hover:rotate-45"}`}
+              />
+              {isLoading ? "Refreshing..." : "Refresh Data"}
+            </button>
+
+            {/* Sort Controls */}
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="text-textDim text-[11px] whitespace-nowrap">
+                Sort:
+              </span>
+              {(
+                [
+                  ["accuracy", "Weakest first"],
+                  ["progress", "Most done"],
+                  ["name", "A–Z"],
+                ] as [SortKey, string][]
+              ).map(([key, label]) => (
+                <button
+                  key={key}
+                  onClick={() => setSort(key)}
+                  className={`rounded-full border px-3 py-1.5 text-[11px] font-medium transition-all ${
+                    sort === key
+                      ? "bg-brand border-brand text-white"
+                      : "bg-bgSurface border-borderMuted text-textMuted hover:text-textMain hover:border-white/15"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Stats Overview */}
+        <div className="bg-bgCard border-borderMuted rounded-brand-lg border p-4">
+          <div className="mb-2 flex items-center justify-between">
+            <span className="text-textMuted text-xs">
+              Overall mastery across all subjects
+            </span>
+            <span className="text-brand-light font-mono text-sm font-semibold">
               {overallAccuracy}%
             </span>
-          </p>
+          </div>
+          <div className="bg-bgSurface h-2 overflow-hidden rounded-full">
+            <div
+              className="bg-brand h-full rounded-full transition-all duration-700"
+              style={{ width: `${overallAccuracy}%` }}
+            />
+          </div>
+          <div className="mt-3 flex flex-wrap gap-3">
+            {subjects.map((s) => (
+              <div key={s.id} className="flex items-center gap-1.5">
+                <span className="text-sm">{s.icon}</span>
+                <span
+                  className="font-mono text-[11px] font-medium"
+                  style={{ color: s.color }}
+                >
+                  {s.accuracy}%
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
 
-        <div className="flex items-center gap-1.5">
-          <span className="text-textDim text-[11px]">Sort:</span>
-          {(
-            [
-              ["accuracy", "Weakest first"],
-              ["progress", "Most done"],
-              ["name", "A–Z"],
-            ] as [SortKey, string][]
-          ).map(([key, label]) => (
-            <button
-              key={key}
-              onClick={() => setSort(key)}
-              className={`rounded-full border px-3 py-1.5 text-[11px] font-medium transition-all ${
-                sort === key
-                  ? "bg-brand border-brand text-white"
-                  : "bg-bgSurface border-borderMuted text-textMuted hover:text-textMain hover:border-white/15"
-              }`}
-            >
-              {label}
-            </button>
+        {/* Subject Grid */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {sorted.map((subject) => (
+            <SubjectCard
+              key={subject.id}
+              subject={subject}
+              isExpanded={expandedId === subject.id}
+              isBest={subject.name === bestSubjectName}
+              isWorst={subject.name === worstSubjectName}
+              onToggle={() =>
+                setExpandedId((prev) =>
+                  prev === subject.id ? null : subject.id,
+                )
+              }
+            />
           ))}
         </div>
-      </div>
-
-      <div className="bg-bgCard border-borderMuted rounded-brand-lg mb-6 border p-4">
-        <div className="mb-2 flex items-center justify-between">
-          <span className="text-textMuted text-xs">
-            Overall mastery across all subjects
-          </span>
-          <span className="text-brand-light font-mono text-sm font-semibold">
-            {overallAccuracy}%
-          </span>
-        </div>
-        <div className="bg-bgSurface h-2 overflow-hidden rounded-full">
-          <div
-            className="bg-brand h-full rounded-full transition-all duration-700"
-            style={{ width: `${overallAccuracy}%` }}
-          />
-        </div>
-        <div className="mt-3 flex flex-wrap gap-3">
-          {subjects.map((s) => (
-            <div key={s.id} className="flex items-center gap-1.5">
-              <span className="text-sm">{s.icon}</span>
-              <span
-                className="font-mono text-[11px] font-medium"
-                style={{ color: s.color }}
-              >
-                {s.accuracy}%
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {sorted.map((subject) => (
-          <SubjectCard
-            key={subject.id}
-            subject={subject}
-            isExpanded={expandedId === subject.id}
-            isBest={subject.name === bestSubjectName}
-            isWorst={subject.name === worstSubjectName}
-            onToggle={() =>
-              setExpandedId((prev) => (prev === subject.id ? null : subject.id))
-            }
-          />
-        ))}
       </div>
     </AppLayout>
   );

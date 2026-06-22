@@ -23,6 +23,7 @@ import {
   Trophy,
   X,
   Sparkles,
+  ArrowUp,
 } from "lucide-react";
 import Button from "../../components/Layout/Button";
 
@@ -286,10 +287,23 @@ const ReviewScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   const [selectedAIQuestion, setSelectedAIQuestion] = useState<any | null>(
     null,
   );
+  const [showScrollTop, setShowScrollTop] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 300);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const handleScrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   const subjectData = useMemo(() => {
     // ... same as before
@@ -512,6 +526,16 @@ const ReviewScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
           </div>
         </div>
       </div>
+
+      {/* Scroll to Top Button */}
+      {showScrollTop && (
+        <button
+          onClick={handleScrollToTop}
+          className="bg-brand hover:bg-brand-light fixed right-6 bottom-20 z-40 flex h-12 w-12 items-center justify-center rounded-full shadow-lg transition-all hover:scale-110 active:scale-95 sm:right-8 sm:bottom-8"
+        >
+          <ArrowUp className="h-6 w-6 text-white" />
+        </button>
+      )}
 
       {/* AI Drawer — mounts fresh per question so each gets its own chat */}
       {selectedAIQuestion && (

@@ -14,6 +14,7 @@ import {
   AlertCircle,
   Lock,
   Sparkles,
+  ArrowUp,
 } from "lucide-react";
 
 interface MockResultsScreenProps {
@@ -29,6 +30,19 @@ const MockResultsScreen: React.FC<MockResultsScreenProps> = ({
   const { lastResult, questions, answers } = useMockStore();
   const { isAuthenticated, isPro } = useUserStore();
   const [expandedSubject, setExpandedSubject] = useState<string | null>(null);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  React.useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 300);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const handleScrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   if (!lastResult) return null;
 
@@ -439,6 +453,16 @@ const MockResultsScreen: React.FC<MockResultsScreenProps> = ({
           Start New Attempt
         </Button>
       </div>
+
+      {/* Scroll to Top Button */}
+      {showScrollTop && (
+        <button
+          onClick={handleScrollToTop}
+          className="bg-brand hover:bg-brand-light fixed right-6 bottom-20 z-40 flex h-12 w-12 items-center justify-center rounded-full shadow-lg transition-all hover:scale-110 active:scale-95 sm:right-8 sm:bottom-8"
+        >
+          <ArrowUp className="h-6 w-6 text-white" />
+        </button>
+      )}
     </div>
   );
 };

@@ -11,7 +11,8 @@ interface SubjectState {
   isLoading: boolean;
   error: string | null;
   isInitialized: boolean;
-   reset: () => void; // ← ADD THIS
+  hasFetched: boolean;
+  reset: () => void; // ← ADD THIS
 
   // Actions
   loadSubjects: (force?: boolean) => Promise<void>;
@@ -407,6 +408,7 @@ export const useSubjectStore = create<SubjectState>()((set, get) => ({
   isLoading: false,
   error: null,
   isInitialized: false,
+  hasFetched: false,
 
   loadSubjects: async (force = false) => {
     if (get().isInitialized && !force) {
@@ -415,10 +417,13 @@ export const useSubjectStore = create<SubjectState>()((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const subjects = await fetchUserSubjects();
-      set({ subjects, isLoading: false, isInitialized: true });
+      set({ subjects, isLoading: false, isInitialized: true, hasFetched: true });
     } catch (error) {
       console.error("Failed to load subjects:", error);
-      set({ error: "Failed to load subjects", isLoading: false });
+      set({
+        error: "We couldn't load your subjects right now. Please check your internet connection and try again.",
+        isLoading: false
+      });
     }
   },
 
@@ -440,8 +445,11 @@ export const useSubjectStore = create<SubjectState>()((set, get) => ({
       await get().loadSubjects(true);
     } catch (error) {
       console.error("Failed to initialize subjects:", error);
-      set({ error: "Failed to initialize subjects", isLoading: false });
+      set({
+        error: "We couldn't load your subjects right now. Please check your internet connection and try again.",
+        isLoading: false
+      });
     }
   },
-   reset: () => set({ subjects: [], isLoading: false, error: null, isInitialized: false }),
+  reset: () => set({ subjects: [], isLoading: false, error: null, isInitialized: false, hasFetched: false }),
 }));
