@@ -16,6 +16,7 @@ import AppLayout from "../../components/Layout/AppLayout";
 import { useMockStore } from "../../Store/useMockStore";
 import { useUserStore } from "../../Store/useUserStore";
 import { usePerformanceStore } from "../../Store/usePerformanceStore";
+import { SUBJECT_COMBO_MAP } from "../../Store/useSubjectStore";
 import OptionButton from "../../components/Quiz/OptionButton";
 import MockResultsScreen from "../../components/MockExam/MockResultScreen";
 import QuestionPalette from "../../components/MockExam/QuestionPalette";
@@ -55,6 +56,8 @@ const AVAILABLE_SUBJECTS = [
   { id: "History", name: "History", required: 40 },
   { id: "Geography", name: "Geography", required: 40 },
   { id: "CRS", name: "CRS", required: 40 },
+  { id: "IRS", name: "IRS", required: 40 },
+  { id: "Commerce", name: "Commerce", required: 40 },
 ];
 
 const AVAILABLE_YEARS = [
@@ -104,12 +107,12 @@ const MockExam: React.FC = () => {
   // Get user's subjects from combo
   const userSubjects = Array.isArray(subjectCombo)
     ? subjectCombo
-    : {
-        medicine: ["English", "Biology", "Chemistry", "Physics"],
-        engineering: ["English", "Mathematics", "Physics", "Chemistry"],
-        "social-sci": ["English", "Mathematics", "Economics", "Government"],
-        law: ["English", "Literature", "Government", "CRS"],
-      }[subjectCombo] || ["English", "Mathematics", "Physics", "Chemistry"];
+    : SUBJECT_COMBO_MAP[subjectCombo] || [
+        "English",
+        "Mathematics",
+        "Physics",
+        "Chemistry",
+      ];
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showConfirmExit, setShowConfirmExit] = useState(false);
@@ -262,24 +265,24 @@ const MockExam: React.FC = () => {
           // If we still need more questions (because we cut novel short), fetch more
           while (fetched.length < config.required) {
             const remaining = config.required - fetched.length;
-            const existingIds = fetched.map(q => q.id);
-            
+            const existingIds = fetched.map((q) => q.id);
+
             // Fetch more questions, excluding the ones we already have
             const extraQuestions = await fetchQuestionsWithFallback(
               subjectId,
               selectedYear,
               remaining * 2, // Fetch more for variety
               "All",
-              existingIds
+              existingIds,
             );
-            
+
             // Filter out Novel from extra and make sure no duplicates
             const extraNonNovel = extraQuestions.filter(
-              (q) => q.topic !== "Novel" && !existingIds.includes(q.id)
+              (q) => q.topic !== "Novel" && !existingIds.includes(q.id),
             );
-            
+
             if (extraNonNovel.length === 0) break;
-            
+
             fetched = [...fetched, ...extraNonNovel.slice(0, remaining)];
           }
 

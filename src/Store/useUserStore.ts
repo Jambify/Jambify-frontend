@@ -169,6 +169,7 @@ const getSubjectComboString = (idOrArray: string | string[]): string => {
       engineering: "English, Mathematics, Physics, Chemistry",
       "social-sci": "English, Mathematics, Economics, Government",
       law: "English, Literature, Government, CRS/IRS",
+      Commerce: "English, Commerce, Economics, CRS/IRS",
     }) as Record<string, string>
   )[idOrArray] ?? idOrArray;
 };
@@ -179,6 +180,7 @@ const getSubjectComboId = (str: string): string | string[] => {
     "English, Mathematics, Physics, Chemistry": "engineering",
     "English, Mathematics, Economics, Government": "social-sci",
     "English, Literature, Government, CRS/IRS": "law",
+    "English, Commerce, Economics, CRS/IRS": "Commerce",
   };
 
   if (predefined[str]) return predefined[str];

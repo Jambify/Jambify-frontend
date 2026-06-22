@@ -6,12 +6,13 @@ export interface Question {
     | "Physics"
     | "Chemistry"
     | "Biology"
-    | "Literature in English"
+    | "Literature"
     | "History"
     | "Geography"
     | "Government"
     | "Economics"
-    | "CRS";
+    | "CRS"
+    | "Commerce";
   year: number;
   difficulty: "Easy" | "Medium" | "Hard";
   text: string;

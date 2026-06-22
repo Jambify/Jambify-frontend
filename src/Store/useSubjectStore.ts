@@ -164,7 +164,24 @@ export const ALL_SUBJECTS_MASTER = [
   { id: "lit", name: "Literature in English", icon: "📚", color: "#F97316", total: 300 },
   { id: "crs", name: "CRS", icon: "✝️", color: "#A855F7", total: 250 },
   { id: "irs", name: "IRS", icon: "🌙", color: "#00C896", total: 250 },
-  { id: "com", name: "Commerce", icon: "💼", color: "#FFB020", total: 300 },
+  { 
+    id: "com", 
+    name: "Commerce", 
+    icon: "💼", 
+    color: "#FFB020", 
+    total: 300,
+    topics: [
+      "Business Organization",
+      "Finance",
+      "International Trade",
+      "Business Documents",
+      "Production",
+      "Business Law",
+      "Marketing",
+      "Banking",
+      "Distribution"
+    ]
+  },
 ];
 
 // Maps short subject ID to full name (for database enum)
@@ -204,7 +221,8 @@ export const SUBJECT_COMBO_MAP: Record<string, string[]> = {
   "social-sci": ["English", "Mathematics", "Economics", "Government"],
   law: ["English", "Literature in English", "Government", "CRS"],
   art: ["English", "Literature in English", "Government", "CRS"],
-  commerce: ["English", "Mathematics", "Economics", "Commerce"],
+  commerce: ["English", "Commerce", "Economics", "CRS"],
+  Commerce: ["English", "Commerce", "Economics", "CRS"],
 };
 
 // Map subject name to master subject object

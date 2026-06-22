@@ -33,7 +33,7 @@ const QUIZ_SUBJECTS = [
   { name: "Economics", icon: "📊", color: "from-orange-400 to-amber-600" },
   { name: "Government", icon: "🏛️", color: "from-purple-500 to-indigo-700" },
   {
-    name: "Literature in English",
+    name: "Literature",
     icon: "📚",
     color: "from-pink-500 to-rose-700",
   },
@@ -100,16 +100,12 @@ const Quiz: React.FC = () => {
         name: "English",
         topics: [
           "Comprehension",
-          "Lexis and Structure",
           "Phonetics",
-          "Sentence Interpretation",
-          "Figures of Speech",
           "Novel",
           "Spelling",
           "Vocabulary",
           "Grammar",
-          "Croze Passage"
-
+          "Croze Passage",
         ],
       },
       {
@@ -373,7 +369,7 @@ const Quiz: React.FC = () => {
         ],
       },
       {
-        name: "Literature in English",
+        name: "Literature",
         topics: [
           "1984",
           "Animal Farm",
@@ -413,15 +409,24 @@ const Quiz: React.FC = () => {
       },
       {
         name: "CRS",
-        topics: [
-          "Old Testament",
-          "Life of Christ",
-          "Acts of the Apostles",
-          "Epistles",
-        ],
+        topics: ["Old Testament", "New Testament", "Life of Christ", "Acts of the Apostles", "Epistles"],
       },
       { name: "IRS", topics: [] },
-      { name: "Commerce", topics: [] },
+      { name: "Commerce", topics: [
+        "Business Organization",
+        "Finance",
+        "International Trade",
+        "Business Documents",
+        "Production",
+        "Business Law",
+        "Marketing",
+        "Banking",
+        "Distribution",
+
+
+
+
+      ] },
     ],
     [],
   );
@@ -686,13 +691,11 @@ const Quiz: React.FC = () => {
             reset();
             navigate("/");
           }}
-
-           onPerformance={()=>{
+          onPerformance={() => {
             reset();
-            navigate("/performance")
-        }}
+            navigate("/performance");
+          }}
         />
-       
       </AppLayout>
     );
   }

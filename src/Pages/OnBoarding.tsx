@@ -34,6 +34,12 @@ const SUBJECT_COMBOS = [
     subjects: ["English", "Literature", "Government", "CRS/IRS"],
     icon: "⚖️",
   },
+  {
+    id: "Commerce",
+    label: "Commerce & Business",
+    subjects: ["English", "Commerce", "Economics", "CRS/IRS"],
+    icon: "💼",
+  }
 ];
 
 const TARGET_SCORES = [

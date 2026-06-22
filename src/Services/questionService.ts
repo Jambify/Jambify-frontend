@@ -589,7 +589,7 @@ export const LIKELY_TOPICS: Record<string, string[]> = {
     "Map Reading",
     "Regional Geography",
   ],
-  Crs: ["Old Testament", "Life of Christ", "Acts of the Apostles", "Epistles"],
+  CRS: ["Old Testament", "New Testament", "Life of Christ", "Acts of the Apostles", "Epistles"],
 };
 
 // Helper to normalize topic names to match LIKELY_TOPICS
