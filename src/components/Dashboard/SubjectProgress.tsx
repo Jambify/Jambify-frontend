@@ -1,52 +1,122 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePerformanceStore } from "../../Store/usePerformanceStore";
 import { useUserStore } from "../../Store/useUserStore";
 import { useSubjectStore, SUBJECT_COMBO_MAP } from "../../Store/useSubjectStore";
-import { BookOpen, AlertTriangle, ArrowRight, CheckCircle, Sparkles } from "lucide-react";
+import {
+  BookOpen, AlertTriangle, ArrowRight,
+  CheckCircle, Sparkles, RefreshCw,
+} from "lucide-react";
 
-// Helper to get subject icons
 const getSubjectIcon = (subject: string) => {
   const icons: Record<string, string> = {
-    English: "📖",
-    Mathematics: "🔢",
-    Physics: "⚡",
-    Chemistry: "⚗️",
-    Biology: "🧬",
-    Economics: "📊",
-    Government: "🏛️",
-    "Literature in English": "📚",
-    CRS: "✝️",
-    IRS: "🌙",
-    Commerce: "💼",
+    English: "📖", Mathematics: "🔢", Physics: "⚡",
+    Chemistry: "⚗️", Biology: "🧬", Economics: "📊",
+    Government: "🏛️", "Literature in English": "📚",
+    CRS: "✝️", IRS: "🌙", Commerce: "💼",
   };
   return icons[subject] || "📖";
 };
 
+const LOADING_MESSAGES = [
+  "Fetching your subject progress...",
+  "Still loading... Checking performance history.",
+  "Almost there! Wrapping up your statistics.",
+];
+
 const SubjectProgress: React.FC = () => {
   const navigate = useNavigate();
-  const { topicStats, isLoading, mockHistory } = usePerformanceStore();
+  const { topicStats, isLoading, mockHistory, hasFetched } = usePerformanceStore();
   const { subjectCombo } = useUserStore();
   const { subjects } = useSubjectStore();
 
-  // Get user's subjects from combo ID (e.g. "medicine" -> ["English", "Biology", ...])
-  const userSubjects = Array.isArray(subjectCombo) 
-    ? subjectCombo 
+  const [loadingStep, setLoadingStep] = useState(0);
+  const [isTimeoutError, setIsTimeoutError] = useState(false);
+
+  const isWaiting = isLoading || !hasFetched;
+
+  useEffect(() => {
+    let messageTimer: ReturnType<typeof setInterval>;
+    let errorTimer: ReturnType<typeof setTimeout>;
+
+    if (isWaiting) {
+      setIsTimeoutError(false);
+      setLoadingStep(0);
+
+      messageTimer = setInterval(() => {
+        setLoadingStep((prev) => {
+          if (prev < LOADING_MESSAGES.length - 1) return prev + 1;
+          clearInterval(messageTimer);
+          return prev;
+        });
+      }, 4000);
+
+      errorTimer = setTimeout(() => {
+        setIsTimeoutError(true);
+        clearInterval(messageTimer);
+      }, 15000);
+    }
+
+    return () => {
+      clearInterval(messageTimer);
+      clearTimeout(errorTimer);
+    };
+  }, [isWaiting]);
+
+  const handleRetry = () => window.location.reload();
+
+  const userSubjects = Array.isArray(subjectCombo)
+    ? subjectCombo
     : subjectCombo
-    ? SUBJECT_COMBO_MAP[subjectCombo] || [subjectCombo] // Fallback to raw string if not in map
+    ? SUBJECT_COMBO_MAP[subjectCombo] || [subjectCombo]
     : [];
 
-  // Only use topicStats that are part of user's subject combo and have accuracy < 50
   const comboWeakestTopics = topicStats.filter(
-    (t) => userSubjects.some(s => s.toLowerCase() === t.subject.toLowerCase()) && t.accuracy < 50
+    (t) =>
+      userSubjects.some((s) => s.toLowerCase() === t.subject.toLowerCase()) &&
+      t.accuracy < 50,
   );
 
-  // Check if user has taken any exams or quizzes
-  // const hasActivity = usePerformanceStore.getState().mockHistory.length > 0 || topicStats.length > 0;
   const hasActivity = mockHistory.length > 0 || topicStats.length > 0;
 
-  // If no activity yet, show the "No Exam Taken" placeholder
-  if (!hasActivity && !isLoading) {
+  // ── 1. Timeout error (shown after 15s of waiting) ─────────────────────────
+  if (isWaiting && isTimeoutError) {
+    return (
+      <div className="bg-bgCard border-borderMuted rounded-brand-xl flex h-full flex-col items-center justify-center border p-6 text-center">
+        <div className="bg-danger/10 mb-4 flex h-12 w-12 items-center justify-center rounded-full">
+          <AlertTriangle className="text-danger h-6 w-6" />
+        </div>
+        <h3 className="font-display text-textMain mb-2 font-bold">
+          Slow Network Detected
+        </h3>
+        <p className="text-textDim mb-6 max-w-60 text-sm">
+          Your connection seems weak. Taking longer than usual to load your progress.
+        </p>
+        <button
+          onClick={handleRetry}
+          className="bg-brand hover:bg-brand-light flex items-center gap-2 rounded-full px-6 py-2 text-sm font-bold text-white transition-all active:scale-95"
+        >
+          <RefreshCw size={14} />
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  // ── 2. Loading spinner (while fetch is in progress OR not yet completed) ───
+  if (isWaiting) {
+    return (
+      <div className="bg-bgCard border-borderMuted rounded-brand-xl flex h-full flex-col items-center justify-center border p-6 text-center">
+        <div className="border-brand mb-4 h-8 w-8 animate-spin rounded-full border-4 border-t-transparent" />
+        <p className="text-textDim max-w-60 text-sm transition-all duration-300">
+          {LOADING_MESSAGES[loadingStep]}
+        </p>
+      </div>
+    );
+  }
+
+  // ── 3. No activity (only shown after fetch confirmed complete) ─────────────
+  if (!hasActivity) {
     return (
       <div className="bg-bgCard border-borderMuted rounded-brand-xl flex h-full flex-col items-center justify-center border p-6 text-center">
         <div className="bg-brand/10 mb-4 flex h-12 w-12 items-center justify-center rounded-full">
@@ -67,18 +137,9 @@ const SubjectProgress: React.FC = () => {
       </div>
     );
   }
-if(isLoading) {
-  return (
-    <div className="bg-bgCard border-borderMuted rounded-brand-xl flex h-full flex-col items-center justify-center border p-6 text-center">
-      <div className="border-brand mb-4 h-8 w-8 animate-spin rounded-full border-4 border-t-transparent" />
-      <p className="text-textDim mb-6 max-w-60 text-sm">
-        Please wait while we fetch your subject progress data.
-      </p>
-    </div>
-  );
-}
-  // If all topics mastered (no weak topics found), show "All Mastered" placeholder
-  if (comboWeakestTopics.length === 0 && !isLoading) {
+
+  // ── 4. All topics mastered ─────────────────────────────────────────────────
+  if (comboWeakestTopics.length === 0) {
     return (
       <div className="bg-bgCard border-borderMuted rounded-brand-xl flex h-full flex-col items-center justify-center border p-6 text-center">
         <div className="bg-success/10 mb-4 flex h-12 w-12 items-center justify-center rounded-full">
@@ -100,13 +161,12 @@ if(isLoading) {
     );
   }
 
+  // ── 5. Weakest topics list ─────────────────────────────────────────────────
   return (
     <div className="bg-bgCard border-borderMuted rounded-brand-xl flex h-full flex-col border p-6">
       <div className="mb-6 flex items-center justify-between">
         <div className="flex flex-col gap-0.5">
-          <h3 className="font-display text-textMain font-bold">
-            Weakest Topics
-          </h3>
+          <h3 className="font-display text-textMain font-bold">Weakest Topics</h3>
           <p className="text-textDim text-[11px] font-medium">
             One critical area from each of your subjects
           </p>
@@ -116,20 +176,14 @@ if(isLoading) {
           className="text-brand hover:text-brand-light group flex items-center gap-1 text-xs font-bold"
         >
           View all{" "}
-          <ArrowRight
-            size={14}
-            className="transition-transform group-hover:translate-x-0.5"
-          />
+          <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" />
         </button>
       </div>
 
       <div className="custom-scrollbar space-y-3 overflow-y-auto pr-1">
         {comboWeakestTopics.map((item, index) => {
           const subjectData = subjects.find((s) => s.name === item.subject);
-          const progressColor =
-            item.accuracy < 30
-              ? "#FF4D6D"
-              : "#FFB020";
+          const progressColor = item.accuracy < 30 ? "#FF4D6D" : "#FFB020";
 
           return (
             <div
@@ -137,7 +191,7 @@ if(isLoading) {
               className="group cursor-pointer transition-all hover:scale-[1.01]"
               onClick={() =>
                 navigate(
-                  `/quiz?subject=${encodeURIComponent(item.subject)}&topic=${encodeURIComponent(item.name)}`
+                  `/quiz?subject=${encodeURIComponent(item.subject)}&topic=${encodeURIComponent(item.name)}`,
                 )
               }
             >
@@ -148,13 +202,11 @@ if(isLoading) {
                 >
                   {getSubjectIcon(item.subject)}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-textMain group-hover:text-brand text-sm font-bold transition-colors truncate">
+                <div className="min-w-0 flex-1">
+                  <p className="text-textMain group-hover:text-brand truncate text-sm font-bold transition-colors">
                     {item.name}
                   </p>
-                  <p className="text-textDim text-[11px] font-medium">
-                    {item.subject}
-                  </p>
+                  <p className="text-textDim text-[11px] font-medium">{item.subject}</p>
                 </div>
                 <div className="flex flex-col items-end gap-1">
                   <div className="flex items-center gap-2">
@@ -167,13 +219,10 @@ if(isLoading) {
                       <Sparkles size={12} className="text-warn" />
                     )}
                   </div>
-                  <div className="bg-bgTrack w-20 h-1.5 overflow-hidden rounded-full">
+                  <div className="bg-bgTrack h-1.5 w-20 overflow-hidden rounded-full">
                     <div
                       className="h-full rounded-full transition-all duration-300"
-                      style={{
-                        width: `${item.accuracy}%`,
-                        background: progressColor,
-                      }}
+                      style={{ width: `${item.accuracy}%`, background: progressColor }}
                     />
                   </div>
                 </div>

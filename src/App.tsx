@@ -46,8 +46,22 @@ const App: React.FC = () => {
         <Route path="/guest/quiz" element={<GuestQuiz />} />
         <Route path="/guest/mock" element={<GuestMock />} />
         <Route path="/guest/past-questions" element={<GuestQuiz />} />
-        <Route path="/onboarding" element={<Onboarding />} />
-        <Route path="/welcome" element={<Welcome />} />
+        <Route
+          path="/onboarding"
+          element={
+            <RouteGuard>
+              <Onboarding />
+            </RouteGuard>
+          }
+        />
+        <Route
+          path="/welcome"
+          element={
+            <RouteGuard>
+              <Welcome />
+            </RouteGuard>
+          }
+        />
         <Route
           path="/"
           element={

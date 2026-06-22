@@ -58,6 +58,7 @@ const Welcome: React.FC = () => {
     };
     return labels[combo] || combo;
   };
+  
 
   return (
     <div

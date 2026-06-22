@@ -35,6 +35,8 @@ interface PerformanceState {
   isLoading: boolean;
   error: string | null;
   isInitialized: boolean;
+  hasFetched: boolean;
+
   
   // Actions
   loadPerformanceData: (force?: boolean) => Promise<void>;
@@ -62,6 +64,7 @@ interface PerformanceState {
 }
 
 export const usePerformanceStore = create<PerformanceState>()((set, get) => ({
+
   weeklyActivity: [
     { day: "Sun", questions: 0 },
     { day: "Mon", questions: 0 },
@@ -80,6 +83,7 @@ export const usePerformanceStore = create<PerformanceState>()((set, get) => ({
   isLoading: false,
   error: null,
   isInitialized: false,
+  hasFetched: false,
 
   loadPerformanceData: async (force = false) => {
     if (get().isInitialized && !force) {
@@ -150,6 +154,7 @@ export const usePerformanceStore = create<PerformanceState>()((set, get) => ({
         mockHistory,
         isLoading: false,
         isInitialized: true,
+        hasFetched: true,
       });
     } catch (error) {
       console.error("Error loading performance data:", error);
@@ -244,6 +249,7 @@ export const usePerformanceStore = create<PerformanceState>()((set, get) => ({
       isLoading: false,
       error: null,
       isInitialized: false,
+      hasFetched: false,
     });
   },
 }));

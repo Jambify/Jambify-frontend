@@ -5,7 +5,7 @@ import { useUserStore } from "../../Store/useUserStore";
 import { supabase } from "../../lib/supabase";
 
 const PUBLIC_ROUTES = ["/signin", "/signup", "/verify", "/guest"];
-const SEMI_PROTECTED = ["/onboarding", "/welcome"];
+
 
 // ✅ Module-level flag — survives RouteGuard remounts
 let appInitialised = false;
@@ -71,7 +71,7 @@ const RouteGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       </div>
     );
   }
-
+// 1. Public routes — redirect away if fully authenticated
   if (PUBLIC_ROUTES.some((r) => pathname.startsWith(r))) {
     if (
       isAuthenticated &&
@@ -84,9 +84,23 @@ const RouteGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     return <>{children}</>;
   }
 
+ // 2. Must be authenticated for everything below
   if (!isAuthenticated) return <Navigate to="/signin" replace />;
   if (!profileExists) return <Navigate to="/onboarding" replace />;
-  if (SEMI_PROTECTED.some((r) => pathname.startsWith(r))) return <>{children}</>;
+
+  // 3. /onboarding — only for users who haven't finished onboarding
+  if (pathname.startsWith("/onboarding")) {
+    if (onboardingComplete) return <Navigate to="/" replace />;
+    return <>{children}</>;
+  }
+  // 4. /welcome — only for users who finished onboarding but haven't seen welcome
+  if (pathname.startsWith("/welcome")) {
+    if (!onboardingComplete) return <Navigate to="/onboarding" replace />;
+    if (hasSeenWelcome) return <Navigate to="/" replace />;
+    return <>{children}</>;
+  }
+
+  // 5. All other protected routes — must be fully onboarded
   if (!onboardingComplete) return <Navigate to="/onboarding" replace />;
   if (!hasSeenWelcome) return <Navigate to="/welcome" replace />;
 
