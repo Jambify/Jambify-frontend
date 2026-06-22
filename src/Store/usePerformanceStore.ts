@@ -37,7 +37,7 @@ interface PerformanceState {
   isInitialized: boolean;
   hasFetched: boolean;
 
-  
+
   // Actions
   loadPerformanceData: (force?: boolean) => Promise<void>;
   addMockScore: (score: number) => void;
@@ -112,9 +112,10 @@ export const usePerformanceStore = create<PerformanceState>()((set, get) => ({
       // Get subject performance
       const subjectPerformance = await getSubjectPerformance();
 
-      // Calculate total questions and avg accuracy
-      const totalQs = sessions?.reduce((sum, s) => sum + s.total_questions, 0) || 0;
-      const totalCorrect = sessions?.reduce((sum, s) => sum + s.correct, 0) || 0;
+      // ✅ Calculate from raw session data for display accuracy
+      // This is the ground truth regardless of what the profile column says
+      const totalQs = sessions?.reduce((sum, s) => sum + (s.total_questions || 0), 0) || 0;
+      const totalCorrect = sessions?.reduce((sum, s) => sum + (s.correct || 0), 0) || 0;
       const avgAcc = totalQs > 0 ? Math.round((totalCorrect / totalQs) * 100) : 0;
 
       // Calculate weekly activity (only current week)
