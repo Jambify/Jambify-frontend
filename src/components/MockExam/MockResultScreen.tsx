@@ -33,6 +33,12 @@ const MockResultsScreen: React.FC<MockResultsScreenProps> = ({
   const [showScrollTop, setShowScrollTop] = useState(false);
 
   React.useEffect(() => {
+    if (!lastResult || !questions || questions.length === 0) {
+      navigate("/mock-exams", { replace: true });
+    }
+  }, [lastResult, questions, navigate]);
+
+  React.useEffect(() => {
     const handleScroll = () => {
       setShowScrollTop(window.scrollY > 300);
     };
@@ -44,7 +50,7 @@ const MockResultsScreen: React.FC<MockResultsScreenProps> = ({
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  if (!lastResult) return null;
+  if (!lastResult || !questions || questions.length === 0) return null;
 
   const {
     jambScore,

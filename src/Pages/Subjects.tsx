@@ -39,7 +39,7 @@ const Subjects: React.FC = () => {
     error,
   } = useSubjectStore();
   const {} = usePerformanceStore();
-  const { subjectCombo } = useUserStore();
+  const { subjectCombo, name } = useUserStore();
   const [sort, setSort] = useState<SortKey>("accuracy");
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
@@ -267,9 +267,9 @@ const Subjects: React.FC = () => {
         {/* Header Section */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h2 className="font-display text-2xl font-bold tracking-tight">
-              Subjects
-            </h2>
+           <h1 className="font-display text-textMain text-3xl font-bold tracking-tight lg:text-4xl">
+              {name ? `${name.split(" ")[0]}'s` : "Your"} Subjects
+            </h1>
             <p className="text-textDim mt-1 text-sm">
               {subjects.length} subjects · overall accuracy:{" "}
               <span className="text-textMain font-medium">

@@ -6,6 +6,7 @@
  */
 
 import React, { useState, useMemo, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useMockStore } from "../../Store/useMockStore";
 import { useUserStore } from "../../Store/useUserStore";
 import AppLayout from "../../components/Layout/AppLayout";
@@ -279,6 +280,7 @@ Your goal is to provide deep, professional insights into JAMB questions.
 const ReviewScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   const { questions, answers } = useMockStore();
   const { isPro } = useUserStore();
+  const navigate = useNavigate();
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState<
@@ -288,6 +290,13 @@ const ReviewScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     null,
   );
   const [showScrollTop, setShowScrollTop] = useState(false);
+
+  // Guard: if no questions, redirect to mock exams page
+  useEffect(() => {
+    if (!questions || questions.length === 0) {
+      navigate("/mock-exams", { replace: true });
+    }
+  }, [questions, navigate]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
