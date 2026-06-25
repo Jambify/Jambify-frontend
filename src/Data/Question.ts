@@ -130,7 +130,7 @@ export const SAMPLE_QUESTIONS: Question[] = [
   },
   {
     id: "550e8400-e29b-41d4-a716-446655440011",
-    subject: "Literature in English",
+    subject: "Literature",
     year: 2025,
     difficulty: "Medium",
     topic: "Literary Devices",
@@ -212,7 +212,7 @@ export const SAMPLE_QUESTIONS: Question[] = [
   },
   {
     id: "550e8400-e29b-41d4-a716-446655440017",
-    subject: "Literature in English",
+    subject: "Literature",
     year: 2025,
     difficulty: "Medium",
     topic: "Drama",
@@ -224,7 +224,7 @@ export const SAMPLE_QUESTIONS: Question[] = [
   },
   {
     id: "550e8400-e29b-41d4-a716-446655440018",
-    subject: "Literature in English",
+    subject: "Literature",
     year: 2025,
     difficulty: "Easy",
     topic: "Poetry",
