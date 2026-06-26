@@ -1,0 +1,93 @@
+import React, { useEffect, useState } from "react";
+import { History, RefreshCw, BookOpen } from "lucide-react";
+import {
+  getMockExamHistory,
+  type MockHistoryEntry,
+} from "../../Services/MockHistoryService";
+import MockHistoryCard from "./MockHistoryCard";
+import { useUserStore } from "../../Store/useUserStore";
+
+const MockHistory: React.FC = () => {
+  const isAuthenticated = useUserStore((s) => s.isAuthenticated);
+  const [history, setHistory] = useState<MockHistoryEntry[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [hasFetched, setHasFetched] = useState(false);
+
+  const load = async () => {
+    if (!isAuthenticated) return;
+    setIsLoading(true);
+    try {
+      const data = await getMockExamHistory();
+      setHistory(data);
+    } finally {
+      setIsLoading(false);
+      setHasFetched(true);
+    }
+  };
+
+  useEffect(() => {
+    load();
+  }, [isAuthenticated]);
+
+  return (
+    <div className="bg-bgCard border-borderMuted rounded-brand-xl border p-6">
+      {/* Header */}
+      <div className="mb-6 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="bg-brand/10 flex h-9 w-9 items-center justify-center rounded-xl">
+            <History size={18} className="text-brand" />
+          </div>
+          <div>
+            <h3 className="font-display text-textMain font-bold">
+              Exam History
+            </h3>
+            <p className="text-textDim text-[11px]">
+              Your last 5 mock attempts
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={load}
+          disabled={isLoading}
+          className="text-textDim hover:text-brand transition-colors disabled:opacity-50"
+        >
+          <RefreshCw size={16} className={isLoading ? "animate-spin" : ""} />
+        </button>
+      </div>
+
+      {/* Loading */}
+      {isLoading && !hasFetched && (
+        <div className="flex flex-col items-center justify-center py-12">
+          <div className="border-brand mb-3 h-8 w-8 animate-spin rounded-full border-4 border-t-transparent" />
+          <p className="text-textDim text-sm">Loading history...</p>
+        </div>
+      )}
+
+      {/* Empty */}
+      {hasFetched && !isLoading && history.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-12 text-center">
+          <div className="bg-brand/10 mb-4 flex h-12 w-12 items-center justify-center rounded-full">
+            <BookOpen className="text-brand h-6 w-6" />
+          </div>
+          <h4 className="font-display text-textMain mb-1 font-bold">
+            No Attempts Yet
+          </h4>
+          <p className="text-textDim max-w-48 text-sm">
+            Complete your first mock exam to see your history here.
+          </p>
+        </div>
+      )}
+
+      {/* History list */}
+      {hasFetched && history.length > 0 && (
+        <div className="space-y-4">
+          {history.map((entry, i) => (
+            <MockHistoryCard key={entry.id} entry={entry} rank={i + 1} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default MockHistory;

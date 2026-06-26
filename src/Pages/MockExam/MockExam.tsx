@@ -28,6 +28,9 @@ import { cn } from "../../lib/utils/utils";
 import { fetchQuestionsWithFallback } from "../../Services/questionService";
 import LoadingScreen from "../../components/ui/LoadingScreen";
 import NetworkErrorAlert from "../../components/ui/NetworkErrorAlert";
+import { saveMockExamHistory } from "../../Services/MockHistoryService";
+import MockHistory from "../../components/MockExam/MockHistory";
+
 import {
   Menu,
   ChevronLeft,
@@ -321,60 +324,77 @@ const MockExam: React.FC = () => {
   };
 
   const handleFinishExam = async () => {
-    const timeTaken = MOCK_DURATION - timeLeft;
-    finishExam(timeTaken);
-    setShowConfirmSubmit(false);
+  const timeTaken = MOCK_DURATION - timeLeft;
+  console.log("🔵 [handleFinishExam] timeTaken:", timeTaken);
 
-    // Save result if logged in
-    const { lastResult } = useMockStore.getState();
-    if (isAuthenticated && lastResult) {
-      // ── IMPROVED: Save individual session records for EACH subject ──
-      // This ensures the dashboard accurately tracks progress for every subject taken
-      try {
-        await Promise.all(
-          lastResult.subjectBreakdown.map((sb) => {
-            const subjectQuestions = questions.filter(
-              (q) => q.subject === sb.subject,
-            );
-            const subjectAnswers: Record<string, number> = {};
+  finishExam(timeTaken);
+  setShowConfirmSubmit(false);
 
-            // Map the global answer indices to relative indices for this subject session
-            subjectQuestions.forEach((q, idx) => {
-              const globalIdx = questions.indexOf(q);
-              if (answers[globalIdx] !== undefined) {
-                subjectAnswers[idx.toString()] = answers[globalIdx];
-              }
-            });
+  // ✅ Read AFTER finishExam so lastResult is populated
+  const { lastResult } = useMockStore.getState();
 
-            return addQuizResult(
-              "mock",
-              sb.subject,
-              subjectQuestions.map((q) => q.id),
-              subjectAnswers,
-              Math.floor(timeTaken / lastResult.subjectBreakdown.length), // distribute time
-              sb.correct, // Pass calculated correct count
-              sb.total, // Pass total questions,
-              lastResult.topicPerformance,
-            );
-          }),
+  console.log("🔵 [handleFinishExam] lastResult:", lastResult);
+  console.log("🔵 [handleFinishExam] isAuthenticated:", isAuthenticated);
+
+  if (!isAuthenticated) {
+    console.warn("⚠️ [handleFinishExam] User not authenticated — skipping save");
+    return;
+  }
+
+  if (!lastResult) {
+    console.error("❌ [handleFinishExam] lastResult is null — finishExam may not have run yet");
+    return;
+  }
+
+  try {
+    console.log("🔵 [handleFinishExam] Saving per-subject sessions...");
+
+    await Promise.all(
+      lastResult.subjectBreakdown.map((sb) => {
+        const subjectQuestions = questions.filter(q => q.subject === sb.subject);
+        const subjectAnswers: Record<string, number> = {};
+        subjectQuestions.forEach((q, idx) => {
+          const globalIdx = questions.indexOf(q);
+          if (answers[globalIdx] !== undefined) {
+            subjectAnswers[idx.toString()] = answers[globalIdx];
+          }
+        });
+
+        console.log(`🔵 [handleFinishExam] Saving subject: ${sb.subject}, correct: ${sb.correct}/${sb.total}`);
+
+        return addQuizResult(
+          "mock",
+          sb.subject,
+          subjectQuestions.map(q => q.id),
+          subjectAnswers,
+          Math.floor(timeTaken / lastResult.subjectBreakdown.length),
+          sb.correct,
+          sb.total,
+          lastResult.topicPerformance,
         );
+      }),
+    );
 
-        // ── UPDATE OVERALL BEST SCORE ──────────────────────────────────
-        // The total JAMB score is calculated from ALL subjects combined
-        const { updateBestScore, syncProfile } = useUserStore.getState();
-        if (lastResult.jambScore > 0) {
-          console.log(`🏆 Submitting new JAMB score: ${lastResult.jambScore}`);
-          await updateBestScore(lastResult.jambScore);
-        }
+    console.log("✅ [handleFinishExam] Per-subject sessions saved");
 
-        // Refresh user profile to update dashboard stats instantly
-        await syncProfile(true);
-        console.log("✅ [MockExam] All results saved and profile synced.");
-      } catch (err) {
-        console.error("❌ [MockExam] Failed to save all subject results:", err);
-      }
+    // Save to mock_exam_history
+    console.log("🔵 [handleFinishExam] Saving to mock_exam_history...");
+    const historyId = await saveMockExamHistory(lastResult, timeTaken);
+    console.log("✅ [handleFinishExam] mock_exam_history saved, id:", historyId);
+
+    // Update best JAMB score
+    const { updateBestScore, syncProfile } = useUserStore.getState();
+    if (lastResult.jambScore > 0) {
+      console.log(`🏆 [handleFinishExam] Updating best score: ${lastResult.jambScore}`);
+      await updateBestScore(lastResult.jambScore);
     }
-  };
+
+    await syncProfile(true);
+    console.log("✅ [handleFinishExam] All done");
+  } catch (err) {
+    console.error("❌ [handleFinishExam] Failed:", err);
+  }
+};
 
   const updateSubject = (index: number, value: string) => {
     setErrorMessage(null);
@@ -588,6 +608,9 @@ const MockExam: React.FC = () => {
             )}
           </div>
         </div>
+        <div className="mx-auto max-w-4xl px-4 pb-8">
+          <MockHistory />
+        </div>
       </AppLayout>
     );
   }
@@ -615,6 +638,7 @@ const MockExam: React.FC = () => {
             navigate("/");
           }}
         />
+        
       </AppLayout>
     );
   }
