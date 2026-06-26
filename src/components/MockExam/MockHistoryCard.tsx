@@ -1,5 +1,5 @@
 import React from "react";
-import { Trophy, Clock, Target, ChevronRight } from "lucide-react";
+import { Trophy, Clock, Target,  } from "lucide-react";
 import type { MockHistoryEntry } from "../../Services/MockHistoryService";
 
 interface MockHistoryCardProps {
