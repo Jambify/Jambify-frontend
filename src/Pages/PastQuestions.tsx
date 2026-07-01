@@ -66,7 +66,7 @@ const SUBJECT_COLORS: Record<string, string> = {
   Biology: "#00C896",
   Economics: "#7B5FFF",
   Government: "#FFB020",
-  "Literature": "#7B5FFF",
+  Literature: "#7B5FFF",
   History: "#FF4D6D",
   Geography: "#00C896",
   CRS: "#7B5FFF",
