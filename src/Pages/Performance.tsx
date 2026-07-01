@@ -116,7 +116,7 @@ const Performance: React.FC = () => {
     (totalQuestions > 0 || topicStats.length > 0 || mockHistory.length > 0);
 
   // FIXED: Prioritise live store computations over historical user profile cache layers to allow instant syncs
-  const displayAccuracy = avgAccuracy > 0 ? avgAccuracy : accuracy;
+  const displayAccuracy = accuracy > 0 ? accuracy : avgAccuracy;
 
   // Use questionsCompleted as fallback if totalQuestions is 0
   const displayTotalQuestions =

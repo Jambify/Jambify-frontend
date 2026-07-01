@@ -54,7 +54,7 @@ import { SUBJECT_COMBO_MAP } from "../Store/useSubjectStore";
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const { topicStats, avgAccuracy, loadPerformanceData } =
+  const { topicStats,loadPerformanceData } =
     usePerformanceStore();
 
   const {
@@ -72,6 +72,7 @@ const Dashboard: React.FC = () => {
     currentStreakToShow,
     setShowStreakPopup,
     setLastSeenStreakPopup,
+    accuracy,
   } = useUserStore();
 
   React.useEffect(() => {
@@ -100,8 +101,6 @@ const Dashboard: React.FC = () => {
     
     checkStreak();
   }, [loadPerformanceData]);
-
-  const accuracy = Math.round(avgAccuracy);
 
   // Filter stats based on user subject combo
   const userSubjects = Array.isArray(subjectCombo)
