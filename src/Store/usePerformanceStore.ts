@@ -104,6 +104,10 @@ export const usePerformanceStore = create<PerformanceState>()((set, get) => ({
         .eq("user_id", userId)
         .order("completed_at", { ascending: false });
 
+      console.log("📊 [loadPerformanceData] Fetched sessions:", sessions);
+      console.log("📊 [loadPerformanceData] totalQuestions:", sessions?.reduce((sum, s) => sum + (s.total_questions || 0), 0) || 0);
+      console.log("📊 [loadPerformanceData] totalCorrect:", sessions?.reduce((sum, s) => sum + (s.correct || 0), 0) || 0);
+
       if (error) throw error;
 
       // Get detailed topic stats from topic_progress table
@@ -117,6 +121,48 @@ export const usePerformanceStore = create<PerformanceState>()((set, get) => ({
       const totalQs = sessions?.reduce((sum, s) => sum + (s.total_questions || 0), 0) || 0;
       const totalCorrect = sessions?.reduce((sum, s) => sum + (s.correct || 0), 0) || 0;
       const avgAcc = totalQs > 0 ? Math.round((totalCorrect / totalQs) * 100) : 0;
+
+      // Sync the ground truth to the profiles table to keep it up to date
+      try {
+        const { id: userId } = useUserStore.getState();
+        if (userId) {
+          console.log("🔄 Updating profiles table:", {
+            userId,
+            avgAcc,
+            totalCorrect,
+            totalQs,
+          });
+
+          const { error: updateError } = await supabase
+            .from("profiles")
+            .update({
+              accuracy: avgAcc,
+              questions_completed: totalCorrect,
+              total_questions: totalQs,
+            })
+            .eq("id", userId);
+
+          if (updateError) {
+            console.error("❌ Failed to update profiles table:", updateError);
+          } else {
+            console.log("✅ profiles table updated successfully");
+          }
+
+          // Also update useUserStore locally to match
+          console.log("🔄 Updating useUserStore locally:", {
+            accuracy: avgAcc,
+            questionsCompleted: totalCorrect,
+            totalQuestions: totalQs,
+          });
+          useUserStore.setState({
+            accuracy: avgAcc,
+            questionsCompleted: totalCorrect,
+            totalQuestions: totalQs,
+          });
+        }
+      } catch (err) {
+        console.error("❌ Failed to update profiles table with performance data:", err);
+      }
 
       // Calculate weekly activity (only current week)
       const today = new Date();
@@ -159,9 +205,9 @@ export const usePerformanceStore = create<PerformanceState>()((set, get) => ({
       });
     } catch (error) {
       console.error("Error loading performance data:", error);
-      set({ 
-        isLoading: false, 
-        error: "We couldn't load your performance data right now. Please check your internet connection and try again." 
+      set({
+        isLoading: false,
+        error: "We couldn't load your performance data right now. Please check your internet connection and try again."
       });
     }
   },
@@ -212,7 +258,35 @@ export const usePerformanceStore = create<PerformanceState>()((set, get) => ({
         topicPerformance,
       );
 
-      // Refresh data after adding quiz result
+      // Optimistic update: calculate current totals and update local state immediately
+      const state = get();
+      const newTotalQs = state.totalQuestions + (totalQuestions || 0);
+      const newTotalCorrect = (state.totalQuestions > 0 ? Math.round((state.avgAccuracy / 100) * state.totalQuestions) : 0) + (correctCount || 0);
+      const newAvgAcc = newTotalQs > 0 ? Math.round((newTotalCorrect / newTotalQs) * 100) : 0;
+
+      // Optimistic update to performance store
+      set({
+        totalQuestions: newTotalQs,
+        avgAccuracy: newAvgAcc,
+      });
+
+      // Optimistic update to user store
+      useUserStore.setState({
+        accuracy: newAvgAcc,
+        questionsCompleted: newTotalCorrect,
+        totalQuestions: newTotalQs,
+      });
+
+      // Update weekly activity optimistically
+      const today = new Date();
+      const dayName = today.toLocaleDateString("en-US", { weekday: "short" });
+      set((prev) => ({
+        weeklyActivity: prev.weeklyActivity.map((d) =>
+          d.day === dayName ? { ...d, questions: d.questions + (totalQuestions || 0) } : d,
+        ),
+      }));
+
+      // Now refresh data from DB for full accuracy
       await get().loadPerformanceData(true);
 
       // Sync user profile after successful submission
