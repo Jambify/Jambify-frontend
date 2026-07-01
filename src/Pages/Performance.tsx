@@ -63,13 +63,14 @@ const Performance: React.FC = () => {
     isLoading,
     loadPerformanceData,
     isInitialized: performanceInitialized,
-    error,
-    hasFetched,
+    error: performanceError,
+    hasFetched: performanceHasFetched,
   } = usePerformanceStore();
   const {
     subjects,
     loadSubjects,
     isInitialized: subjectsInitialized,
+  
   } = useSubjectStore();
   const {
     name,
@@ -79,6 +80,10 @@ const Performance: React.FC = () => {
     accuracy,
     targetScore,
   } = useUserStore();
+
+  const error = performanceError;
+  const hasData =
+    totalQuestions > 0 || topicStats.length > 0 || mockHistory.length > 0;
 
   // Helper function to get numeric target score from range string
   const getNumericTarget = (range: string): number => {
@@ -110,13 +115,8 @@ const Performance: React.FC = () => {
     subjectsInitialized,
   ]);
 
-  // Check if we have any performance data to show
-  const hasData =
-    hasFetched &&
-    (totalQuestions > 0 || topicStats.length > 0 || mockHistory.length > 0);
-
   // FIXED: Prioritise live store computations over historical user profile cache layers to allow instant syncs
-  const displayAccuracy = accuracy > 0 ? accuracy : avgAccuracy;
+  const displayAccuracy = avgAccuracy > 0 ? avgAccuracy : accuracy;
 
   // Use questionsCompleted as fallback if totalQuestions is 0
   const displayTotalQuestions =
@@ -238,8 +238,8 @@ const Performance: React.FC = () => {
     icon: getSubjectIcon(name),
   }));
 
-  // Show full-page loader only for initial load
-  if (isLoading && !hasFetched) {
+  // Show PageLoader only on initial load (no data fetched yet)
+  if (isLoading && !performanceHasFetched) {
     return (
       <AppLayout
         currentPage="performance"
@@ -251,7 +251,7 @@ const Performance: React.FC = () => {
     );
   }
 
-  // Show full-page error only if we have an error AND no data
+  // Show full-page error only if no data at all
   if (error && !hasData) {
     return (
       <AppLayout
@@ -259,22 +259,24 @@ const Performance: React.FC = () => {
         isSidebarOpen={isSidebarOpen}
         setIsSidebarOpen={setIsSidebarOpen}
       >
-        <div className="mx-auto flex max-w-350 flex-col items-center justify-center gap-6 px-2 py-20 lg:px-4">
+        <div className="flex min-h-[60vh] flex-col items-center justify-center space-y-6 px-4 text-center">
           <div className="bg-danger/10 flex h-20 w-20 items-center justify-center rounded-3xl">
             <AlertCircle className="text-danger h-10 w-10" />
           </div>
-          <div className="space-y-2 text-center">
+          <div className="space-y-2">
             <h2 className="font-display text-textMain text-2xl font-bold">
-              Oops, something went wrong
+              We couldn't load your performance data right now
             </h2>
-            <p className="text-textDim mx-auto max-w-sm text-sm">{error}</p>
+            <p className="text-textDim mx-auto max-w-md">
+              Please check your internet connection and try again
+            </p>
           </div>
           <button
             onClick={() => loadPerformanceData(true)}
-            className="bg-brand hover:bg-brand-light flex items-center gap-2 rounded-full px-8 py-3 text-sm font-bold text-white transition-all active:scale-95"
+            className="bg-brand hover:bg-brand-light flex items-center gap-2 rounded-full px-6 py-3 text-sm font-bold text-white transition-all active:scale-95"
           >
             <RefreshCw size={16} className={isLoading ? "animate-spin" : ""} />
-            {isLoading ? "Refreshing..." : "Try Again"}
+            {isLoading ? "Loading..." : "Try Again"}
           </button>
         </div>
       </AppLayout>
@@ -290,7 +292,7 @@ const Performance: React.FC = () => {
       <div className="animate-fadeIn mx-auto max-w-350 space-y-8 px-2 lg:px-4">
         {/* Warning Banner - Show only if we have error and data */}
         {error && hasData && (
-          <div className="bg-warning/10 border-warning/30 flex items-center justify-between gap-4 rounded-xl border p-4">
+          <div className="bg-warning/10 border-warning/30 flex flex-col gap-4 rounded-xl border p-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
               <AlertCircle className="text-warning h-5 w-5 shrink-0" />
               <div>

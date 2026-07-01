@@ -54,7 +54,7 @@ import { SUBJECT_COMBO_MAP } from "../Store/useSubjectStore";
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const { topicStats,loadPerformanceData } =
+  const { topicStats, avgAccuracy, loadPerformanceData } =
     usePerformanceStore();
 
   const {
@@ -72,35 +72,41 @@ const Dashboard: React.FC = () => {
     currentStreakToShow,
     setShowStreakPopup,
     setLastSeenStreakPopup,
-    accuracy,
+    accuracy: userStoreAccuracy,
   } = useUserStore();
 
   React.useEffect(() => {
     loadPerformanceData();
-    
+
     // Check and update streak on initial load
-   const checkStreak = async () => {
-  // ✅ Confirm session active before checking
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) return;
+    const checkStreak = async () => {
+      // ✅ Confirm session active before checking
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session) return;
 
-  try {
-    const { streak: updatedStreak, shouldShowPopup } = 
-      await calculateAndUpdateStreak(false); // app load, not submission
+      try {
+        const { streak: updatedStreak, shouldShowPopup } =
+          await calculateAndUpdateStreak(false); // app load, not submission
 
-    // Sync full profile to get fresh streak value
-    await useUserStore.getState().syncProfile(true);
+        // Sync full profile to get fresh streak value
+        await useUserStore.getState().syncProfile(true);
 
-    if (shouldShowPopup) {
-      useUserStore.getState().setShowStreakPopup(true, updatedStreak);
-    }
-  } catch (err) {
-    console.error("Error checking streak:", err);
-  }
-};
-    
+        if (shouldShowPopup) {
+          useUserStore.getState().setShowStreakPopup(true, updatedStreak);
+        }
+      } catch (err) {
+        console.error("Error checking streak:", err);
+      }
+    };
+
     checkStreak();
   }, [loadPerformanceData]);
+
+  // Use userStore's accuracy as primary, fall back to avgAccuracy
+  const accuracy =
+    userStoreAccuracy > 0 ? userStoreAccuracy : Math.round(avgAccuracy);
 
   // Filter stats based on user subject combo
   const userSubjects = Array.isArray(subjectCombo)
@@ -377,11 +383,11 @@ const Dashboard: React.FC = () => {
           )}
         </div>
 
-        {/* Questions Done */}
+        {/* Total Questions */}
         <div className="bg-bgCard border-borderMuted rounded-brand-xl flex flex-col gap-1.5 border p-4 transition-all hover:border-blue-500/20 md:p-5">
           <div className="flex items-center justify-between">
             <span className="text-textDim text-[9px] font-bold tracking-widest uppercase sm:text-[10px]">
-              Questions
+              Total Questions
             </span>
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-500/10 sm:h-8 sm:w-8">
               <BookOpen className="h-3.5 w-3.5 text-blue-400 sm:h-4 sm:w-4" />
@@ -390,18 +396,18 @@ const Dashboard: React.FC = () => {
           <p
             className={cn(
               "font-display font-black tracking-tight",
-              questionsCompleted > 0
+              totalQuestions > 0
                 ? "text-textMain text-2xl sm:text-3xl"
                 : "text-textDim text-xl sm:text-2xl",
             )}
           >
-            {questionsCompleted > 0 ? questionsCompleted.toLocaleString() : "0"}
+            {totalQuestions > 0 ? totalQuestions.toLocaleString() : "0"}
           </p>
-          {questionsCompleted > 0 ? (
+          {totalQuestions > 0 ? (
             <div>
               <div className="text-textDim mb-1 flex justify-between text-[9px] sm:text-[10px]">
-                <span>{questionsPct}%</span>
-                <span>{totalQuestions.toLocaleString()}</span>
+                <span>Correct: {questionsCompleted.toLocaleString()}</span>
+                <span>Accuracy: {accuracy}%</span>
               </div>
               <div className="bg-bgTrack h-1 overflow-hidden rounded-full">
                 <div
