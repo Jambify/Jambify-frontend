@@ -317,14 +317,17 @@ export const fetchQuestionsWithFallback = async (
 
 // ── Topic helpers ─────────────────────────────────────────────────────────────
 
+// ── Topic helpers ─────────────────────────────────────────────────────────────
+
 export const LIKELY_TOPICS: Record<string, string[]> = {
   English: [
+    "Vocabulary",
+    "Phonetics",
+    "Grammar",
     "Comprehension",
-    "Lexis and Structure",
-    "Oral English",
-    "Synonyms & Antonyms",
-    "Sentence Interpretation",
     "Novel",
+    "Cloze Passage",
+    "Spelling",
   ],
   Mathematics: [
     "Number Bases",
@@ -430,8 +433,6 @@ export const LIKELY_TOPICS: Record<string, string[]> = {
     "Water Chemistry",
   ],
   Biology: [
-    // Updated Biology topics array for your app
-
     "Ecology",
     "Genetics",
     "Cell Biology",
@@ -453,8 +454,7 @@ export const LIKELY_TOPICS: Record<string, string[]> = {
     "Endocrine System",
     "Digestive System",
     "Photosynthesis",
-    "General"
-
+    "General",
   ],
   Economics: [
     "Agricultural Economics",
@@ -563,8 +563,21 @@ export const LIKELY_TOPICS: Record<string, string[]> = {
     "Map Reading",
     "Regional Geography",
   ],
-  CRS: ["Old Testament", "New Testament", "Old Testament"],
-  // In questionService.ts, add to LIKELY_TOPICS:
+  CRS: [
+    "Old Testament", 
+    "New Testament"
+  ],
+  Commerce: [
+    "Business Organization",
+    "International Trade",
+    "Finance",
+    "Business Documents",
+    "Production",
+    "Business Law",
+    "Marketing",
+    "Banking",
+    "Distribution",
+  ],
   History: [
     "Pre-Colonial Africa",
     "Colonial Rule",
@@ -573,23 +586,13 @@ export const LIKELY_TOPICS: Record<string, string[]> = {
     "Nigerian History",
   ],
   IRS: [
-    "Tawheed",
-    "Seerah",
-    "Fiqh",
-    "Hadith",
-    "Quranic Studies",
+    "Tawheed", 
+    "Seerah", 
+    "Fiqh", 
+    "Hadith", 
+    "Quranic Studies"
   ],
-  Commerce: [
-    "Business Organization",
-    "Finance",
-    "International Trade",
-    "Business Documents",
-    "Production",
-    "Business Law",
-    "Marketing",
-    "Banking",
-    "Distribution",
-  ],
+  
 };
 
 // Helper to normalize topic names to match LIKELY_TOPICS
