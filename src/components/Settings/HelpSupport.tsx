@@ -10,7 +10,12 @@ import {
   ChevronDown,
   ChevronUp,
   ExternalLink,
+  MessageCircle,
 } from "lucide-react";
+
+// WhatsApp configuration
+const WHATSAPP_NUMBER = "2737011872350"; // Full number without + or spaces
+const WHATSAPP_MESSAGE = "Hi! I need help with JAMBIFY...";
 
 const FAQ = [
   {
@@ -99,13 +104,27 @@ const HelpSupport: React.FC = () => {
             <p className="text-textDim text-sm">Need help? Send us a message</p>
           </div>
         </div>
-        <a
-          href="mailto:support@jambify.com"
-          className="text-brand hover:text-brand-light flex items-center gap-2 text-sm font-medium transition-colors"
-        >
-          <Mail size={16} />
-          support@jambify.com
-        </a>
+        <div className="space-y-3">
+          {/* WhatsApp */}
+          <a
+            href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 rounded-lg bg-green-600 px-4 py-3 text-sm font-semibold text-white transition-all hover:bg-green-700 active:scale-95"
+          >
+            <MessageCircle size={18} />
+            Chat on WhatsApp
+          </a>
+
+          {/* Email */}
+          <a
+            href="mailto:support@jambify.com"
+            className="text-brand hover:text-brand-light flex items-center gap-2 text-sm font-medium transition-colors"
+          >
+            <Mail size={16} />
+            support@jambify.com
+          </a>
+        </div>
       </section>
 
       {/* FAQ Section */}

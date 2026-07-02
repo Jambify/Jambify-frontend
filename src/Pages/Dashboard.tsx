@@ -54,8 +54,14 @@ import { SUBJECT_COMBO_MAP } from "../Store/useSubjectStore";
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const { topicStats, avgAccuracy, loadPerformanceData, isLoading, error } =
-    usePerformanceStore();
+  const {
+    topicStats,
+    avgAccuracy,
+    loadPerformanceData,
+    isLoading,
+    error,
+    hasFetched,
+  } = usePerformanceStore();
 
   const {
     name,
@@ -150,6 +156,19 @@ const Dashboard: React.FC = () => {
       isSidebarOpen={isSidebarOpen}
       setIsSidebarOpen={setIsSidebarOpen}
     >
+      {/* Subtle background sync progress indicator */}
+      {isLoading && hasFetched && (
+        <div className="bg-bgCard top-0 left-0 h-0.5 w-full overflow-hidden">
+          <div className="bg-brand h-full w-1/3 animate-[loading-bar_1.5s_ease-in-out_infinite]" />
+        </div>
+      )}
+      <style>{`
+        @keyframes loading-bar {
+          0% { transform: translateX(-100%); }
+          50% { transform: translateX(200%); }
+          100% { transform: translateX(200%); }
+        }
+      `}</style>
       {/* Error Alert */}
       {error && (
         <div className="rounded-brand-xl mb-6 flex items-center gap-3 border border-red-500/30 bg-red-500/10 px-4 py-3">
@@ -372,7 +391,7 @@ const Dashboard: React.FC = () => {
               <Target className="text-brand h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </div>
           </div>
-          {isLoading ? (
+          {isLoading && !hasFetched ? (
             <>
               <div className="bg-bgTrack h-8 w-24 animate-pulse rounded" />
               <div className="bg-bgTrack h-3 w-16 animate-pulse rounded" />
@@ -409,7 +428,7 @@ const Dashboard: React.FC = () => {
               <CheckCircle2 className="text-success h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </div>
           </div>
-          {isLoading ? (
+          {isLoading && !hasFetched ? (
             <>
               <div className="bg-bgTrack h-8 w-20 animate-pulse rounded" />
               <div className="bg-bgTrack h-3 w-20 animate-pulse rounded" />
@@ -445,7 +464,7 @@ const Dashboard: React.FC = () => {
               <BookOpen className="h-3.5 w-3.5 text-blue-400 sm:h-4 sm:w-4" />
             </div>
           </div>
-          {isLoading ? (
+          {isLoading && !hasFetched ? (
             <>
               <div className="bg-bgTrack h-8 w-28 animate-pulse rounded" />
               <div className="bg-bgTrack mt-1 h-3 w-32 animate-pulse rounded" />
@@ -505,7 +524,7 @@ const Dashboard: React.FC = () => {
               />
             </div>
           </div>
-          {isLoading ? (
+          {isLoading && !hasFetched ? (
             <>
               <div className="bg-bgTrack h-8 w-20 animate-pulse rounded" />
               <div className="bg-bgTrack h-3 w-16 animate-pulse rounded" />

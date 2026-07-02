@@ -92,26 +92,35 @@ export const usePerformanceStore = create<PerformanceState>()(
         if (get().isInitialized && !force) {
           return;
         }
-        // Reset to initial state to avoid showing stale cached data while loading
-        set({
-          isLoading: true,
-          error: null,
-          weeklyActivity: [
-            { day: "Sun", questions: 0 },
-            { day: "Mon", questions: 0 },
-            { day: "Tue", questions: 0 },
-            { day: "Wed", questions: 0 },
-            { day: "Thu", questions: 0 },
-            { day: "Fri", questions: 0 },
-            { day: "Sat", questions: 0 },
-          ],
-          topicStats: [],
-          subjectPerformance: [],
-          mockScores: [],
-          mockHistory: [],
-          totalQuestions: 0,
-          avgAccuracy: 0,
-        });
+        // Only reset state completely and set isLoading on first load
+        // For force refreshes, keep existing data and don't show loading indicator
+        const isFirstLoad = !get().hasFetched;
+
+        if (isFirstLoad) {
+          set({
+            isLoading: true,
+            error: null,
+            weeklyActivity: [
+              { day: "Sun", questions: 0 },
+              { day: "Mon", questions: 0 },
+              { day: "Tue", questions: 0 },
+              { day: "Wed", questions: 0 },
+              { day: "Thu", questions: 0 },
+              { day: "Fri", questions: 0 },
+              { day: "Sat", questions: 0 },
+            ],
+            topicStats: [],
+            subjectPerformance: [],
+            mockScores: [],
+            mockHistory: [],
+            totalQuestions: 0,
+            avgAccuracy: 0,
+          });
+        } else {
+          set({
+            error: null,
+          });
+        }
 
         // Timeout after 15 seconds
         const controller = new AbortController();
@@ -296,23 +305,12 @@ export const usePerformanceStore = create<PerformanceState>()(
           totalQuestions,
           questionIdsLength: questionIds.length,
         });
-        try {
-          const result = await submitQuizSession(
-            mode,
-            subject,
-            questionIds,
-            answers,
-            timeTaken,
-            correctCount,
-            totalQuestions,
-            topicPerformance,
-          );
-          console.log("📝 [addQuizResult] submitQuizSession returned:", result);
 
-          // Optimistic update: calculate current totals and update local state immediately
+        // 🚀 OPTIMISTIC UPDATE FIRST!
+        if (correctCount && totalQuestions) {
           const state = get();
-          const newTotalQs = state.totalQuestions + (totalQuestions || 0);
-          const newTotalCorrect = (state.totalQuestions > 0 ? Math.round((state.avgAccuracy / 100) * state.totalQuestions) : 0) + (correctCount || 0);
+          const newTotalQs = state.totalQuestions + totalQuestions;
+          const newTotalCorrect = (state.totalQuestions > 0 ? Math.round((state.avgAccuracy / 100) * state.totalQuestions) : 0) + correctCount;
           const newAvgAcc = newTotalQs > 0 ? Math.round((newTotalCorrect / newTotalQs) * 100) : 0;
 
           // Optimistic update to performance store
@@ -333,9 +331,23 @@ export const usePerformanceStore = create<PerformanceState>()(
           const dayName = today.toLocaleDateString("en-US", { weekday: "short" });
           set((prev) => ({
             weeklyActivity: prev.weeklyActivity.map((d) =>
-              d.day === dayName ? { ...d, questions: d.questions + (totalQuestions || 0) } : d,
+              d.day === dayName ? { ...d, questions: d.questions + totalQuestions } : d,
             ),
           }));
+        }
+
+        try {
+          const result = await submitQuizSession(
+            mode,
+            subject,
+            questionIds,
+            answers,
+            timeTaken,
+            correctCount,
+            totalQuestions,
+            topicPerformance,
+          );
+          console.log("📝 [addQuizResult] submitQuizSession returned:", result);
 
           // Now refresh data from DB for full accuracy
           await get().loadPerformanceData(true);
