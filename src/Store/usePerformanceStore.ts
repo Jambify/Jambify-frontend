@@ -104,11 +104,17 @@ export const usePerformanceStore = create<PerformanceState>()((set, get) => ({
         .eq("user_id", userId)
         .order("completed_at", { ascending: false });
 
-      console.log("📊 [loadPerformanceData] Fetched sessions:", sessions);
-      console.log("📊 [loadPerformanceData] totalQuestions:", sessions?.reduce((sum, s) => sum + (s.total_questions || 0), 0) || 0);
-      console.log("📊 [loadPerformanceData] totalCorrect:", sessions?.reduce((sum, s) => sum + (s.correct || 0), 0) || 0);
-
       if (error) throw error;
+
+      console.log("📊 [loadPerformanceData] Fetched sessions:", sessions);
+      console.log("📊 [loadPerformanceData] Each session:");
+      sessions?.forEach((s, i) => {
+        console.log(`  Session ${i}: subject=${s.subject}, correct=${s.correct}, total=${s.total_questions}, mode=${s.mode}`);
+      });
+      const totalQs = sessions?.reduce((sum, s) => sum + (s.total_questions || 0), 0) || 0;
+      const totalCorrect = sessions?.reduce((sum, s) => sum + (s.correct || 0), 0) || 0;
+      console.log("📊 [loadPerformanceData] totalQuestions:", totalQs);
+      console.log("📊 [loadPerformanceData] totalCorrect:", totalCorrect);
 
       // Get detailed topic stats from topic_progress table
       const topicStats = await getDetailedTopicStats();
@@ -118,8 +124,6 @@ export const usePerformanceStore = create<PerformanceState>()((set, get) => ({
 
       // ✅ Calculate from raw session data for display accuracy
       // This is the ground truth regardless of what the profile column says
-      const totalQs = sessions?.reduce((sum, s) => sum + (s.total_questions || 0), 0) || 0;
-      const totalCorrect = sessions?.reduce((sum, s) => sum + (s.correct || 0), 0) || 0;
       const avgAcc = totalQs > 0 ? Math.round((totalCorrect / totalQs) * 100) : 0;
 
       // Sync the ground truth to the profiles table to keep it up to date
@@ -246,6 +250,13 @@ export const usePerformanceStore = create<PerformanceState>()((set, get) => ({
     totalQuestions?: number,
     topicPerformance?: Record<string, any>,
   ) => {
+    console.log("📝 [addQuizResult] called with:", {
+      mode,
+      subject,
+      correctCount,
+      totalQuestions,
+      questionIdsLength: questionIds.length,
+    });
     try {
       const result = await submitQuizSession(
         mode,
@@ -257,6 +268,7 @@ export const usePerformanceStore = create<PerformanceState>()((set, get) => ({
         totalQuestions,
         topicPerformance,
       );
+      console.log("📝 [addQuizResult] submitQuizSession returned:", result);
 
       // Optimistic update: calculate current totals and update local state immediately
       const state = get();
@@ -288,9 +300,6 @@ export const usePerformanceStore = create<PerformanceState>()((set, get) => ({
 
       // Now refresh data from DB for full accuracy
       await get().loadPerformanceData(true);
-
-      // Sync user profile after successful submission
-      await useUserStore.getState().syncProfile(true);
 
       // Update subject-level tracking
       await updateSubjectPerformance(subject, result.accuracy);

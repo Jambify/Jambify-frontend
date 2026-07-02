@@ -222,8 +222,25 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           <NavSection label="Main" items={MAIN_NAV} onNavigate={onClose} />
           <NavSection label="Study" items={STUDY_NAV} onNavigate={onClose} />
 
+          {/* Help & Support */}
+          <div className="border-borderMuted/30 mt-4 border-t pt-4">
+            <NavLink
+              to="/settings"
+              state={{ activeTab: "help" }}
+              onClick={onClose}
+              className="text-textMuted hover:text-textMain flex items-center gap-2.5 px-3 py-2 text-sm transition-colors hover:bg-bgSurface rounded-brand mb-0.5"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M9.09 9a3 3 0 0 1 5.83 12" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
+              <span>Help & Support</span>
+            </NavLink>
+          </div>
+
           {/* Pro Section Link */}
-          <div className="border-borderMuted/30 mt-6 border-t pt-4">
+          <div className="border-borderMuted/30 mt-4 border-t pt-4">
             {!isPro ? (
               <NavLink
                 to="/pro"

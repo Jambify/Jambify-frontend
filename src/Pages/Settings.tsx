@@ -1,23 +1,29 @@
 import React, { useState } from "react";
+import { useLocation } from "react-router-dom";
 import AppLayout from "../components/Layout/AppLayout";
 import { useUserStore } from "../Store/useUserStore";
 import ProfileForm from "../components/Settings/ProfileForm";
 import ExamSettings from "../components/Settings/ExamSettings";
 import DangerZone from "../components/Settings/DangerZone";
+import HelpSupport from "../components/Settings/HelpSupport";
 import { cn } from "../lib/utils/utils";
 
-type Tab = "profile" | "exam" | "account";
+type Tab = "profile" | "exam" | "account" | "help";
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: "profile", label: "Profile", icon: "👤" },
   { id: "exam", label: "Exam settings", icon: "🎯" },
   { id: "account", label: "Account", icon: "⚙️" },
+  { id: "help", label: "Help & Support", icon: "❓" },
 ];
 
 const Settings: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { name } = useUserStore();
-  const [activeTab, setActiveTab] = useState<Tab>("profile");
+  const location = useLocation();
+  const [activeTab, setActiveTab] = useState<Tab>(
+    (location.state as any)?.activeTab || "profile",
+  );
   const initials = name
     .split(" ")
     .map((w) => w[0])
@@ -79,6 +85,7 @@ const Settings: React.FC = () => {
           {activeTab === "profile" && <ProfileForm />}
           {activeTab === "exam" && <ExamSettings />}
           {activeTab === "account" && <DangerZone />}
+          {activeTab === "help" && <HelpSupport />}
         </div>
       </div>
     </AppLayout>

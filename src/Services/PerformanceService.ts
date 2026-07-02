@@ -424,6 +424,12 @@ export const submitQuizSession = async (
   totalQuestions?: number,
   topicPerformance?: Record<string, any>,
 ) => {
+  console.log("🚀 [submitQuizSession] called with:", {
+    mode,
+    subject,
+    correctCount,
+    totalQuestions,
+  });
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -438,6 +444,12 @@ export const submitQuizSession = async (
   const finalCorrect = correctCount !== undefined ? correctCount : 0;
   const finalAccuracy = finalTotal > 0 ? (finalCorrect / finalTotal) * 100 : 0;
 
+  console.log("🚀 [submitQuizSession] calling RPC with:", {
+    p_user_id: user.id,
+    p_frontend_correct: finalCorrect,
+    p_frontend_accuracy: finalAccuracy,
+  });
+
   const { data, error } = (await supabase.rpc("submit_quiz_session", {
     p_user_id: user.id,
     p_mode: mode,
@@ -449,6 +461,8 @@ export const submitQuizSession = async (
     p_frontend_accuracy: finalAccuracy,
     p_topic_performance: topicPerformance || {},
   })) as SupabaseResponse<QuizSubmissionData>;
+
+  console.log("🚀 [submitQuizSession] RPC returned:", { data, error });
 
   if (error) {
     console.error("❌ [submitQuizSession] RPC Error:", error);
