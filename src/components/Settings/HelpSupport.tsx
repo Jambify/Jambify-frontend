@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 
 // WhatsApp configuration
-const WHATSAPP_NUMBER = "27307011872350"; // Full number without + or spaces
+const WHATSAPP_NUMBER = "2347011872350"; // Full number without + or spaces
 const WHATSAPP_MESSAGE = "Hi! I need help with JAMBIFY...";
 
 const FAQ = [
