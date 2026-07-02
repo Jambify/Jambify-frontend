@@ -78,30 +78,30 @@ const Dashboard: React.FC = () => {
   React.useEffect(() => {
     loadPerformanceData();
 
-    // Check and update streak on initial load
-    const checkStreak = async () => {
-      // ✅ Confirm session active before checking
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (!session) return;
+      // Check and update streak on initial load
+      const checkStreak = async () => {
+        // ✅ Confirm session active before checking
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        if (!session) return;
 
-      try {
-        const { streak: updatedStreak, shouldShowPopup } =
-          await calculateAndUpdateStreak(false); // app load, not submission
+        try {
+          const { streak: updatedStreak, shouldShowPopup } =
+            await calculateAndUpdateStreak(false); // app load, not submission
 
         // Sync full profile to get fresh streak value
         await useUserStore.getState().syncProfile(true);
 
-        if (shouldShowPopup) {
-          useUserStore.getState().setShowStreakPopup(true, updatedStreak);
+          if (shouldShowPopup) {
+            useUserStore.getState().setShowStreakPopup(true, updatedStreak);
+          }
+        } catch (err) {
+          console.error("Error checking streak:", err);
         }
-      } catch (err) {
-        console.error("Error checking streak:", err);
-      }
-    };
+      };
 
-    checkStreak();
+      checkStreak();
   }, [loadPerformanceData]);
 
   // Use userStore's accuracy as primary, fall back to avgAccuracy

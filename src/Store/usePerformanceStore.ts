@@ -2,6 +2,7 @@
 // src/Store/usePerformanceStore.ts
 
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 import {
   submitQuizSession,
   getDetailedTopicStats,
@@ -63,261 +64,10 @@ interface PerformanceState {
   reset: () => void;
 }
 
-export const usePerformanceStore = create<PerformanceState>()((set, get) => ({
+export const usePerformanceStore = create<PerformanceState>()(
+  persist(
+    (set, get) => ({
 
-  weeklyActivity: [
-    { day: "Sun", questions: 0 },
-    { day: "Mon", questions: 0 },
-    { day: "Tue", questions: 0 },
-    { day: "Wed", questions: 0 },
-    { day: "Thu", questions: 0 },
-    { day: "Fri", questions: 0 },
-    { day: "Sat", questions: 0 },
-  ],
-  topicStats: [],
-  subjectPerformance: [],
-  mockScores: [],
-  mockHistory: [],
-  totalQuestions: 0,
-  avgAccuracy: 0,
-  isLoading: false,
-  error: null,
-  isInitialized: false,
-  hasFetched: false,
-
-  loadPerformanceData: async (force = false) => {
-    if (get().isInitialized && !force) {
-      return;
-    }
-    set({ isLoading: true, error: null }); // Clear error on start
-    try {
-      const { id: userId } = useUserStore.getState();
-      if (!userId) {
-        set({ isLoading: false });
-        return;
-      }
-
-      // Fetch all mock and practice sessions
-      const { data: sessions, error } = await supabase
-        .from("quiz_sessions")
-        .select("*")
-        .eq("user_id", userId)
-        .order("completed_at", { ascending: false });
-
-      if (error) throw error;
-
-      console.log("📊 [loadPerformanceData] Fetched sessions:", sessions);
-      console.log("📊 [loadPerformanceData] Each session:");
-      sessions?.forEach((s, i) => {
-        console.log(`  Session ${i}: subject=${s.subject}, correct=${s.correct}, total=${s.total_questions}, mode=${s.mode}`);
-      });
-      const totalQs = sessions?.reduce((sum, s) => sum + (s.total_questions || 0), 0) || 0;
-      const totalCorrect = sessions?.reduce((sum, s) => sum + (s.correct || 0), 0) || 0;
-      console.log("📊 [loadPerformanceData] totalQuestions:", totalQs);
-      console.log("📊 [loadPerformanceData] totalCorrect:", totalCorrect);
-
-      // Get detailed topic stats from topic_progress table
-      const topicStats = await getDetailedTopicStats();
-
-      // Get subject performance
-      const subjectPerformance = await getSubjectPerformance();
-
-      // ✅ Calculate from raw session data for display accuracy
-      // This is the ground truth regardless of what the profile column says
-      const avgAcc = totalQs > 0 ? Math.round((totalCorrect / totalQs) * 100) : 0;
-
-      // Sync the ground truth to the profiles table to keep it up to date
-      try {
-        const { id: userId } = useUserStore.getState();
-        if (userId) {
-          console.log("🔄 Updating profiles table:", {
-            userId,
-            avgAcc,
-            totalCorrect,
-            totalQs,
-          });
-
-          const { error: updateError } = await supabase
-            .from("profiles")
-            .update({
-              accuracy: avgAcc,
-              questions_completed: totalCorrect,
-              total_questions: totalQs,
-            })
-            .eq("id", userId);
-
-          if (updateError) {
-            console.error("❌ Failed to update profiles table:", updateError);
-          } else {
-            console.log("✅ profiles table updated successfully");
-          }
-
-          // Also update useUserStore locally to match
-          console.log("🔄 Updating useUserStore locally:", {
-            accuracy: avgAcc,
-            questionsCompleted: totalCorrect,
-            totalQuestions: totalQs,
-          });
-          useUserStore.setState({
-            accuracy: avgAcc,
-            questionsCompleted: totalCorrect,
-            totalQuestions: totalQs,
-          });
-        }
-      } catch (err) {
-        console.error("❌ Failed to update profiles table with performance data:", err);
-      }
-
-      // Calculate weekly activity (only current week)
-      const today = new Date();
-      const currentWeek = getWeekAndYear(today);
-      const weeklyActivity = Array(7).fill(0).map((_, i) => {
-        const date = new Date(today);
-        date.setDate(today.getDate() - (6 - i));
-        const dayName = date.toLocaleDateString("en-US", { weekday: "short" });
-
-        // Only include sessions from current week
-        const questionsForDay = sessions?.filter(s => {
-          const sessionDate = new Date(s.completed_at);
-          const sessionWeek = getWeekAndYear(sessionDate);
-          return sessionWeek === currentWeek &&
-            sessionDate.toDateString() === date.toDateString();
-        }).reduce((sum, s) => sum + s.total_questions, 0) || 0;
-
-        return { day: dayName, questions: questionsForDay };
-      });
-
-      // Process mock history
-      const mockSessions = sessions?.filter((s) => s.mode === "mock") || [];
-      const mockHistory = mockSessions.map((s) => ({
-        id: s.id,
-        date: s.completed_at,
-        score: s.accuracy, // This is accuracy, but we'll show JAMB score separately
-        jambScore: Math.round((s.correct / 180) * 400),
-      }));
-
-      set({
-        weeklyActivity,
-        topicStats,
-        subjectPerformance,
-        totalQuestions: totalQs,
-        avgAccuracy: avgAcc,
-        mockHistory,
-        isLoading: false,
-        isInitialized: true,
-        hasFetched: true,
-      });
-    } catch (error) {
-      console.error("Error loading performance data:", error);
-      set({
-        isLoading: false,
-        error: "We couldn't load your performance data right now. Please check your internet connection and try again."
-      });
-    }
-  },
-
-  addMockScore: (score: number) => {
-    set((state) => ({
-      mockScores: [...state.mockScores, score],
-    }));
-  },
-
-  // ← ADD THIS FUNCTION - for updating weekly activity
-  addActivity: (day: string, count: number) => {
-    set((state) => ({
-      weeklyActivity: state.weeklyActivity.map((d) =>
-        d.day === day ? { ...d, questions: d.questions + count } : d,
-      ),
-    }));
-  },
-
-  // ← ADD THIS FUNCTION - for updating topic accuracy
-  updateTopic: (id: string, accuracy: number) => {
-    set((state) => ({
-      topicStats: state.topicStats.map((t) =>
-        t.id === id ? { ...t, accuracy } : t,
-      ),
-    }));
-  },
-
-  addQuizResult: async (
-    mode: "practice" | "mock",
-    subject: string,
-    questionIds: string[],
-    answers: Record<number, number>,
-    timeTaken: number,
-    correctCount?: number,
-    totalQuestions?: number,
-    topicPerformance?: Record<string, any>,
-  ) => {
-    console.log("📝 [addQuizResult] called with:", {
-      mode,
-      subject,
-      correctCount,
-      totalQuestions,
-      questionIdsLength: questionIds.length,
-    });
-    try {
-      const result = await submitQuizSession(
-        mode,
-        subject,
-        questionIds,
-        answers,
-        timeTaken,
-        correctCount,
-        totalQuestions,
-        topicPerformance,
-      );
-      console.log("📝 [addQuizResult] submitQuizSession returned:", result);
-
-      // Optimistic update: calculate current totals and update local state immediately
-      const state = get();
-      const newTotalQs = state.totalQuestions + (totalQuestions || 0);
-      const newTotalCorrect = (state.totalQuestions > 0 ? Math.round((state.avgAccuracy / 100) * state.totalQuestions) : 0) + (correctCount || 0);
-      const newAvgAcc = newTotalQs > 0 ? Math.round((newTotalCorrect / newTotalQs) * 100) : 0;
-
-      // Optimistic update to performance store
-      set({
-        totalQuestions: newTotalQs,
-        avgAccuracy: newAvgAcc,
-      });
-
-      // Optimistic update to user store
-      useUserStore.setState({
-        accuracy: newAvgAcc,
-        questionsCompleted: newTotalCorrect,
-        totalQuestions: newTotalQs,
-      });
-
-      // Update weekly activity optimistically
-      const today = new Date();
-      const dayName = today.toLocaleDateString("en-US", { weekday: "short" });
-      set((prev) => ({
-        weeklyActivity: prev.weeklyActivity.map((d) =>
-          d.day === dayName ? { ...d, questions: d.questions + (totalQuestions || 0) } : d,
-        ),
-      }));
-
-      // Now refresh data from DB for full accuracy
-      await get().loadPerformanceData(true);
-
-      // Update subject-level tracking
-      await updateSubjectPerformance(subject, result.accuracy);
-
-      // If we should show the streak popup, set it in useUserStore
-      if (result.shouldShowPopup) {
-        useUserStore.getState().setShowStreakPopup(true, result.streak);
-      }
-
-      return result;
-    } catch (error) {
-      console.error("Failed to submit quiz result:", error);
-      throw error;
-    }
-  },
-
-  reset: () => {
-    set({
       weeklyActivity: [
         { day: "Sun", questions: 0 },
         { day: "Mon", questions: 0 },
@@ -337,6 +87,264 @@ export const usePerformanceStore = create<PerformanceState>()((set, get) => ({
       error: null,
       isInitialized: false,
       hasFetched: false,
-    });
-  },
-}));
+
+      loadPerformanceData: async (force = false) => {
+        if (get().isInitialized && !force) {
+          return;
+        }
+        set({ isLoading: true, error: null }); // Clear error on start
+        try {
+          const { id: userId } = useUserStore.getState();
+          if (!userId) {
+            set({ isLoading: false });
+            return;
+          }
+
+          // Fetch all mock and practice sessions
+          const { data: sessions, error } = await supabase
+            .from("quiz_sessions")
+            .select("*")
+            .eq("user_id", userId)
+            .order("completed_at", { ascending: false });
+
+          if (error) throw error;
+
+          console.log("📊 [loadPerformanceData] Fetched sessions:", sessions);
+          console.log("📊 [loadPerformanceData] Each session:");
+          sessions?.forEach((s, i) => {
+            console.log(`  Session ${i}: subject=${s.subject}, correct=${s.correct}, total=${s.total_questions}, mode=${s.mode}`);
+          });
+          const totalQs = sessions?.reduce((sum, s) => sum + (s.total_questions || 0), 0) || 0;
+          const totalCorrect = sessions?.reduce((sum, s) => sum + (s.correct || 0), 0) || 0;
+          console.log("📊 [loadPerformanceData] totalQuestions:", totalQs);
+          console.log("📊 [loadPerformanceData] totalCorrect:", totalCorrect);
+
+          // Get detailed topic stats from topic_progress table
+          const topicStats = await getDetailedTopicStats();
+
+          // Get subject performance
+          const subjectPerformance = await getSubjectPerformance();
+
+          // ✅ Calculate from raw session data for display accuracy
+          // This is the ground truth regardless of what the profile column says
+          const avgAcc = totalQs > 0 ? Math.round((totalCorrect / totalQs) * 100) : 0;
+
+          // Sync the ground truth to the profiles table to keep it up to date
+          try {
+            const { id: userId } = useUserStore.getState();
+            if (userId) {
+              console.log("🔄 Updating profiles table:", {
+                userId,
+                avgAcc,
+                totalCorrect,
+                totalQs,
+              });
+
+              const { error: updateError } = await supabase
+                .from("profiles")
+                .update({
+                  accuracy: avgAcc,
+                  questions_completed: totalCorrect,
+                  total_questions: totalQs,
+                })
+                .eq("id", userId);
+
+              if (updateError) {
+                console.error("❌ Failed to update profiles table:", updateError);
+              } else {
+                console.log("✅ profiles table updated successfully");
+              }
+
+              // Also update useUserStore locally to match
+              console.log("🔄 Updating useUserStore locally:", {
+                accuracy: avgAcc,
+                questionsCompleted: totalCorrect,
+                totalQuestions: totalQs,
+              });
+              useUserStore.setState({
+                accuracy: avgAcc,
+                questionsCompleted: totalCorrect,
+                totalQuestions: totalQs,
+              });
+            }
+          } catch (err) {
+            console.error("❌ Failed to update profiles table with performance data:", err);
+          }
+
+          // Calculate weekly activity (only current week)
+          const today = new Date();
+          const currentWeek = getWeekAndYear(today);
+          const weeklyActivity = Array(7).fill(0).map((_, i) => {
+            const date = new Date(today);
+            date.setDate(today.getDate() - (6 - i));
+            const dayName = date.toLocaleDateString("en-US", { weekday: "short" });
+
+            // Only include sessions from current week
+            const questionsForDay = sessions?.filter(s => {
+              const sessionDate = new Date(s.completed_at);
+              const sessionWeek = getWeekAndYear(sessionDate);
+              return sessionWeek === currentWeek &&
+                sessionDate.toDateString() === date.toDateString();
+            }).reduce((sum, s) => sum + s.total_questions, 0) || 0;
+
+            return { day: dayName, questions: questionsForDay };
+          });
+
+          // Process mock history
+          const mockSessions = sessions?.filter((s) => s.mode === "mock") || [];
+          const mockHistory = mockSessions.map((s) => ({
+            id: s.id,
+            date: s.completed_at,
+            score: s.accuracy, // This is accuracy, but we'll show JAMB score separately
+            jambScore: Math.round((s.correct / 180) * 400),
+          }));
+
+          set({
+            weeklyActivity,
+            topicStats,
+            subjectPerformance,
+            totalQuestions: totalQs,
+            avgAccuracy: avgAcc,
+            mockHistory,
+            isLoading: false,
+            isInitialized: true,
+            hasFetched: true,
+          });
+        } catch (error) {
+          console.error("Error loading performance data:", error);
+          set({
+            isLoading: false,
+            error: "We couldn't load your performance data right now. Please check your internet connection and try again."
+          });
+        }
+      },
+
+      addMockScore: (score: number) => {
+        set((state) => ({
+          mockScores: [...state.mockScores, score],
+        }));
+      },
+
+      // ← ADD THIS FUNCTION - for updating weekly activity
+      addActivity: (day: string, count: number) => {
+        set((state) => ({
+          weeklyActivity: state.weeklyActivity.map((d) =>
+            d.day === day ? { ...d, questions: d.questions + count } : d,
+          ),
+        }));
+      },
+
+      // ← ADD THIS FUNCTION - for updating topic accuracy
+      updateTopic: (id: string, accuracy: number) => {
+        set((state) => ({
+          topicStats: state.topicStats.map((t) =>
+            t.id === id ? { ...t, accuracy } : t,
+          ),
+        }));
+      },
+
+      addQuizResult: async (
+        mode: "practice" | "mock",
+        subject: string,
+        questionIds: string[],
+        answers: Record<number, number>,
+        timeTaken: number,
+        correctCount?: number,
+        totalQuestions?: number,
+        topicPerformance?: Record<string, any>,
+      ) => {
+        console.log("📝 [addQuizResult] called with:", {
+          mode,
+          subject,
+          correctCount,
+          totalQuestions,
+          questionIdsLength: questionIds.length,
+        });
+        try {
+          const result = await submitQuizSession(
+            mode,
+            subject,
+            questionIds,
+            answers,
+            timeTaken,
+            correctCount,
+            totalQuestions,
+            topicPerformance,
+          );
+          console.log("📝 [addQuizResult] submitQuizSession returned:", result);
+
+          // Optimistic update: calculate current totals and update local state immediately
+          const state = get();
+          const newTotalQs = state.totalQuestions + (totalQuestions || 0);
+          const newTotalCorrect = (state.totalQuestions > 0 ? Math.round((state.avgAccuracy / 100) * state.totalQuestions) : 0) + (correctCount || 0);
+          const newAvgAcc = newTotalQs > 0 ? Math.round((newTotalCorrect / newTotalQs) * 100) : 0;
+
+          // Optimistic update to performance store
+          set({
+            totalQuestions: newTotalQs,
+            avgAccuracy: newAvgAcc,
+          });
+
+          // Optimistic update to user store
+          useUserStore.setState({
+            accuracy: newAvgAcc,
+            questionsCompleted: newTotalCorrect,
+            totalQuestions: newTotalQs,
+          });
+
+          // Update weekly activity optimistically
+          const today = new Date();
+          const dayName = today.toLocaleDateString("en-US", { weekday: "short" });
+          set((prev) => ({
+            weeklyActivity: prev.weeklyActivity.map((d) =>
+              d.day === dayName ? { ...d, questions: d.questions + (totalQuestions || 0) } : d,
+            ),
+          }));
+
+          // Now refresh data from DB for full accuracy
+          await get().loadPerformanceData(true);
+
+          // Update subject-level tracking
+          await updateSubjectPerformance(subject, result.accuracy);
+
+          // If we should show the streak popup, set it in useUserStore
+          if (result.shouldShowPopup) {
+            useUserStore.getState().setShowStreakPopup(true, result.streak);
+          }
+
+          return result;
+        } catch (error) {
+          console.error("Failed to submit quiz result:", error);
+          throw error;
+        }
+      },
+
+      reset: () => {
+        set({
+          weeklyActivity: [
+            { day: "Sun", questions: 0 },
+            { day: "Mon", questions: 0 },
+            { day: "Tue", questions: 0 },
+            { day: "Wed", questions: 0 },
+            { day: "Thu", questions: 0 },
+            { day: "Fri", questions: 0 },
+            { day: "Sat", questions: 0 },
+          ],
+          topicStats: [],
+          subjectPerformance: [],
+          mockScores: [],
+          mockHistory: [],
+          totalQuestions: 0,
+          avgAccuracy: 0,
+          isLoading: false,
+          error: null,
+          isInitialized: false,
+          hasFetched: false,
+        });
+      }
+    }),
+    {
+      name: "jambify-performance-storage",
+    }
+  )
+);

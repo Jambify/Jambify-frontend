@@ -17,3 +17,13 @@ export function toTitleCase(str: string): string {
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
 }
+
+/**
+ * Sanitizes a string to prevent XSS attacks by escaping HTML characters
+ */
+export function sanitizeXss(str: string): string {
+  if (!str) return "";
+  const div = document.createElement("div");
+  div.textContent = str;
+  return div.innerHTML;
+}

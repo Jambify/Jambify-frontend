@@ -67,7 +67,7 @@ interface UserState {
   totalQuestions: number;
   schoolRank: number;
   topicStats: any[]; // Added for compatibility
-  // daysToExam is NOT stored — computed live by useExamCountdown hook
+  // daysToExam is NOT stored — computed live by useExamCountdown
   onboardingComplete: boolean;
   isPro: boolean;
   hasSeenWelcome: boolean;
@@ -82,7 +82,12 @@ interface UserState {
   isAuthenticated: boolean;
   isLoading: boolean;
   authError: string | null;
-  _profileReady: boolean
+  _profileReady: boolean;
+
+  // ── Stat setters (not persisted) ─────────────────────
+  setAccuracy: (acc: number) => void;
+  setQuestionsCompleted: (count: number) => void;
+  setTotalQuestions: (count: number) => void;
 
 
   // ── Actions ──────────────────────────────────────────
@@ -193,8 +198,14 @@ const getSubjectComboId = (str: string): string | string[] => {
 export const useUserStore = create<UserState>()(
   persist(
     (set, get) => ({
+      // Initialize with DEFAULTS, then check if we have a valid saved profile
       ...DEFAULTS,
       _profileReady: false,
+
+      // Add explicit setters for the stats so usePerformanceStore can update them without relying on localStorage
+      setAccuracy: (acc: number) => set({ accuracy: acc }),
+      setQuestionsCompleted: (count: number) => set({ questionsCompleted: count }),
+      setTotalQuestions: (count: number) => set({ totalQuestions: count }),
 
       // ── syncProfile ────────────────────────────────────
       // Returns { onboardingComplete, profileExists } so callers can navigate
@@ -317,7 +328,7 @@ export const useUserStore = create<UserState>()(
           console.error("[signOut]", err);
         } finally {
           // ✅ 1. Clear auth service cache FIRST so next user gets clean DB calls
-          
+
 
           // ✅ 2. Reset all in-memory stores
           useSubjectStore.getState().reset();
@@ -528,43 +539,23 @@ export const useUserStore = create<UserState>()(
     {
       name: "jambready-user",
       partialize: (s) => ({
-        ...(s._profileReady ? {
-          // Persist auth identity and profile so page refresh works
-          id: s.id,
-          name: s.name,
-          email: s.email,
-          university: s.university,
-          subjectCombo: s.subjectCombo,
-          targetScore: s.targetScore,
-          examYear: s.examYear,
-          examDate: s.examDate,
-          onboardingComplete: s.onboardingComplete,
-          isPro: s.isPro,
-          hasSeenWelcome: s.hasSeenWelcome,
-          downloadedData: s.downloadedData,
-          streak: s.streak,
-          bestScore: s.bestScore,
-          weeklyScoreChange: s.weeklyScoreChange,
-          accuracy: s.accuracy,
-          previousAccuracy: s.previousAccuracy,
-          questionsCompleted: s.questionsCompleted,
-          totalQuestions: s.totalQuestions,
-          schoolRank: s.schoolRank,
-          lastStreakWeek: s.lastStreakWeek,
-          lastSeenStreakPopup: s.lastSeenStreakPopup,
-          showStreakPopup: s.showStreakPopup,
-          currentStreakToShow: s.currentStreakToShow,
-          // daysToExam intentionally excluded — computed live by useExamCountdown
-          isAuthenticated: s.isAuthenticated,
-
-        } : {
-          id: null,
-          isAuthenticated: false,
-          _profileReady: false,
-        }),
+        // Persist auth identity and profile so page refresh works
+        id: s._profileReady ? s.id : null,
+        name: s._profileReady ? s.name : "",
+        email: s._profileReady ? s.email : "",
+        university: s._profileReady ? s.university : "",
+        subjectCombo: s._profileReady ? s.subjectCombo : "",
+        targetScore: s._profileReady ? s.targetScore : "",
         examYear: s.examYear,
         examDate: s.examDate,
-        downloadedData: s.downloadedData,
+        onboardingComplete: s._profileReady ? s.onboardingComplete : false,
+        isPro: s._profileReady ? s.isPro : false,
+        hasSeenWelcome: s._profileReady ? s.hasSeenWelcome : false,
+        downloadedData: s._profileReady ? s.downloadedData : {},
+        isAuthenticated: s._profileReady ? s.isAuthenticated : false,
+        _profileReady: s._profileReady,
+        // DO NOT persist stats — these are always loaded fresh from DB via syncProfile
+        // to avoid showing stale data!
       }),
     },
   ),

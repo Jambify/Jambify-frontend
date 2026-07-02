@@ -1,7 +1,7 @@
 import React from "react";
 import type { StudyGroup } from "../../Store/useGroupStore";
 import Button from "../ui/Button";
-// import { cn } from '../../lib/utils';
+import { sanitizeXss } from "../../lib/utils/utils";
 import { Users, MessageCircle, Activity } from "lucide-react";
 
 interface Props {
@@ -47,7 +47,7 @@ const GroupCard: React.FC<Props> = ({
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="font-display truncate text-sm font-semibold tracking-tight">
-              {group.name}
+              {sanitizeXss(group.name)}
             </h3>
             {isMember && (
               <span className="bg-success/15 text-success border-success/20 rounded-full border px-2 py-0.5 text-[9px] font-bold">
@@ -65,7 +65,7 @@ const GroupCard: React.FC<Props> = ({
       </div>
 
       <p className="text-textMuted line-clamp-2 text-xs leading-relaxed">
-        {group.description || "No description provided."}
+        {sanitizeXss(group.description || "No description provided.")}
       </p>
 
       <div className="flex items-center gap-1.5">
@@ -76,7 +76,7 @@ const GroupCard: React.FC<Props> = ({
               className="border-bgCard flex h-6 w-6 items-center justify-center rounded-full border-2 text-[9px] font-bold"
               style={{ background: color, color: "#fff" }}
             >
-              {m.slice(0, 1).toUpperCase()}
+              {sanitizeXss(m.slice(0, 1).toUpperCase())}
             </div>
           ))}
         </div>

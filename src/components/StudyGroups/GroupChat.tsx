@@ -6,7 +6,7 @@ import { useUserStore } from "../../Store/useUserStore";
 import type { StudyGroup } from "../../Store/useGroupStore";
 import { useNetworkStatus } from "../../hooks/useNetworkStatus";
 import MessageStatusIndicator from "./MessageStatusIndicator";
-import { cn } from "../../lib/utils/utils";
+import { cn, sanitizeXss } from "../../lib/utils/utils";
 import { motion, useAnimation } from "framer-motion";
 import type { PanInfo } from "framer-motion";
 import {
@@ -59,11 +59,11 @@ const ReplyBanner: React.FC<ReplyBannerProps> = ({ reply, onCancel }) => (
     <div className="min-w-0 flex-1">
       <div className="flex items-center gap-2">
         <p className="text-brand text-[11px] font-black tracking-wider uppercase">
-          Replying to {reply.author}
+          Replying to {sanitizeXss(reply.author)}
         </p>
       </div>
       <p className="text-textDim mt-0.5 truncate text-xs italic opacity-80">
-        "{reply.message}"
+        "{sanitizeXss(reply.message)}"
       </p>
     </div>
     <button
@@ -386,7 +386,7 @@ const GroupChat: React.FC<Props> = ({ group, onBack }) => {
 
           <div className="min-w-0 flex-1">
             <p className="font-display truncate text-sm font-bold tracking-tight">
-              {groupName}
+              {sanitizeXss(groupName)}
             </p>
             <div className="text-textDim mt-0.5 flex items-center gap-2 text-[10px] font-semibold">
               <Users className="text-brand h-3 w-3" />
@@ -513,13 +513,20 @@ const GroupChat: React.FC<Props> = ({ group, onBack }) => {
                     isMe ? "text-brand-light" : "text-textDim",
                   )}
                 >
-                  {msg.author}
+                  {sanitizeXss(msg.author)}
                 </p>
 
                 {/* Quoted Message (Reply) */}
                 {msg.reply_to && (
                   <div className="mb-1 w-full">
-                    <QuotedMsg reply={msg.reply_to} isMe={isMe} />
+                    <QuotedMsg
+                      reply={{
+                        ...msg.reply_to,
+                        author: sanitizeXss(msg.reply_to.author),
+                        message: sanitizeXss(msg.reply_to.message),
+                      }}
+                      isMe={isMe}
+                    />
                   </div>
                 )}
 
@@ -542,7 +549,7 @@ const GroupChat: React.FC<Props> = ({ group, onBack }) => {
                       isFailed && "border-danger/40 bg-danger/5",
                     )}
                   >
-                    {msg.message}
+                    {sanitizeXss(msg.message)}
                   </div>
                 </SwipeableBubble>
 

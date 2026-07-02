@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useUserStore } from "../../Store/useUserStore";
 import Button from "../ui/Button";
 import ConfirmModal from "../ui/ConfirmModal";
-import { cn, toTitleCase } from "../../lib/utils/utils";
+import { cn, toTitleCase, sanitizeXss } from "../../lib/utils/utils";
 import { Section, Field, inputCls } from "./Shared";
 import { Search, Loader2 } from "lucide-react"; // Added Loader2
 import CustomSubjectSelector from "./CustomSubjectSelector";
@@ -37,7 +37,7 @@ const SUBJECT_COMBOS = [
     label: "Commerce & Business",
     subjects: ["English", "Commerce", "Economics", "CRS/IRS"],
     icon: "💼",
-  }
+  },
 ];
 
 const ProfileForm: React.FC = () => {
@@ -113,17 +113,28 @@ const ProfileForm: React.FC = () => {
       return;
     }
 
+    // Sanitize inputs first
+    const sanitizedForm = {
+      ...form,
+      name: sanitizeXss(form.name),
+      university: sanitizeXss(form.university || ""),
+    };
+
     // Check if subject combo changed
     const hasComboChanged =
-      JSON.stringify(form.subjectCombo) !== JSON.stringify(subjectCombo);
+      JSON.stringify(sanitizedForm.subjectCombo) !==
+      JSON.stringify(subjectCombo);
 
     if (hasComboChanged) {
-      setPendingFormUpdate(form);
+      setPendingFormUpdate(sanitizedForm);
       setShowConfirmComboChange(true);
       return;
     }
 
-    const formattedForm = { ...form, name: toTitleCase(form.name.trim()) };
+    const formattedForm = {
+      ...sanitizedForm,
+      name: toTitleCase(sanitizedForm.name.trim()),
+    };
     updateProfile({
       name: formattedForm.name,
       university: formattedForm.university,
@@ -136,9 +147,16 @@ const ProfileForm: React.FC = () => {
 
   const confirmComboChange = () => {
     if (pendingFormUpdate) {
-      const formattedForm = {
+      // Sanitize before saving
+      const sanitizedForm = {
         ...pendingFormUpdate,
-        name: toTitleCase(pendingFormUpdate.name.trim()),
+        name: sanitizeXss(pendingFormUpdate.name),
+        university: sanitizeXss(pendingFormUpdate.university || ""),
+      };
+
+      const formattedForm = {
+        ...sanitizedForm,
+        name: toTitleCase(sanitizedForm.name.trim()),
       };
       updateProfile({
         name: formattedForm.name,
