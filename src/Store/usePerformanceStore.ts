@@ -92,10 +92,35 @@ export const usePerformanceStore = create<PerformanceState>()(
         if (get().isInitialized && !force) {
           return;
         }
-        set({ isLoading: true, error: null }); // Clear error on start
+        // Reset to initial state to avoid showing stale cached data while loading
+        set({
+          isLoading: true,
+          error: null,
+          weeklyActivity: [
+            { day: "Sun", questions: 0 },
+            { day: "Mon", questions: 0 },
+            { day: "Tue", questions: 0 },
+            { day: "Wed", questions: 0 },
+            { day: "Thu", questions: 0 },
+            { day: "Fri", questions: 0 },
+            { day: "Sat", questions: 0 },
+          ],
+          topicStats: [],
+          subjectPerformance: [],
+          mockScores: [],
+          mockHistory: [],
+          totalQuestions: 0,
+          avgAccuracy: 0,
+        });
+
+        // Timeout after 15 seconds
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000);
+
         try {
           const { id: userId } = useUserStore.getState();
           if (!userId) {
+            clearTimeout(timeoutId);
             set({ isLoading: false });
             return;
           }
@@ -199,6 +224,7 @@ export const usePerformanceStore = create<PerformanceState>()(
             jambScore: Math.round((s.correct / 180) * 400),
           }));
 
+          clearTimeout(timeoutId);
           set({
             weeklyActivity,
             topicStats,
@@ -211,11 +237,21 @@ export const usePerformanceStore = create<PerformanceState>()(
             hasFetched: true,
           });
         } catch (error) {
+          clearTimeout(timeoutId);
           console.error("Error loading performance data:", error);
-          set({
-            isLoading: false,
-            error: "We couldn't load your performance data right now. Please check your internet connection and try again."
-          });
+
+          // Handle timeout specifically
+          if ((error as Error).name === 'AbortError') {
+            set({
+              isLoading: false,
+              error: "Request timed out. Please check your internet connection and try again."
+            });
+          } else {
+            set({
+              isLoading: false,
+              error: "We couldn't load your performance data right now. Please check your internet connection and try again."
+            });
+          }
         }
       },
 

@@ -54,7 +54,7 @@ import { SUBJECT_COMBO_MAP } from "../Store/useSubjectStore";
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const { topicStats, avgAccuracy, loadPerformanceData } =
+  const { topicStats, avgAccuracy, loadPerformanceData, isLoading, error } =
     usePerformanceStore();
 
   const {
@@ -76,33 +76,34 @@ const Dashboard: React.FC = () => {
   } = useUserStore();
 
   React.useEffect(() => {
-    loadPerformanceData();
+    // Force fresh data load on every Dashboard visit - skip cache
+    loadPerformanceData(true);
 
-      // Check and update streak on initial load
-      const checkStreak = async () => {
-        // ✅ Confirm session active before checking
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-        if (!session) return;
+    // Check and update streak on initial load
+    const checkStreak = async () => {
+      // ✅ Confirm session active before checking
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session) return;
 
-        try {
-          const { streak: updatedStreak, shouldShowPopup } =
-            await calculateAndUpdateStreak(false); // app load, not submission
+      try {
+        const { streak: updatedStreak, shouldShowPopup } =
+          await calculateAndUpdateStreak(false); // app load, not submission
 
         // Sync full profile to get fresh streak value
         await useUserStore.getState().syncProfile(true);
 
-          if (shouldShowPopup) {
-            useUserStore.getState().setShowStreakPopup(true, updatedStreak);
-          }
-        } catch (err) {
-          console.error("Error checking streak:", err);
+        if (shouldShowPopup) {
+          useUserStore.getState().setShowStreakPopup(true, updatedStreak);
         }
-      };
+      } catch (err) {
+        console.error("Error checking streak:", err);
+      }
+    };
 
-      checkStreak();
-  }, [loadPerformanceData]);
+    checkStreak();
+  }, []);
 
   // Use userStore's accuracy as primary, fall back to avgAccuracy
   const accuracy =
@@ -149,6 +150,47 @@ const Dashboard: React.FC = () => {
       isSidebarOpen={isSidebarOpen}
       setIsSidebarOpen={setIsSidebarOpen}
     >
+      {/* Error Alert */}
+      {error && (
+        <div className="rounded-brand-xl mb-6 flex items-center gap-3 border border-red-500/30 bg-red-500/10 px-4 py-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-500/20">
+            <svg
+              className="h-5 w-5 text-red-400"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-red-300">{error}</p>
+          </div>
+          <button
+            onClick={() => loadPerformanceData(true)}
+            className="flex items-center gap-2 rounded-lg border border-red-500/40 bg-red-500/20 px-4 py-2 text-sm font-semibold text-red-200 transition-all hover:bg-red-500/30"
+          >
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+              />
+            </svg>
+            Retry
+          </button>
+        </div>
+      )}
+
       {/* ══════════════════════════════════════════════════
           HERO — two-column grid, no absolute positioning
       ══════════════════════════════════════════════════ */}
@@ -330,7 +372,12 @@ const Dashboard: React.FC = () => {
               <Target className="text-brand h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </div>
           </div>
-          {bestScore > 0 ? (
+          {isLoading ? (
+            <>
+              <div className="bg-bgTrack h-8 w-24 animate-pulse rounded" />
+              <div className="bg-bgTrack h-3 w-16 animate-pulse rounded" />
+            </>
+          ) : bestScore > 0 ? (
             <>
               <p className="font-display text-textMain text-2xl font-black tracking-tight sm:text-3xl">
                 {bestScore}
@@ -362,7 +409,12 @@ const Dashboard: React.FC = () => {
               <CheckCircle2 className="text-success h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </div>
           </div>
-          {questionsCompleted > 0 ? (
+          {isLoading ? (
+            <>
+              <div className="bg-bgTrack h-8 w-20 animate-pulse rounded" />
+              <div className="bg-bgTrack h-3 w-20 animate-pulse rounded" />
+            </>
+          ) : questionsCompleted > 0 ? (
             <>
               <p className="font-display text-textMain text-2xl font-black tracking-tight sm:text-3xl">
                 {accuracy}%
@@ -393,33 +445,43 @@ const Dashboard: React.FC = () => {
               <BookOpen className="h-3.5 w-3.5 text-blue-400 sm:h-4 sm:w-4" />
             </div>
           </div>
-          <p
-            className={cn(
-              "font-display font-black tracking-tight",
-              totalQuestions > 0
-                ? "text-textMain text-2xl sm:text-3xl"
-                : "text-textDim text-xl sm:text-2xl",
-            )}
-          >
-            {totalQuestions > 0 ? totalQuestions.toLocaleString() : "0"}
-          </p>
-          {totalQuestions > 0 ? (
-            <div>
-              <div className="text-textDim mb-1 flex justify-between text-[9px] sm:text-[10px]">
-                <span>Correct: {questionsCompleted.toLocaleString()}</span>
-                <span>Accuracy: {accuracy}%</span>
-              </div>
-              <div className="bg-bgTrack h-1 overflow-hidden rounded-full">
-                <div
-                  className="h-full rounded-full bg-blue-500 transition-all duration-500"
-                  style={{ width: `${questionsPct}%` }}
-                />
-              </div>
-            </div>
+          {isLoading ? (
+            <>
+              <div className="bg-bgTrack h-8 w-28 animate-pulse rounded" />
+              <div className="bg-bgTrack mt-1 h-3 w-32 animate-pulse rounded" />
+              <div className="bg-bgTrack mt-2 h-1 w-full animate-pulse rounded" />
+            </>
           ) : (
-            <p className="text-textDim text-[10px] leading-snug sm:text-[11px]">
-              Start practising
-            </p>
+            <>
+              <p
+                className={cn(
+                  "font-display font-black tracking-tight",
+                  totalQuestions > 0
+                    ? "text-textMain text-2xl sm:text-3xl"
+                    : "text-textDim text-xl sm:text-2xl",
+                )}
+              >
+                {totalQuestions > 0 ? totalQuestions.toLocaleString() : "0"}
+              </p>
+              {totalQuestions > 0 ? (
+                <div>
+                  <div className="text-textDim mb-1 flex justify-between text-[9px] sm:text-[10px]">
+                    <span>Correct: {questionsCompleted.toLocaleString()}</span>
+                    <span>Accuracy: {accuracy}%</span>
+                  </div>
+                  <div className="bg-bgTrack h-1 overflow-hidden rounded-full">
+                    <div
+                      className="h-full rounded-full bg-blue-500 transition-all duration-500"
+                      style={{ width: `${questionsPct}%` }}
+                    />
+                  </div>
+                </div>
+              ) : (
+                <p className="text-textDim text-[10px] leading-snug sm:text-[11px]">
+                  Start practising
+                </p>
+              )}
+            </>
           )}
         </div>
 
@@ -443,7 +505,12 @@ const Dashboard: React.FC = () => {
               />
             </div>
           </div>
-          {streak > 0 ? (
+          {isLoading ? (
+            <>
+              <div className="bg-bgTrack h-8 w-20 animate-pulse rounded" />
+              <div className="bg-bgTrack h-3 w-16 animate-pulse rounded" />
+            </>
+          ) : streak > 0 ? (
             <>
               <p className="font-display text-textMain text-2xl font-black tracking-tight sm:text-3xl">
                 {streak}
