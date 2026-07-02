@@ -19,7 +19,7 @@ type Difficulty = "Easy" | "Medium" | "Hard";
 
 // Valid years your DB actually has data for
 // const VALID_YEARS = [2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025] as const;
-const MIN_YEAR = 2016;
+const MIN_YEAR = 2015;
 const MAX_YEAR = 2025;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────

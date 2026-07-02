@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect,} from "react";
 import { useUserStore } from "../../Store/useUserStore";
 import Button from "../ui/Button";
 import ConfirmModal from "../ui/ConfirmModal";
 import { cn, toTitleCase, sanitizeXss } from "../../lib/utils/utils";
 import { Section, Field, inputCls } from "./Shared";
-import { Search, Loader2 } from "lucide-react"; // Added Loader2
+import { Search, Loader2 } from "lucide-react";
 import CustomSubjectSelector from "./CustomSubjectSelector";
 
 const SUBJECT_COMBOS = [
@@ -40,6 +40,30 @@ const SUBJECT_COMBOS = [
   },
 ];
 
+// FALLBACK UNIVERSITY LIST (Nigerian Universities)
+const FALLBACK_UNIVERSITIES = [
+  "University of Lagos (UNILAG)",
+  "University of Ibadan (UI)",
+  "Obafemi Awolowo University (OAU)",
+  "Ahmadu Bello University (ABU)",
+  "University of Nigeria, Nsukka (UNN)",
+  "Covenant University",
+  "University of Benin (UNIBEN)",
+  "Federal University of Technology, Minna",
+  "University of Ilorin (UNILORIN)",
+  "Lagos State University (LASU)",
+  "Nnamdi Azikiwe University (UNIZIK)",
+  "University of Port Harcourt (UNIPORT)",
+  "Bayero University Kano (BUK)",
+  "University of Abuja",
+  "Federal University of Technology, Akure",
+  "Babcock University",
+  "Pan-Atlantic University",
+  "Rivers State University",
+  "Kwara State University",
+  "University of Calabar (UNICAL)",
+];
+
 const ProfileForm: React.FC = () => {
   const {
     name,
@@ -52,10 +76,8 @@ const ProfileForm: React.FC = () => {
     updateProfile,
   } = useUserStore();
 
-  // Check if current subject combo is custom (array) or predefined
   const isCustomComboCustom = Array.isArray(subjectCombo);
-  const [isCustomSubjectMode, setIsCustomSubjectMode] =
-    useState(isCustomComboCustom);
+  const [isCustomSubjectMode, setIsCustomSubjectMode] = useState(isCustomComboCustom);
 
   const [form, setForm] = useState({
     name,
@@ -66,46 +88,118 @@ const ProfileForm: React.FC = () => {
     examYear,
     examDate,
   });
-  const [universities, setUniversities] = useState<string[]>([]);
+
+  const [uniResults, setUniResults] = useState<string[]>([]);
   const [isLoadingUnis, setIsLoadingUnis] = useState(false);
+  const [uniError, setUniError] = useState<string | null>(null);
+  const [useFallback, setUseFallback] = useState(false);
+
   const [searchTerm, setSearchTerm] = useState(university || "");
   const [showDropdown, setShowDropdown] = useState(false);
   const [saved, setSaved] = useState(false);
   const [errors, setErrors] = useState<{ name?: string }>({});
   const [showConfirmComboChange, setShowConfirmComboChange] = useState(false);
-  const [pendingFormUpdate, setPendingFormUpdate] = useState<
-    typeof form | null
-  >(null);
+  const [pendingFormUpdate, setPendingFormUpdate] = useState<typeof form | null>(null);
 
+  const getFilteredFallbackUniversities = (search: string) => {
+    if (!search || search.length < 2) return [];
+    const searchLower = search.toLowerCase();
+    return FALLBACK_UNIVERSITIES.filter((uni) =>
+      uni.toLowerCase().includes(searchLower),
+    );
+  };
+
+  /* ── University API Search Logic with Fallback & Debounce ── */
   useEffect(() => {
-    const fetchUniversities = async () => {
+    if (searchTerm.length < 2) {
+      setUniResults([]);
+      setUniError(null);
+      return;
+    }
+
+    if (useFallback) {
+      const filtered = getFilteredFallbackUniversities(searchTerm);
+      setUniResults(filtered);
+      return;
+    }
+
+    const fetchUnis = async () => {
       setIsLoadingUnis(true);
+      setUniError(null);
+
       try {
-        const response = await fetch(
-          "http://universities.hipolabs.com/search?country=Nigeria",
-        );
-        const data = await response.json();
-        const uniNames = data.map((uni: any) => uni.name).sort();
-        setUniversities(uniNames);
-      } catch (error) {
-        console.error("Failed to fetch universities", error);
+        let data = [];
+        let success = false;
+
+        // 1. Primary API
+        try {
+          const res = await fetch(
+            `https://universities.hipolabs.com/search?name=${encodeURIComponent(searchTerm)}&country=Nigeria`,
+            { mode: "cors" },
+          );
+          if (res.ok) {
+            data = await res.json();
+            if (data.length > 0) success = true;
+          }
+        } catch (err) {
+          console.log("Primary API failed, trying backup...");
+        }
+
+        // 2. Backup GitHub JSON
+        if (!success) {
+          try {
+            const backupRes = await fetch(
+              `https://raw.githubusercontent.com/Hipo/university-domains-list/master/world_universities_and_domains.json`,
+            );
+            if (backupRes.ok) {
+              const allUnis = await backupRes.json();
+              const nigeriaUnis = allUnis.filter(
+                (u: any) =>
+                  u.country === "Nigeria" &&
+                  u.name.toLowerCase().includes(searchTerm.toLowerCase()),
+              );
+              data = nigeriaUnis.slice(0, 20);
+              if (data.length > 0) success = true;
+            }
+          } catch (err) {
+            console.log("Backup API also failed");
+          }
+        }
+
+        // 3. Fallback evaluation
+        if (success && data.length > 0) {
+          setUniResults(data.map((u: any) => u.name));
+          setUseFallback(false);
+        } else {
+          const fallbackResults = getFilteredFallbackUniversities(searchTerm);
+          if (fallbackResults.length > 0) {
+            setUniResults(fallbackResults);
+            setUseFallback(true);
+            setUniError("Using offline university list. Showing available matches.");
+          } else {
+            setUniResults([]);
+            setUniError("No universities found. Try a different search term.");
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch universities:", err);
+        const fallbackResults = getFilteredFallbackUniversities(searchTerm);
+        if (fallbackResults.length > 0) {
+          setUniResults(fallbackResults);
+          setUseFallback(true);
+          setUniError("Connected to offline university database.");
+        } else {
+          setUniResults([]);
+          setUniError("Unable to search. Please type the full university name.");
+        }
       } finally {
         setIsLoadingUnis(false);
       }
     };
-    fetchUniversities();
-  }, []);
 
-  const filteredUnis = useMemo(() => {
-    if (!searchTerm) return [];
-    return universities
-      .filter(
-        (uni) =>
-          uni.toLowerCase().includes(searchTerm.toLowerCase()) &&
-          uni !== searchTerm,
-      )
-      .slice(0, 8);
-  }, [searchTerm, universities]);
+    const timeoutId = setTimeout(fetchUnis, 500);
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm, useFallback]);
 
   const handleSave = () => {
     if (!form.name.trim()) {
@@ -113,17 +207,14 @@ const ProfileForm: React.FC = () => {
       return;
     }
 
-    // Sanitize inputs first
     const sanitizedForm = {
       ...form,
       name: sanitizeXss(form.name),
       university: sanitizeXss(form.university || ""),
     };
 
-    // Check if subject combo changed
     const hasComboChanged =
-      JSON.stringify(sanitizedForm.subjectCombo) !==
-      JSON.stringify(subjectCombo);
+      JSON.stringify(sanitizedForm.subjectCombo) !== JSON.stringify(subjectCombo);
 
     if (hasComboChanged) {
       setPendingFormUpdate(sanitizedForm);
@@ -147,7 +238,6 @@ const ProfileForm: React.FC = () => {
 
   const confirmComboChange = () => {
     if (pendingFormUpdate) {
-      // Sanitize before saving
       const sanitizedForm = {
         ...pendingFormUpdate,
         name: sanitizeXss(pendingFormUpdate.name),
@@ -187,10 +277,7 @@ const ProfileForm: React.FC = () => {
             type="email"
             value={email}
             readOnly
-            className={cn(
-              inputCls(false),
-              "bg-bgDeep cursor-not-allowed opacity-75",
-            )}
+            className={cn(inputCls(false), "bg-bgDeep cursor-not-allowed opacity-75")}
             placeholder="your.email@example.com"
           />
           <p className="text-textDim mt-1 text-xs">
@@ -233,7 +320,6 @@ const ProfileForm: React.FC = () => {
                 size={16}
               />
 
-              {/* Spinner logic */}
               {isLoadingUnis && (
                 <Loader2
                   className="text-brand absolute top-1/2 right-3 -translate-y-1/2 animate-spin"
@@ -243,14 +329,16 @@ const ProfileForm: React.FC = () => {
             </div>
           </Field>
 
-          {showDropdown && searchTerm && (
-            <div className="bg-bgSurface border-borderMuted rounded-brand absolute z-50 mt-1 w-full overflow-hidden border shadow-2xl">
-              {isLoadingUnis ? (
-                <div className="text-textDim px-4 py-3 text-center text-sm italic">
-                  Loading list...
+          {showDropdown && searchTerm.length >= 2 && (
+            <div className="bg-bgSurface border-borderMuted rounded-brand absolute z-50 mt-1 max-h-60 w-full overflow-y-auto border shadow-2xl custom-scrollbar">
+              {uniError && (
+                <div className="px-4 py-2 text-xs font-medium text-orange-400">
+                  {uniError}
                 </div>
-              ) : filteredUnis.length > 0 ? (
-                filteredUnis.map((uni) => (
+              )}
+
+              {uniResults.length > 0 ? (
+                uniResults.map((uni) => (
                   <button
                     key={uni}
                     type="button"
@@ -259,29 +347,41 @@ const ProfileForm: React.FC = () => {
                       setForm((p) => ({ ...p, university: uni }));
                       setShowDropdown(false);
                     }}
-                    className="hover:bg-brand/10 hover:text-brand-light border-borderMuted/30 w-full border-b px-4 py-3 text-left text-sm transition-colors last:border-none"
+                    className="hover:bg-brand/10 hover:text-brand-light border-borderMuted/30 w-full border-b px-4 py-3 text-left text-sm transition-colors last:border-none text-textMain"
                   >
                     {uni}
                   </button>
                 ))
               ) : (
-                <div className="text-textDim px-4 py-3 text-center text-sm">
-                  No results found
-                </div>
+                !isLoadingUnis && (
+                  <div className="border-t border-white/10 p-4">
+                    <p className="text-textDim mb-2 text-xs">
+                      Can't find your university?
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setForm((p) => ({ ...p, university: searchTerm }));
+                        setShowDropdown(false);
+                      }}
+                      className="border-brand/50 text-brand-light hover:bg-brand/10 w-full rounded-xl border border-dashed px-4 py-3 text-left text-sm transition-all"
+                    >
+                      Use "{searchTerm}" as your university
+                    </button>
+                  </div>
+                )
               )}
             </div>
           )}
         </div>
       </Section>
 
-      {/* Updated Subject Combinations */}
+      {/* Subject Combinations */}
       <Section title="Subject combination">
-        {/* Toggle Custom/Predefined */}
         <div className="mb-4 grid grid-cols-2 gap-2">
           <button
-            onClick={() => {
-              setIsCustomSubjectMode(false);
-            }}
+            type="button"
+            onClick={() => setIsCustomSubjectMode(false)}
             className={cn(
               "rounded-xl border py-3 text-sm font-bold transition-all",
               !isCustomSubjectMode
@@ -292,18 +392,13 @@ const ProfileForm: React.FC = () => {
             Predefined
           </button>
           <button
+            type="button"
             onClick={() => {
               setIsCustomSubjectMode(true);
-              // Initialize custom mode if not already
               if (!Array.isArray(form.subjectCombo)) {
                 setForm((prev) => ({
                   ...prev,
-                  subjectCombo: [
-                    "English",
-                    "Mathematics",
-                    "Physics",
-                    "Chemistry",
-                  ],
+                  subjectCombo: ["English", "Mathematics", "Physics", "Chemistry"],
                 }));
               }
             }}
@@ -318,7 +413,6 @@ const ProfileForm: React.FC = () => {
           </button>
         </div>
 
-        {/* Predefined Combos */}
         {!isCustomSubjectMode && (
           <div className="grid grid-cols-1 gap-2">
             {SUBJECT_COMBOS.map((combo) => {
@@ -327,9 +421,7 @@ const ProfileForm: React.FC = () => {
                 <button
                   key={combo.id}
                   type="button"
-                  onClick={() =>
-                    setForm((p) => ({ ...p, subjectCombo: combo.id }))
-                  }
+                  onClick={() => setForm((p) => ({ ...p, subjectCombo: combo.id }))}
                   className={cn(
                     "rounded-brand flex w-full items-center gap-3 border px-4 py-3 text-left transition-all duration-200",
                     isSelected
@@ -360,7 +452,6 @@ const ProfileForm: React.FC = () => {
           </div>
         )}
 
-        {/* Custom Combo Selector */}
         {isCustomSubjectMode && (
           <CustomSubjectSelector
             selectedSubjects={
@@ -389,6 +480,7 @@ const ProfileForm: React.FC = () => {
         </Button>
         {isDirty && (
           <button
+            type="button"
             className="text-textDim hover:text-textMain text-sm transition-colors"
             onClick={() => {
               setForm({
@@ -400,6 +492,7 @@ const ProfileForm: React.FC = () => {
                 examYear,
                 examDate,
               });
+              setSearchTerm(university || "");
               setIsCustomSubjectMode(Array.isArray(subjectCombo));
             }}
           >
@@ -408,7 +501,6 @@ const ProfileForm: React.FC = () => {
         )}
       </div>
 
-      {/* Confirmation Modal for Subject Combo Change */}
       <ConfirmModal
         isOpen={showConfirmComboChange}
         onClose={() => {
