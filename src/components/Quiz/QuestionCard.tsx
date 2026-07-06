@@ -4,6 +4,7 @@ import OptionButton from "./OptionButton";
 import ExplanationBox from "./Explanation";
 import { useState } from "react";
 import Button from "../ui/Button";
+import { sanitizeQuestionText,  } from "../../lib/sanitize-html";
 
 const SUBJ_STYLES: Record<string, { bg: string; text: string }> = {
   English: { bg: "bg-brand/10", text: "text-brand-light" },
@@ -59,13 +60,10 @@ const QuestionCard: React.FC = () => {
         <p
           className="text-textMain mb-6 text-base leading-relaxed font-normal sm:text-lg"
           dangerouslySetInnerHTML={{
-            __html: q.text
-              // Bold/Italic: **text** or *text*
-              .replace(/\*\*(.*?)\*\*/g, '<em class="font-semibold text-brand">$1</em>')
-              .replace(/\*(.*?)\*/g, '<em class="text-brand">$1</em>')
+            __html: sanitizeQuestionText(q.text),
           }}
         />
-        
+
         {/*<{/* Options */}
 
         <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">

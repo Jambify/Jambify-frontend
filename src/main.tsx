@@ -69,12 +69,24 @@ async function bootstrap() {
 }
 
 // Run bootstrap first, then render the app
-bootstrap().then(() => {
-  ReactDOM.createRoot(document.getElementById("root")!).render(
-    <React.StrictMode>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
-    </React.StrictMode>,
-  );
-});
+bootstrap()
+  .then(() => {
+    ReactDOM.createRoot(document.getElementById("root")!).render(
+      <React.StrictMode>
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      </React.StrictMode>,
+    );
+  })
+  .catch((err) => {
+    console.error("❌ Bootstrap failed:", err);
+    // Fallback render even if bootstrap fails!
+    ReactDOM.createRoot(document.getElementById("root")!).render(
+      <React.StrictMode>
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      </React.StrictMode>,
+    );
+  });

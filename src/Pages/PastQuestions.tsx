@@ -201,7 +201,7 @@ const PastQuestions = () => {
             </span>
           </div>
           <p className="text-textDim">
-            Practice real JAMB past questions from 2016 to 2025
+            Practice real JAMB past questions from 2015 to 2025
           </p>
         </div>
 

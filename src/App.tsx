@@ -25,6 +25,8 @@ import GuestQuiz from "./Pages/GuestUser/GuestQuiz";
 import GuestMock from "./Pages/GuestUser/GuestExam";
 import StudyTimeTracker from "./components/StudyTimeTracker";
 import AuthErrorBoundary from "./components/ui/AuthErrorBoundary";
+import PrivacyPolicy from "./Pages/PrivacyPolicy";
+import TermsOfService from "./Pages/TermsOfService";
 // In App.tsx, add this near the top
 import { supabase } from "./lib/supabase";
 
@@ -135,6 +137,9 @@ const App: React.FC = () => {
             </RouteGuard>
           }
         />
+        {/* priveacy and terms */}
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+<Route path="/terms-of-service" element={<TermsOfService />} />
         <Route
           path="/pro"
           element={
