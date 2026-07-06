@@ -2,6 +2,7 @@
 
 import React from "react";
 import type { LegalBlock } from "../../Data/legalContent";
+import { FileText } from "lucide-react";
 
 interface LegalPageProps {
   title: string;
@@ -10,22 +11,70 @@ interface LegalPageProps {
 }
 
 const LegalPage: React.FC<LegalPageProps> = ({ title, effectiveDate, blocks }) => {
+  // Process blocks to group consecutive bullets into proper lists
+  const processedBlocks = blocks.reduce((acc, block,) => {
+    if (block.type === "bullet") {
+      const lastBlock = acc[acc.length - 1];
+      if (Array.isArray(lastBlock)) {
+        lastBlock.push(block);
+      } else {
+        acc.push([block]);
+      }
+    } else {
+      acc.push(block);
+    }
+    return acc;
+  }, [] as (LegalBlock | LegalBlock[])[]);
+
   return (
-    <div className="mx-auto max-w-3xl px-5 py-10">
-      <div className="mb-8 text-center">
-        <p className="text-brand text-sm font-bold tracking-wide uppercase">JAMBIFY</p>
-        <h1 className="text-textMain mt-1 text-2xl font-bold">{title}</h1>
-        <p className="text-textDim mt-1 text-sm italic">Effective Date: {effectiveDate}</p>
+    <div className="mx-auto max-w-4xl">
+      {/* Header Section */}
+      <div className="mb-10 space-y-4">
+        <div className="flex items-center gap-3">
+          <div className="bg-brand/10 text-brand flex h-12 w-12 items-center justify-center rounded-xl">
+            <FileText size={24} />
+          </div>
+          <div>
+            <p className="text-brand text-sm font-bold tracking-wide uppercase">JAMBIFY Legal</p>
+            <h1 className="text-textMain text-3xl font-extrabold tracking-tight">
+              {title}
+            </h1>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 rounded-xl bg-bgCard border-borderMuted border px-4 py-3">
+          <span className="text-textDim text-sm font-medium">Effective Date:</span>
+          <span className="text-brand-light font-semibold">{effectiveDate}</span>
+        </div>
       </div>
 
-      <div className="bg-bgCard border-borderMuted rounded-brand-xl space-y-4 border p-6">
-        {blocks.map((block, i) => {
+      {/* Content Container */}
+      <div className="space-y-8">
+        {processedBlocks.map((block, i) => {
+          if (Array.isArray(block)) {
+            // Render bullet list
+            return (
+              <ul key={i} className="space-y-3 pl-6">
+                {block.map((bullet, j) => (
+                  <li 
+                    key={j} 
+                    className="text-textDim list-disc text-sm leading-relaxed"
+                  >
+                    {bullet.text}
+                  </li>
+                ))}
+              </ul>
+            );
+          }
+
           switch (block.type) {
             case "h1":
               return (
-                <h2 key={i} className="text-brand pt-4 text-lg font-bold first:pt-0">
-                  {block.text}
-                </h2>
+                <div key={i} className="space-y-2">
+                  <div className="h-px bg-borderMuted" />
+                  <h2 className="text-brand pt-4 text-xl font-bold">
+                    {block.text}
+                  </h2>
+                </div>
               );
             case "h2":
               return (
@@ -35,15 +84,11 @@ const LegalPage: React.FC<LegalPageProps> = ({ title, effectiveDate, blocks }) =
               );
             case "note":
               return (
-                <p key={i} className="text-textDim text-sm italic">
-                  {block.text}
-                </p>
-              );
-            case "bullet":
-              return (
-                <li key={i} className="text-textDim ml-5 list-disc text-sm leading-relaxed">
-                  {block.text}
-                </li>
+                <div key={i} className="bg-warn/5 border-warn/20 rounded-xl border p-4">
+                  <p className="text-warn/90 text-sm italic leading-relaxed">
+                    {block.text}
+                  </p>
+                </div>
               );
             case "p":
             default:
@@ -54,6 +99,16 @@ const LegalPage: React.FC<LegalPageProps> = ({ title, effectiveDate, blocks }) =
               );
           }
         })}
+      </div>
+
+      {/* Footer */}
+      <div className="mt-12 rounded-xl bg-bgCard border-borderMuted border p-6 text-center">
+        <p className="text-textDim text-xs">
+          If you have any questions about these legal documents, please contact us at{" "}
+          <a href="mailto:support@jambify.com" className="text-brand font-medium hover:underline">
+            support@jambify.com
+          </a>
+        </p>
       </div>
     </div>
   );

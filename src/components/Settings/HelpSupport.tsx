@@ -1,6 +1,7 @@
 // src/components/Settings/HelpSupport.tsx
 
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import {
   HelpCircle,
   MessageSquare,
@@ -241,20 +242,20 @@ const HelpSupport: React.FC = () => {
           </div>
         </div>
         <div className="space-y-2">
-          <a
-            href="/privacy-policy"
+          <Link
+            to="/privacy-policy"
             className="text-textDim hover:text-textMain hover:bg-bgSurface/50 flex items-center justify-between rounded-lg p-2 text-sm transition-colors"
           >
             <span>Privacy Policy</span>
             <ExternalLink size={14} />
-          </a>
-          <a
-            href="/terms-of-service"
+          </Link>
+          <Link
+            to="/terms-of-service"
             className="text-textDim hover:text-textMain hover:bg-bgSurface/50 flex items-center justify-between rounded-lg p-2 text-sm transition-colors"
           >
             <span>Terms of Service</span>
             <ExternalLink size={14} />
-          </a>
+          </Link>
         </div>
       </section>
     </div>

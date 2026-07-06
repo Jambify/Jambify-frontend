@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import AppLayout from "../components/Layout/AppLayout";
 import { useUserStore } from "../Store/useUserStore";
 import { SUBJECT_COMBO_MAP } from "../Store/useSubjectStore";
+import QuestionAIHelper from "../components/PastQuestions/QuestionAIHelper";
 import Button from "../components/ui/Button";
 import {
   Loader2,
@@ -12,6 +13,7 @@ import {
   Calendar,
   Lightbulb,
   CheckCircle2,
+  ArrowUp,
 } from "lucide-react";
 import type { Question } from "../Types";
 import {
@@ -98,6 +100,23 @@ const PastQuestions = () => {
   const [availableTopics, setAvailableTopics] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 400);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -190,6 +209,16 @@ const PastQuestions = () => {
       setIsSidebarOpen={setIsSidebarOpen}
     >
       <div className="mx-auto max-w-5xl space-y-6 px-4 py-6">
+        {/* Scroll to Top Button */}
+        {showScrollTop && (
+          <button
+            onClick={scrollToTop}
+            className="bg-brand hover:bg-brand-light fixed right-5 bottom-36 z-50 flex h-12 w-12 items-center justify-center rounded-full shadow-lg transition-all hover:scale-110 active:scale-95 lg:bottom-8 lg:left-8"
+            aria-label="Scroll to top"
+          >
+            <ArrowUp size={20} className="text-white" />
+          </button>
+        )}
         {/* Header */}
         <div>
           <div className="mb-1 flex items-center gap-2">
@@ -460,6 +489,7 @@ const PastQuestions = () => {
                             {q.explanation}
                           </p>
                         </div>
+                        <QuestionAIHelper question={q} />
                       </div>
                     )}
                   </div>

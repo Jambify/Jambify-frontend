@@ -18,7 +18,7 @@ export const privacyPolicyContent: LegalBlock[] = [
 
   { type: "h1", text: "2. Information We Collect" },
   { type: "h2", text: "2.1 Account Information" },
-  { type: "p", text: "When you sign up, we collect your name, email address, and a securely hashed password (we never store your password in plain text). We use Supabase as our backend authentication and database provider." },
+  { type: "p", text: "When you sign up, we collect your name, email address, and no password was required. We use Supabase as our backend authentication and database provider." },
 
   { type: "h2", text: "2.2 Academic and Performance Data" },
   { type: "p", text: "To power your dashboard and personalize your practice, we collect and store:" },
@@ -30,7 +30,7 @@ export const privacyPolicyContent: LegalBlock[] = [
   { type: "p", text: "If you join or create a study group, we collect and store the messages you send within that group so they can be delivered to other members in real time. Group chat messages are visible to other members of the same group and are retained as part of the group's history." },
 
   { type: "h2", text: "2.4 Payment Information" },
-  { type: "p", text: "If you subscribe to a paid plan, payment is handled by a third-party payment processor (e.g. Paystack or Flutterwave). JAMBIFY does not directly collect or store your full card number, CVV, or bank login details \u2014 these are entered directly into the processor's secure system. We receive and store limited transaction information such as payment status, plan purchased, amount, and transaction reference, for the purpose of managing your subscription." },
+  { type: "p", text: "If you subscribe to a paid plan, payment is handled by a third-party payment processor, Flutterwave. JAMBIFY does not directly collect or store your full card number, CVV, or bank login details \u2014 these are entered directly into the processor's secure system. We receive and store limited transaction information such as payment status, plan purchased, amount, and transaction reference, for the purpose of managing your subscription." },
 
   { type: "h2", text: "2.5 Technical and Usage Data" },
   { type: "p", text: "We may automatically collect device type, browser type, IP address, general location (city/country level), app usage patterns, and error/crash logs, to help us maintain and improve JAMBIFY." },
@@ -54,7 +54,7 @@ export const privacyPolicyContent: LegalBlock[] = [
   { type: "h1", text: "6. Sharing Your Information" },
   { type: "p", text: "We do not sell your personal data. We share information only with:" },
   { type: "bullet", text: "Supabase \u2014 our database, authentication, and realtime infrastructure provider" },
-  { type: "bullet", text: "Payment processors (e.g. Paystack/Flutterwave) \u2014 to process subscription payments" },
+  { type: "bullet", text: "Payment processors (e.g. Flutterwave) \u2014 to process subscription payments" },
   { type: "bullet", text: "Hosting/infrastructure providers (e.g. Vercel) \u2014 to run and serve the app" },
   { type: "bullet", text: "Law enforcement or regulators, where required by Nigerian law or a valid legal request" },
   { type: "p", text: "Other members of a study group you join can see your display name and the messages you post in that group." },
@@ -87,7 +87,7 @@ export const privacyPolicyContent: LegalBlock[] = [
   { type: "h1", text: "13. Contact Us" },
   { type: "p", text: "If you have questions, concerns, or requests regarding this Privacy Policy or your personal data, contact us at:" },
   { type: "bullet", text: "Email: support@jambify.com" },
-  { type: "bullet", text: "WhatsApp: [INSERT WHATSAPP SUPPORT LINE]" },
+  { type: "bullet", text: "WhatsApp: 07011872350" },
 ];
 
 export const termsOfServiceContent: LegalBlock[] = [
@@ -147,5 +147,5 @@ export const termsOfServiceContent: LegalBlock[] = [
   { type: "h1", text: "13. Contact Us" },
   { type: "p", text: "If you have questions about these Terms, contact us at:" },
   { type: "bullet", text: "Email: support@jambify.com" },
-  { type: "bullet", text: "WhatsApp: [INSERT WHATSAPP SUPPORT LINE]" },
+  { type: "bullet", text: "WhatsApp: 07011872350" },
 ];
