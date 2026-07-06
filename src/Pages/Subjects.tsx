@@ -30,6 +30,8 @@ type WorstSubjectResult =
 
 const Subjects: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isManualRefreshing, setIsManualRefreshing] = useState(false);
+
   const {
     subjects,
     isLoading,
@@ -48,6 +50,19 @@ const Subjects: React.FC = () => {
       loadSubjects();
     }
   }, [loadSubjects, isInitialized]);
+
+  const handleManualRefresh = async () => {
+    setIsManualRefreshing(true);
+    try {
+      await loadSubjects(true);
+    } catch (err) {
+      console.error("Refresh failed", err);
+    } finally {
+      setTimeout(() => {
+        setIsManualRefreshing(false);
+      }, 600);
+    }
+  };
 
   // Check if we have any existing subject data
   const hasData = hasFetched && subjects.length > 0;
@@ -214,16 +229,21 @@ const Subjects: React.FC = () => {
           </div>
           <div className="space-y-2 text-center">
             <h2 className="font-display text-textMain text-2xl font-bold">
-              Oops, something went wrong
+              We couldn't load your subjects right now
             </h2>
-            <p className="text-textDim mx-auto max-w-sm text-sm">{error}</p>
+            <p className="text-textDim mx-auto max-w-sm text-sm">
+              Please check your internet connection and try again
+            </p>
           </div>
           <button
-            onClick={() => loadSubjects(true)}
+            onClick={handleManualRefresh}
             className="bg-brand hover:bg-brand-light flex items-center gap-2 rounded-full px-8 py-3 text-sm font-bold text-white transition-all active:scale-95"
           >
-            <RefreshCw size={16} className={isLoading ? "animate-spin" : ""} />
-            {isLoading ? "Refreshing..." : "Try Again"}
+            <RefreshCw
+              size={16}
+              className={isManualRefreshing ? "animate-spin" : ""}
+            />
+            {isManualRefreshing ? "Loading..." : "Try Again"}
           </button>
         </div>
       </AppLayout>
@@ -236,6 +256,20 @@ const Subjects: React.FC = () => {
       isSidebarOpen={isSidebarOpen}
       setIsSidebarOpen={setIsSidebarOpen}
     >
+      {/* Sleek background sync progress loader indicator line */}
+      {isLoading && (
+        <div className="bg-bgCard fixed top-0 left-0 z-50 h-0.5 w-full overflow-hidden">
+          <div className="bg-brand h-full w-1/3 animate-[loading-bar_1.5s_ease-in-out_infinite]" />
+        </div>
+      )}
+      <style>{`
+        @keyframes loading-bar {
+          0% { transform: translateX(-100%); }
+          50% { transform: translateX(200%); }
+          100% { transform: translateX(200%); }
+        }
+      `}</style>
+
       <div className="animate-fadeIn mx-auto max-w-350 space-y-6 px-2 lg:px-4">
         {/* Warning Banner */}
         {error && hasData && (
@@ -252,14 +286,14 @@ const Subjects: React.FC = () => {
               </div>
             </div>
             <button
-              onClick={() => loadSubjects(true)}
+              onClick={handleManualRefresh}
               className="bg-warning hover:bg-warning/90 flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-bold text-white transition-all active:scale-95 sm:w-auto"
             >
               <RefreshCw
                 size={14}
-                className={isLoading ? "animate-spin" : ""}
+                className={isManualRefreshing ? "animate-spin" : ""}
               />
-              {isLoading ? "Retrying..." : "Retry"}
+              {isManualRefreshing ? "Retrying..." : "Retry"}
             </button>
           </div>
         )}
@@ -267,7 +301,7 @@ const Subjects: React.FC = () => {
         {/* Header Section */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-           <h1 className="font-display text-textMain text-3xl font-bold tracking-tight lg:text-4xl">
+            <h1 className="font-display text-textMain text-3xl font-bold tracking-tight lg:text-4xl">
               {name ? `${name.split(" ")[0]}'s` : "Your"} Subjects
             </h1>
             <p className="text-textDim mt-1 text-sm">
@@ -280,17 +314,30 @@ const Subjects: React.FC = () => {
 
           {/* Controls */}
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            {/* Refresh Button */}
-            <button
-              onClick={() => loadSubjects(true)}
-              className="text-textDim hover:text-brand bg-bgCard border-borderMuted hover:border-brand/30 group flex w-full items-center justify-center gap-2 rounded-full border px-4 py-2 text-xs font-bold transition-all active:scale-95 sm:w-auto"
-            >
-              <RefreshCw
-                size={16}
-                className={`transition-transform ${isLoading ? "animate-spin" : "group-hover:rotate-45"}`}
-              />
-              {isLoading ? "Refreshing..." : "Refresh Data"}
-            </button>
+            {/* Refresh Button + Sync Status */}
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleManualRefresh}
+                disabled={isManualRefreshing}
+                className="text-textDim hover:text-brand bg-bgCard border-borderMuted hover:border-brand/30 group flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-bold transition-all active:scale-95 disabled:opacity-75"
+              >
+                <RefreshCw
+                  size={16}
+                  className={`transition-transform ${isManualRefreshing ? "animate-spin" : "group-hover:rotate-45"}`}
+                />
+                {isManualRefreshing ? "Refreshing..." : "Refresh Data"}
+              </button>
+              <div className="text-textDim bg-bgCard border-borderMuted flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold shadow-sm">
+                <span
+                  className={`h-2 w-2 rounded-full ${error ? "bg-warning" : "bg-success animate-pulse"}`}
+                />
+                {error
+                  ? "Showing cached data"
+                  : isLoading
+                    ? "SYNCING..."
+                    : "LIVE DATA SYNCED"}
+              </div>
+            </div>
 
             {/* Sort Controls */}
             <div className="flex flex-wrap items-center gap-1.5">
