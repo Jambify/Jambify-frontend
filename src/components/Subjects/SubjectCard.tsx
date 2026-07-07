@@ -44,8 +44,8 @@ const SubjectCard: React.FC<SubjectCardProps> = ({
       <div className="cursor-pointer p-5" onClick={onToggle}>
         {/* <Header row */}
         <div className="mb-4 flex items-start justify-between gap-3">
-          <div 
-            className="flex items-center gap-3 group/sub cursor-pointer"
+          <div
+            className="group/sub flex min-w-0 flex-1 cursor-pointer items-center gap-3"
             onClick={(e) => {
               e.stopPropagation();
               navigate(`/quiz?subject=${encodeURIComponent(subject.name)}`);
@@ -57,8 +57,8 @@ const SubjectCard: React.FC<SubjectCardProps> = ({
             >
               {subject.icon}
             </div>
-            <div>
-              <h3 className="font-display text-base font-semibold tracking-tight group-hover/sub:text-brand transition-colors">
+            <div className="min-w-0">
+              <h3 className="font-display group-hover/sub:text-brand truncate text-base font-semibold tracking-tight transition-colors">
                 {subject.name}
               </h3>
               <p className="text-textDim mt-0.5 text-[11px]">
@@ -66,42 +66,47 @@ const SubjectCard: React.FC<SubjectCardProps> = ({
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+
+          {/* <Chevron only — badges moved below */}
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            className={cn(
+              "text-textDim mt-1.5 shrink-0 transition-transform duration-200",
+              isExpanded && "rotate-180",
+            )}
+          >
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </div>
+
+        {/* <Badges row — own line, wraps cleanly if needed */}
+        {(isBest || isWorst || statusLabel) && (
+          <div className="mb-3 flex flex-wrap items-center gap-1.5">
             {isBest && (
-              <span className="bg-success/20 text-success rounded border border-success/30 px-2 py-0.5 text-[10px] font-bold tracking-tight uppercase">
+              <span className="bg-success/20 text-success rounded border border-success/30 px-2 py-0.5 text-[10px] font-bold tracking-tight whitespace-nowrap uppercase">
                 🏆 Best
               </span>
             )}
             {isWorst && (
-              <span className="bg-danger/20 text-danger rounded border border-danger/30 px-2 py-0.5 text-[10px] font-bold tracking-tight uppercase">
+              <span className="bg-danger/20 text-danger rounded border border-danger/30 px-2 py-0.5 text-[10px] font-bold tracking-tight whitespace-nowrap uppercase">
                 ⚠️ Worst
               </span>
             )}
             <span
               className={cn(
-                "rounded border px-2 py-0.5 text-[10px] font-medium",
+                "rounded border px-2 py-0.5 text-[10px] font-medium whitespace-nowrap",
                 statusLabel.cls,
               )}
             >
               {statusLabel.text}
             </span>
-            {/* <Chevron */}
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              className={cn(
-                "text-textDim shrink-0 transition-transform duration-200",
-                isExpanded && "rotate-180",
-              )}
-            >
-              <polyline points="6 9 12 15 18 9" />
-            </svg>
           </div>
-        </div>
+        )}
 
         {/* <Big accuracy number */}
         <div className="mb-3 flex items-end justify-between">
@@ -135,9 +140,9 @@ const SubjectCard: React.FC<SubjectCardProps> = ({
                 <div className="bg-danger h-1 w-1 rounded-full"></div>
                 Lowest Topic
               </p>
-              <TopicList 
-                topics={subject.weakTopics} 
-                color={subject.color} 
+              <TopicList
+                topics={subject.weakTopics}
+                color={subject.color}
                 onTopicClick={(topic) => {
                   navigate(`/quiz?subject=${encodeURIComponent(subject.name)}&topic=${encodeURIComponent(topic)}`);
                 }}

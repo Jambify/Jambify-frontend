@@ -1,4 +1,4 @@
-// src/Pages/Subjects.tsx (Updated with mobile fixes)
+// src/Pages/Subjects.tsx (Updated with mobile fixes + desktop header fix)
 
 import React, { useState, useEffect } from "react";
 import AppLayout from "../components/Layout/AppLayout";
@@ -298,11 +298,11 @@ const Subjects: React.FC = () => {
           </div>
         )}
 
-        {/* Header Section */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        {/* Header Section — title left, controls stack cleanly on the right on desktop */}
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <h1 className="font-display text-textMain text-3xl font-bold tracking-tight lg:text-4xl">
-              {name ? `${name.split(" ")[0]}'s` : "Your"} Subjects
+            <h1 className="font-display text-textMain text-2xl font-bold tracking-tight lg:text-3xl">
+              {name ? `${name.split(" ")[0]}'s Subjects` : "Your Subjects"}
             </h1>
             <p className="text-textDim mt-1 text-sm">
               {subjects.length} subjects · overall accuracy:{" "}
@@ -312,35 +312,36 @@ const Subjects: React.FC = () => {
             </p>
           </div>
 
-          {/* Controls */}
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            {/* Refresh Button + Sync Status */}
-            <div className="flex items-center gap-3">
+          {/* Controls — two clear rows instead of one crammed line */}
+          <div className="flex flex-col gap-3">
+            {/* Row 1: Sync status + Refresh button */}
+            <div className="flex items-center justify-between gap-2 lg:justify-end">
               <button
                 onClick={handleManualRefresh}
                 disabled={isManualRefreshing}
-                className="text-textDim hover:text-brand bg-bgCard border-borderMuted hover:border-brand/30 group flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-bold transition-all active:scale-95 disabled:opacity-75"
+                className="text-textDim hover:text-brand bg-bgCard border-borderMuted hover:border-brand/30 group flex shrink-0 items-center gap-2 rounded-full border px-4 py-2 text-xs font-bold whitespace-nowrap transition-all active:scale-95 disabled:opacity-75"
               >
                 <RefreshCw
                   size={16}
                   className={`transition-transform ${isManualRefreshing ? "animate-spin" : "group-hover:rotate-45"}`}
                 />
-                {isManualRefreshing ? "Refreshing..." : "Refresh Data"}
+                {isManualRefreshing ? "Refreshing..." : "Refresh"}
               </button>
-              <div className="text-textDim bg-bgCard border-borderMuted flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold shadow-sm">
+              
+              <div className="text-textDim bg-bgCard border-borderMuted flex shrink-0 items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold whitespace-nowrap shadow-sm">
                 <span
-                  className={`h-2 w-2 rounded-full ${error ? "bg-warning" : "bg-success animate-pulse"}`}
+                  className={`h-2 w-2 shrink-0 rounded-full ${error ? "bg-warning" : "bg-success animate-pulse"}`}
                 />
                 {error
                   ? "Showing cached data"
                   : isLoading
                     ? "SYNCING..."
-                    : "LIVE DATA SYNCED"}
+                    : "LIVE DATA SYNC"}
               </div>
             </div>
 
-            {/* Sort Controls */}
-            <div className="flex flex-wrap items-center gap-1.5">
+            {/* Row 2: Sort controls, own line so they never compete for space */}
+            <div className="flex flex-wrap items-center gap-1.5 lg:justify-end">
               <span className="text-textDim text-[11px] whitespace-nowrap">
                 Sort:
               </span>
@@ -354,7 +355,7 @@ const Subjects: React.FC = () => {
                 <button
                   key={key}
                   onClick={() => setSort(key)}
-                  className={`rounded-full border px-3 py-1.5 text-[11px] font-medium transition-all ${
+                  className={`rounded-full border px-3 py-1.5 text-[11px] font-medium whitespace-nowrap transition-all ${
                     sort === key
                       ? "bg-brand border-brand text-white"
                       : "bg-bgSurface border-borderMuted text-textMuted hover:text-textMain hover:border-white/15"
@@ -399,7 +400,7 @@ const Subjects: React.FC = () => {
         </div>
 
         {/* Subject Grid */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {sorted.map((subject) => (
             <SubjectCard
               key={subject.id}
