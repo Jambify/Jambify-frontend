@@ -54,7 +54,7 @@ type WorstSubjectResult =
 const Performance: React.FC = () => {
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  
+
   // NEW: Local state to handle button visual feedback explicitly
   const [isManualRefreshing, setIsManualRefreshing] = useState(false);
 
@@ -124,7 +124,8 @@ const Performance: React.FC = () => {
   };
 
   const displayAccuracy = avgAccuracy > 0 ? avgAccuracy : accuracy;
-  const displayTotalQuestions = totalQuestions > 0 ? totalQuestions : questionsCompleted;
+  const displayTotalQuestions =
+    totalQuestions > 0 ? totalQuestions : questionsCompleted;
 
   const userSubjects = Array.isArray(subjectCombo)
     ? subjectCombo
@@ -136,9 +137,12 @@ const Performance: React.FC = () => {
     if (userSubjects.length === 0) return { type: "no_subjects" };
     const eligibleSubjects = subjects.filter((s) => s.accuracy > 0);
     if (eligibleSubjects.length > 0) {
-      const sorted = [...eligibleSubjects].sort((a, b) => b.accuracy - a.accuracy);
+      const sorted = [...eligibleSubjects].sort(
+        (a, b) => b.accuracy - a.accuracy,
+      );
       const sub = sorted[0];
-      if (sub) return { type: "subject", subject: sub.name, best_score: sub.accuracy };
+      if (sub)
+        return { type: "subject", subject: sub.name, best_score: sub.accuracy };
     }
     return { type: "no_data" };
   })();
@@ -146,31 +150,63 @@ const Performance: React.FC = () => {
   const worstSubject: WorstSubjectResult = (() => {
     if (userSubjects.length === 0) return { type: "no_subjects" };
 
-    const subjectsWithWeakTopics = subjects.filter((s) => s.weakTopics && s.weakTopics.length > 0);
+    const subjectsWithWeakTopics = subjects.filter(
+      (s) => s.weakTopics && s.weakTopics.length > 0,
+    );
     if (subjectsWithWeakTopics.length > 0) {
-      const sorted = [...subjectsWithWeakTopics].sort((a, b) => a.accuracy - b.accuracy);
+      const sorted = [...subjectsWithWeakTopics].sort(
+        (a, b) => a.accuracy - b.accuracy,
+      );
       const sub = sorted[0];
-      if (sub) return { type: "weak_topic", subject: sub.name, worst_score: sub.accuracy };
+      if (sub)
+        return {
+          type: "weak_topic",
+          subject: sub.name,
+          worst_score: sub.accuracy,
+        };
     }
 
-    const lowAccuracySubjects = subjects.filter((s) => s.accuracy > 0 && s.accuracy < 50);
+    const lowAccuracySubjects = subjects.filter(
+      (s) => s.accuracy > 0 && s.accuracy < 50,
+    );
     if (lowAccuracySubjects.length > 0) {
-      const sorted = [...lowAccuracySubjects].sort((a, b) => a.accuracy - b.accuracy);
+      const sorted = [...lowAccuracySubjects].sort(
+        (a, b) => a.accuracy - b.accuracy,
+      );
       const sub = sorted[0];
-      if (sub) return { type: "low_accuracy", subject: sub.name, worst_score: sub.accuracy };
+      if (sub)
+        return {
+          type: "low_accuracy",
+          subject: sub.name,
+          worst_score: sub.accuracy,
+        };
     }
 
     const attemptedSubjects = subjects.filter((s) => s.accuracy > 0);
     if (attemptedSubjects.length > 0) {
-      const sorted = [...attemptedSubjects].sort((a, b) => a.accuracy - b.accuracy);
+      const sorted = [...attemptedSubjects].sort(
+        (a, b) => a.accuracy - b.accuracy,
+      );
       const sub = sorted[0];
       if (sub) {
-        if (bestSubject.type === "subject" && sub.name === bestSubject.subject) {
+        if (
+          bestSubject.type === "subject" &&
+          sub.name === bestSubject.subject
+        ) {
           if (attemptedSubjects.length === 1) return { type: "all_good" };
           const nextSub = sorted[1];
-          if (nextSub) return { type: "subject", subject: nextSub.name, worst_score: nextSub.accuracy };
+          if (nextSub)
+            return {
+              type: "subject",
+              subject: nextSub.name,
+              worst_score: nextSub.accuracy,
+            };
         }
-        return { type: "subject", subject: sub.name, worst_score: sub.accuracy };
+        return {
+          type: "subject",
+          subject: sub.name,
+          worst_score: sub.accuracy,
+        };
       }
     }
 
@@ -184,7 +220,11 @@ const Performance: React.FC = () => {
 
   if (isLoading && !performanceHasFetched) {
     return (
-      <AppLayout currentPage="performance" isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen}>
+      <AppLayout
+        currentPage="performance"
+        isSidebarOpen={isSidebarOpen}
+        setIsSidebarOpen={setIsSidebarOpen}
+      >
         <PageLoader message="Analyzing your performance..." />
       </AppLayout>
     );
@@ -192,24 +232,31 @@ const Performance: React.FC = () => {
 
   if (error && !hasData) {
     return (
-      <AppLayout currentPage="performance" isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen}>
-        <div className="flex min-h-[60vh] flex-col items-center justify-center space-y-6 px-4 text-center">
+      <AppLayout
+        currentPage="performance"
+        isSidebarOpen={isSidebarOpen}
+        setIsSidebarOpen={setIsSidebarOpen}
+      >
+        <div className="mx-auto flex max-w-350 flex-col items-center justify-center gap-6 px-2 py-20 lg:px-4">
           <div className="bg-danger/10 flex h-20 w-20 items-center justify-center rounded-3xl">
             <AlertCircle className="text-danger h-10 w-10" />
           </div>
-          <div className="space-y-2">
+          <div className="space-y-2 text-center">
             <h2 className="font-display text-textMain text-2xl font-bold">
               We couldn't load your performance data right now
             </h2>
-            <p className="text-textDim mx-auto max-w-md">
+            <p className="text-textDim mx-auto max-w-sm text-sm">
               Please check your internet connection and try again
             </p>
           </div>
           <button
             onClick={handleManualRefresh}
-            className="bg-brand hover:bg-brand-light flex items-center gap-2 rounded-full px-6 py-3 text-sm font-bold text-white transition-all active:scale-95"
+            className="bg-brand hover:bg-brand-light flex items-center gap-2 rounded-full px-8 py-3 text-sm font-bold text-white transition-all active:scale-95"
           >
-            <RefreshCw size={16} className={isManualRefreshing ? "animate-spin" : ""} />
+            <RefreshCw
+              size={16}
+              className={isManualRefreshing ? "animate-spin" : ""}
+            />
             {isManualRefreshing ? "Loading..." : "Try Again"}
           </button>
         </div>
@@ -218,7 +265,11 @@ const Performance: React.FC = () => {
   }
 
   return (
-    <AppLayout currentPage="performance" isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen}>
+    <AppLayout
+      currentPage="performance"
+      isSidebarOpen={isSidebarOpen}
+      setIsSidebarOpen={setIsSidebarOpen}
+    >
       {/* Sleek background sync progress loader indicator line */}
       {isLoading && (
         <div className="bg-bgCard fixed top-0 left-0 z-50 h-0.5 w-full overflow-hidden">
@@ -232,10 +283,10 @@ const Performance: React.FC = () => {
           100% { transform: translateX(200%); }
         }
       `}</style>
-      
-      <div className="animate-fadeIn mx-auto max-w-350 space-y-8 px-2 lg:px-4">
+
+      <div className="animate-fadeIn mx-auto max-w-350 space-y-6 px-2 lg:px-4">
         {error && hasData && (
-          <div className="bg-warning/10 border-warning/30 flex flex-col gap-4 rounded-xl border p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="bg-warning/10 border-warning/30 flex flex-col gap-3 rounded-xl border p-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
               <AlertCircle className="text-warning h-5 w-5 shrink-0" />
               <div>
@@ -249,16 +300,19 @@ const Performance: React.FC = () => {
             </div>
             <button
               onClick={handleManualRefresh}
-              className="bg-warning hover:bg-warning/90 flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-bold text-white transition-all active:scale-95"
+              className="bg-warning hover:bg-warning/90 flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-bold text-white transition-all active:scale-95 sm:w-auto"
             >
-              <RefreshCw size={14} className={isManualRefreshing ? "animate-spin" : ""} />
+              <RefreshCw
+                size={14}
+                className={isManualRefreshing ? "animate-spin" : ""}
+              />
               {isManualRefreshing ? "Retrying..." : "Retry"}
             </button>
           </div>
         )}
 
         {/* Header */}
-        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <h1 className="font-display text-textMain text-3xl font-bold tracking-tight lg:text-4xl">
               {name ? `${name.split(" ")[0]}'s` : "Your"} Performance
@@ -267,22 +321,29 @@ const Performance: React.FC = () => {
               Detailed breakdown of your academic progress
             </p>
           </div>
-          <div className="flex items-center gap-3">
-            {/* FIXED BUTTON STATE MECHANISM */}
-            <button
-              onClick={handleManualRefresh}
-              disabled={isManualRefreshing}
-              className="text-textDim hover:text-brand bg-bgCard border-borderMuted hover:border-brand/30 group flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-bold transition-all disabled:opacity-75 active:scale-95"
-            >
-              <RefreshCw
-                size={16}
-                className={`transition-transform ${isManualRefreshing ? "animate-spin" : "group-hover:rotate-45"}`}
-              />
-              {isManualRefreshing ? "Refreshing..." : "Refresh Data"}
-            </button>
-            <div className="text-textDim bg-bgCard border-borderMuted flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold shadow-sm">
-              <span className={`h-2 w-2 rounded-full ${error ? "bg-warning" : "bg-success animate-pulse"}`} />
-              {error ? "Showing cached data" : isLoading ? "SYNCING..." : "LIVE DATA SYNCED"}
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleManualRefresh}
+                disabled={isManualRefreshing}
+                className="text-textDim hover:text-brand bg-bgCard border-borderMuted hover:border-brand/30 group flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-bold transition-all active:scale-95 disabled:opacity-75"
+              >
+                <RefreshCw
+                  size={16}
+                  className={`transition-transform ${isManualRefreshing ? "animate-spin" : "group-hover:rotate-45"}`}
+                />
+                {isManualRefreshing ? "Refreshing..." : "Refresh Data"}
+              </button>
+              <div className="text-textDim bg-bgCard border-borderMuted flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold shadow-sm">
+                <span
+                  className={`h-2 w-2 rounded-full ${error ? "bg-warning" : "bg-success animate-pulse"}`}
+                />
+                {error
+                  ? "Showing cached data"
+                  : isLoading
+                    ? "SYNCING..."
+                    : "LIVE DATA SYNCED"}
+              </div>
             </div>
           </div>
         </div>
@@ -301,8 +362,20 @@ const Performance: React.FC = () => {
           />
           <StatCard
             label="Best Subject"
-            value={bestSubject.type === "subject" ? bestSubject.subject : bestSubject.type === "no_data" ? "Start Practice" : "Select Subjects"}
-            sub={bestSubject.type === "subject" ? `Best: ${Math.round(bestSubject.best_score)}% score` : bestSubject.type === "no_data" ? "Take a quiz to see" : "Choose your combo"}
+            value={
+              bestSubject.type === "subject"
+                ? bestSubject.subject
+                : bestSubject.type === "no_data"
+                  ? "Start Practice"
+                  : "Select Subjects"
+            }
+            sub={
+              bestSubject.type === "subject"
+                ? `Best: ${Math.round(bestSubject.best_score)}% score`
+                : bestSubject.type === "no_data"
+                  ? "Take a quiz to see"
+                  : "Choose your combo"
+            }
             color="text-success"
             icon="🏆"
             iconBg="bg-success/10"
@@ -311,7 +384,9 @@ const Performance: React.FC = () => {
           <StatCard
             label="Worst Subject"
             value={
-              worstSubject.type === "weak_topic" || worstSubject.type === "low_accuracy" || worstSubject.type === "subject"
+              worstSubject.type === "weak_topic" ||
+              worstSubject.type === "low_accuracy" ||
+              worstSubject.type === "subject"
                 ? worstSubject.subject
                 : worstSubject.type === "all_good"
                   ? "You're killing it!"
@@ -322,7 +397,8 @@ const Performance: React.FC = () => {
             sub={
               worstSubject.type === "weak_topic"
                 ? "Weak topic needs attention"
-                : worstSubject.type === "low_accuracy" || worstSubject.type === "subject"
+                : worstSubject.type === "low_accuracy" ||
+                    worstSubject.type === "subject"
                   ? `Lowest: ${Math.round(worstSubject.worst_score)}% score`
                   : worstSubject.type === "all_good"
                     ? "All subjects are strong!"
@@ -352,8 +428,12 @@ const Performance: React.FC = () => {
             <div className="bg-bgCard border-borderMuted rounded-brand-2xl border p-6 shadow-sm lg:p-8">
               <div className="mb-8 flex items-center justify-between">
                 <div className="flex flex-col gap-0.5">
-                  <h3 className="font-display text-textMain text-xl font-bold">Weekly activity</h3>
-                  <p className="text-textDim text-xs font-medium">Questions answered in last 7 days</p>
+                  <h3 className="font-display text-textMain text-xl font-bold">
+                    Weekly activity
+                  </h3>
+                  <p className="text-textDim text-xs font-medium">
+                    Questions answered in last 7 days
+                  </p>
                 </div>
                 <div className="text-brand bg-brand/5 border-brand/10 flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-bold">
                   <div className="bg-brand h-1.5 w-1.5 animate-pulse rounded-full" />
@@ -369,7 +449,9 @@ const Performance: React.FC = () => {
               {userSubjectsWithIcons.map((s) => (
                 <button
                   key={s.name}
-                  onClick={() => navigate(`/quiz?subject=${encodeURIComponent(s.name)}`)}
+                  onClick={() =>
+                    navigate(`/quiz?subject=${encodeURIComponent(s.name)}`)
+                  }
                   className="rounded-brand-2xl bg-bgCard border-borderMuted hover:border-brand/40 group flex flex-col items-center gap-4 border p-5 shadow-sm transition-all hover:shadow-md active:scale-95"
                 >
                   <div className="bg-bgSurface group-hover:bg-brand/5 flex h-12 w-12 items-center justify-center rounded-xl text-2xl transition-transform group-hover:scale-110">
@@ -388,14 +470,21 @@ const Performance: React.FC = () => {
               <div className="bg-brand/5 group-hover:bg-brand/10 absolute top-0 right-0 -mt-32 -mr-32 h-64 w-64 rounded-full blur-3xl transition-colors"></div>
               <div className="relative z-10 mb-8 flex items-center justify-between">
                 <div className="flex flex-col gap-0.5">
-                  <h3 className="font-display text-textMain text-xl font-bold">Mock Exam Performance</h3>
-                  <p className="text-textDim text-xs font-medium">Analysis of your full-length CBT attempts</p>
+                  <h3 className="font-display text-textMain text-xl font-bold">
+                    Mock Exam Performance
+                  </h3>
+                  <p className="text-textDim text-xs font-medium">
+                    Analysis of your full-length CBT attempts
+                  </p>
                 </div>
                 <button
                   onClick={() => navigate("/mock-exams")}
                   className="bg-bgSurface hover:bg-brand/10 text-brand group/btn rounded-full p-2 transition-colors"
                 >
-                  <ArrowRight size={18} className="transition-transform group-hover/btn:translate-x-0.5" />
+                  <ArrowRight
+                    size={18}
+                    className="transition-transform group-hover/btn:translate-x-0.5"
+                  />
                 </button>
               </div>
 
@@ -406,20 +495,28 @@ const Performance: React.FC = () => {
                       <div className="bg-brand/10 flex h-10 w-10 items-center justify-center rounded-xl transition-transform group-hover/card:scale-110">
                         <Target size={20} className="text-brand" />
                       </div>
-                      <span className="text-textDim text-xs font-black tracking-widest uppercase">Personal Best</span>
+                      <span className="text-textDim text-xs font-black tracking-widest uppercase">
+                        Personal Best
+                      </span>
                     </div>
                     <div className="flex items-baseline gap-2">
                       <span className="font-display text-brand text-6xl font-black tracking-tighter xl:text-7xl">
                         {bestScore || "0"}
                       </span>
-                      <span className="text-textDim text-lg font-bold uppercase">/ 400</span>
+                      <span className="text-textDim text-lg font-bold uppercase">
+                        / 400
+                      </span>
                     </div>
                   </div>
                   <div className="border-borderMuted/30 mt-6 flex items-center justify-between border-t pt-4">
-                    <span className="text-textDim text-[11px] font-bold tracking-wider uppercase">Highest Unified Score</span>
+                    <span className="text-textDim text-[11px] font-bold tracking-wider uppercase">
+                      Highest Unified Score
+                    </span>
                     <div className="text-success bg-success/10 flex items-center gap-1.5 rounded-md px-2 py-1">
                       <Zap size={12} fill="currentColor" />
-                      <span className="text-[10px] font-black tracking-tight uppercase">Elite</span>
+                      <span className="text-[10px] font-black tracking-tight uppercase">
+                        Elite
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -430,26 +527,37 @@ const Performance: React.FC = () => {
                       <div className="bg-success/10 flex h-10 w-10 items-center justify-center rounded-xl transition-transform group-hover/card:scale-110">
                         <Clock size={20} className="text-success" />
                       </div>
-                      <span className="text-textDim text-xs font-black tracking-widest uppercase">Latest Attempt</span>
+                      <span className="text-textDim text-xs font-black tracking-widest uppercase">
+                        Latest Attempt
+                      </span>
                     </div>
                     <div className="flex items-baseline gap-2">
                       <span className="font-display text-textMain text-6xl font-black tracking-tighter xl:text-7xl">
-                        {mockHistory.length > 0 ? mockHistory[0].jambScore : "0"}
+                        {mockHistory.length > 0
+                          ? mockHistory[0].jambScore
+                          : "0"}
                       </span>
-                      <span className="text-textDim text-lg font-bold uppercase">/ 400</span>
+                      <span className="text-textDim text-lg font-bold uppercase">
+                        / 400
+                      </span>
                     </div>
                   </div>
                   <div className="border-borderMuted/30 mt-6 flex items-center justify-between border-t pt-4">
                     <span className="text-textDim text-[11px] font-bold tracking-wider uppercase">
                       {mockHistory.length > 0
-                        ? new Date(mockHistory[0].date).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })
+                        ? new Date(mockHistory[0].date).toLocaleDateString(
+                            "en-GB",
+                            { day: "2-digit", month: "short", year: "numeric" },
+                          )
                         : "No attempts recorded"}
                     </span>
-                    {mockHistory.length > 0 && mockHistory[0].jambScore >= bestScore && bestScore > 0 && (
-                      <span className="text-success bg-success/10 rounded px-2.5 py-1 text-[10px] font-black tracking-widest uppercase">
-                        New Record
-                      </span>
-                    )}
+                    {mockHistory.length > 0 &&
+                      mockHistory[0].jambScore >= bestScore &&
+                      bestScore > 0 && (
+                        <span className="text-success bg-success/10 rounded px-2.5 py-1 text-[10px] font-black tracking-widest uppercase">
+                          New Record
+                        </span>
+                      )}
                   </div>
                 </div>
               </div>
@@ -461,22 +569,34 @@ const Performance: React.FC = () => {
                       <Trophy size={20} />
                     </div>
                     <div>
-                      <h4 className="text-textMain text-xs font-black tracking-widest uppercase">Progress to Target</h4>
-                      <p className="text-textDim text-[11px] font-medium">JAMB Admission Goal: {userTargetScore} Points</p>
+                      <h4 className="text-textMain text-xs font-black tracking-widest uppercase">
+                        Progress to Target
+                      </h4>
+                      <p className="text-textDim text-[11px] font-medium">
+                        JAMB Admission Goal: {userTargetScore} Points
+                      </p>
                     </div>
                   </div>
                   <div className="text-right">
                     <div className="font-display text-brand text-2xl leading-none font-black whitespace-nowrap lg:text-3xl">
-                      {Math.min(Math.round((bestScore / userTargetScore) * 100), 100)}%
+                      {Math.min(
+                        Math.round((bestScore / userTargetScore) * 100),
+                        100,
+                      )}
+                      %
                     </div>
-                    <span className="text-textDim text-[10px] font-bold tracking-tighter uppercase">Completed</span>
+                    <span className="text-textDim text-[10px] font-bold tracking-tighter uppercase">
+                      Completed
+                    </span>
                   </div>
                 </div>
 
                 <div className="bg-bgDeep border-borderMuted/20 h-5 overflow-hidden rounded-full border p-1.5">
                   <div
                     className="from-brand/60 via-brand to-brand-light relative h-full rounded-full bg-linear-to-r shadow-[0_0_20px_rgba(123,95,255,0.5)] transition-all duration-1000 ease-out"
-                    style={{ width: `${Math.min((bestScore / userTargetScore) * 100, 100)}%` }}
+                    style={{
+                      width: `${Math.min((bestScore / userTargetScore) * 100, 100)}%`,
+                    }}
                   >
                     <div className="absolute inset-0 animate-[shimmer_2s_linear_infinite] bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.2)_50%,transparent_75%)] bg-size-[20px_20px]"></div>
                   </div>
@@ -485,7 +605,9 @@ const Performance: React.FC = () => {
                 <div className="mt-5 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
                   <p className="text-textDim flex items-center gap-2 text-xs font-bold italic">
                     <Sparkles size={14} className="text-brand" />
-                    {bestScore >= userTargetScore ? "Target achieved! You're ready." : `Need ${userTargetScore - bestScore} more for target.`}
+                    {bestScore >= userTargetScore
+                      ? "Target achieved! You're ready."
+                      : `Need ${userTargetScore - bestScore} more for target.`}
                   </p>
                   <span className="text-brand bg-brand/10 rounded-full px-3 py-1 text-[11px] font-black tracking-widest uppercase">
                     Target: {userTargetScore}
@@ -499,20 +621,30 @@ const Performance: React.FC = () => {
         {/* Subject Breakdown Area */}
         <div className="space-y-6 pt-4">
           <div className="flex items-center justify-between">
-            <h3 className="font-display text-textMain text-2xl font-bold">Subject Breakdown</h3>
+            <h3 className="font-display text-textMain text-2xl font-bold">
+              Subject Breakdown
+            </h3>
             <div className="bg-borderMuted/50 mx-6 hidden h-px flex-1 md:block" />
           </div>
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             {userSubjects.map((subject) => {
-              const subjectTopicStats = topicStats.filter((t) => t.subject === subject);
+              const subjectTopicStats = topicStats.filter(
+                (t) => t.subject === subject,
+              );
               const weakestTopic =
-                subjectTopicStats.length > 0 ? [...subjectTopicStats].sort((a, b) => a.accuracy - b.accuracy)[0] : null;
+                subjectTopicStats.length > 0
+                  ? [...subjectTopicStats].sort(
+                      (a, b) => a.accuracy - b.accuracy,
+                    )[0]
+                  : null;
 
               return (
                 <div
                   key={subject}
                   className="bg-bgCard border-borderMuted hover:border-brand/30 group cursor-pointer rounded-2xl border p-5 transition-all hover:shadow-md active:scale-[0.98]"
-                  onClick={() => navigate(`/quiz?subject=${encodeURIComponent(subject)}`)}
+                  onClick={() =>
+                    navigate(`/quiz?subject=${encodeURIComponent(subject)}`)
+                  }
                 >
                   <div className="mb-4 flex items-center gap-3">
                     <div className="bg-brand/10 flex h-12 w-12 items-center justify-center rounded-xl text-2xl">
@@ -523,7 +655,9 @@ const Performance: React.FC = () => {
                         {subject}
                       </h4>
                       <p className="text-textDim text-[11px]">
-                        {subjectTopicStats.length > 0 ? `${subjectTopicStats.length} topics tracked` : "No topics tracked yet"}
+                        {subjectTopicStats.length > 0
+                          ? `${subjectTopicStats.length} topics tracked`
+                          : "No topics tracked yet"}
                       </p>
                     </div>
                   </div>
@@ -532,7 +666,9 @@ const Performance: React.FC = () => {
                       className="bg-danger/5 border-danger/20 hover:border-danger/40 cursor-pointer rounded-xl border p-3 transition-colors"
                       onClick={(e) => {
                         e.stopPropagation();
-                        navigate(`/quiz?subject=${encodeURIComponent(subject)}&topic=${encodeURIComponent(weakestTopic.name)}`);
+                        navigate(
+                          `/quiz?subject=${encodeURIComponent(subject)}&topic=${encodeURIComponent(weakestTopic.name)}`,
+                        );
                       }}
                     >
                       <p className="text-danger mb-1 flex items-center gap-1.5 text-[11px] font-bold tracking-widest uppercase">
@@ -543,7 +679,9 @@ const Performance: React.FC = () => {
                         <p className="text-textMain group-hover:text-danger truncate text-sm font-medium transition-colors">
                           {weakestTopic.name}
                         </p>
-                        <span className="text-danger text-xs font-bold">{Math.round(weakestTopic.accuracy)}%</span>
+                        <span className="text-danger text-xs font-bold">
+                          {Math.round(weakestTopic.accuracy)}%
+                        </span>
                       </div>
                     </div>
                   )}
@@ -595,19 +733,26 @@ const StatCard: React.FC<StatCardProps> = ({
   truncate = true,
 }) => (
   <div className="bg-bgCard border-borderMuted hover:border-brand/30 group relative flex h-full flex-col overflow-hidden rounded-4xl border p-6 shadow-sm transition-all hover:shadow-md lg:p-7">
-    <div className={`mb-5 flex h-14 w-14 items-center justify-center rounded-2xl text-2xl shadow-sm transition-transform group-hover:scale-110 ${iconBg}`}>
+    <div
+      className={`mb-5 flex h-14 w-14 items-center justify-center rounded-2xl text-2xl shadow-sm transition-transform group-hover:scale-110 ${iconBg}`}
+    >
       {icon}
     </div>
     <p className="text-textDim mb-1.5 h-6 overflow-hidden text-[10px] font-black tracking-widest text-ellipsis whitespace-nowrap uppercase lg:text-[11px]">
       {label}
     </p>
     <div className="mb-auto min-h-14">
-      <h4 className={`font-display w-full font-black tracking-tighter ${color} ${valueSize} ${truncate ? "overflow-hidden text-ellipsis whitespace-nowrap" : "wrap-break-word"}`} title={value}>
+      <h4
+        className={`font-display w-full font-black tracking-tighter ${color} ${valueSize} ${truncate ? "overflow-hidden text-ellipsis whitespace-nowrap" : "wrap-break-word"}`}
+        title={value}
+      >
         {value}
       </h4>
     </div>
     <p className="text-textDim mt-2 text-[11px] font-medium">{sub}</p>
-    <div className={`absolute -right-2 -bottom-2 h-12 w-12 rounded-full opacity-0 blur-2xl transition-opacity group-hover:opacity-40 ${iconBg.replace("/10", "/60")}`} />
+    <div
+      className={`absolute -right-2 -bottom-2 h-12 w-12 rounded-full opacity-0 blur-2xl transition-opacity group-hover:opacity-40 ${iconBg.replace("/10", "/60")}`}
+    />
   </div>
 );
 

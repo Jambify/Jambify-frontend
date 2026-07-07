@@ -89,26 +89,40 @@ export const usePerformanceStore = create<PerformanceState>()(
       if (get().isInitialized && !force) {
         return;
       }
-      // Reset state completely and set isLoading first
-      set({
-        isLoading: true,
-        error: null,
-        weeklyActivity: [
-          { day: "Sun", questions: 0 },
-          { day: "Mon", questions: 0 },
-          { day: "Tue", questions: 0 },
-          { day: "Wed", questions: 0 },
-          { day: "Thu", questions: 0 },
-          { day: "Fri", questions: 0 },
-          { day: "Sat", questions: 0 },
-        ],
-        topicStats: [],
-        subjectPerformance: [],
-        mockScores: [],
-        mockHistory: [],
-        totalQuestions: 0,
-        avgAccuracy: 0,
-      });
+      const state = get();
+      const shouldPreserveCachedData =
+        force &&
+        state.hasFetched &&
+        (state.totalQuestions > 0 ||
+          state.topicStats.length > 0 ||
+          state.mockHistory.length > 0);
+
+      if (shouldPreserveCachedData) {
+        set({
+          isLoading: true,
+          error: null,
+        });
+      } else {
+        set({
+          isLoading: true,
+          error: null,
+          weeklyActivity: [
+            { day: "Sun", questions: 0 },
+            { day: "Mon", questions: 0 },
+            { day: "Tue", questions: 0 },
+            { day: "Wed", questions: 0 },
+            { day: "Thu", questions: 0 },
+            { day: "Fri", questions: 0 },
+            { day: "Sat", questions: 0 },
+          ],
+          topicStats: [],
+          subjectPerformance: [],
+          mockScores: [],
+          mockHistory: [],
+          totalQuestions: 0,
+          avgAccuracy: 0,
+        });
+      }
 
       // Timeout after 15 seconds
       const controller = new AbortController();
