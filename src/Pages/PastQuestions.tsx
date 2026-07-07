@@ -14,6 +14,8 @@ import {
   Lightbulb,
   CheckCircle2,
   ArrowUp,
+  RefreshCw,
+  AlertCircle,
 } from "lucide-react";
 import type { Question } from "../Types";
 import {
@@ -101,6 +103,8 @@ const PastQuestions = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [loadingError, setLoadingError] = useState<string | null>(null);
+  const [isManualRefreshing, setIsManualRefreshing] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -118,25 +122,73 @@ const PastQuestions = () => {
     });
   };
 
-  useEffect(() => {
-    let isMounted = true;
-    const loadData = async () => {
-      setIsLoading(true);
-      try {
-        const qs = await fetchAllQuestionsForBrowse(
+  const loadData = async (isManual = false) => {
+    if (isManual) setIsManualRefreshing(true);
+    setIsLoading(true);
+    setLoadingError(null);
+
+    try {
+      const qs = await Promise.race([
+        fetchAllQuestionsForBrowse(
           filters.subject,
           filters.year,
           filters.topic,
           filters.difficulty,
-        );
-        if (isMounted) setQuestions(qs);
+        ),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Request timed out")), 15000),
+        ),
+      ]);
+      setQuestions(qs as Question[]);
+    } catch (e) {
+      console.error("Error loading questions:", e);
+      setLoadingError(
+        (e as Error)?.message || "Failed to load questions. Please try again.",
+      );
+    } finally {
+      setIsLoading(false);
+      if (isManual) {
+        setTimeout(() => {
+          setIsManualRefreshing(false);
+        }, 600);
+      }
+    }
+  };
+
+  const handleManualRefresh = async () => {
+    await loadData(true);
+  };
+
+  useEffect(() => {
+    let isMounted = true;
+    const loadDataEffect = async () => {
+      setIsLoading(true);
+      setLoadingError(null);
+      try {
+        const qs = await Promise.race([
+          fetchAllQuestionsForBrowse(
+            filters.subject,
+            filters.year,
+            filters.topic,
+            filters.difficulty,
+          ),
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error("Request timed out")), 15000),
+          ),
+        ]);
+        if (isMounted) setQuestions(qs as Question[]);
       } catch (e) {
         console.error("Error loading questions:", e);
+        if (isMounted)
+          setLoadingError(
+            (e as Error)?.message ||
+              "Failed to load questions. Please try again.",
+          );
       } finally {
         if (isMounted) setIsLoading(false);
       }
     };
-    loadData();
+    loadDataEffect();
     return () => {
       isMounted = false;
     };
@@ -220,18 +272,46 @@ const PastQuestions = () => {
           </button>
         )}
         {/* Header */}
-        <div>
-          <div className="mb-1 flex items-center gap-2">
-            <h1 className="font-display text-textMain text-3xl font-bold">
-              Past Questions
-            </h1>
-            <span className="border-warn/25 bg-warn/10 text-warn rounded-full border px-2.5 py-1 text-[10px] font-bold">
-              PRO
-            </span>
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <div className="mb-1 flex items-center gap-2">
+              <h1 className="font-display text-textMain text-2xl font-bold tracking-tight lg:text-3xl">
+                Past Questions
+              </h1>
+              <span className="border-warn/25 bg-warn/10 text-warn rounded-full border px-2.5 py-1 text-[10px] font-bold">
+                PRO
+              </span>
+            </div>
+            <p className="text-textDim text-sm">
+              Practice real JAMB past questions from 2015 to 2025
+            </p>
           </div>
-          <p className="text-textDim">
-            Practice real JAMB past questions from 2015 to 2025
-          </p>
+
+          <div className="flex items-center gap-3">
+            {/* Refresh Button - Match Subjects/Performance Page Style */}
+            <button
+              onClick={handleManualRefresh}
+              disabled={isManualRefreshing}
+              className="text-textDim hover:text-brand bg-bgCard border-borderMuted hover:border-brand/30 group flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-bold transition-all active:scale-95 disabled:opacity-75"
+            >
+              <RefreshCw
+                size={16}
+                className={`transition-transform ${isManualRefreshing ? "animate-spin" : "group-hover:rotate-45"}`}
+              />
+              {isManualRefreshing ? "Refreshing..." : "Refresh Data"}
+            </button>
+            {/* Status Indicator */}
+            <div className="text-textDim bg-bgCard border-borderMuted flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold shadow-sm">
+              <span
+                className={`h-2 w-2 rounded-full ${loadingError ? "bg-warning" : isLoading ? "bg-brand animate-pulse" : "bg-success animate-pulse"}`}
+              />
+              {loadingError
+                ? "Error loading"
+                : isLoading
+                  ? "LOADING..."
+                  : "LIVE DATA SYNCED"}
+            </div>
+          </div>
         </div>
 
         {/* Filters */}
@@ -330,14 +410,76 @@ const PastQuestions = () => {
           </div>
         </div>
 
-        {/* Loading State */}
-        {isLoading && (
-          <div className="flex flex-col items-center justify-center py-20">
-            <Loader2 className="text-brand mb-3 h-10 w-10 animate-spin" />
-            <p className="text-textDim text-lg">Loading questions...</p>
+        {/* Loading State - Show indicator only if no data yet */}
+        {isLoading && questions.length === 0 && (
+          <div className="mx-auto flex max-w-350 flex-col items-center justify-center gap-6 px-2 py-20 lg:px-4">
+            <div className="bg-brand/10 flex h-20 w-20 items-center justify-center rounded-3xl">
+              <Loader2 className="text-brand h-10 w-10 animate-spin" />
+            </div>
+            <div className="space-y-2 text-center">
+              <h2 className="font-display text-textMain text-2xl font-bold">
+                Loading your past questions
+              </h2>
+              <p className="text-textDim mx-auto max-w-sm text-sm">
+                Please wait while we fetch your questions
+              </p>
+            </div>
           </div>
         )}
 
+        {/* Error Banner - Show if we have data but refresh failed */}
+        {loadingError && questions.length > 0 && (
+          <div className="bg-warning/10 border-warning/30 flex flex-col gap-3 rounded-xl border p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-3">
+              <AlertCircle className="text-warning h-5 w-5 shrink-0" />
+              <div>
+                <p className="text-textMain text-sm font-semibold">
+                  Unable to refresh your latest questions
+                </p>
+                <p className="text-textDim mt-0.5 text-xs">
+                  Showing your most recent saved questions
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={handleManualRefresh}
+              className="bg-warning hover:bg-warning/90 flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-bold text-white transition-all active:scale-95 sm:w-auto"
+            >
+              <RefreshCw
+                size={14}
+                className={isManualRefreshing ? "animate-spin" : ""}
+              />
+              {isManualRefreshing ? "Retrying..." : "Retry"}
+            </button>
+          </div>
+        )}
+
+        {/* Full Page Error - Show if we have no data at all */}
+        {loadingError && questions.length === 0 && (
+          <div className="mx-auto flex max-w-350 flex-col items-center justify-center gap-6 px-2 py-20 lg:px-4">
+            <div className="bg-danger/10 flex h-20 w-20 items-center justify-center rounded-3xl">
+              <AlertCircle className="text-danger h-10 w-10" />
+            </div>
+            <div className="space-y-2 text-center">
+              <h2 className="font-display text-textMain text-2xl font-bold">
+                We couldn't load your questions right now
+              </h2>
+              <p className="text-textDim mx-auto max-w-sm text-sm">
+                {loadingError}
+              </p>
+            </div>
+            <button
+              onClick={handleManualRefresh}
+              className="bg-brand hover:bg-brand-light flex items-center gap-2 rounded-full px-8 py-3 text-sm font-bold text-white transition-all active:scale-95"
+            >
+              <RefreshCw
+                size={16}
+                className={isManualRefreshing ? "animate-spin" : ""}
+              />
+              {isManualRefreshing ? "Loading..." : "Try Again"}
+            </button>
+          </div>
+        )}
         {/* No Results */}
         {!isLoading && paginated.length === 0 && (
           <div className="bg-bgCard border-borderMuted rounded-2xl border p-12 text-center">
