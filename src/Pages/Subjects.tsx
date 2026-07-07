@@ -1,4 +1,4 @@
-// src/Pages/Subjects.tsx (Updated with mobile fixes + desktop header fix)
+// src/Pages/Subjects.tsx (Updated with mobile fixes + desktop header fix + 2-col grid)
 
 import React, { useState, useEffect } from "react";
 import AppLayout from "../components/Layout/AppLayout";
@@ -314,7 +314,7 @@ const Subjects: React.FC = () => {
 
           {/* Controls — two clear rows instead of one crammed line */}
           <div className="flex flex-col gap-3">
-            {/* Row 1: Sync status + Refresh button */}
+            {/* Row 1: Refresh button + Sync status */}
             <div className="flex items-center justify-between gap-2 lg:justify-end">
               <button
                 onClick={handleManualRefresh}
@@ -325,9 +325,9 @@ const Subjects: React.FC = () => {
                   size={16}
                   className={`transition-transform ${isManualRefreshing ? "animate-spin" : "group-hover:rotate-45"}`}
                 />
-                {isManualRefreshing ? "Refreshing..." : "Refresh"}
+                {isManualRefreshing ? "Refreshing..." : "Refresh Data"}
               </button>
-              
+
               <div className="text-textDim bg-bgCard border-borderMuted flex shrink-0 items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold whitespace-nowrap shadow-sm">
                 <span
                   className={`h-2 w-2 shrink-0 rounded-full ${error ? "bg-warning" : "bg-success animate-pulse"}`}
@@ -399,8 +399,8 @@ const Subjects: React.FC = () => {
           </div>
         </div>
 
-        {/* Subject Grid */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {/* Subject Grid — capped at 2 columns, no lg/xl overrides */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {sorted.map((subject) => (
             <SubjectCard
               key={subject.id}
