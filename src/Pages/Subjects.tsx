@@ -315,30 +315,24 @@ const Subjects: React.FC = () => {
           {/* Controls — two clear rows instead of one crammed line */}
           <div className="flex flex-col gap-3">
             {/* Row 1: Refresh button + Sync status */}
-            <div className="flex items-center justify-between gap-2 lg:justify-end">
-              <button
-                onClick={handleManualRefresh}
-                disabled={isManualRefreshing}
-                className="text-textDim hover:text-brand bg-bgCard border-borderMuted hover:border-brand/30 group flex shrink-0 items-center gap-2 rounded-full border px-4 py-2 text-xs font-bold whitespace-nowrap transition-all active:scale-95 disabled:opacity-75"
-              >
-                <RefreshCw
-                  size={16}
-                  className={`transition-transform ${isManualRefreshing ? "animate-spin" : "group-hover:rotate-45"}`}
-                />
-                {isManualRefreshing ? "Refreshing..." : "Refresh Data"}
-              </button>
-
-              <div className="text-textDim bg-bgCard border-borderMuted flex shrink-0 items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold whitespace-nowrap shadow-sm">
-                <span
-                  className={`h-2 w-2 shrink-0 rounded-full ${error ? "bg-warning" : "bg-success animate-pulse"}`}
-                />
-                {error
-                  ? "Showing cached data"
-                  : isLoading
-                    ? "SYNCING..."
-                    : "LIVE DATA SYNC"}
-              </div>
-            </div>
+            <div className="flex items-center gap-3">
+                        {/* FIXED BUTTON STATE MECHANISM */}
+                        <button
+                          onClick={handleManualRefresh}
+                          disabled={isManualRefreshing}
+                          className="text-textDim hover:text-brand bg-bgCard border-borderMuted hover:border-brand/30 group flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-bold transition-all disabled:opacity-75 active:scale-95"
+                        >
+                          <RefreshCw
+                            size={16}
+                            className={`transition-transform ${isManualRefreshing ? "animate-spin" : "group-hover:rotate-45"}`}
+                          />
+                          {isManualRefreshing ? "Refreshing..." : "Refresh Data"}
+                        </button>
+                        <div className="text-textDim bg-bgCard border-borderMuted flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold shadow-sm">
+                          <span className={`h-2 w-2 rounded-full ${error ? "bg-warning" : "bg-success animate-pulse"}`} />
+                          {error ? "Showing cached data" : isLoading ? "SYNCING..." : "LIVE DATA SYNCED"}
+                        </div>
+                      </div>
 
             {/* Row 2: Sort controls, own line so they never compete for space */}
             <div className="flex flex-wrap items-center gap-1.5 lg:justify-end">
