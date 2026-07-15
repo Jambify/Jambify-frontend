@@ -242,7 +242,7 @@ const LandingPage: React.FC = () => {
           transition={{ ...fadeUp.transition, delay: 0.2 }}
           className="mx-auto max-w-6xl px-6 pb-16 lg:pb-24"
         >
-         <div className="mx-auto mt-8 max-w-3xl">
+         <div className="mx-auto mt-8 max-w-6xl">
   {/* The Window Shell */}
   <div className="bg-bgCard border-borderMuted rounded-xl border shadow-2xl overflow-hidden">
     {/* Browser/Window Header */}
