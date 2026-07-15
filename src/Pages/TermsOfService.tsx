@@ -6,10 +6,10 @@ import AppLayout from "../components/Layout/AppLayout";
 
 const TermsOfService: React.FC = () => (
   <AppLayout currentPage="Terms of Service" hideSidebar={false}>
-    <LegalPage 
-      title="Terms of Service" 
-      effectiveDate="July 6, 2026" 
-      blocks={termsOfServiceContent} 
+    <LegalPage
+      title="Terms of Service"
+      effectiveDate="July 6, 2026"
+      blocks={termsOfServiceContent}
     />
   </AppLayout>
 );

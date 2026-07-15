@@ -193,7 +193,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
         {/* Footer branding */}
         <div className="mt-10 flex flex-col items-center gap-2 opacity-40">
           <p className="text-textDim text-[10px] font-black tracking-[0.25em] uppercase">
-            Powered by JAMBIFY AI
+            Powered by Schooldra AI
           </p>
           <div className="flex gap-1">
             {[1, 2, 3].map((i) => (

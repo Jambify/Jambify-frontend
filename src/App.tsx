@@ -1,9 +1,10 @@
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   1. src/App.tsx — add /settings route and global network status
+   src/App.tsx — fixed duplicate /privacy-policy route conflict
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import Dashboard from "./Pages/Dashboard";
+import Landing from "./Pages/LandingPage";
 import Quiz from "./Pages/Quiz";
 import Performance from "./Pages/Performance";
 import Subjects from "./Pages/Subjects";
@@ -26,8 +27,9 @@ import GuestMock from "./Pages/GuestUser/GuestExam";
 import StudyTimeTracker from "./components/StudyTimeTracker";
 import AuthErrorBoundary from "./components/ui/AuthErrorBoundary";
 import PrivacyPolicy from "./Pages/PrivacyPolicy";
+import GuestPrivacyPolicy from "./Pages/GuestUser/GuestPrivacy";
+import GuestTermsOfService from "./Pages/GuestUser/GuestLegal";
 import TermsOfService from "./Pages/TermsOfService";
-// In App.tsx, add this near the top
 import { supabase } from "./lib/supabase";
 
 // Make supabase available in console for debugging
@@ -40,6 +42,7 @@ const App: React.FC = () => {
     <AuthErrorBoundary>
       <StudyTimeTracker />
       <Routes>
+        <Route path="/" element={<Landing />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/signin" element={<SignIn />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
@@ -48,6 +51,29 @@ const App: React.FC = () => {
         <Route path="/guest/quiz" element={<GuestQuiz />} />
         <Route path="/guest/mock" element={<GuestMock />} />
         <Route path="/guest/past-questions" element={<GuestQuiz />} />
+
+        {/* Public, unauthenticated legal pages — used by Landing/Guest footers */}
+        <Route
+          path="/guest/privacy-policy"
+          element={
+            <GuestPrivacyPolicy
+              // // title="Privacy Policy"
+              // effectiveDate="July 14, 2026"
+              // blocks={[]}
+            />
+          }
+        />
+        <Route
+          path="/guest/terms-of-service"
+          element={
+            <GuestTermsOfService
+              title="Terms of Service"
+              effectiveDate="July 14, 2026"
+              blocks={[]}
+            />
+          }
+        />
+
         <Route
           path="/onboarding"
           element={
@@ -65,7 +91,7 @@ const App: React.FC = () => {
           }
         />
         <Route
-          path="/"
+          path="/dashboard"
           element={
             <RouteGuard>
               <Dashboard />
@@ -137,9 +163,25 @@ const App: React.FC = () => {
             </RouteGuard>
           }
         />
-        {/* priveacy and terms */}
-        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-<Route path="/terms-of-service" element={<TermsOfService />} />
+
+        {/* Authenticated-only legal pages (logged-in account area) */}
+        <Route
+          path="/privacy-policy"
+          element={
+            <RouteGuard>
+              <PrivacyPolicy />
+            </RouteGuard>
+          }
+        />
+        <Route
+          path="/terms-of-service"
+          element={
+            <RouteGuard>
+              <TermsOfService />
+            </RouteGuard>
+          }
+        />
+
         <Route
           path="/pro"
           element={

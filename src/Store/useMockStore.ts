@@ -174,7 +174,7 @@ export const useMockStore = create<MockState>()(
 
       reset: () => {
         set(initialState);
-        localStorage.removeItem("jambify-mock-exam");
+        localStorage.removeItem("schooldra-mock-exam");
       },
 
       tickTimer: () =>
@@ -192,7 +192,7 @@ export const useMockStore = create<MockState>()(
         }),
     }),
     {
-      name: "jambify-mock-exam",
+      name: "schooldra-mock-exam",
       partialize: (state) => ({
         questions: state.questions,
         currentIndex: state.currentIndex,

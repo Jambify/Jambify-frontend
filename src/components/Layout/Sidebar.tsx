@@ -3,6 +3,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { cn } from "../../lib/utils/utils";
 import { useUserStore } from "../../Store/useUserStore";
 import { MessageSquare, Trophy, Sparkles, ArrowRight } from "lucide-react";
+import schooldraLogo from "../../assets/schooldraLogo.png";
 interface NavItem {
   label: string;
   path: string;
@@ -13,7 +14,7 @@ interface NavItem {
 const MAIN_NAV: NavItem[] = [
   {
     label: "Dashboard",
-    path: "/",
+    path: "/dashboard",
     icon: (
       <svg
         width="16"
@@ -187,7 +188,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       {/* Mobile backdrop */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-110 bg-black/40 dark:bg-black/60 backdrop-blur-xs lg:hidden"
+          className="fixed inset-0 z-110 bg-black/40 backdrop-blur-xs lg:hidden dark:bg-black/60"
           onClick={onClose}
         />
       )}
@@ -202,12 +203,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       >
         {/* Logo */}
         <div className="border-borderMuted flex items-center justify-between border-b px-5 py-5">
-          <div className="flex items-center gap-2.5">
-            <div className="bg-brand font-display shadow-brand/40 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-base font-black text-white shadow-lg">
-              J
-            </div>
-            <span className="font-display text-[17px] font-bold tracking-tight">
-              JAMB<span className="text-brand-light">ify</span>
+          <div className="flex items-center gap-1">
+            <img src={schooldraLogo} alt="Schooldra Logo" className="h-8 w-8" />
+
+            <span className="text-brand-light text-lg font-black tracking-wider">
+              Schooldra
             </span>
           </div>
           {isPro && (
@@ -228,9 +228,16 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               to="/settings"
               state={{ activeTab: "help" }}
               onClick={onClose}
-              className="text-textMuted hover:text-textMain flex items-center gap-2.5 px-3 py-2 text-sm transition-colors hover:bg-bgSurface rounded-brand mb-0.5"
+              className="text-textMuted hover:text-textMain hover:bg-bgSurface rounded-brand mb-0.5 flex items-center gap-2.5 px-3 py-2 text-sm transition-colors"
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+              >
                 <circle cx="12" cy="12" r="10" />
                 <path d="M9.09 9a3 3 0 0 1 5.83 12" />
                 <line x1="12" y1="17" x2="12.01" y2="17" />
@@ -250,7 +257,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 <div className="flex items-center gap-2">
                   <Sparkles className="text-brand h-4 w-4 transition-transform group-hover:rotate-12" />
                   <span className="text-[13px] font-black tracking-wider uppercase">
-                    JAMBIFY Pro
+                    Schooldra Pro
                   </span>
                 </div>
                 <p className="text-textDim text-[11px] leading-tight">

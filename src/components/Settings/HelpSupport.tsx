@@ -16,7 +16,7 @@ import {
 
 // WhatsApp configuration
 const WHATSAPP_NUMBER = "2347011872350"; // Full number without + or spaces
-const WHATSAPP_MESSAGE = "Hi! I need help with JAMBIFY...";
+const WHATSAPP_MESSAGE = "Hi! I need help with Schooldra...";
 
 const FAQ = [
   {
@@ -72,7 +72,7 @@ const HelpSupport: React.FC = () => {
         body: JSON.stringify({
           email: bugEmail,
           message: bugReport,
-          subject: "Bug Report from JAMBIFY App",
+          subject: "Bug Report from Schooldra App",
         }),
       });
 
@@ -119,11 +119,11 @@ const HelpSupport: React.FC = () => {
 
           {/* Email */}
           <a
-            href="mailto:support@jambify.com"
+            href="mailto:support@schooldra.com"
             className="text-brand hover:text-brand-light flex items-center gap-2 text-sm font-medium transition-colors"
           >
             <Mail size={16} />
-            support@jambify.com
+            support@schooldra.com
           </a>
         </div>
       </section>

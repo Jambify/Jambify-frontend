@@ -55,18 +55,18 @@ const ProGate: React.FC = () => {
     try {
       (window as any).FlutterwaveCheckout({
         public_key: flwKey,
-        tx_ref: `jambify-pro-${Date.now()}`,
+        tx_ref: `schooldra-pro-${Date.now()}`,
         amount: 3000,
         currency: "NGN",
         payment_options: "card, banktransfer, ussd",
         customer: {
-          email: email || "student@jambify.com",
-          name: name || "JAMBIFY Student",
+          email: email || "student@schooldra.com",
+          name: name || "Schooldra Student",
         },
         customizations: {
-          title: "JAMBIFY Pro",
+          title: "Schooldra Pro",
           description: "Full access to all JAMB prep features",
-          logo: "https://jambify.vercel.app/JAMBIFY.LOGO.png",
+          logo: "https://schooldra.vercel.app/Schooldra.LOGO.png",
         },
         callback: async (data: any) => {
           if (data.status === "successful" || data.status === "completed") {

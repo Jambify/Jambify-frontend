@@ -275,7 +275,7 @@ const GuestQuiz: React.FC = () => {
                   <Sparkles className="text-brand h-5 w-5" />
                 </div>
                 <p className="text-textMain text-left text-sm leading-tight font-bold">
-                  Unlock the full potential of JAMBIFY
+                  Unlock the full potential of Schooldra
                 </p>
               </div>
 
@@ -365,7 +365,7 @@ const GuestQuiz: React.FC = () => {
 
         <div className="flex flex-col items-center">
           <div className="text-brand mb-1 text-[10px] font-black tracking-[0.2em] uppercase">
-            JAMBIFY
+            Schooldra
           </div>
           <div className="text-textMain bg-bgCard border-borderMuted rounded-full border px-3 py-1 font-mono text-xs font-bold shadow-sm">
             {current + 1} <span className="text-textDim mx-1">/</span>{" "}

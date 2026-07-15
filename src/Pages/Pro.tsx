@@ -26,7 +26,7 @@ const ProPage: React.FC = () => {
               You're a Pro Member!
             </h1>
             <p className="text-textDim mx-auto mb-8 max-w-md leading-relaxed">
-              Thank you for supporting JAMBIFY. You have full access to all
+              Thank you for supporting Schooldra. You have full access to all
               premium features, including AI Tutor, detailed mock reviews, and
               offline study mode.
             </p>
@@ -53,7 +53,7 @@ const ProPage: React.FC = () => {
             </div>
 
             <button
-              onClick={() => navigate("/")}
+              onClick={() => navigate("/dashboard")}
               className="bg-brand shadow-brand/20 hover:bg-brand-light rounded-full px-8 py-3 font-bold text-white shadow-lg transition-all active:scale-95"
             >
               Back to Dashboard
@@ -67,7 +67,7 @@ const ProPage: React.FC = () => {
                 // and syncs with the user store.
                 window.location.reload();
               }}
-              onBack={() => navigate("/")}
+              onBack={() => navigate("/dashboard")}
             />
           </div>
         )}

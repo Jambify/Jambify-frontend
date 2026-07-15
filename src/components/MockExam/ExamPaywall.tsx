@@ -3,6 +3,7 @@ import { useUserStore, APP_CONFIG } from "../../Store/useUserStore";
 import { supabase } from "../../lib/supabase";
 import Button from "../ui/Button";
 import { Crown, Lock, CheckCircle, Loader2, ExternalLink } from "lucide-react";
+import schooldralogo from "../../assets/schooldraLogo.png";
 
 interface ExamPaywallProps {
   onUpgrade: () => void;
@@ -81,18 +82,18 @@ const ExamPaywall: React.FC<ExamPaywallProps> = ({ onUpgrade, onBack }) => {
     try {
       (window as any).FlutterwaveCheckout({
         public_key: flwKey,
-        tx_ref: `jambify-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+        tx_ref: `schooldra-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
         amount: 3000,
         currency: "NGN",
         payment_options: "card, banktransfer, ussd",
         customer: {
-          email: email || "student@jambify.com",
-          name: name || "JAMBIFY Student",
+          email: email || "student@schooldra.com",
+          name: name || "SCHOOLDRA Student",
         },
         customizations: {
-          title: "JAMBIFY Pro",
+          title: "SCHOOLDRA Pro",
           description: "Monthly subscription for professional JAMB prep tools",
-          logo: "https://jambify.vercel.app/JAMBIFY.LOGO.png",
+          logo: "https://Schooldra.com/SCHOOLDRA.LOGO.png",
         },
         callback: async (data: any) => {
           console.log("Payment callback data:", data);
@@ -255,7 +256,7 @@ const ExamPaywall: React.FC<ExamPaywallProps> = ({ onUpgrade, onBack }) => {
 
           {/* Contact support link */}
           <a
-            href={`https://wa.me/2348000000000?text=Hi, I want to upgrade to JAMBIFY Pro. Name: ${encodeURIComponent(name)}, Email: ${encodeURIComponent(email)}`}
+            href={`https://wa.me/2348000000000?text=Hi, I want to upgrade to Schooldra Pro. Name: ${encodeURIComponent(name)}, Email: ${encodeURIComponent(email)}`}
             target="_blank"
             rel="noopener noreferrer"
             className="mb-4 flex w-full items-center justify-center gap-2 rounded-2xl border border-green-600/20 bg-green-600/10 py-3 text-sm font-semibold text-green-600 transition-all hover:bg-green-600/20"
@@ -315,12 +316,10 @@ const ExamPaywall: React.FC<ExamPaywallProps> = ({ onUpgrade, onBack }) => {
       <div className="bg-bgCard border-borderMuted w-full max-w-md rounded-4xl border p-8 text-center shadow-2xl backdrop-blur-md">
         {/* Brand Header */}
         <div className="mb-8 flex items-center gap-3">
-          <div className="bg-brand font-display shadow-brand/40 flex h-10 w-10 items-center justify-center rounded-xl text-xl font-black text-white shadow-lg">
-            J
-          </div>
-          <span className="font-display text-textMain text-2xl font-bold tracking-tight">
-            JAMB<span className="text-brand">IFY</span>
-          </span>
+          <img src={schooldralogo} alt="Schooldra Logo" className="h-8 w-8" />
+          <h1 className="font-display text-brand-light text-2xl font-black tracking-wider">
+            Schooldra Pro
+          </h1>
         </div>
 
         {/* Lock Icon */}

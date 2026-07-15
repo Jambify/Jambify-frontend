@@ -13,7 +13,7 @@ class WriteQueueDB extends Dexie {
     writes!: Dexie.Table<QueuedWrite, number>;
 
     constructor() {
-        super("jambify-write-queue");
+        super("schooldra-write-queue");
         this.version(1).stores({
             writes: "++id, type, createdAt, retries",
         });

@@ -3,6 +3,7 @@ import React, { type ReactNode } from "react";
 import { motion } from "framer-motion";
 import { ShieldCheck } from "lucide-react";
 import ThemeToggle from "../ui/ThemeToggle";
+import schooldralogo from "../../assets/schooldraLogo.png"
 
 type AuthVariant = "signin" | "signup" | "otp";
 
@@ -57,6 +58,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
   footer,
 }) => {
   const { eyebrow, headline, sub } = PANEL_CONTENT[variant];
+  const schooldraLogo = schooldralogo; // Use the imported logo
 
   return (
     <div className="bg-bgMain text-textMain relative flex min-h-screen overflow-hidden">
@@ -80,13 +82,11 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
-            className="flex items-center gap-3"
+            className="flex items-center gap-1"
           >
-            <div className="bg-brand shadow-brand/30 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg font-black text-white shadow-lg">
-              J
-            </div>
-            <span className="font-display text-textMain text-xl font-bold tracking-tight">
-              JAMB<span className="text-brand font-black">IFY</span>
+            <img src={schooldraLogo} alt="Schooldra Logo" className="h-25 w-25" />
+            <span className="text-brand-light  font-black tracking-wider text-2xl">
+              SCHOOLDRA
             </span>
           </motion.div>
 
@@ -174,10 +174,8 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
             className="mb-8"
           >
             {/* Mobile logo */}
-            <div className="mb-6 flex justify-center lg:hidden">
-              <div className="bg-brand shadow-brand/30 flex h-12 w-12 items-center justify-center rounded-xl text-xl font-black text-white shadow-lg">
-                J
-              </div>
+            <div className="mb-2 flex justify-center lg:hidden">
+             <img src={schooldraLogo} alt="Schooldra Logo" className="h-50 w-50" />
             </div>
 
             <div className="bg-brand/10 border-brand/20 text-brand mb-4 inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[10px] font-black tracking-[2px] uppercase">

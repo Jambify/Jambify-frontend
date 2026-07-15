@@ -10,16 +10,27 @@ interface QuestionAIHelperProps {
 }
 
 const STARTERS = [
-  { label: "Explain it simpler", prompt: "Can you explain the answer to this question in a simpler way?" },
-  { label: "Why is this correct?", prompt: "Walk me through exactly why this is the correct answer, step by step." },
-  { label: "Give me a similar question", prompt: "Give me a similar practice question on the same topic, with a different scenario, so I can test myself." },
+  {
+    label: "Explain it simpler",
+    prompt: "Can you explain the answer to this question in a simpler way?",
+  },
+  {
+    label: "Why is this correct?",
+    prompt:
+      "Walk me through exactly why this is the correct answer, step by step.",
+  },
+  {
+    label: "Give me a similar question",
+    prompt:
+      "Give me a similar practice question on the same topic, with a different scenario, so I can test myself.",
+  },
 ];
 
 const QuestionAIHelper: React.FC<QuestionAIHelperProps> = ({ question }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState("");
 
-  const systemPrompt = `You are JAMBIFY AI, helping a student understand ONE specific past JAMB question. Stay focused on this question and its topic — do not give general study advice or change subject.
+  const systemPrompt = `You are Schooldra AI, helping a student understand ONE specific past JAMB question. Stay focused on this question and its topic — do not give general study advice or change subject.
 
 Question (${question.subject}, ${question.year}, topic: ${question.topic}):
 "${question.text}"
@@ -32,7 +43,7 @@ Be concise, encouraging, and specific to this question. Under 150 words unless a
 
   const { messages, isLoading, sendMessage, isAtLimit } = useAIChat({
     systemPrompt,
-    storageKey: `jambify-pq-helper-${question.id}`,
+    storageKey: `schooldra-pq-helper-${question.id}`,
   });
 
   const handleSend = (text: string) => {
@@ -49,7 +60,10 @@ Be concise, encouraging, and specific to this question. Under 150 words unless a
       >
         <Sparkles size={14} />
         Ask AI about this question
-        <ChevronDown size={14} className={`transition-transform ${isOpen ? "rotate-180" : ""}`} />
+        <ChevronDown
+          size={14}
+          className={`transition-transform ${isOpen ? "rotate-180" : ""}`}
+        />
       </button>
 
       {isOpen && (
@@ -74,7 +88,7 @@ Be concise, encouraging, and specific to this question. Under 150 words unless a
               className={`rounded-xl px-3 py-2 text-xs leading-relaxed ${
                 msg.role === "user"
                   ? "bg-brand/10 text-textMain ml-6"
-                  : "bg-bgSurface border-borderMuted text-textMain border mr-6"
+                  : "bg-bgSurface border-borderMuted text-textMain mr-6 border"
               }`}
             >
               {msg.content || (msg.isStreaming ? "…" : "")}
@@ -93,7 +107,9 @@ Be concise, encouraging, and specific to this question. Under 150 words unless a
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSend(input)}
-              placeholder={isAtLimit ? "Session limit reached" : "Ask a follow-up…"}
+              placeholder={
+                isAtLimit ? "Session limit reached" : "Ask a follow-up…"
+              }
               disabled={isLoading || isAtLimit}
               className="bg-bgSurface border-borderMuted text-textMain focus:ring-brand/30 flex-1 rounded-lg border px-3 py-1.5 text-xs focus:ring-2 focus:outline-none disabled:opacity-50"
             />

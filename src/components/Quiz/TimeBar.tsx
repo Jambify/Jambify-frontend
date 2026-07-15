@@ -16,7 +16,7 @@ const TimerBar: React.FC = () => {
     onExpire: () => {
       finishQuiz();
     },
-    persistenceKey: "jambify-quiz-session-timer",
+    persistenceKey: "schooldra-quiz-session-timer",
   });
 
   // Sync timer with store for submission logic

@@ -399,7 +399,7 @@ const MockResultsScreen: React.FC<MockResultsScreenProps> = ({
               Review is Locked
             </h4>
             <p className="text-textMuted mx-auto mb-8 max-w-sm text-sm">
-              Upgrade to JAMBIFY Pro to access detailed explanations, AI-powered
+              Upgrade to Schooldra Pro to access detailed explanations, AI-powered
               insights, and a professional review of all your answers.
             </p>
             <Button

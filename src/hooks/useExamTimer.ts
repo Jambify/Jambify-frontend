@@ -15,7 +15,7 @@ export const useExamTimer = ({
   initialTime,
   onTimeUp,
   isActive,
-  persistenceKey = "jambify-exam-timer",
+  persistenceKey = "schooldra-exam-timer",
 }: UseExamTimerProps) => {
   const [timeLeft, setTimeLeft] = useState(initialTime);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -64,7 +64,7 @@ export const useExamTimer = ({
   useEffect(() => {
     if (isActive) {
       let endTime = getEndTime();
-      
+
       // If no end time exists but timer is active, initialize it
       if (!endTime) {
         endTime = Date.now() + initialTime * 1000;
@@ -77,7 +77,7 @@ export const useExamTimer = ({
         const now = Date.now();
         const currentEndTime = getEndTime() || (now + timeLeft * 1000);
         const remaining = Math.max(0, Math.floor((currentEndTime - now) / 1000));
-        
+
         setTimeLeft(remaining);
 
         if (remaining <= 0) {

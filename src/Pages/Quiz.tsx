@@ -10,7 +10,7 @@ import Button from "../components/ui/Button";
 import {
   fetchQuestionsByTopic,
   fetchQuestionsWithFallback,
-  LIKELY_TOPICS
+  LIKELY_TOPICS,
 } from "../Services/questionService";
 import LoadingScreen from "../components/ui/LoadingScreen";
 import NetworkErrorAlert from "../components/ui/NetworkErrorAlert";
@@ -95,29 +95,26 @@ const Quiz: React.FC = () => {
     }
   }, [location.search, setSubjectAndTopic, reset]);
 
-  
-
   const subjectsMaster = useMemo(
-  () =>
-    QUIZ_SUBJECTS.map((s) => ({
-      name: s.name,
-      topics: LIKELY_TOPICS[s.name] ?? [],
-    })),
-  [],
-);
+    () =>
+      QUIZ_SUBJECTS.map((s) => ({
+        name: s.name,
+        topics: LIKELY_TOPICS[s.name] ?? [],
+      })),
+    [],
+  );
 
-// ── ADD THESE TWO BACK ───────────────────────────────
-const currentSubjectData = useMemo(() => {
-  return subjectsMaster.find((s) => s.name === selectedSubject);
-}, [selectedSubject, subjectsMaster]);
+  // ── ADD THESE TWO BACK ───────────────────────────────
+  const currentSubjectData = useMemo(() => {
+    return subjectsMaster.find((s) => s.name === selectedSubject);
+  }, [selectedSubject, subjectsMaster]);
 
-const availableTopics = useMemo(() => {
-  if (currentSubjectData?.topics && currentSubjectData.topics.length > 0) {
-    return currentSubjectData.topics.filter((t) => t !== "All");
-  }
-  return [];
-}, [currentSubjectData]);
-
+  const availableTopics = useMemo(() => {
+    if (currentSubjectData?.topics && currentSubjectData.topics.length > 0) {
+      return currentSubjectData.topics.filter((t) => t !== "All");
+    }
+    return [];
+  }, [currentSubjectData]);
 
   const [isLoadingQuestions, setIsLoadingQuestions] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -366,7 +363,7 @@ const availableTopics = useMemo(() => {
           }}
           onHome={() => {
             reset();
-            navigate("/");
+            navigate("/dashboard");
           }}
           onPerformance={() => {
             reset();

@@ -15,18 +15,18 @@ interface QuestionData {
   downloadedAt: Date;
 }
 
-class JambifyOfflineDB extends Dexie {
+class SchoolDraOfflineDB extends Dexie {
   questions!: Table<QuestionData>;
 
   constructor() {
-    super("jambify-offline-db");
+    super("schooldra-offline-db");
     this.version(1).stores({
       questions: "++id, packId, downloadedAt",
     });
   }
 }
 
-const db = new JambifyOfflineDB();
+const db = new SchoolDraOfflineDB();
 
 // Map pack IDs to subjects
 const PACK_TO_SUBJECT: Record<string, string> = {

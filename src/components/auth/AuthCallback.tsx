@@ -32,7 +32,7 @@ const AuthCallback: React.FC = () => {
         const { onboardingComplete } = useUserStore.getState();
 
         if (onboardingComplete) {
-          navigate("/");
+          navigate("/dashboard");
         } else {
           navigate("/onboarding");
         }

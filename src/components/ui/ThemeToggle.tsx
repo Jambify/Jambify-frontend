@@ -21,7 +21,7 @@ import React, { useEffect, useRef, useState } from "react";
 
 /* ── constants ────────────────────────────────────────── */
 
-const STORAGE_KEY = "jambify-theme";
+const STORAGE_KEY = "schooldra-theme";
 const TRANSITION_MS = 200;
 
 /* ── types ────────────────────────────────────────────── */

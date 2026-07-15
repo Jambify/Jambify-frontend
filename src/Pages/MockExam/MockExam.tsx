@@ -142,7 +142,7 @@ const MockExam: React.FC = () => {
     initialTime: MOCK_DURATION,
     onTimeUp: handleTimeUp,
     isActive: isStarted && !isFinished,
-    persistenceKey: "jambify-mock-exam-timer",
+    persistenceKey: "schooldra-mock-exam-timer",
   });
 
   // Effect to update active subject when current index changes
@@ -324,77 +324,90 @@ const MockExam: React.FC = () => {
   };
 
   const handleFinishExam = async () => {
-  const timeTaken = MOCK_DURATION - timeLeft;
-  console.log("🔵 [handleFinishExam] timeTaken:", timeTaken);
+    const timeTaken = MOCK_DURATION - timeLeft;
+    console.log("🔵 [handleFinishExam] timeTaken:", timeTaken);
 
-  finishExam(timeTaken);
-  setShowConfirmSubmit(false);
+    finishExam(timeTaken);
+    setShowConfirmSubmit(false);
 
-  // ✅ Read AFTER finishExam so lastResult is populated
-  const { lastResult } = useMockStore.getState();
+    // ✅ Read AFTER finishExam so lastResult is populated
+    const { lastResult } = useMockStore.getState();
 
-  console.log("🔵 [handleFinishExam] lastResult:", lastResult);
-  console.log("🔵 [handleFinishExam] isAuthenticated:", isAuthenticated);
+    console.log("🔵 [handleFinishExam] lastResult:", lastResult);
+    console.log("🔵 [handleFinishExam] isAuthenticated:", isAuthenticated);
 
-  if (!isAuthenticated) {
-    console.warn("⚠️ [handleFinishExam] User not authenticated — skipping save");
-    return;
-  }
-
-  if (!lastResult) {
-    console.error("❌ [handleFinishExam] lastResult is null — finishExam may not have run yet");
-    return;
-  }
-
-  try {
-    console.log("🔵 [handleFinishExam] Saving per-subject sessions...");
-
-    await Promise.all(
-      lastResult.subjectBreakdown.map((sb) => {
-        const subjectQuestions = questions.filter(q => q.subject === sb.subject);
-        const subjectAnswers: Record<string, number> = {};
-        subjectQuestions.forEach((q, idx) => {
-          const globalIdx = questions.indexOf(q);
-          if (answers[globalIdx] !== undefined) {
-            subjectAnswers[idx.toString()] = answers[globalIdx];
-          }
-        });
-
-        console.log(`🔵 [handleFinishExam] Saving subject: ${sb.subject}, correct: ${sb.correct}/${sb.total}`);
-
-        return addQuizResult(
-          "mock",
-          sb.subject,
-          subjectQuestions.map(q => q.id),
-          subjectAnswers,
-          Math.floor(timeTaken / lastResult.subjectBreakdown.length),
-          sb.correct,
-          sb.total,
-          lastResult.topicPerformance,
-        );
-      }),
-    );
-
-    console.log("✅ [handleFinishExam] Per-subject sessions saved");
-
-    // Save to mock_exam_history
-    console.log("🔵 [handleFinishExam] Saving to mock_exam_history...");
-    const historyId = await saveMockExamHistory(lastResult, timeTaken);
-    console.log("✅ [handleFinishExam] mock_exam_history saved, id:", historyId);
-
-    // Update best JAMB score
-    const { updateBestScore, syncProfile } = useUserStore.getState();
-    if (lastResult.jambScore > 0) {
-      console.log(`🏆 [handleFinishExam] Updating best score: ${lastResult.jambScore}`);
-      await updateBestScore(lastResult.jambScore);
+    if (!isAuthenticated) {
+      console.warn(
+        "⚠️ [handleFinishExam] User not authenticated — skipping save",
+      );
+      return;
     }
 
-    await syncProfile(true);
-    console.log("✅ [handleFinishExam] All done");
-  } catch (err) {
-    console.error("❌ [handleFinishExam] Failed:", err);
-  }
-};
+    if (!lastResult) {
+      console.error(
+        "❌ [handleFinishExam] lastResult is null — finishExam may not have run yet",
+      );
+      return;
+    }
+
+    try {
+      console.log("🔵 [handleFinishExam] Saving per-subject sessions...");
+
+      await Promise.all(
+        lastResult.subjectBreakdown.map((sb) => {
+          const subjectQuestions = questions.filter(
+            (q) => q.subject === sb.subject,
+          );
+          const subjectAnswers: Record<string, number> = {};
+          subjectQuestions.forEach((q, idx) => {
+            const globalIdx = questions.indexOf(q);
+            if (answers[globalIdx] !== undefined) {
+              subjectAnswers[idx.toString()] = answers[globalIdx];
+            }
+          });
+
+          console.log(
+            `🔵 [handleFinishExam] Saving subject: ${sb.subject}, correct: ${sb.correct}/${sb.total}`,
+          );
+
+          return addQuizResult(
+            "mock",
+            sb.subject,
+            subjectQuestions.map((q) => q.id),
+            subjectAnswers,
+            Math.floor(timeTaken / lastResult.subjectBreakdown.length),
+            sb.correct,
+            sb.total,
+            lastResult.topicPerformance,
+          );
+        }),
+      );
+
+      console.log("✅ [handleFinishExam] Per-subject sessions saved");
+
+      // Save to mock_exam_history
+      console.log("🔵 [handleFinishExam] Saving to mock_exam_history...");
+      const historyId = await saveMockExamHistory(lastResult, timeTaken);
+      console.log(
+        "✅ [handleFinishExam] mock_exam_history saved, id:",
+        historyId,
+      );
+
+      // Update best JAMB score
+      const { updateBestScore, syncProfile } = useUserStore.getState();
+      if (lastResult.jambScore > 0) {
+        console.log(
+          `🏆 [handleFinishExam] Updating best score: ${lastResult.jambScore}`,
+        );
+        await updateBestScore(lastResult.jambScore);
+      }
+
+      await syncProfile(true);
+      console.log("✅ [handleFinishExam] All done");
+    } catch (err) {
+      console.error("❌ [handleFinishExam] Failed:", err);
+    }
+  };
 
   const updateSubject = (index: number, value: string) => {
     setErrorMessage(null);
@@ -626,19 +639,18 @@ const MockExam: React.FC = () => {
         <MockResultsScreen
           onRetry={() => {
             resetExam();
-            localStorage.removeItem("jambify-mock-exam");
-            localStorage.removeItem("jambify-mock-exam-timer-end");
+            localStorage.removeItem("schooldra-mock-exam");
+            localStorage.removeItem("schooldra-mock-exam-timer-end");
             setErrorMessage(null);
             setActiveSubject("English");
           }}
           onHome={() => {
             resetExam();
-            localStorage.removeItem("jambify-mock-exam");
-            localStorage.removeItem("jambify-mock-exam-timer-end");
-            navigate("/");
+            localStorage.removeItem("schooldra-mock-exam");
+            localStorage.removeItem("schooldra-mock-exam-timer-end");
+            navigate("/dashboard");
           }}
         />
-        
       </AppLayout>
     );
   }
@@ -664,10 +676,10 @@ const MockExam: React.FC = () => {
           <div className="border-borderMuted bg-bgSurface/50 border-b p-5">
             <div className="mb-6 flex items-center gap-2">
               <div className="bg-brand font-display shadow-brand/20 flex h-8 w-8 items-center justify-center rounded-lg text-sm font-black text-white shadow-lg">
-                J
+                S
               </div>
               <span className="font-display text-sm font-bold tracking-tight">
-                JAMBIFY{" "}
+                Schooldra{" "}
                 <span className="text-textDim ml-1 text-[10px] font-medium uppercase">
                   Mock Engine
                 </span>
@@ -1000,7 +1012,7 @@ const MockExam: React.FC = () => {
                 fullWidth
                 onClick={() => {
                   resetExam();
-                  navigate("/");
+                  navigate("/dashboard");
                 }}
               >
                 Exit Exam

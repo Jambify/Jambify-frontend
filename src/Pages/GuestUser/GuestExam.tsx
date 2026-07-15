@@ -93,7 +93,7 @@ const GuestMockExam: React.FC = () => {
     initialTime: MOCK_DURATION,
     onTimeUp: () => handleFinishExam(),
     isActive: isStarted && !isFinished,
-    persistenceKey: "jambify-guest-exam-timer",
+    persistenceKey: "schooldra-guest-exam-timer",
   });
 
   // Update active subject
@@ -979,7 +979,7 @@ const GuestMockExam: React.FC = () => {
                 onClick={() => navigate("/signup")}
                 className="text-brand flex items-center gap-2 text-xs font-black tracking-widest uppercase hover:underline"
               >
-                Join JAMBIFY Now <ArrowRight size={14} />
+                Join Schooldra Now <ArrowRight size={14} />
               </button>
             </div>
           </div>

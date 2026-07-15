@@ -13,6 +13,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
 import { BrowserRouter } from "react-router-dom";
+import { HelmetProvider } from "react-helmet-async";
 import { supabase } from "./lib/supabase";
 import { useUserStore } from "./Store/useUserStore";
 import { initTheme } from "./components/ui/ThemeToggle";
@@ -69,22 +70,28 @@ async function bootstrap() {
 }
 
 // Run bootstrap first, then render the app
-bootstrap().then(() => {
-  ReactDOM.createRoot(document.getElementById("root")!).render(
-    <React.StrictMode>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
-    </React.StrictMode>,
-  );
-}).catch((err) => {
-  console.error("❌ Bootstrap failed:", err);
-  // Fallback render even if bootstrap fails!
-  ReactDOM.createRoot(document.getElementById("root")!).render(
-    <React.StrictMode>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
-    </React.StrictMode>,
-  );
-});
+bootstrap()
+  .then(() => {
+    ReactDOM.createRoot(document.getElementById("root")!).render(
+      <React.StrictMode>
+        <HelmetProvider>
+          <BrowserRouter>
+            <App />
+          </BrowserRouter>
+        </HelmetProvider>
+      </React.StrictMode>,
+    );
+  })
+  .catch((err) => {
+    console.error("❌ Bootstrap failed:", err);
+    // Fallback render even if bootstrap fails!
+    ReactDOM.createRoot(document.getElementById("root")!).render(
+      <React.StrictMode>
+        <HelmetProvider>
+          <BrowserRouter>
+            <App />
+          </BrowserRouter>
+        </HelmetProvider>
+      </React.StrictMode>,
+    );
+  });

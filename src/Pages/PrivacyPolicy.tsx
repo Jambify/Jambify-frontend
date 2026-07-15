@@ -6,10 +6,10 @@ import AppLayout from "../components/Layout/AppLayout";
 
 const PrivacyPolicy: React.FC = () => (
   <AppLayout currentPage="Privacy Policy" hideSidebar={false}>
-    <LegalPage 
-      title="Privacy Policy" 
-      effectiveDate="July 6, 2026" 
-      blocks={privacyPolicyContent} 
+    <LegalPage
+      title="Privacy Policy"
+      effectiveDate="July 6, 2026"
+      blocks={privacyPolicyContent}
     />
   </AppLayout>
 );

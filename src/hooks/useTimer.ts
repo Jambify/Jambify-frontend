@@ -22,7 +22,7 @@ export function useTimer({
   initialSeconds,
   onExpire,
   autoStart = true,
-  persistenceKey = "jambify-quiz-timer",
+  persistenceKey = "Schooldra-quiz-timer",
 }: UseTimerOptions): UseTimerReturn {
   const [timeLeft, setTimeLeft] = useState(initialSeconds);
   const [isRunning, setIsRunning] = useState(autoStart);
@@ -86,7 +86,7 @@ export function useTimer({
       const now = Date.now();
       const currentEndTime = getEndTime() || (now + timeLeft * 1000);
       const remaining = Math.max(0, Math.floor((currentEndTime - now) / 1000));
-      
+
       setTimeLeft(remaining);
 
       if (remaining <= 0) {

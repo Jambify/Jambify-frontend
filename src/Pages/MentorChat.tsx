@@ -28,7 +28,7 @@ import {
 } from "lucide-react";
 
 // ── Mentor system prompt ──────────────────────────────────────────────────────
-const MENTOR_SYSTEM = `You are JAMBIFY AI, a friendly and expert JAMB exam preparation mentor for Nigerian students.
+const MENTOR_SYSTEM = `You are Schooldra AI, a friendly and expert JAMB exam preparation mentor for Nigerian students.
 You know the student's profile and weak subjects (provided in context).
 Be encouraging, specific, and always relate advice back to JAMB preparation.
 Keep responses concise (under 250 words) unless a detailed explanation is needed.
@@ -166,8 +166,7 @@ Student profile:
     messagesRemaining,
   } = useAIChat({
     systemPrompt,
-    storageKey: `jambify-mentor-${name || "guest"}`,
-  });
+    storageKey: `schooldra-mentor-${name || "guest"}`,  });
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
@@ -226,7 +225,7 @@ Student profile:
               </div>
               <div>
                 <p className="text-textMain text-sm font-semibold">
-                  JAMBIFY AI
+                  Schooldra AI
                 </p>
                 <div className="flex items-center gap-1.5">
                   <span className="bg-success h-1.5 w-1.5 animate-pulse rounded-full" />
@@ -319,7 +318,7 @@ Student profile:
               </div>
               <div>
                 <p className="text-textMain text-sm font-semibold">
-                  JAMBIFY AI Mentor
+                  Schooldra AI Mentor
                 </p>
                 <div className="flex items-center gap-1.5">
                   <span className="bg-success h-1.5 w-1.5 animate-pulse rounded-full" />

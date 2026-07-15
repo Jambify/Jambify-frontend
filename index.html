@@ -2,12 +2,93 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/JAMBIFY.LOGO.png" />
+    <link rel="icon" type="image/svg+xml" href="/SCHOOLDRA.LOGO.png" />
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+      content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover"
     />
-    <title>JAMBIFY</title>
+
+    <!-- Google Search Console Verification Placeholder -->
+    <!-- TODO: Replace with actual verification code from Google Search Console -->
+    <!-- <meta name="google-site-verification" content="YOUR_VERIFICATION_CODE" /> -->
+
+    <!-- Primary Meta Tags -->
+    <title>SCHOOLDRA - JAMB UTME Exam Preparation App</title>
+    <meta name="title" content="SCHOOLDRA - JAMB UTME Exam Preparation App" />
+    <meta
+      name="description"
+      content="Prepare for JAMB UTME with SCHOOLDRA - past questions, mock exams, AI tutoring, and performance tracking tailored for Nigerian students"
+    />
+    <meta
+      name="keywords"
+      content="JAMB, UTME, Nigerian exam, JAMB past questions, JAMB mock exam, JAMB preparation, JAMB study app, JAMB tutor"
+    />
+    <meta name="author" content="SCHOOLDRA" />
+    <meta name="language" content="English" />
+    <meta
+      name="robots"
+      content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1"
+    />
+    <meta name="revisit-after" content="7 days" />
+
+    <!-- Canonical Link -->
+    <link rel="canonical" href="https://www.schooldra.com/" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://www.schooldra.com/" />
+    <meta
+      property="og:title"
+      content="SCHOOLDRA - JAMB UTME Exam Preparation App"
+    />
+    <meta
+      property="og:description"
+      content="Prepare for JAMB UTME with SCHOOLDRA - past questions, mock exams, AI tutoring, and performance tracking tailored for Nigerian students"
+    />
+    <meta
+      property="og:image"
+      content="https://www.schooldra.com/SCHOOLDRA.LOGO.png"
+    />
+    <meta property="og:site_name" content="SCHOOLDRA" />
+    <meta property="og:locale" content="en_NG" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://www.schooldra.com/" />
+    <meta
+      property="twitter:title"
+      content="SCHOOLDRA - JAMB UTME Exam Preparation App"
+    />
+    <meta
+      property="twitter:description"
+      content="Prepare for JAMB UTME with SCHOOLDRA - past questions, mock exams, AI tutoring, and performance tracking tailored for Nigerian students"
+    />
+    <meta
+      property="twitter:image"
+      content="https://www.schooldra.com/SCHOOLDRA.LOGO.png"
+    />
+    <meta property="twitter:creator" content="@schooldra" />
+
+    <!-- iOS PWA Configuration -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="apple-mobile-web-app-title" content="SCHOOLDRA" />
+    <link rel="apple-touch-icon" href="/SCHOOLDRA.LOGO.png" />
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#473BF0" />
+    <meta name="background_color" content="#0a0a0f" />
+
+    <!-- Preload critical resources -->
+    <link
+      rel="preload"
+      as="style"
+      href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800;900&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=DM+Mono:wght@400;500&display=swap"
+    />
 
     <!-- Google Fonts: load here so they are available before first paint -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -21,7 +102,7 @@
     <script>
       (function () {
         try {
-          var theme = localStorage.getItem("jambify-theme");
+          var theme = localStorage.getItem("schooldra-theme");
           var supportDarkMode =
             window.matchMedia("(prefers-color-scheme: dark)").matches === true;
           if (!theme && supportDarkMode) theme = "dark";
@@ -29,13 +110,79 @@
 
           if (theme === "light") {
             document.documentElement.setAttribute("data-theme", "light");
-            document.body.style.backgroundColor = "#f5f8ff";
+            document.body.style.backgroundColor = "#faf8ff";
           } else {
             document.documentElement.removeAttribute("data-theme");
             document.body.style.backgroundColor = "#0a0a0f";
           }
         } catch (e) {}
       })();
+    </script>
+
+    <!-- Structured Data: Schema.org -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "EducationalOrganization",
+        "name": "SCHOOLDRA",
+        "url": "https://www.schooldra.com",
+        "logo": "https://www.schooldra.com/SCHOOLDRA.LOGO.png",
+        "description": "Prepare for JAMB UTME with SCHOOLDRA - past questions, mock exams, AI tutoring, and performance tracking tailored for Nigerian students",
+        "sameAs": [
+          "https://twitter.com/schooldra",
+          "https://linkedin.com/company/schooldra",
+          "https://instagram.com/schooldra"
+        ],
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "contactType": "Customer Support",
+          "email": "support@schooldra.com"
+        },
+        "address": {
+          "@type": "PostalAddress",
+          "addressCountry": "NG",
+          "addressRegion": "NG"
+        },
+        "areaServed": "NG",
+        "numberOfEmployees": "1-50"
+      }
+    </script>
+
+    <!-- Structured Data: WebSite with SearchAction -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "SCHOOLDRA",
+        "url": "https://www.schooldra.com",
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": "https://www.schooldra.com/search?q={search_term_string}",
+          "query-input": "required name=search_term_string"
+        }
+      }
+    </script>
+
+    <!-- Structured Data: BreadcrumbList for navigation hierarchy -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "https://www.schooldra.com"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Guest Quiz",
+            "item": "https://www.schooldra.com/guest/quiz"
+          }
+        ]
+      }
     </script>
   </head>
   <body style="background-color: #0a0a0f; margin: 0">

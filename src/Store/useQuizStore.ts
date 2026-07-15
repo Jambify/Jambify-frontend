@@ -95,7 +95,7 @@ export const useQuizStore = create<QuizState>()(
       reset: () => {
         useStudyTrackingStore.getState().stopStudySession();
         // Clear the timer localStorage as well
-        localStorage.removeItem("jambify-quiz-session-timer-end");
+        localStorage.removeItem("schooldra-quiz-session-timer-end");
         set({
           questions: [],
           currentIndex: 0,
@@ -127,7 +127,7 @@ export const useQuizStore = create<QuizState>()(
         }),
     }),
     {
-      name: "jambify-quiz-storage",
+      name: "schooldra-quiz-storage",
       storage: createJSONStorage(() => localStorage),
       // Only persist essential state to keep it lightweight - DO NOT persist timer or quiz flags
       partialize: (state) => ({

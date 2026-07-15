@@ -1,0 +1,47 @@
+# SCHOOLDRA SEO Robots Configuration
+# Allows all legitimate crawlers, blocks bad bots
+
+# Default policy for all bots
+User-agent: *
+Allow: /
+Disallow: /auth/
+Disallow: /dashboard/
+Disallow: /quiz/
+Disallow: /performance/
+Disallow: /subjects/
+Disallow: /mock-exams/
+Disallow: /settings/
+Disallow: /study-groups/
+Disallow: /mentor/
+Disallow: /past-questions/
+Disallow: /pro/
+Disallow: /review/
+Disallow: /onboarding/
+Disallow: /welcome/
+
+# Allow public educational content crawling
+Allow: /
+Allow: /guest/
+Allow: /guest/quiz/
+Allow: /guest/mock/
+Allow: /guest/past-questions/
+Allow: /privacy-policy/
+Allow: /terms-of-service/
+Allow: /signin/
+Allow: /signup/
+
+# Crawl delay to be respectful to server
+Crawl-delay: 1
+
+# Sitemap reference
+Sitemap: https://www.schooldra.com/sitemap.xml
+
+# Block known bad bots
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /

@@ -133,7 +133,7 @@ export const buildGeneratedExplanation = (question: {
     return `The correct answer is <strong>${label}. ${plainCorrect}</strong> because it gives the opposite meaning required by the instruction. Always check whether the question asks for a synonym or an antonym before selecting an option.`;
   }
 
-  return `The correct answer is <strong>${label}. ${plainCorrect}</strong>. The API did not include a worked solution for this item, so JAMBIFY is showing the answer-key explanation: compare the question with the options and choose the option that best satisfies the instruction.`;
+  return `The correct answer is <strong>${label}. ${plainCorrect}</strong>. The API did not include a worked solution for this item, so Schooldra is showing the answer-key explanation: compare the question with the options and choose the option that best satisfies the instruction.`;
 };
 
 export const clampExamYear = (year: string) => {

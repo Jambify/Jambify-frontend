@@ -6,7 +6,6 @@ import { supabase } from "../../lib/supabase";
 
 const PUBLIC_ROUTES = ["/signin", "/signup", "/verify", "/guest"];
 
-
 // ✅ Module-level flag — survives RouteGuard remounts
 let appInitialised = false;
 
@@ -28,7 +27,9 @@ const RouteGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
     const init = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
 
         if (session?.user) {
           useUserStore.setState({
@@ -71,7 +72,7 @@ const RouteGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       </div>
     );
   }
-// 1. Public routes — redirect away if fully authenticated
+  // 1. Public routes — redirect away if fully authenticated
   if (PUBLIC_ROUTES.some((r) => pathname.startsWith(r))) {
     if (
       isAuthenticated &&
@@ -79,24 +80,24 @@ const RouteGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       hasSeenWelcome &&
       (pathname === "/signin" || pathname === "/signup")
     ) {
-      return <Navigate to="/" replace />;
+      return <Navigate to="/dashboard" replace />;
     }
     return <>{children}</>;
   }
 
- // 2. Must be authenticated for everything below
+  // 2. Must be authenticated for everything below
   if (!isAuthenticated) return <Navigate to="/signin" replace />;
   if (!profileExists) return <Navigate to="/onboarding" replace />;
 
   // 3. /onboarding — only for users who haven't finished onboarding
   if (pathname.startsWith("/onboarding")) {
-    if (onboardingComplete) return <Navigate to="/" replace />;
+    if (onboardingComplete) return <Navigate to="/dashboard" replace />;
     return <>{children}</>;
   }
   // 4. /welcome — only for users who finished onboarding but haven't seen welcome
   if (pathname.startsWith("/welcome")) {
     if (!onboardingComplete) return <Navigate to="/onboarding" replace />;
-    if (hasSeenWelcome) return <Navigate to="/" replace />;
+    if (hasSeenWelcome) return <Navigate to="/dashboard" replace />;
     return <>{children}</>;
   }
 

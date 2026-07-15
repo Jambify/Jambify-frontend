@@ -60,7 +60,7 @@ const DangerZone: React.FC = () => {
         <div className="flex flex-col gap-1">
           {[
             { label: "App Version", value: "1.0.4 (Stable)", icon: Info },
-            { label: "Platform", value: "JAMBIFY Web + Mobile", icon: Info },
+            { label: "Platform", value: "Schooldra Web + Mobile", icon: Info },
             { label: "Security", value: "End-to-end encryption", icon: Info },
           ].map((item) => (
             <div

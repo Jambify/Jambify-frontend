@@ -64,7 +64,7 @@ const AIDrawer: React.FC<AIDrawerProps> = ({ question, onClose }) => {
 
   // Each question gets its own isolated chat session (no persistence needed)
   const { messages, isLoading, sendMessage } = useAIChat({
-    systemPrompt: `You are JAMBIFY AI Tutor (Expert Edition). 
+    systemPrompt: `You are Schooldra AI Tutor (Expert Edition). 
 Your goal is to provide deep, professional insights into JAMB questions.
 1. Briefly verify if the provided answer is correct.
 2. Provide a 'Truth Score' (0-100%).

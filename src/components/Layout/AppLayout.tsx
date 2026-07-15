@@ -4,6 +4,7 @@ import { useUserStore } from "../../Store/useUserStore";
 import { useExamCountdown } from "../../hooks/useExamCountdown";
 import Sidebar from "./Sidebar";
 import { useNetworkStatus } from "../../hooks/useNetworkStatus";
+import schooldraLogo from "../../assets/schooldraLogo.png";
 import {
   LayoutGrid,
   FileText,
@@ -139,14 +140,14 @@ const AppLayout: React.FC<LayoutProps> = ({
       {!hideSidebar && (
         <aside className="bg-bgSurface border-borderMuted fixed top-0 bottom-0 left-0 z-100 hidden w-60 flex-col border-r lg:flex">
           <div className="border-borderMuted flex items-center justify-between border-b p-6 pb-4">
-            <div className="flex items-center gap-3">
-              <div className="bg-brand font-display flex h-8 w-8 items-center justify-center rounded-lg font-extrabold shadow-[0_8px_40px_rgba(91,59,255,0.3)]">
-                J
-              </div>
-              <div className="font-display text-[17px] font-bold tracking-tight">
-                JAMB<span className="text-brand-light">IFY</span>
-              </div>
+            <a href="/dashboard">
+            <div className="flex items-center gap-1 cursor-pointer">
+              <img src={schooldraLogo} alt="Schooldra Logo" className="h-8 w-8" />
+              <span className="text-brand-light text-lg font-black tracking-wider">
+                Schooldra
+              </span>
             </div>
+            </a>
             {isPro && (
               <div className="bg-brand/10 text-brand border-brand/20 rounded border px-1.5 py-0.5 text-[9px] font-black tracking-widest uppercase">
                 Pro
@@ -163,7 +164,7 @@ const AppLayout: React.FC<LayoutProps> = ({
                 label="Dashboard"
                 active={currentPage === "dashboard"}
                 icon="grid"
-                path="/"
+                path="/dashboard"
               />
               <NavItem
                 label="Practice Quiz"
@@ -203,7 +204,7 @@ const AppLayout: React.FC<LayoutProps> = ({
                   <div className="flex items-center gap-2">
                     <Sparkles className="text-brand h-4 w-4 transition-transform group-hover:rotate-12" />
                     <span className="text-[12px] font-black tracking-wider uppercase">
-                      JAMBIFY Pro
+                      Schooldra Pro
                     </span>
                   </div>
                   <p className="text-textDim text-[10px] leading-tight">

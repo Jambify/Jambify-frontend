@@ -39,7 +39,7 @@ const SUBJECT_COMBOS = [
     label: "Commerce & Business",
     subjects: ["English", "Commerce", "Economics", "CRS/IRS"],
     icon: "💼",
-  }
+  },
 ];
 
 const TARGET_SCORES = [
@@ -149,8 +149,8 @@ const Onboarding: React.FC = () => {
   // Redirect if already onboarded
   useEffect(() => {
     if (!isCheckingAuth && onboardingComplete) {
-      console.log("🔵 Already onboarded, redirecting to /");
-      navigate("/", { replace: true });
+      console.log("🔵 Already onboarded, redirecting to /welcome");
+      navigate("/welcome", { replace: true });
     }
   }, [onboardingComplete, navigate, isCheckingAuth]);
 
