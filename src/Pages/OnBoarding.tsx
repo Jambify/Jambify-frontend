@@ -7,6 +7,7 @@ import ConfirmModal from "../components/ui/ConfirmModal";
 import { cn } from "../lib/utils/utils";
 import LoadingScreen from "../components/ui/LoadingScreen";
 import CustomSubjectSelector from "../components/Settings/CustomSubjectSelector";
+import schooldraLogo from "../assets/schooldraLogo.png"
 
 /* ── Updated Data with Professional Combos ── */
 const SUBJECT_COMBOS = [
@@ -351,12 +352,10 @@ const Onboarding: React.FC = () => {
     <div className="bg-bgMain text-textMain flex min-h-screen flex-col items-center justify-center p-4">
       {/* Brand Header */}
       <div className="mb-10 flex items-center gap-3">
-        <div className="bg-brand font-display shadow-brand/40 flex h-10 w-10 items-center justify-center rounded-xl text-xl font-black text-white shadow-lg">
-          J
-        </div>
-        <span className="font-display text-textMain text-2xl font-bold tracking-tight">
-          JAMB<span className="text-brand">IFY</span>
-        </span>
+        <img src={schooldraLogo} alt="Schooldra"  className="h-15 w-15 flex items-center justify-center" />
+              <span className="font-display text-3xl item-center font-bold tracking-tight">
+                Schooldra
+              </span>
       </div>
 
       <div className="w-full max-w-xl">

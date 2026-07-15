@@ -143,18 +143,22 @@ const ExamPaywall: React.FC<ExamPaywallProps> = ({ onUpgrade, onBack }) => {
       } = await supabase.auth.getUser();
       if (!user) throw new Error("Please sign in to complete your upgrade.");
 
-      // Record the transaction in our new pro_users table
-      const { error: proError } = await supabase.from("pro_users").insert({
-        user_id: user.id,
-        email: user.email,
-        payment_reference: reference,
-        amount: 3000,
-        status: "active",
-        plan_type: "monthly",
-        expires_at: new Date(
-          Date.now() + 30 * 24 * 60 * 60 * 1000,
-        ).toISOString(),
-      });
+      // Record or update the transaction in our new pro_users table
+      const { error: proError } = await supabase.from("pro_users").upsert(
+        {
+          user_id: user.id,
+          email: user.email,
+          payment_reference: reference,
+          amount: 3000,
+          status: "active",
+          plan_type: "monthly",
+          expires_at: new Date(
+            Date.now() + 30 * 24 * 60 * 60 * 1000,
+          ).toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "user_id" }
+      );
 
       if (proError) {
         console.error("Error recording payment:", proError);

@@ -3,6 +3,7 @@ import { useUserStore } from "../../Store/useUserStore";
 import Button from "../ui/Button";
 import { APP_CONFIG } from "../../Store/useUserStore"; // Importing the app config for pricing details
 import { Crown } from "lucide-react";
+import { supabase } from "../../lib/supabase";
 const PRO_FEATURES = [
   "Download all subject packs for offline use",
   "Access 4,180+ real JAMB questions (1990–2024)",
@@ -70,6 +71,33 @@ const ProGate: React.FC = () => {
         },
         callback: async (data: any) => {
           if (data.status === "successful" || data.status === "completed") {
+            try {
+              // Record or update the transaction in pro_users table
+              const {
+                data: { user },
+              } = await supabase.auth.getUser();
+              if (user) {
+                await supabase.from("pro_users").upsert(
+                  {
+                    user_id: user.id,
+                    email: user.email,
+                    payment_reference: data.tx_ref,
+                    amount: 3000,
+                    status: "active",
+                    plan_type: "monthly",
+                    expires_at: new Date(
+                      Date.now() + 30 * 24 * 60 * 60 * 1000,
+                    ).toISOString(),
+                    updated_at: new Date().toISOString(),
+                  },
+                  { onConflict: "user_id" },
+                );
+              }
+            } catch (err) {
+              console.error("Error recording payment:", err);
+            }
+
+            // Update local store
             await upgradeToPro();
             // Optional: refresh or show success
           } else {

@@ -32,6 +32,14 @@ import GuestTermsOfService from "./Pages/GuestUser/GuestLegal";
 import TermsOfService from "./Pages/TermsOfService";
 import { supabase } from "./lib/supabase";
 import ScrollToTop from "./components/Scrolltotop";
+import FrozenAccountGuard from "./components/auth/FrozenAccountGuard";
+import ProRevokedModal from "./components/auth/ProRevokedModal";
+
+// ── Admin imports ─────────────────────────────────────────────────────────────
+import AdminGuard from "./admin/AdminGuard";
+import AdminLayout from "./admin/AdminLayout";
+import AdminOverview from "./admin/pages/AdminOverview";
+import AdminUsers from "./admin/pages/AdminUsers";
 
 // Make supabase available in console for debugging
 if (typeof window !== "undefined") {
@@ -41,170 +49,194 @@ if (typeof window !== "undefined") {
 const App: React.FC = () => {
   return (
     <AuthErrorBoundary>
-       <ScrollToTop />
-      <StudyTimeTracker />
+      <FrozenAccountGuard>
+        <ProRevokedModal />
+        <ScrollToTop />
+        <StudyTimeTracker />
 
-      <Routes>
-        <Route path="/" element={<Landing />} />
-        <Route path="/signup" element={<SignUp />} />
-        <Route path="/signin" element={<SignIn />} />
-        <Route path="/auth/callback" element={<AuthCallback />} />
+        <Routes>
+          <Route path="/" element={<Landing />} />
+          <Route path="/signup" element={<SignUp />} />
+          <Route path="/signin" element={<SignIn />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
 
-        <Route path="/guest" element={<GuestLanding />} />
-        <Route path="/guest/quiz" element={<GuestQuiz />} />
-        <Route path="/guest/mock" element={<GuestMock />} />
-        <Route path="/guest/past-questions" element={<GuestQuiz />} />
+          <Route path="/guest" element={<GuestLanding />} />
+          <Route path="/guest/quiz" element={<GuestQuiz />} />
+          <Route path="/guest/mock" element={<GuestMock />} />
+          <Route path="/guest/past-questions" element={<GuestQuiz />} />
 
-        {/* Public, unauthenticated legal pages — used by Landing/Guest footers */}
-        <Route
-          path="/guest/privacy-policy"
-          element={
-            <GuestPrivacyPolicy
+          {/* Public, unauthenticated legal pages — used by Landing/Guest footers */}
+          <Route
+            path="/guest/privacy-policy"
+            element={
+              <GuestPrivacyPolicy
               // // title="Privacy Policy"
               // effectiveDate="July 14, 2026"
               // blocks={[]}
-            />
-          }
-        />
-        <Route
-          path="/guest/terms-of-service"
-          element={
-            <GuestTermsOfService
-              title="Terms of Service"
-              effectiveDate="July 14, 2026"
-              blocks={[]}
-            />
-          }
-        />
+              />
+            }
+          />
+          <Route
+            path="/guest/terms-of-service"
+            element={
+              <GuestTermsOfService
+                title="Terms of Service"
+                effectiveDate="July 14, 2026"
+                blocks={[]}
+              />
+            }
+          />
 
-        <Route
-          path="/onboarding"
-          element={
-            <RouteGuard>
-              <Onboarding />
-            </RouteGuard>
-          }
-        />
-        <Route
-          path="/welcome"
-          element={
-            <RouteGuard>
-              <Welcome />
-            </RouteGuard>
-          }
-        />
-        <Route
-          path="/dashboard"
-          element={
-            <RouteGuard>
-              <Dashboard />
-            </RouteGuard>
-          }
-        />
-        <Route
-          path="/quiz"
-          element={
-            <RouteGuard>
-              <Quiz />
-            </RouteGuard>
-          }
-        />
-        <Route
-          path="/performance"
-          element={
-            <RouteGuard>
-              <Performance />
-            </RouteGuard>
-          }
-        />
-        <Route
-          path="/subjects"
-          element={
-            <RouteGuard>
-              <Subjects />
-            </RouteGuard>
-          }
-        />
-        <Route
-          path="/mock-exams"
-          element={
-            <RouteGuard>
-              <MockExam />
-            </RouteGuard>
-          }
-        />
-        <Route
-          path="/settings"
-          element={
-            <RouteGuard>
-              <Settings />
-            </RouteGuard>
-          }
-        />
-        <Route
-          path="/study-groups"
-          element={
-            <RouteGuard>
-              <StudyGroups />
-            </RouteGuard>
-          }
-        />
-        {/* chat with our mentor */}
-        <Route
-          path="/mentor"
-          element={
-            <RouteGuard>
-              <MentorChat />
-            </RouteGuard>
-          }
-        />
-        <Route
-          path="/past-questions"
-          element={
-            <RouteGuard>
-              <PastQuestions />
-            </RouteGuard>
-          }
-        />
+          <Route
+            path="/onboarding"
+            element={
+              <RouteGuard>
+                <Onboarding />
+              </RouteGuard>
+            }
+          />
+          <Route
+            path="/welcome"
+            element={
+              <RouteGuard>
+                <Welcome />
+              </RouteGuard>
+            }
+          />
+          <Route
+            path="/dashboard"
+            element={
+              <RouteGuard>
+                <Dashboard />
+              </RouteGuard>
+            }
+          />
+          <Route
+            path="/quiz"
+            element={
+              <RouteGuard>
+                <Quiz />
+              </RouteGuard>
+            }
+          />
+          <Route
+            path="/performance"
+            element={
+              <RouteGuard>
+                <Performance />
+              </RouteGuard>
+            }
+          />
+          <Route
+            path="/subjects"
+            element={
+              <RouteGuard>
+                <Subjects />
+              </RouteGuard>
+            }
+          />
+          <Route
+            path="/mock-exams"
+            element={
+              <RouteGuard>
+                <MockExam />
+              </RouteGuard>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <RouteGuard>
+                <Settings />
+              </RouteGuard>
+            }
+          />
+          <Route
+            path="/study-groups"
+            element={
+              <RouteGuard>
+                <StudyGroups />
+              </RouteGuard>
+            }
+          />
+          {/* chat with our mentor */}
+          <Route
+            path="/mentor"
+            element={
+              <RouteGuard>
+                <MentorChat />
+              </RouteGuard>
+            }
+          />
+          <Route
+            path="/past-questions"
+            element={
+              <RouteGuard>
+                <PastQuestions />
+              </RouteGuard>
+            }
+          />
 
-        {/* Authenticated-only legal pages (logged-in account area) */}
-        <Route
-          path="/privacy-policy"
-          element={
-            <RouteGuard>
-              <PrivacyPolicy />
-            </RouteGuard>
-          }
-        />
-        <Route
-          path="/terms-of-service"
-          element={
-            <RouteGuard>
-              <TermsOfService />
-            </RouteGuard>
-          }
-        />
+          {/* Authenticated-only legal pages (logged-in account area) */}
+          <Route
+            path="/privacy-policy"
+            element={
+              <RouteGuard>
+                <PrivacyPolicy />
+              </RouteGuard>
+            }
+          />
+          <Route
+            path="/terms-of-service"
+            element={
+              <RouteGuard>
+                <TermsOfService />
+              </RouteGuard>
+            }
+          />
 
-        <Route
-          path="/pro"
-          element={
-            <RouteGuard>
-              <ProPage />
-            </RouteGuard>
-          }
-        />
-        <Route
-          path="/review"
-          element={
-            <RouteGuard>
-              <ReviewScreen onBack={() => window.history.back()} />
-            </RouteGuard>
-          }
-        />
+          <Route
+            path="/pro"
+            element={
+              <RouteGuard>
+                <ProPage />
+              </RouteGuard>
+            }
+          />
+          <Route
+            path="/review"
+            element={
+              <RouteGuard>
+                <ReviewScreen onBack={() => window.history.back()} />
+              </RouteGuard>
+            }
+          />
 
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-      
+          {/* ── Admin routes ── guarded by email allowlist ── */}
+          <Route
+            path="/admin"
+            element={
+              <AdminGuard>
+                <AdminLayout title="Overview">
+                  <AdminOverview />
+                </AdminLayout>
+              </AdminGuard>
+            }
+          />
+          <Route
+            path="/admin/users"
+            element={
+              <AdminGuard>
+                <AdminLayout title="Users">
+                  <AdminUsers />
+                </AdminLayout>
+              </AdminGuard>
+            }
+          />
+
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </FrozenAccountGuard>
     </AuthErrorBoundary>
   );
 };

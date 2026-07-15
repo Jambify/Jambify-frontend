@@ -70,6 +70,7 @@ interface UserState {
   // daysToExam is NOT stored — computed live by useExamCountdown
   onboardingComplete: boolean;
   isPro: boolean;
+  isFrozen: boolean;
   hasSeenWelcome: boolean;
   downloadedData: DownloadedData;
   _lastSync: number | null;
@@ -150,6 +151,7 @@ const DEFAULTS = {
   // daysToExam removed — computed live by useExamCountdown
   onboardingComplete: false,
   isPro: false,
+  isFrozen: false,
   hasSeenWelcome: false,
   downloadedData: {},
   isAuthenticated: false,
@@ -245,6 +247,7 @@ export const useUserStore = create<UserState>()(
               : "",
             email: data.email || get().email,
             isPro: data.is_pro ?? false,
+            isFrozen: data.is_frozen ?? false,
             bestScore: data.overall_score || 0,
             overallScore: data.overall_score || 0,
             accuracy: data.accuracy || 0,

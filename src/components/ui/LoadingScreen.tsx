@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Button from "./Button";
+import schooldraLogo from "../../assets/schooldraLogo.png";
 
 interface LoadingScreenProps {
   message?: string;
@@ -76,7 +77,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
         {/* Logo Section */}
         <div className="mb-10 flex flex-col items-center">
           <motion.div
-            className="bg-brand shadow-brand/40 group relative mb-6 flex h-20 w-20 items-center justify-center overflow-hidden rounded-4xl shadow-2xl"
+            // className="bg-brand shadow-brand/40 group relative mb-6 flex h-20 w-20 items-center justify-center overflow-hidden rounded-4xl shadow-2xl"
             animate={{
               y: [0, -8, 0],
               rotate: [0, 2, -2, 0],
@@ -84,14 +85,15 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
             transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
           >
             <div className="absolute inset-0 bg-linear-to-tr from-white/25 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
-            <span className="text-4xl font-black tracking-tighter text-white">
-              J
-            </span>
+            <img
+              src={schooldraLogo}
+              alt="Schooldra"
+              className="flex h-20 w-20 items-center justify-center"
+            />
           </motion.div>
-
-          <h1 className="font-display text-textMain text-3xl font-black tracking-tight">
-            JAMB<span className="text-brand">IFY</span>
-          </h1>
+          <span className="font-display item-center text-3xl font-bold tracking-tight">
+            Schooldra
+          </span>
           <div className="bg-brand/40 mt-3 h-1.5 w-10 rounded-full" />
         </div>
 
