@@ -31,6 +31,7 @@ import GuestPrivacyPolicy from "./Pages/GuestUser/GuestPrivacy";
 import GuestTermsOfService from "./Pages/GuestUser/GuestLegal";
 import TermsOfService from "./Pages/TermsOfService";
 import { supabase } from "./lib/supabase";
+import ScrollToTop from "./components/Scrolltotop";
 
 // Make supabase available in console for debugging
 if (typeof window !== "undefined") {
@@ -40,7 +41,9 @@ if (typeof window !== "undefined") {
 const App: React.FC = () => {
   return (
     <AuthErrorBoundary>
+       <ScrollToTop />
       <StudyTimeTracker />
+
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/signup" element={<SignUp />} />
@@ -201,6 +204,7 @@ const App: React.FC = () => {
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      
     </AuthErrorBoundary>
   );
 };

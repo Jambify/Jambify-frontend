@@ -152,7 +152,7 @@ const SignIn: React.FC = () => {
         );
 
         // Navigate based on fresh DB value — no stale state
-        navigate(onboardingComplete ? "/" : "/onboarding", { replace: true });
+        navigate(onboardingComplete ? "/dashboard" : "/onboarding", { replace: true });
       }
     } catch (err) {
       setError(

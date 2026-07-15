@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { BookOpen, Trophy, ArrowRight, LogIn, Zap } from "lucide-react";
 import ThemeToggle from "../../components/ui/ThemeToggle";
+import schooldraLogo from "../../assets/schooldraLogo.png"
 // import { cn } from "../../lib/utils/utils";
 
 /**
@@ -64,12 +65,10 @@ const GuestLanding: React.FC = () => {
             transition={{ duration: 0.5 }}
             className="flex items-center gap-3"
           >
-            <div className="bg-brand shadow-brand/20 flex h-11 w-11 items-center justify-center rounded-xl font-black text-white shadow-lg">
-              J
-            </div>
-            <span className="font-display text-textMain text-2xl font-bold tracking-tight">
-              JAMB<span className="text-brand font-black">IFY</span>
-            </span>
+           <img src={schooldraLogo} alt="Schooldra" className="h-8 w-8" />
+              <span className="font-display text-lg font-bold tracking-tight">
+                Schooldra
+              </span>
           </motion.div>
 
           <motion.div
@@ -123,11 +122,9 @@ const GuestLanding: React.FC = () => {
           <div className="mx-auto w-full max-w-md lg:mx-0 lg:max-w-110ad">
             {/* Mobile Logo */}
             <div className="mb-10 flex items-center justify-center gap-3 lg:hidden">
-              <div className="bg-brand font-display shadow-brand/40 flex h-10 w-10 items-center justify-center rounded-xl text-xl font-bold text-white">
-                J
-              </div>
-              <span className="font-display text-textMain text-2xl font-bold tracking-tight">
-                JAMB<span className="text-brand">IFY</span>
+              <img src={schooldraLogo} alt="Schooldra" className="h-8 w-8" />
+              <span className="font-display text-lg font-bold tracking-tight">
+                Schooldra
               </span>
             </div>
 
