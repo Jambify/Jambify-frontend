@@ -242,34 +242,35 @@ const LandingPage: React.FC = () => {
           transition={{ ...fadeUp.transition, delay: 0.2 }}
           className="mx-auto max-w-6xl px-6 pb-16 lg:pb-24"
         >
-         <div className="mx-auto mt-8 max-w-6xl">
-  {/* The Window Shell */}
-  <div className="bg-bgCard border-borderMuted rounded-xl border shadow-2xl overflow-hidden">
-    {/* Browser/Window Header */}
-    <div className="bg-bgSurface border-b border-borderMuted px-4 py-2 flex items-center gap-2">
-      <div className="flex gap-1.5">
-        <div className="w-2.5 h-2.5 rounded-full bg-red-500/80" />
-        <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/80" />
-        <div className="w-2.5 h-2.5 rounded-full bg-green-500/80" />
-      </div>
-      <div className="ml-2 h-4 w-48 rounded bg-bgMain/50" /> {/* Fake URL bar */}
-    </div>
-    
-    {/* The Video Content */}
-    <div className="relative aspect-video">
-      <video
-        className="w-full h-full object-cover"
-        autoPlay
-        muted
-        loop
-        playsInline
-        poster={dashboardPreviewImg}
-      >
-        <source src={heroDemoVideo} type="video/mp4" />
-      </video>
-    </div>
-  </div>
-</div>
+          <div className="mx-auto mt-8 max-w-6xl">
+            {/* The Window Shell */}
+            <div className="bg-bgCard border-borderMuted overflow-hidden rounded-xl border shadow-2xl">
+              {/* Browser/Window Header */}
+              <div className="bg-bgSurface border-borderMuted flex items-center gap-2 border-b px-4 py-2">
+                <div className="flex gap-1.5">
+                  <div className="h-2.5 w-2.5 rounded-full bg-red-500/80" />
+                  <div className="h-2.5 w-2.5 rounded-full bg-yellow-500/80" />
+                  <div className="h-2.5 w-2.5 rounded-full bg-green-500/80" />
+                </div>
+                <div className="bg-bgMain/50 ml-2 h-4 w-48 rounded" />{" "}
+                {/* Fake URL bar */}
+              </div>
+
+              {/* The Video Content */}
+              <div className="relative aspect-video">
+                <video
+                  className="h-full w-full object-contain"
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  poster={dashboardPreviewImg}
+                >
+                  <source src={heroDemoVideo} type="video/mp4" />
+                </video>
+              </div>
+            </div>
+          </div>
         </motion.section>
 
         {/* SOCIAL PROOF STRIP — flowing marquee effect */}
