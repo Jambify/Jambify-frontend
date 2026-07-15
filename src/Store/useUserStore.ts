@@ -78,6 +78,7 @@ interface UserState {
   currentStreakToShow: number;
   lastStreakWeek: string | null;
   lastSeenStreakPopup: number;
+  isAdmin: boolean;
 
   // ── Auth ─────────────────────────────────────────────
   isAuthenticated: boolean;
@@ -153,6 +154,7 @@ const DEFAULTS = {
   isPro: false,
   isFrozen: false,
   hasSeenWelcome: false,
+  isAdmin: false,
   downloadedData: {},
   isAuthenticated: false,
   isLoading: false,
@@ -236,6 +238,12 @@ export const useUserStore = create<UserState>()(
 
           const onboardingComplete = data.onboarding_complete === true;
 
+          // Check if user is admin
+          const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL as string | undefined;
+          const isCurrentUserAdmin = ADMIN_EMAIL
+            ? data.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase()
+            : false;
+
           set({
             name: data.name || get().name,
             university: data.university || "",
@@ -261,6 +269,7 @@ export const useUserStore = create<UserState>()(
             isLoading: false,
             _profileReady: true,
             hasSeenWelcome: data.has_seen_welcome ?? false,
+            isAdmin: isCurrentUserAdmin,
           });
 
           return { onboardingComplete, profileExists: true };

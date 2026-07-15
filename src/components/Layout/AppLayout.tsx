@@ -311,7 +311,7 @@ const AppLayout: React.FC<LayoutProps> = ({
         <div className="bg-bgSurface/98 border-borderMuted/30 safe-area-bottom shadow-nav fixed right-0 bottom-0 left-0 z-100 border-t backdrop-blur-2xl lg:hidden">
           <nav className="relative flex h-18 items-center justify-around px-1">
             <Link
-              to="/"
+              to="/dashboard"
               className="touch-target no-double-tap flex h-full flex-1 flex-col items-center justify-center gap-1 transition-all active:scale-90"
               aria-label="Dashboard"
             >

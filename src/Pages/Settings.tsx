@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import AppLayout from "../components/Layout/AppLayout";
 import { useUserStore } from "../Store/useUserStore";
 import ProfileForm from "../components/Settings/ProfileForm";
@@ -19,8 +19,9 @@ const TABS: { id: Tab; label: string; icon: string }[] = [
 
 const Settings: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const { name } = useUserStore();
+  const { name, isAdmin } = useUserStore();
   const location = useLocation();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<Tab>(
     (location.state as any)?.activeTab || "profile",
   );
@@ -39,14 +40,27 @@ const Settings: React.FC = () => {
     >
       <div className="mx-auto max-w-2xl">
         {/* <── Page header ── */}
-        <div className="mb-6">
-          <h2 className="font-display text-2xl font-bold tracking-tight">
-            Settings
-          </h2>
-          <p className="text-textMuted mt-1 text-sm">
-            Manage your profile, exam targets, and account preferences.
-          </p>
-        </div>
+       {/* <── Page header ── */}
+<div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+  <div>
+    <h2 className="font-display text-2xl font-bold tracking-tight">
+      Settings
+    </h2>
+    <p className="text-textMuted mt-1 text-sm">
+      Manage your profile, exam targets, and account preferences.
+    </p>
+  </div>
+
+  {/* Admin Panel Button */}
+  {isAdmin && (
+    <button
+      onClick={() => navigate("/admin")}
+      className="bg-brand hover:bg-brand/90 flex w-full items-center justify-center gap-2 rounded-brand px-4 py-3 text-sm font-bold text-white transition-all sm:w-auto sm:py-2"
+    >
+      🛠️ Admin Panel
+    </button>
+  )}
+</div>
 
         {/* <── Avatar + name hero ── */}
         <div className="bg-bgCard border-borderMuted rounded-brand-xl mb-5 flex items-center gap-4 border p-5">
