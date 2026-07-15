@@ -3,6 +3,38 @@ import { useNavigate } from "react-router-dom";
 import type { Subject } from "../../Types/subject";
 import TopicList from "./SubjectTopic";
 import { cn } from "../../lib/utils/utils";
+import {
+  Trophy,
+  AlertTriangle,
+  BookOpen,
+  Calculator,
+  Zap,
+  FlaskConical,
+  Dna,
+  BarChart3,
+  Landmark,
+  Church,
+  Moon,
+  Briefcase,
+} from "lucide-react";
+
+const getSubjectIconComponent = (subject: string) => {
+  const icons: Record<string, React.ElementType> = {
+    English: BookOpen,
+    Mathematics: Calculator,
+    Physics: Zap,
+    Chemistry: FlaskConical,
+    Biology: Dna,
+    Economics: BarChart3,
+    Government: Landmark,
+    "Literature in English": BookOpen,
+    CRS: Church,
+    IRS: Moon,
+    Commerce: Briefcase,
+  };
+  const Icon = icons[subject] || BookOpen;
+  return <Icon size={20} />;
+};
 
 interface SubjectCardProps {
   subject: Subject;
@@ -53,9 +85,11 @@ const SubjectCard: React.FC<SubjectCardProps> = ({
           >
             <div
               className="rounded-brand flex h-11 w-11 shrink-0 items-center justify-center text-xl transition-transform group-hover/sub:scale-110"
-              style={{ background: `${subject.color}18` }}
+              style={{
+                background: `color-mix(in srgb, ${subject.color} 18%, transparent)`,
+              }}
             >
-              {subject.icon}
+              {getSubjectIconComponent(subject.name)}
             </div>
             <div className="min-w-0">
               <h3 className="font-display group-hover/sub:text-brand truncate text-base font-semibold tracking-tight transition-colors">
@@ -88,13 +122,13 @@ const SubjectCard: React.FC<SubjectCardProps> = ({
         {(isBest || isWorst || statusLabel) && (
           <div className="mb-3 flex flex-wrap items-center gap-1.5">
             {isBest && (
-              <span className="bg-success/20 text-success rounded border border-success/30 px-2 py-0.5 text-[10px] font-bold tracking-tight whitespace-nowrap uppercase">
-                🏆 Best
+              <span className="bg-success/20 text-success border-success/30 flex items-center gap-1 rounded border px-2 py-0.5 text-[10px] font-bold tracking-tight whitespace-nowrap uppercase">
+                <Trophy size={10} /> Best
               </span>
             )}
             {isWorst && (
-              <span className="bg-danger/20 text-danger rounded border border-danger/30 px-2 py-0.5 text-[10px] font-bold tracking-tight whitespace-nowrap uppercase">
-                ⚠️ Worst
+              <span className="bg-danger/20 text-danger border-danger/30 flex items-center gap-1 rounded border px-2 py-0.5 text-[10px] font-bold tracking-tight whitespace-nowrap uppercase">
+                <AlertTriangle size={10} /> Worst
               </span>
             )}
             <span
@@ -144,7 +178,9 @@ const SubjectCard: React.FC<SubjectCardProps> = ({
                 topics={subject.weakTopics}
                 color={subject.color}
                 onTopicClick={(topic) => {
-                  navigate(`/quiz?subject=${encodeURIComponent(subject.name)}&topic=${encodeURIComponent(topic)}`);
+                  navigate(
+                    `/quiz?subject=${encodeURIComponent(subject.name)}&topic=${encodeURIComponent(topic)}`,
+                  );
                 }}
               />
             </div>
@@ -167,7 +203,7 @@ const SubjectCard: React.FC<SubjectCardProps> = ({
                 e.stopPropagation();
                 navigate("/performance");
               }}
-              className="rounded-brand bg-bgSurface border-borderMuted text-textMuted hover:text-textMain border px-4 py-2 text-xs font-medium transition-all hover:border-brand/20 dark:hover:border-white/15"
+              className="rounded-brand bg-bgSurface border-borderMuted text-textMuted hover:text-textMain hover:border-brand/20 border px-4 py-2 text-xs font-medium transition-all dark:hover:border-white/15"
             >
               View stats
             </button>

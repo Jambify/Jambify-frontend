@@ -29,8 +29,7 @@ export const ALL_SUBJECTS_MASTER = [
   {
     id: "eng",
     name: "English",
-    icon: "📖",
-    color: "#7B5FFF",
+    color: "var(--color-brand)",
     total: 420,
     topics: [
       "Comprehension",
@@ -43,8 +42,7 @@ export const ALL_SUBJECTS_MASTER = [
   {
     id: "math",
     name: "Mathematics",
-    icon: "🔢",
-    color: "#00C896",
+    color: "var(--color-success)",
     total: 380,
     topics: [
       "Number Bases",
@@ -71,8 +69,7 @@ export const ALL_SUBJECTS_MASTER = [
   {
     id: "phy",
     name: "Physics",
-    icon: "⚡",
-    color: "#FFB020",
+    color: "var(--color-warn)",
     total: 310,
     topics: [
       "Mechanics",
@@ -86,8 +83,7 @@ export const ALL_SUBJECTS_MASTER = [
   {
     id: "chem",
     name: "Chemistry",
-    icon: "⚗️",
-    color: "#FF4D6D",
+    color: "var(--color-danger)",
     total: 340,
     topics: [
       "Rates of Chemical Reactions",
@@ -109,8 +105,7 @@ export const ALL_SUBJECTS_MASTER = [
   {
     id: "bio",
     name: "Biology",
-    icon: "🧬",
-    color: "#00C896",
+    color: "var(--color-success)",
     total: 290,
     topics: [
       "Adaptation",
@@ -126,8 +121,7 @@ export const ALL_SUBJECTS_MASTER = [
   {
     id: "econ",
     name: "Economics",
-    icon: "📊",
-    color: "#FFB020",
+    color: "var(--color-warn)",
     total: 270,
     topics: [
       "Introduction to Economics (Scarcity & Choice)",
@@ -142,7 +136,7 @@ export const ALL_SUBJECTS_MASTER = [
     ],
   },
   {
-    id: "gov", name: "Government", icon: "🏛️", color: "#EC4899", total: 300, topics: [
+    id: "gov", name: "Government", color: "var(--color-teal)", total: 300, topics: [
       "Political Science & Governance - Systems of Government",
       "Political Science & Governance - Political Ideologies",
       "Political Science & Governance - Public Opinion",
@@ -161,14 +155,13 @@ export const ALL_SUBJECTS_MASTER = [
       "Arms of Government - Pressure Groups"
     ]
   },
-  { id: "lit", name: "Literature in English", icon: "📚", color: "#F97316", total: 300 },
-  { id: "crs", name: "CRS", icon: "✝️", color: "#A855F7", total: 250 },
-  { id: "irs", name: "IRS", icon: "🌙", color: "#00C896", total: 250 },
+  { id: "lit", name: "Literature in English", color: "var(--color-brand)", total: 300 },
+  { id: "crs", name: "CRS", color: "var(--color-brand)", total: 250 },
+  { id: "irs", name: "IRS", color: "var(--color-success)", total: 250 },
   { 
     id: "com", 
     name: "Commerce", 
-    icon: "💼", 
-    color: "#FFB020", 
+    color: "var(--color-warn)", 
     total: 300,
     topics: [
       "Business Organization",

@@ -3,11 +3,48 @@ import { useNavigate } from "react-router-dom";
 import { useSubjectStore } from "../../Store/useSubjectStore";
 import { useUserStore } from "../../Store/useUserStore";
 import { cn } from "../../lib/utils/utils";
-import { Sparkles, Clock, BookOpen, ArrowRight } from "lucide-react";
+import {
+  Sparkles,
+  Clock,
+  BookOpen,
+  ArrowRight,
+  FileText,
+  Star,
+} from "lucide-react";
+
+import {
+  BookOpen as SubjectBookOpen,
+  Calculator,
+  Zap,
+  FlaskConical,
+  Dna,
+  BarChart3,
+  Landmark,
+  Church,
+  Moon,
+  Briefcase,
+} from "lucide-react";
+
+const getSubjectIconComponent = (subject: string) => {
+  const icons: Record<string, React.ElementType> = {
+    English: SubjectBookOpen,
+    Mathematics: Calculator,
+    Physics: Zap,
+    Chemistry: FlaskConical,
+    Biology: Dna,
+    Economics: BarChart3,
+    Government: Landmark,
+    "Literature in English": SubjectBookOpen,
+    CRS: Church,
+    IRS: Moon,
+    Commerce: Briefcase,
+  };
+  return icons[subject] || SubjectBookOpen;
+};
 
 interface Session {
   id: string;
-  icon: string;
+  icon: React.ReactNode;
   iconBg: string;
   name: string;
   questions: number;
@@ -57,9 +94,10 @@ const RecommendedSessions: React.FC = () => {
       const route = topic
         ? `/quiz?subject=${encodeURIComponent(s.name)}&topic=${encodeURIComponent(topic)}`
         : `/quiz?subject=${encodeURIComponent(s.name)}`;
+      const SubjectIcon = getSubjectIconComponent(s.name);
       built.push({
         id: `subj-${s.id}`,
-        icon: s.icon,
+        icon: <SubjectIcon size={18} />,
         iconBg: "bg-brand/10",
         name: `${s.name}: ${s.weakTopics[0] ?? "Practice"}`,
         questions: qCount,
@@ -74,7 +112,7 @@ const RecommendedSessions: React.FC = () => {
     // Always add a mock exam slot
     built.push({
       id: "mock",
-      icon: "📝",
+      icon: <FileText size={18} />,
       iconBg: "bg-warn/10",
       name: isNewUser ? "Try a Mini Mock Exam" : "Full Mock Exam",
       questions: isNewUser ? 20 : 180,
@@ -138,8 +176,8 @@ const RecommendedSessions: React.FC = () => {
               {/* Recommended badge */}
               {s.tag === "recommended" && (
                 <div className="mb-0.5 flex items-center gap-1">
-                  <span className="text-brand-light text-[9px] font-bold tracking-widest uppercase">
-                    ⭐ For you
+                  <span className="text-brand-light flex items-center gap-1 text-[9px] font-bold tracking-widest uppercase">
+                    <Star size={10} /> For you
                   </span>
                 </div>
               )}

@@ -2,20 +2,44 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePerformanceStore } from "../../Store/usePerformanceStore";
 import { useUserStore } from "../../Store/useUserStore";
-import { useSubjectStore, SUBJECT_COMBO_MAP } from "../../Store/useSubjectStore";
 import {
-  BookOpen, AlertTriangle, ArrowRight,
-  CheckCircle, Sparkles, RefreshCw,
+  useSubjectStore,
+  SUBJECT_COMBO_MAP,
+} from "../../Store/useSubjectStore";
+import {
+  BookOpen,
+  AlertTriangle,
+  ArrowRight,
+  CheckCircle,
+  Sparkles,
+  RefreshCw,
+  Calculator,
+  Zap,
+  FlaskConical,
+  Dna,
+  BarChart3,
+  Landmark,
+  Church,
+  Moon,
+  Briefcase,
 } from "lucide-react";
 
 const getSubjectIcon = (subject: string) => {
-  const icons: Record<string, string> = {
-    English: "📖", Mathematics: "🔢", Physics: "⚡",
-    Chemistry: "⚗️", Biology: "🧬", Economics: "📊",
-    Government: "🏛️", "Literature in English": "📚",
-    CRS: "✝️", IRS: "🌙", Commerce: "💼",
+  const icons: Record<string, React.ElementType> = {
+    English: BookOpen,
+    Mathematics: Calculator,
+    Physics: Zap,
+    Chemistry: FlaskConical,
+    Biology: Dna,
+    Economics: BarChart3,
+    Government: Landmark,
+    "Literature in English": BookOpen,
+    CRS: Church,
+    IRS: Moon,
+    Commerce: Briefcase,
   };
-  return icons[subject] || "📖";
+  const Icon = icons[subject] || BookOpen;
+  return <Icon size={20} />;
 };
 
 const LOADING_MESSAGES = [
@@ -26,7 +50,13 @@ const LOADING_MESSAGES = [
 
 const SubjectProgress: React.FC = () => {
   const navigate = useNavigate();
-  const { topicStats, isLoading, mockHistory, hasFetched, loadPerformanceData } = usePerformanceStore();
+  const {
+    topicStats,
+    isLoading,
+    mockHistory,
+    hasFetched,
+    loadPerformanceData,
+  } = usePerformanceStore();
   const { subjectCombo } = useUserStore();
   const { subjects } = useSubjectStore();
 
@@ -72,8 +102,8 @@ const SubjectProgress: React.FC = () => {
   const userSubjects = Array.isArray(subjectCombo)
     ? subjectCombo
     : subjectCombo
-    ? SUBJECT_COMBO_MAP[subjectCombo] || [subjectCombo]
-    : [];
+      ? SUBJECT_COMBO_MAP[subjectCombo] || [subjectCombo]
+      : [];
 
   const comboWeakestTopics = topicStats.filter(
     (t) =>
@@ -94,7 +124,8 @@ const SubjectProgress: React.FC = () => {
           Slow Network Detected
         </h3>
         <p className="text-textDim mb-6 max-w-60 text-sm">
-          Your connection seems weak. Taking longer than usual to load your progress.
+          Your connection seems weak. Taking longer than usual to load your
+          progress.
         </p>
         <button
           onClick={handleRetry}
@@ -130,7 +161,8 @@ const SubjectProgress: React.FC = () => {
           No Exam Taken Yet
         </h3>
         <p className="text-textDim mb-6 max-w-60 text-sm">
-          Take your first mock exam to unlock your personalized progress tracking.
+          Take your first mock exam to unlock your personalized progress
+          tracking.
         </p>
         <button
           onClick={() => navigate("/mock-exams")}
@@ -153,7 +185,8 @@ const SubjectProgress: React.FC = () => {
           All Topics Mastered!
         </h3>
         <p className="text-textDim mb-6 max-w-60 text-sm">
-          You've reached over 50% accuracy in all your topics. Ready for the exam!
+          You've reached over 50% accuracy in all your topics. Ready for the
+          exam!
         </p>
         <button
           onClick={() => navigate("/mock-exams")}
@@ -170,7 +203,9 @@ const SubjectProgress: React.FC = () => {
     <div className="bg-bgCard border-borderMuted rounded-brand-xl flex h-full flex-col border p-6">
       <div className="mb-6 flex items-center justify-between">
         <div className="flex flex-col gap-0.5">
-          <h3 className="font-display text-textMain font-bold">Weakest Topics</h3>
+          <h3 className="font-display text-textMain font-bold">
+            Weakest Topics
+          </h3>
           <p className="text-textDim text-[11px] font-medium">
             One critical area from each of your subjects
           </p>
@@ -180,14 +215,18 @@ const SubjectProgress: React.FC = () => {
           className="text-brand hover:text-brand-light group flex items-center gap-1 text-xs font-bold"
         >
           View all{" "}
-          <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" />
+          <ArrowRight
+            size={14}
+            className="transition-transform group-hover:translate-x-0.5"
+          />
         </button>
       </div>
 
       <div className="custom-scrollbar space-y-3 overflow-y-auto pr-1">
         {comboWeakestTopics.map((item, index) => {
           const subjectData = subjects.find((s) => s.name === item.subject);
-          const progressColor = item.accuracy < 30 ? "#FF4D6D" : "#FFB020";
+          const progressColor =
+            item.accuracy < 30 ? "var(--color-danger)" : "var(--color-warn)";
 
           return (
             <div
@@ -202,7 +241,9 @@ const SubjectProgress: React.FC = () => {
               <div className="bg-bgSurface border-borderMuted hover:border-brand/30 rounded-brand-lg flex items-center gap-3 border p-4 transition-all">
                 <div
                   className="flex h-10 w-10 items-center justify-center rounded-lg text-xl"
-                  style={{ background: `${subjectData?.color || "#7B5FFF"}20` }}
+                  style={{
+                    background: `color-mix(in srgb, ${subjectData?.color || "var(--color-brand)"} 20%, transparent)`,
+                  }}
                 >
                   {getSubjectIcon(item.subject)}
                 </div>
@@ -210,7 +251,9 @@ const SubjectProgress: React.FC = () => {
                   <p className="text-textMain group-hover:text-brand truncate text-sm font-bold transition-colors">
                     {item.name}
                   </p>
-                  <p className="text-textDim text-[11px] font-medium">{item.subject}</p>
+                  <p className="text-textDim text-[11px] font-medium">
+                    {item.subject}
+                  </p>
                 </div>
                 <div className="flex flex-col items-end gap-1">
                   <div className="flex items-center gap-2">
@@ -226,7 +269,10 @@ const SubjectProgress: React.FC = () => {
                   <div className="bg-bgTrack h-1.5 w-20 overflow-hidden rounded-full">
                     <div
                       className="h-full rounded-full transition-all duration-300"
-                      style={{ width: `${item.accuracy}%`, background: progressColor }}
+                      style={{
+                        width: `${item.accuracy}%`,
+                        background: progressColor,
+                      }}
                     />
                   </div>
                 </div>

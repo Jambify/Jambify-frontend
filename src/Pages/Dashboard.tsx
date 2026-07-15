@@ -20,32 +20,34 @@ import {
   Target,
   CheckCircle2,
   Zap,
+  GraduationCap,
+  
 } from "lucide-react";
 import { cn } from "../lib/utils/utils";
 
 // ── Countdown display helpers ─────────────────────────────
 function countdownColor(days: number): string {
-  if (days < 0) return "#6B7280"; // grey  — no date
-  if (days === 0) return "#F97316"; // orange — exam day
-  if (days <= 7) return "#EF4444"; // red   — critical
-  if (days <= 30) return "#F59E0B"; // amber — soon
-  return "#7B5FFF"; // brand — comfortable
+  if (days < 0) return "var(--text-dim)"; // grey  — no date
+  if (days === 0) return "var(--color-warn)"; // orange — exam day
+  if (days <= 7) return "var(--color-danger)"; // red   — critical
+  if (days <= 30) return "var(--color-warn)"; // amber — soon
+  return "var(--color-brand)"; // brand — comfortable
 }
 
 function countdownBadge(days: number): { label: string; sublabel: string } {
   if (days < 0) return { label: "—", sublabel: "No date set" };
-  if (days === 0) return { label: "Today", sublabel: "Exam day 🎯" };
+  if (days === 0) return { label: "Today", sublabel: "Exam day" };
   if (days === 1) return { label: "1", sublabel: "day remaining" };
   return { label: days.toString(), sublabel: "days remaining" };
 }
 
 function countdownMotivation(days: number): string {
   if (days < 0) return "";
-  if (days === 0) return "🎯 Today is the day. You've got this!";
-  if (days <= 7) return "⚡ Final sprint! Give it everything you have.";
-  if (days <= 30) return "💪 Keep pushing — you're on track.";
-  if (days <= 100) return "📈 Stay consistent and you'll get there.";
-  return "🎯 You have plenty of time — stay consistent.";
+  if (days === 0) return "Today is the day. You've got this!";
+  if (days <= 7) return "Final sprint! Give it everything you have.";
+  if (days <= 30) return "Keep pushing — you're on track.";
+  if (days <= 100) return "Stay consistent and you'll get there.";
+  return "You have plenty of time — stay consistent.";
 }
 
 import { usePerformanceStore } from "../Store/usePerformanceStore";
@@ -216,16 +218,7 @@ const Dashboard: React.FC = () => {
       <div className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-[1fr_auto]">
         {/* ── Left: greeting + CTAs ─────────────────────── */}
         <div className="bg-bgCard border-borderMuted rounded-brand-xl relative overflow-hidden border p-6 md:p-8">
-          {/* Subtle ambient glow */}
-          <div
-            className="ambient-glow pointer-events-none absolute inset-0"
-            style={{
-              background:
-                "radial-gradient(ellipse 70% 80% at 100% 50%, rgba(91,59,255,0.10) 0%, transparent 65%)",
-            }}
-          />
-
-          <div className="relative z-10">
+          <div>
             {/* Tag line */}
             <div className="mb-3 flex items-center gap-2">
               <span className="bg-brand/10 border-brand/20 text-brand-light inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold tracking-widest uppercase">
@@ -234,7 +227,7 @@ const Dashboard: React.FC = () => {
               </span>
               {university && (
                 <span className="bg-bgSurface border-borderMuted text-textDim inline-flex max-w-50 items-center gap-1.5 truncate rounded-full border px-2.5 py-1 text-[10px]">
-                  🎓 {university}
+                  <GraduationCap size={12} /> {university}
                 </span>
               )}
             </div>
@@ -292,7 +285,7 @@ const Dashboard: React.FC = () => {
         <div
           className="bg-bgCard border-borderMuted rounded-brand-xl relative overflow-hidden border"
           style={{
-            background: `linear-gradient(135deg, rgba(${cdColor === "#7B5FFF" ? "91,59,255" : cdColor === "#EF4444" ? "239,68,68" : cdColor === "#F59E0B" ? "245,158,11" : "249,115,22"}, var(--cd-opacity, 0.08)) 0%, transparent 70%)`,
+            background: `linear-gradient(135deg, color-mix(in srgb, ${cdColor} 8%, transparent) 0%, transparent 70%)`,
           }}
         >
           {/* ── Mobile: compact horizontal strip ── */}
@@ -382,7 +375,7 @@ const Dashboard: React.FC = () => {
       ══════════════════════════════════════════════════ */}
       <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
         {/* Best Score */}
-        <div className="bg-bgCard border-borderMuted rounded-brand-xl hover:border-brand/20 flex flex-col gap-1.5 border p-4 transition-all md:p-5">
+        <div className="bg-bgSurface rounded-brand-xl flex flex-col gap-1.5 p-4 md:p-5">
           <div className="flex items-center justify-between">
             <span className="text-textDim text-[9px] font-bold tracking-widest uppercase sm:text-[10px]">
               Best Score
@@ -419,7 +412,7 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Accuracy */}
-        <div className="bg-bgCard border-borderMuted rounded-brand-xl hover:border-success/20 flex flex-col gap-1.5 border p-4 transition-all md:p-5">
+        <div className="bg-bgSurface rounded-brand-xl flex flex-col gap-1.5 p-4 md:p-5">
           <div className="flex items-center justify-between">
             <span className="text-textDim text-[9px] font-bold tracking-widest uppercase sm:text-[10px]">
               Accuracy
@@ -455,13 +448,13 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Total Questions */}
-        <div className="bg-bgCard border-borderMuted rounded-brand-xl flex flex-col gap-1.5 border p-4 transition-all hover:border-blue-500/20 md:p-5">
+        <div className="bg-bgSurface rounded-brand-xl flex flex-col gap-1.5 p-4 md:p-5">
           <div className="flex items-center justify-between">
             <span className="text-textDim text-[9px] font-bold tracking-widest uppercase sm:text-[10px]">
               Total Questions
             </span>
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-500/10 sm:h-8 sm:w-8">
-              <BookOpen className="h-3.5 w-3.5 text-blue-400 sm:h-4 sm:w-4" />
+            <div className="bg-brand/10 flex h-7 w-7 items-center justify-center rounded-lg sm:h-8 sm:w-8">
+              <BookOpen className="text-brand h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </div>
           </div>
           {isLoading && !hasFetched ? (
@@ -490,7 +483,7 @@ const Dashboard: React.FC = () => {
                   </div>
                   <div className="bg-bgTrack h-1 overflow-hidden rounded-full">
                     <div
-                      className="h-full rounded-full bg-blue-500 transition-all duration-500"
+                      className="bg-brand h-full rounded-full transition-all duration-500"
                       style={{ width: `${questionsPct}%` }}
                     />
                   </div>
@@ -505,7 +498,7 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Streak */}
-        <div className="bg-bgCard border-borderMuted rounded-brand-xl flex flex-col gap-1.5 border p-4 transition-all hover:border-orange-500/20 md:p-5">
+        <div className="bg-bgSurface rounded-brand-xl flex flex-col gap-1.5 p-4 md:p-5">
           <div className="flex items-center justify-between">
             <span className="text-textDim text-[9px] font-bold tracking-widest uppercase sm:text-[10px]">
               Streak
@@ -513,13 +506,13 @@ const Dashboard: React.FC = () => {
             <div
               className={cn(
                 "flex h-7 w-7 items-center justify-center rounded-lg sm:h-8 sm:w-8",
-                streak > 0 ? "bg-orange-500/10" : "bg-bgSurface",
+                streak > 0 ? "bg-brand/10" : "bg-bgCard",
               )}
             >
               <Flame
                 className={cn(
                   "h-3.5 w-3.5 sm:h-4 sm:w-4",
-                  streak > 0 ? "text-orange-400" : "text-textDim",
+                  streak > 0 ? "text-brand" : "text-textDim",
                 )}
               />
             </div>
@@ -537,7 +530,7 @@ const Dashboard: React.FC = () => {
                   days
                 </span>
               </p>
-              <p className="flex items-center gap-1 text-[10px] font-medium text-orange-400 sm:text-[11px]">
+              <p className="text-brand flex items-center gap-1 text-[10px] font-medium sm:text-[11px]">
                 Keep it up!
               </p>
             </>

@@ -3,25 +3,27 @@ import { useGoalStore } from "../../Store/useGoal";
 import { useUserStore } from "../../Store/useUserStore";
 import { useStudyTrackingStore } from "../../Store/useStudyTrackingStore";
 import { cn } from "../../lib/utils/utils";
-import { Flame, CheckCircle2, Circle, Zap, PartyPopper } from "lucide-react";
-
-
+import {
+  Flame,
+  CheckCircle2,
+  Circle,
+  Zap,
+  PartyPopper,
+  Rocket,
+} from "lucide-react";
 
 const DAYS_SHORT = ["M", "T", "W", "T", "F", "S", "S"];
-
-
-
 
 function getMotivationalMessage(pct: number, streak: number): string {
   if (pct === 0) return "Start today — every expert was once a beginner.";
   if (pct < 40) return "Good start! Keep the momentum going.";
   if (pct < 80)
     return streak > 3
-      ? "You're on fire 🔥 Almost there!"
+      ? "You're on fire! Almost there!"
       : "More than halfway — finish strong!";
   if (pct < 100) return "So close! One last push to complete your goal.";
   return streak > 7
-    ? "Goal crushed! You're unstoppable 🚀"
+    ? "Goal crushed! You're unstoppable!"
     : "Daily goal complete! Great work today.";
 }
 
@@ -47,22 +49,27 @@ const DailyGoals: React.FC = () => {
     totalGoals > 0 ? Math.round((doneCount / totalGoals) * 100) : 0;
   const totalXp = goals.reduce((sum, g) => sum + (g.done ? g.xp : 0), 0);
 
-
   useEffect(() => {
-  // ✅ Don't sync until we know who the user is
-  if (!isAuthenticated) return;
+    // ✅ Don't sync until we know who the user is
+    if (!isAuthenticated) return;
 
-  resetForNewDay();
-  resetTrackingForNewDay();
-  syncWithDatabase();
-  syncTrackingWithDatabase();
-}, [isAuthenticated, resetForNewDay, resetTrackingForNewDay, syncWithDatabase, syncTrackingWithDatabase])
+    resetForNewDay();
+    resetTrackingForNewDay();
+    syncWithDatabase();
+    syncTrackingWithDatabase();
+  }, [
+    isAuthenticated,
+    resetForNewDay,
+    resetTrackingForNewDay,
+    syncWithDatabase,
+    syncTrackingWithDatabase,
+  ]);
 
-// Returns 0-indexed day of week where 0 = Monday
-function getTodayIndex(): number {
-  const d = new Date().getDay(); // 0=Sun … 6=Sat
-  return d === 0 ? 6 : d - 1;
-}
+  // Returns 0-indexed day of week where 0 = Monday
+  function getTodayIndex(): number {
+    const d = new Date().getDay(); // 0=Sun … 6=Sat
+    return d === 0 ? 6 : d - 1;
+  }
 
   // Reset goals for new day on mount and sync with DB
   useEffect(() => {
@@ -132,7 +139,7 @@ function getTodayIndex(): number {
           <PartyPopper className="text-success h-5 w-5" />
           <div>
             <p className="text-success text-sm font-semibold">
-              🎉 Congratulations!
+              Congratulations!
             </p>
             <p className="text-textDim text-xs">
               You've completed all your goals for today! Keep it up!
@@ -215,12 +222,12 @@ function getTodayIndex(): number {
       <div className="border-borderMuted mt-4 border-t pt-4">
         <div className="mb-2 flex items-center justify-between">
           <p className="text-textDim flex items-center gap-1.5 text-xs">
-            <Flame className="h-3.5 w-3.5 text-orange-400" />
+            <Flame className="text-warn h-3.5 w-3.5" />
             {streak > 0 ? `${streak}-day streak` : "This week's activity"}
           </p>
           {streak >= 7 && (
-            <span className="text-[10px] font-semibold text-orange-400">
-              🔥 On fire!
+            <span className="text-warn flex items-center gap-1 text-[10px] font-semibold">
+              <Flame size={10} /> On fire!
             </span>
           )}
         </div>

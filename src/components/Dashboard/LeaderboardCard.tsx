@@ -9,16 +9,19 @@ import {
   Minus,
   Users,
   Loader2,
+  Medal,
 } from "lucide-react";
 
 type Tab = "school" | "national";
 
-const RANK_STYLES: Record<number, { text: string; bg: string; label: string }> =
-  {
-    1: { text: "text-yellow-400", bg: "bg-yellow-400/10", label: "🥇" },
-    2: { text: "text-gray-300", bg: "bg-gray-400/10", label: "🥈" },
-    3: { text: "text-orange-400", bg: "bg-orange-400/10", label: "🥉" },
-  };
+const RANK_STYLES: Record<
+  number,
+  { text: string; bg: string; icon: React.ReactNode }
+> = {
+  1: { text: "text-warn", bg: "bg-warn/10", icon: <Medal size={16} /> },
+  2: { text: "text-textDim", bg: "bg-textDim/10", icon: <Medal size={16} /> },
+  3: { text: "text-teal", bg: "bg-teal/10", icon: <Medal size={16} /> },
+};
 
 function ChangeIndicator({ change }: { change: number }) {
   if (change === 0) return <Minus className="text-textDim h-3 w-3" />;
@@ -61,7 +64,7 @@ const LeaderboardCard: React.FC = () => {
       {/* Header */}
       <div className="mb-4 flex items-center justify-between">
         <h3 className="font-display flex items-center gap-2 text-sm font-semibold tracking-tight">
-          <Trophy className="h-4 w-4 text-yellow-400" />
+          <Trophy className="text-warn h-4 w-4" />
           Leaderboard
         </h3>
 
@@ -97,8 +100,8 @@ const LeaderboardCard: React.FC = () => {
       {/* Empty / new-user state */}
       {!isLoading && isNewUser && (
         <div className="flex flex-1 flex-col items-center justify-center gap-3 py-6 text-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full border border-yellow-400/20 bg-yellow-400/10">
-            <Trophy className="h-6 w-6 text-yellow-400" />
+          <div className="border-warn/20 bg-warn/10 flex h-14 w-14 items-center justify-center rounded-full border">
+            <Trophy className="text-warn h-6 w-6" />
           </div>
           <div>
             <p className="text-textMain text-sm font-semibold">
@@ -138,7 +141,7 @@ const LeaderboardCard: React.FC = () => {
                   )}
                 >
                   {rankStyle ? (
-                    <span className="text-sm">{rankStyle.label}</span>
+                    <span className={rankStyle.text}>{rankStyle.icon}</span>
                   ) : (
                     <span className="font-mono text-xs">{entry.rank}</span>
                   )}

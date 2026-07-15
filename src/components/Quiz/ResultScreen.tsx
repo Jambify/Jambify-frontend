@@ -4,6 +4,15 @@ import { useQuizSession } from "../../hooks/useQuizSession";
 import Button from "../ui/Button";
 import { cn } from "../../lib/utils/utils";
 import { useStudyTrackingStore } from "../../Store/useStudyTrackingStore";
+import {
+  Trophy,
+  Target,
+  BookOpen,
+  Dumbbell,
+  ArrowLeft,
+  BarChart3,
+  RefreshCw,
+} from "lucide-react";
 
 interface ResultsScreenProps {
   onRetry: () => void;
@@ -11,7 +20,11 @@ interface ResultsScreenProps {
   onPerformance: () => void;
 }
 
-const ResultsScreen: React.FC<ResultsScreenProps> = ({ onRetry, onHome, onPerformance }) => {
+const ResultsScreen: React.FC<ResultsScreenProps> = ({
+  onRetry,
+  onHome,
+  onPerformance,
+}) => {
   const { questions, answers, selectedTopic } = useQuizStore();
   const { commitSession } = useQuizSession();
 
@@ -38,14 +51,30 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ onRetry, onHome, onPerfor
   const total = questions.length;
   const pct = total > 0 ? Math.round((correct / total) * 100) : 0;
 
-  const { emoji, label, color } =
+  const { icon, label, color } =
     pct >= 80
-      ? { emoji: "🏆", label: "Excellent!", color: "text-success" }
+      ? {
+          icon: <Trophy size={48} />,
+          label: "Excellent!",
+          color: "text-success",
+        }
       : pct >= 60
-        ? { emoji: "🎯", label: "Good work!", color: "text-warn" }
+        ? {
+            icon: <Target size={48} />,
+            label: "Good work!",
+            color: "text-warn",
+          }
         : pct >= 40
-          ? { emoji: "📚", label: "Keep practising", color: "text-brand-light" }
-          : { emoji: "💪", label: "Don't give up!", color: "text-danger" };
+          ? {
+              icon: <BookOpen size={48} />,
+              label: "Keep practising",
+              color: "text-brand-light",
+            }
+          : {
+              icon: <Dumbbell size={48} />,
+              label: "Don't give up!",
+              color: "text-danger",
+            };
 
   return (
     <div className="animate-fadeIn mx-auto max-w-xl">
@@ -58,7 +87,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ onRetry, onHome, onPerfor
               "radial-gradient(circle at 50% 0%, rgba(91,59,255,0.08) 0%, transparent 70%)",
           }}
         />
-        <div className="mb-3 text-5xl">{emoji}</div>
+        <div className="mb-3 flex items-center justify-center">{icon}</div>
         <div className="font-display text-brand-light mb-1 text-7xl leading-none font-black tracking-tighter">
           {correct}
           <span className="text-textDim text-3xl font-normal">/{total}</span>
@@ -139,13 +168,19 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ onRetry, onHome, onPerfor
       {/* <CTAs */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <Button variant="primary" fullWidth onClick={onRetry}>
-          🔄 Try again
+          <div className="flex items-center justify-center gap-2">
+            <RefreshCw size={16} /> Try again
+          </div>
         </Button>
         <Button variant="secondary" fullWidth onClick={onHome}>
-          ← Dashboard
+          <div className="flex items-center justify-center gap-2">
+            <ArrowLeft size={16} /> Dashboard
+          </div>
         </Button>
         <Button variant="secondary" fullWidth onClick={onPerformance}>
-          📊 Performance
+          <div className="flex items-center justify-center gap-2">
+            <BarChart3 size={16} /> Performance
+          </div>
         </Button>
       </div>
     </div>
