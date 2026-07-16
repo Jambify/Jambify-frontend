@@ -39,7 +39,10 @@ async function main() {
   const base = "http://localhost:4173";
 
   console.log("Launching headless browser...");
-  const browser = await chromium.launch();
+  // ADD THESE ARGS to handle the Vercel/Linux environment
+  const browser = await chromium.launch({
+    args: ['--no-sandbox', '--disable-setuid-sandbox']
+  });
 
   for (const route of routes) {
     // Fresh, fully isolated context per route — no shared state, no risk
