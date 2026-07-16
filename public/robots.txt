@@ -1,42 +1,41 @@
 # SCHOOLDRA SEO Robots Configuration
 # Allows all legitimate crawlers, blocks bad bots
 
-# Default policy for all bots
 User-agent: *
+
+# Public, crawlable pages
 Allow: /
+Allow: /guest
+Allow: /guest/quiz
+Allow: /guest/mock
+Allow: /guest/past-questions
+Allow: /guest/privacy-policy
+Allow: /guest/terms-of-service
+Allow: /signin
+Allow: /signup
+
+# Authenticated-only pages — $ anchors the match to the exact path only,
+# so this actually matches your real no-trailing-slash routes
+Disallow: /dashboard$
+Disallow: /quiz$
+Disallow: /performance$
+Disallow: /subjects$
+Disallow: /mock-exams$
+Disallow: /settings$
+Disallow: /study-groups$
+Disallow: /mentor$
+Disallow: /past-questions$
+Disallow: /pro$
+Disallow: /review$
+Disallow: /onboarding$
+Disallow: /welcome$
+Disallow: /privacy-policy$
+Disallow: /terms-of-service$
 Disallow: /auth/
-Disallow: /dashboard/
-Disallow: /quiz/
-Disallow: /performance/
-Disallow: /subjects/
-Disallow: /mock-exams/
-Disallow: /settings/
-Disallow: /study-groups/
-Disallow: /mentor/
-Disallow: /past-questions/
-Disallow: /pro/
-Disallow: /review/
-Disallow: /onboarding/
-Disallow: /welcome/
 
-# Allow public educational content crawling
-Allow: /
-Allow: /guest/
-Allow: /guest/quiz/
-Allow: /guest/mock/
-Allow: /guest/past-questions/
-Allow: /privacy-policy/
-Allow: /terms-of-service/
-Allow: /signin/
-Allow: /signup/
-
-# Crawl delay to be respectful to server
-Crawl-delay: 1
-
-# Sitemap reference
 Sitemap: https://www.schooldra.com/sitemap.xml
 
-# Block known bad bots
+# Block known SEO-scraping bots (does not affect Google indexing)
 User-agent: MJ12bot
 Disallow: /
 

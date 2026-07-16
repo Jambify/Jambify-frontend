@@ -12,7 +12,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "../../lib/supabase";
 import AuthLayout from "../../components/auth/AuthLayout";
-
+import PageHelmet from "../../components/SEO/PageHelmet";
 type Step = "form" | "otp";
 
 const SignIn: React.FC = () => {
@@ -152,7 +152,9 @@ const SignIn: React.FC = () => {
         );
 
         // Navigate based on fresh DB value — no stale state
-        navigate(onboardingComplete ? "/dashboard" : "/onboarding", { replace: true });
+        navigate(onboardingComplete ? "/dashboard" : "/onboarding", {
+          replace: true,
+        });
       }
     } catch (err) {
       setError(
@@ -215,20 +217,116 @@ const SignIn: React.FC = () => {
   // ── OTP Screen ────────────────────────────────────────
   if (step === "otp") {
     return (
-      <AuthLayout variant="otp">
-        <div className="mb-8 text-center">
-          <div className="bg-brand shadow-brand/40 mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl shadow-lg">
-            <Key className="h-7 w-7 text-white" />
+      <>
+        <PageHelmet
+          title="Sign In | SCHOOLDRA"
+          description="Sign in to your SCHOOLDRA account to continue your JAMB UTME prep."
+          canonical="https://www.schooldra.com/signin"
+        />
+        <AuthLayout variant="otp">
+          <div className="mb-8 text-center">
+            <div className="bg-brand shadow-brand/40 mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl shadow-lg">
+              <Key className="h-7 w-7 text-white" />
+            </div>
+            <h1 className="font-display text-textMain mb-2 text-3xl font-bold tracking-tight">
+              Check your Email
+            </h1>
+            <p className="text-textDim text-sm">
+              6-digit code sent to{" "}
+              <span className="text-brand-light font-medium">{email}</span>
+            </p>
           </div>
-          <h1 className="font-display text-textMain mb-2 text-3xl font-bold tracking-tight">
-            Check your Email
-          </h1>
-          <p className="text-textDim text-sm">
-            6-digit code sent to{" "}
-            <span className="text-brand-light font-medium">{email}</span>
-          </p>
-        </div>
 
+          <AnimatePresence mode="wait">
+            {error && (
+              <motion.div
+                key="err"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="mb-5 overflow-hidden"
+              >
+                <div className="bg-danger/10 border-danger/20 rounded-brand-lg flex gap-3 border p-4">
+                  <AlertCircle className="text-danger mt-0.5 h-5 w-5 shrink-0" />
+                  <p className="text-danger text-sm">{error}</p>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <form onSubmit={handleVerifyOtp} className="space-y-5">
+            <div>
+              <label className="text-textMuted mb-2 block px-1 text-xs font-bold tracking-widest uppercase">
+                Verification Code
+              </label>
+              <input
+                type="text"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                autoFocus
+                maxLength={6}
+                value={otp}
+                onChange={(e) => {
+                  setError("");
+                  setOtp(e.target.value.replace(/\D/g, ""));
+                }}
+                placeholder="000000"
+                style={{ fontSize: "16px" }}
+                className="bg-bgSurface border-borderMuted rounded-brand-lg text-textMain focus:ring-brand/40 placeholder:text-textDim/30 w-full border py-4 text-center font-mono text-2xl tracking-[0.5em] transition-all outline-none focus:border-transparent focus:ring-2"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={otp.length !== 6 || loading}
+              className="bg-brand hover:bg-brand-light rounded-brand-lg shadow-brand/20 flex w-full items-center justify-center gap-2 py-4 font-bold text-white shadow-lg transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {loading ? (
+                <>
+                  <RefreshCw className="h-4 w-4 animate-spin" /> Verifying…
+                </>
+              ) : (
+                <>
+                  Sign In <ArrowRight className="h-5 w-5" />
+                </>
+              )}
+            </button>
+          </form>
+
+          <div className="mt-6 space-y-3 text-center">
+            <button
+              onClick={handleResend}
+              disabled={loading || cooldown > 0}
+              className="text-textDim hover:text-brand-light text-sm transition-colors disabled:opacity-50"
+            >
+              {cooldown > 0
+                ? `Resend in ${cooldown}s`
+                : "Didn't receive it? Resend"}
+            </button>
+            <button
+              onClick={() => {
+                setStep("form");
+                setOtp("");
+                setError("");
+              }}
+              className="text-textMuted hover:text-textDim block w-full text-xs transition-colors"
+            >
+              ← Back
+            </button>
+          </div>
+        </AuthLayout>
+      </>
+    );
+  }
+
+  // ── Sign In Form ──────────────────────────────────────
+  return (
+    <>
+      <PageHelmet
+        title="Sign In | SCHOOLDRA"
+        description="Sign in to your SCHOOLDRA account to continue your JAMB UTME prep."
+        canonical="https://www.schooldra.com/signin"
+      />
+      <AuthLayout variant="signin" footer={guestCta}>
         <AnimatePresence mode="wait">
           {error && (
             <motion.div
@@ -238,173 +336,91 @@ const SignIn: React.FC = () => {
               exit={{ opacity: 0, height: 0 }}
               className="mb-5 overflow-hidden"
             >
-              <div className="bg-danger/10 border-danger/20 rounded-brand-lg flex gap-3 border p-4">
+              <div className="bg-danger/10 border-danger/20 rounded-brand-lg flex items-start gap-3 border p-4">
                 <AlertCircle className="text-danger mt-0.5 h-5 w-5 shrink-0" />
-                <p className="text-danger text-sm">{error}</p>
+                <div>
+                  <p className="text-danger text-sm">{error}</p>
+                  {error.includes("No account found") && (
+                    <Link
+                      to="/signup"
+                      className="text-brand-light mt-1 block text-xs hover:underline"
+                    >
+                      Create an account →
+                    </Link>
+                  )}
+                  {error.includes("not yet verified") && (
+                    <Link
+                      to="/signup"
+                      className="text-brand-light mt-1 block text-xs hover:underline"
+                    >
+                      Complete sign up →
+                    </Link>
+                  )}
+                </div>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        <form onSubmit={handleVerifyOtp} className="space-y-5">
+        <form onSubmit={handleSendOtp} className="space-y-5">
           <div>
             <label className="text-textMuted mb-2 block px-1 text-xs font-bold tracking-widest uppercase">
-              Verification Code
+              Email Address
             </label>
-            <input
-              type="text"
-              inputMode="numeric"
-              autoComplete="one-time-code"
-              autoFocus
-              maxLength={6}
-              value={otp}
-              onChange={(e) => {
-                setError("");
-                setOtp(e.target.value.replace(/\D/g, ""));
-              }}
-              placeholder="000000"
-              style={{ fontSize: "16px" }}
-              className="bg-bgSurface border-borderMuted rounded-brand-lg text-textMain focus:ring-brand/40 placeholder:text-textDim/30 w-full border py-4 text-center font-mono text-2xl tracking-[0.5em] transition-all outline-none focus:border-transparent focus:ring-2"
-            />
+            <div className="group relative">
+              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                <Mail className="text-textDim group-focus-within:text-brand-light h-5 w-5 transition-colors" />
+              </div>
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => {
+                  setError("");
+                  setEmail(e.target.value);
+                }}
+                style={{ fontSize: "16px" }}
+                className="bg-bgSurface border-borderMuted rounded-brand-lg text-textMain focus:ring-brand/40 placeholder:text-textDim/50 w-full border py-3.5 pr-4 pl-12 transition-all outline-none focus:border-transparent focus:ring-2"
+                placeholder="Enter your email"
+              />
+            </div>
           </div>
           <button
             type="submit"
-            disabled={otp.length !== 6 || loading}
+            disabled={!email || loading || cooldown > 0}
             className="bg-brand hover:bg-brand-light rounded-brand-lg shadow-brand/20 flex w-full items-center justify-center gap-2 py-4 font-bold text-white shadow-lg transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
           >
             {loading ? (
               <>
-                <RefreshCw className="h-4 w-4 animate-spin" /> Verifying…
+                <RefreshCw className="h-4 w-4 animate-spin" /> Sending…
               </>
+            ) : cooldown > 0 ? (
+              `Wait ${cooldown}s`
             ) : (
               <>
-                Sign In <ArrowRight className="h-5 w-5" />
+                Send Code <ArrowRight className="h-5 w-5" />
               </>
             )}
           </button>
         </form>
 
-        <div className="mt-6 space-y-3 text-center">
-          <button
-            onClick={handleResend}
-            disabled={loading || cooldown > 0}
-            className="text-textDim hover:text-brand-light text-sm transition-colors disabled:opacity-50"
-          >
-            {cooldown > 0
-              ? `Resend in ${cooldown}s`
-              : "Didn't receive it? Resend"}
-          </button>
-          <button
-            onClick={() => {
-              setStep("form");
-              setOtp("");
-              setError("");
-            }}
-            className="text-textMuted hover:text-textDim block w-full text-xs transition-colors"
-          >
-            ← Back
-          </button>
-        </div>
-      </AuthLayout>
-    );
-  }
-
-  // ── Sign In Form ──────────────────────────────────────
-  return (
-    <AuthLayout variant="signin" footer={guestCta}>
-      <AnimatePresence mode="wait">
-        {error && (
-          <motion.div
-            key="err"
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="mb-5 overflow-hidden"
-          >
-            <div className="bg-danger/10 border-danger/20 rounded-brand-lg flex items-start gap-3 border p-4">
-              <AlertCircle className="text-danger mt-0.5 h-5 w-5 shrink-0" />
-              <div>
-                <p className="text-danger text-sm">{error}</p>
-                {error.includes("No account found") && (
-                  <Link
-                    to="/signup"
-                    className="text-brand-light mt-1 block text-xs hover:underline"
-                  >
-                    Create an account →
-                  </Link>
-                )}
-                {error.includes("not yet verified") && (
-                  <Link
-                    to="/signup"
-                    className="text-brand-light mt-1 block text-xs hover:underline"
-                  >
-                    Complete sign up →
-                  </Link>
-                )}
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <form onSubmit={handleSendOtp} className="space-y-5">
-        <div>
-          <label className="text-textMuted mb-2 block px-1 text-xs font-bold tracking-widest uppercase">
-            Email Address
-          </label>
-          <div className="group relative">
-            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-              <Mail className="text-textDim group-focus-within:text-brand-light h-5 w-5 transition-colors" />
-            </div>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => {
-                setError("");
-                setEmail(e.target.value);
-              }}
-              style={{ fontSize: "16px" }}
-              className="bg-bgSurface border-borderMuted rounded-brand-lg text-textMain focus:ring-brand/40 placeholder:text-textDim/50 w-full border py-3.5 pr-4 pl-12 transition-all outline-none focus:border-transparent focus:ring-2"
-              placeholder="Enter your email"
-            />
+        <div className="mt-8 space-y-5 text-center">
+          <p className="text-textDim text-sm">
+            New Schooldra?{" "}
+            <Link
+              to="/signup"
+              className="text-brand-light font-semibold hover:underline"
+            >
+              Create Account
+            </Link>
+          </p>
+          <div className="text-textMuted border-borderMuted/50 flex items-center justify-center gap-4 border-t pt-4 text-[10px] tracking-widest uppercase">
+            <ShieldCheck size={14} className="text-success" />
+            Secure · No password · 6-digit code
           </div>
         </div>
-        <button
-          type="submit"
-          disabled={!email || loading || cooldown > 0}
-          className="bg-brand hover:bg-brand-light rounded-brand-lg shadow-brand/20 flex w-full items-center justify-center gap-2 py-4 font-bold text-white shadow-lg transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {loading ? (
-            <>
-              <RefreshCw className="h-4 w-4 animate-spin" /> Sending…
-            </>
-          ) : cooldown > 0 ? (
-            `Wait ${cooldown}s`
-          ) : (
-            <>
-              Send Code <ArrowRight className="h-5 w-5" />
-            </>
-          )}
-        </button>
-      </form>
-
-      <div className="mt-8 space-y-5 text-center">
-        <p className="text-textDim text-sm">
-          New Schooldra?{" "}
-          <Link
-            to="/signup"
-            className="text-brand-light font-semibold hover:underline"
-          >
-            Create Account
-          </Link>
-        </p>
-        <div className="text-textMuted border-borderMuted/50 flex items-center justify-center gap-4 border-t pt-4 text-[10px] tracking-widest uppercase">
-          <ShieldCheck size={14} className="text-success" />
-          Secure · No password · 6-digit code
-        </div>
-      </div>
-    </AuthLayout>
+      </AuthLayout>
+    </>
   );
 };
 

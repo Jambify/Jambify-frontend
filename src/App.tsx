@@ -29,6 +29,7 @@ import AuthErrorBoundary from "./components/ui/AuthErrorBoundary";
 import PrivacyPolicy from "./Pages/PrivacyPolicy";
 import GuestPrivacyPolicy from "./Pages/GuestUser/GuestPrivacy";
 import GuestTermsOfService from "./Pages/GuestUser/GuestLegal";
+import GuestPastQuestions from "./Pages/GuestUser/GuestPastQuestions";
 import TermsOfService from "./Pages/TermsOfService";
 import { supabase } from "./lib/supabase";
 import ScrollToTop from "./components/Scrolltotop";
@@ -63,7 +64,10 @@ const App: React.FC = () => {
           <Route path="/guest" element={<GuestLanding />} />
           <Route path="/guest/quiz" element={<GuestQuiz />} />
           <Route path="/guest/mock" element={<GuestMock />} />
-          <Route path="/guest/past-questions" element={<GuestQuiz />} />
+          <Route
+            path="/guest/past-questions"
+            element={<GuestPastQuestions />}
+          />
 
           {/* Public, unauthenticated legal pages — used by Landing/Guest footers */}
           <Route
@@ -80,9 +84,9 @@ const App: React.FC = () => {
             path="/guest/terms-of-service"
             element={
               <GuestTermsOfService
-                title="Terms of Service"
-                effectiveDate="July 14, 2026"
-                blocks={[]}
+                // title="Terms of Service"
+                // effectiveDate="July 14, 2026"
+                // blocks={[]}
               />
             }
           />

@@ -13,6 +13,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "../../lib/supabase";
 import AuthLayout from "../../components/auth/AuthLayout";
+import PageHelmet from "../../components/SEO/PageHelmet";
 import { toTitleCase } from "../../lib/utils/utils";
 
 type Step = "form" | "otp";
@@ -193,7 +194,7 @@ const SignUp: React.FC = () => {
     >
       <button
         onClick={() => navigate("/guest")}
-        className="auth-guest-cta hover:border-brand/40 group flex w-full items-center justify-between rounded-brand-xl border p-4 shadow-card transition-all active:scale-[0.98] lg:p-5"
+        className="auth-guest-cta hover:border-brand/40 group rounded-brand-xl shadow-card flex w-full items-center justify-between border p-4 transition-all active:scale-[0.98] lg:p-5"
       >
         <div className="flex items-center gap-4 text-left">
           <div className="bg-brand/10 flex h-12 w-12 items-center justify-center rounded-2xl text-2xl shadow-inner transition-transform group-hover:scale-110">
@@ -218,8 +219,13 @@ const SignUp: React.FC = () => {
   // ── OTP Screen ────────────────────────────────────────
   if (step === "otp") {
     return (
-      <AuthLayout variant="otp">
-       
+      <>
+        <PageHelmet
+          title="Create Free Account | SCHOOLDRA"
+          description="Create a free SCHOOLDRA account to save your progress and unlock full JAMB UTME exam prep."
+          canonical="https://www.schooldra.com/signup"
+        />
+        <AuthLayout variant="otp">
           <div className="mb-8 text-center">
             <div className="bg-brand shadow-brand/40 mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl shadow-lg">
               <Key className="h-7 w-7 text-white" />
@@ -309,13 +315,20 @@ const SignUp: React.FC = () => {
               ← Back
             </button>
           </div>
-      </AuthLayout>
+        </AuthLayout>
+      </>
     );
   }
 
   // ── Signup Form ───────────────────────────────────────
   return (
-    <AuthLayout variant="signup" footer={guestCta}>
+    <>
+      <PageHelmet
+        title="Create Free Account | SCHOOLDRA"
+        description="Create a free SCHOOLDRA account to save your progress and unlock full JAMB UTME exam prep."
+        canonical="https://www.schooldra.com/signup"
+      />
+      <AuthLayout variant="signup" footer={guestCta}>
         <AnimatePresence mode="wait">
           {error && (
             <motion.div
@@ -416,7 +429,8 @@ const SignUp: React.FC = () => {
             Secure · No spam · 6-digit code
           </div>
         </div>
-    </AuthLayout>
+      </AuthLayout>
+    </>
   );
 };
 

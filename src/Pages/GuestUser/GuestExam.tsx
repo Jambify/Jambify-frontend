@@ -6,6 +6,7 @@ import { fetchQuestionsWithFallback } from "../../Services/questionService";
 import LoadingScreen from "../../components/ui/LoadingScreen";
 import type { Question } from "../../Types";
 import { cn } from "../../lib/utils/utils";
+import PageHelmet from "../../components/SEO/PageHelmet";
 import {
   ArrowLeft,
   ArrowRight,
@@ -163,11 +164,18 @@ const GuestMockExam: React.FC = () => {
 
   if (isLoading) {
     return (
-      <LoadingScreen
-        message="Preparing Mock Exam"
-        submessage="Gathering questions for all selected subjects..."
-        estimatedTime={4}
-      />
+      <>
+        <PageHelmet
+          title="Free JAMB Mock Exam | SCHOOLDRA"
+          description="Take a full 180-question JAMB mock exam, free, with real scoring and timing — no account required."
+          canonical="https://www.schooldra.com/guest/mock"
+        />
+        <LoadingScreen
+          message="Preparing Mock Exam"
+          submessage="Gathering questions for all selected subjects..."
+          estimatedTime={4}
+        />
+      </>
     );
   }
 
@@ -201,7 +209,7 @@ const GuestMockExam: React.FC = () => {
   ).length;
   const jambScore = Math.round((score / questions.length) * 400);
 
-  // ── Results Screen ──────────────────────────────────────────────
+  // ── Results Screen ─────────────────────────────────────────────────────────
   if (isFinished) {
     const pct = Math.round((score / questions.length) * 100);
 
@@ -219,180 +227,187 @@ const GuestMockExam: React.FC = () => {
     });
 
     return (
-      <GuestLayout className="flex flex-col items-center justify-center p-4">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="relative z-10 w-full max-w-2xl text-center"
-        >
-          {/* Score Animation */}
-          <div className="mb-10">
-            <motion.div
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.2 }}
-              className="mb-6 text-7xl drop-shadow-2xl"
-            >
-              {pct >= 70 ? "🏆" : pct >= 50 ? "👍" : "📚"}
-            </motion.div>
+      <>
+        <PageHelmet
+          title="Free JAMB Mock Exam | SCHOOLDRA"
+          description="Take a full 180-question JAMB mock exam, free, with real scoring and timing — no account required."
+          canonical="https://www.schooldra.com/guest/mock"
+        />
+        <GuestLayout className="flex flex-col items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="relative z-10 w-full max-w-2xl text-center"
+          >
+            {/* Score Animation */}
+            <div className="mb-10">
+              <motion.div
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.2 }}
+                className="mb-6 text-7xl drop-shadow-2xl"
+              >
+                {pct >= 70 ? "🏆" : pct >= 50 ? "👍" : "📚"}
+              </motion.div>
 
-            <h2 className="font-display text-textMain mb-2 text-6xl font-black tracking-tighter">
-              {jambScore}
-              <span className="text-brand text-3xl">/400</span>
-            </h2>
+              <h2 className="font-display text-textMain mb-2 text-6xl font-black tracking-tighter">
+                {jambScore}
+                <span className="text-brand text-3xl">/400</span>
+              </h2>
 
-            <div className="mt-4 flex items-center justify-center gap-4">
-              <div className="bg-bgCard border-borderMuted rounded-full border px-4 py-1">
-                <span className="text-textDim text-xs font-bold tracking-widest uppercase">
-                  {score} / {questions.length} Correct
-                </span>
-              </div>
-              <div className="bg-bgCard border-borderMuted rounded-full border px-4 py-1">
-                <span className="text-textDim text-xs font-bold tracking-widest uppercase">
-                  {pct}% Accuracy
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div className="mb-10 grid grid-cols-1 gap-6 md:grid-cols-2">
-            {/* Subject Breakdown */}
-            <div className="bg-bgCard border-borderMuted group relative overflow-hidden rounded-3xl border p-8 text-left shadow-2xl backdrop-blur-sm">
-              <div className="bg-brand/20 group-hover:bg-brand absolute top-0 left-0 h-full w-1 transition-colors" />
-
-              <h3 className="text-brand mb-6 flex items-center gap-2 text-xs font-black tracking-[0.2em] uppercase">
-                <Target size={14} />
-                Subject Performance
-              </h3>
-
-              <div className="space-y-6">
-                {Object.entries(subjectScores).map(([subject, data]) => {
-                  const subjectPct = Math.round(
-                    (data.correct / data.total) * 100,
-                  );
-                  const subjectInfo = AVAILABLE_SUBJECTS.find(
-                    (s) => s.name === subject,
-                  );
-
-                  return (
-                    <div key={subject} className="group/item">
-                      <div className="mb-2 flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="text-lg opacity-80">
-                            {subjectInfo?.icon || "📖"}
-                          </span>
-                          <span className="text-textMain text-sm font-bold">
-                            {subject}
-                          </span>
-                        </div>
-                        <span className="text-textDim font-mono text-[10px] font-black">
-                          {data.correct}/{data.total}
-                        </span>
-                      </div>
-                      <div className="bg-bgSurface border-borderMuted/30 h-2 overflow-hidden rounded-full border">
-                        <motion.div
-                          initial={{ width: 0 }}
-                          animate={{ width: `${subjectPct}%` }}
-                          transition={{ duration: 1, delay: 0.5 }}
-                          className={cn(
-                            "h-full rounded-full transition-all duration-500",
-                            subjectPct >= 75
-                              ? "bg-success shadow-[0_0_8px_rgba(34,197,94,0.4)]"
-                              : subjectPct >= 45
-                                ? "bg-brand shadow-[0_0_8px_rgba(123,95,255,0.4)]"
-                                : "bg-danger shadow-[0_0_8px_rgba(239,68,68,0.4)]",
-                          )}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* CTA Card */}
-            <div className="bg-bgCard border-borderMuted group relative flex flex-col overflow-hidden rounded-3xl border p-8 text-left shadow-2xl backdrop-blur-sm">
-              <div className="bg-brand/20 group-hover:bg-brand/5 absolute top-0 left-0 h-1 w-full transition-all duration-500 group-hover:h-full" />
-
-              <div className="relative z-10 flex-1">
-                <div className="bg-brand/10 mb-6 flex h-12 w-12 items-center justify-center rounded-2xl">
-                  <Sparkles className="text-brand h-6 w-6" />
+              <div className="mt-4 flex items-center justify-center gap-4">
+                <div className="bg-bgCard border-borderMuted rounded-full border px-4 py-1">
+                  <span className="text-textDim text-xs font-bold tracking-widest uppercase">
+                    {score} / {questions.length} Correct
+                  </span>
                 </div>
+                <div className="bg-bgCard border-borderMuted rounded-full border px-4 py-1">
+                  <span className="text-textDim text-xs font-bold tracking-widest uppercase">
+                    {pct}% Accuracy
+                  </span>
+                </div>
+              </div>
+            </div>
 
-                <h3 className="font-display text-textMain mb-3 text-xl leading-tight font-black">
-                  Unlock Detailed Answer Review
+            <div className="mb-10 grid grid-cols-1 gap-6 md:grid-cols-2">
+              {/* Subject Breakdown */}
+              <div className="bg-bgCard border-borderMuted group relative overflow-hidden rounded-3xl border p-8 text-left shadow-2xl backdrop-blur-sm">
+                <div className="bg-brand/20 group-hover:bg-brand absolute top-0 left-0 h-full w-1 transition-colors" />
+
+                <h3 className="text-brand mb-6 flex items-center gap-2 text-xs font-black tracking-[0.2em] uppercase">
+                  <Target size={14} />
+                  Subject Performance
                 </h3>
 
-                <p className="text-textDim mb-8 text-xs leading-relaxed">
-                  You answered{" "}
-                  <span className="text-textMain font-bold">{score}</span>{" "}
-                  questions correctly. Want to see which ones you missed and
-                  read professional explanations for each?
-                </p>
+                <div className="space-y-6">
+                  {Object.entries(subjectScores).map(([subject, data]) => {
+                    const subjectPct = Math.round(
+                      (data.correct / data.total) * 100,
+                    );
+                    const subjectInfo = AVAILABLE_SUBJECTS.find(
+                      (s) => s.name === subject,
+                    );
 
-                <div className="mb-8 space-y-3">
-                  {[
-                    "View detailed answer keys",
-                    "Read expert explanations",
-                    "Track progress over time",
-                  ].map((text, i) => (
-                    <div
-                      key={i}
-                      className="text-textMain flex items-center gap-2 text-[10px] font-bold tracking-widest uppercase"
-                    >
-                      <CheckCircle size={12} className="text-success" />
-                      {text}
-                    </div>
-                  ))}
+                    return (
+                      <div key={subject} className="group/item">
+                        <div className="mb-2 flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg opacity-80">
+                              {subjectInfo?.icon || "📖"}
+                            </span>
+                            <span className="text-textMain text-sm font-bold">
+                              {subject}
+                            </span>
+                          </div>
+                          <span className="text-textDim font-mono text-[10px] font-black">
+                            {data.correct}/{data.total}
+                          </span>
+                        </div>
+                        <div className="bg-bgSurface border-borderMuted/30 h-2 overflow-hidden rounded-full border">
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${subjectPct}%` }}
+                            transition={{ duration: 1, delay: 0.5 }}
+                            className={cn(
+                              "h-full rounded-full transition-all duration-500",
+                              subjectPct >= 75
+                                ? "bg-success shadow-[0_0_8px_rgba(34,197,94,0.4)]"
+                                : subjectPct >= 45
+                                  ? "bg-brand shadow-[0_0_8px_rgba(123,95,255,0.4)]"
+                                  : "bg-danger shadow-[0_0_8px_rgba(239,68,68,0.4)]",
+                            )}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
+              {/* CTA Card */}
+              <div className="bg-bgCard border-borderMuted group relative flex flex-col overflow-hidden rounded-3xl border p-8 text-left shadow-2xl backdrop-blur-sm">
+                <div className="bg-brand/20 group-hover:bg-brand/5 absolute top-0 left-0 h-1 w-full transition-all duration-500 group-hover:h-full" />
+
+                <div className="relative z-10 flex-1">
+                  <div className="bg-brand/10 mb-6 flex h-12 w-12 items-center justify-center rounded-2xl">
+                    <Sparkles className="text-brand h-6 w-6" />
+                  </div>
+
+                  <h3 className="font-display text-textMain mb-3 text-xl leading-tight font-black">
+                    Unlock Detailed Answer Review
+                  </h3>
+
+                  <p className="text-textDim mb-8 text-xs leading-relaxed">
+                    You answered{" "}
+                    <span className="text-textMain font-bold">{score}</span>{" "}
+                    questions correctly. Want to see which ones you missed and
+                    read professional explanations for each?
+                  </p>
+
+                  <div className="mb-8 space-y-3">
+                    {[
+                      "View detailed answer keys",
+                      "Read expert explanations",
+                      "Track progress over time",
+                    ].map((text, i) => (
+                      <div
+                        key={i}
+                        className="text-textMain flex items-center gap-2 text-[10px] font-bold tracking-widest uppercase"
+                      >
+                        <CheckCircle size={12} className="text-success" />
+                        {text}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <button
+                  onClick={() =>
+                    navigate("/signup", {
+                      state: {
+                        fromMockExam: true,
+                        score: jambScore,
+                        subjectScores,
+                      },
+                    })
+                  }
+                  className="bg-brand hover:bg-brand-light shadow-brand/20 relative z-10 w-full rounded-2xl py-4 text-sm font-black text-white shadow-xl transition-all active:scale-[0.98]"
+                >
+                  Get Full Access — It's Free
+                </button>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="mx-auto flex max-w-md flex-col gap-3 sm:flex-row">
               <button
-                onClick={() =>
-                  navigate("/signup", {
-                    state: {
-                      fromMockExam: true,
-                      score: jambScore,
-                      subjectScores,
-                    },
-                  })
-                }
-                className="bg-brand hover:bg-brand-light shadow-brand/20 relative z-10 w-full rounded-2xl py-4 text-sm font-black text-white shadow-xl transition-all active:scale-[0.98]"
+                onClick={() => {
+                  setIsStarted(false);
+                  setIsFinished(false);
+                  setQuestions([]);
+                  setAnswers({});
+                  setCurrentIndex(0);
+                  setError(null);
+                  setShowConfirmExit(false);
+                  setActiveSubject(selectedCombination[0]);
+                  setJumpTo("");
+                  setSelectedCombination(["English", "", "", ""]);
+                  setSelectedYear("2025");
+                }}
+                className="bg-bgSurface border-borderMuted hover:border-brand/40 flex-1 rounded-2xl border py-4 text-xs font-black tracking-widest uppercase transition-all active:scale-[0.98]"
               >
-                Get Full Access — It's Free
+                Restart Simulation
+              </button>
+              <button
+                onClick={() => navigate("/guest")}
+                className="bg-bgSurface border-borderMuted hover:border-brand/40 flex-1 rounded-2xl border py-4 text-xs font-black tracking-widest uppercase transition-all active:scale-[0.98]"
+              >
+                Exit to Home
               </button>
             </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="mx-auto flex max-w-md flex-col gap-3 sm:flex-row">
-            <button
-              onClick={() => {
-                setIsStarted(false);
-                setIsFinished(false);
-                setQuestions([]);
-                setAnswers({});
-                setCurrentIndex(0);
-                setError(null);
-                setShowConfirmExit(false);
-                setActiveSubject(selectedCombination[0]);
-                setJumpTo("");
-                setSelectedCombination(["English", "", "", ""]);
-                setSelectedYear("2025");
-              }}
-              className="bg-bgSurface border-borderMuted hover:border-brand/40 flex-1 rounded-2xl border py-4 text-xs font-black tracking-widest uppercase transition-all active:scale-[0.98]"
-            >
-              Restart Simulation
-            </button>
-            <button
-              onClick={() => navigate("/guest")}
-              className="bg-bgSurface border-borderMuted hover:border-brand/40 flex-1 rounded-2xl border py-4 text-xs font-black tracking-widest uppercase transition-all active:scale-[0.98]"
-            >
-              Exit to Home
-            </button>
-          </div>
-        </motion.div>
-      </GuestLayout>
+          </motion.div>
+        </GuestLayout>
+      </>
     );
   }
 
@@ -408,464 +423,482 @@ const GuestMockExam: React.FC = () => {
     );
 
     return (
-      <GuestLayout className="flex flex-col p-4 sm:p-6">
-        {/* Top bar */}
-        <div className="bg-bgCard/50 border-borderMuted relative z-10 mx-auto mb-8 flex w-full max-w-7xl items-center justify-between gap-4 rounded-3xl border p-3 shadow-xl shadow-black/10 backdrop-blur-md sm:p-4">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setShowConfirmExit(true)}
-              className="bg-bgSurface border-borderMuted text-textDim hover:text-danger hover:border-danger/40 group rounded-2xl border p-2.5 transition-all"
-              title="Exit Exam"
-            >
-              <LogOut
-                size={18}
-                className="transition-transform group-hover:-translate-x-0.5"
-              />
-            </button>
-            <div className="bg-borderMuted/30 hidden h-8 w-px sm:block" />
-            <div className="hidden flex-col sm:flex">
-              <span className="text-brand mb-1 text-[10px] leading-none font-black tracking-widest uppercase">
-                CBT Simulation
-              </span>
-              <span className="text-textMain text-xs leading-none font-bold">
-                {selectedYear} Mock
-              </span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <div
-              className={cn(
-                "flex items-center gap-3 rounded-2xl border px-5 py-2.5 shadow-inner transition-all",
-                status === "red"
-                  ? "bg-danger/10 border-danger/30 text-danger animate-pulse"
-                  : "bg-bgSurface border-borderMuted text-textMain",
-              )}
-            >
-              <Timer
-                size={18}
-                className={cn(status === "red" && "animate-spin-slow")}
-              />
-              <span className="font-mono text-xl font-black tracking-tighter tabular-nums">
-                {formattedTime}
-              </span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 sm:gap-4">
-            <div className="hidden flex-col items-end md:flex">
-              <span className="text-textDim mb-1 text-[10px] leading-none font-black tracking-widest uppercase">
-                Progress
-              </span>
-              <span className="text-textMain text-xs leading-none font-bold">
-                {answeredCount} / {questions.length}
-              </span>
-            </div>
-            <button
-              onClick={() => setShowConfirmExit(true)}
-              className="bg-brand hover:bg-brand-light shadow-brand/20 rounded-2xl px-6 py-2.5 text-xs font-black tracking-widest text-white uppercase shadow-lg transition-all active:scale-[0.98]"
-            >
-              Finish
-            </button>
-          </div>
-        </div>
-
-        <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 overflow-hidden lg:flex-row">
-          {/* Main Content Area */}
-          <div className="flex flex-1 flex-col overflow-y-auto pr-1">
-            {/* Subject Tabs */}
-            <div className="no-scrollbar mb-6 flex gap-2 overflow-x-auto pb-2">
-              {examSubjects.map((sub) => {
-                const subInfo = AVAILABLE_SUBJECTS.find((s) => s.name === sub);
-                return (
-                  <button
-                    key={sub}
-                    onClick={() => {
-                      setActiveSubject(sub);
-                      const firstIdx = questions.findIndex(
-                        (quest) => quest.subject === sub,
-                      );
-                      if (firstIdx !== -1) nextQuestion(firstIdx);
-                    }}
-                    className={cn(
-                      "flex items-center gap-2 rounded-2xl border px-5 py-3 text-xs font-black tracking-widest whitespace-nowrap uppercase shadow-sm transition-all",
-                      activeSubject === sub
-                        ? "bg-brand border-brand shadow-brand/20 text-white"
-                        : "bg-bgCard text-textDim border-borderMuted hover:border-brand/40",
-                    )}
-                  >
-                    <span>{subInfo?.icon}</span>
-                    {sub}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Question Card */}
-            <motion.div
-              key={currentIndex}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="bg-bgCard border-borderMuted group relative mb-6 overflow-hidden rounded-4xl border p-6 shadow-2xl shadow-black/10 sm:p-10"
-            >
-              <div className="bg-brand/20 group-hover:bg-brand absolute top-0 left-0 h-full w-1.5 transition-colors" />
-
-              <div className="mb-8 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="bg-brand/10 text-brand border-brand/20 rounded-xl border px-3 py-1.5 text-[10px] font-black tracking-widest uppercase">
-                    Question{" "}
-                    {subjectQuestions.findIndex((sq) => sq.id === q.id) + 1}
-                  </span>
-                  <span className="bg-bgSurface text-textDim border-borderMuted rounded-xl border px-3 py-1.5 text-[10px] font-black tracking-widest uppercase">
-                    {q.subject}
-                  </span>
-                </div>
-                <div className="text-textMuted font-mono text-[10px] font-bold tracking-widest uppercase">
-                  Global ID: #{q.id.slice(0, 8)}
-                </div>
-              </div>
-
-              <p className="text-textMain mb-12 text-xl leading-relaxed font-medium tracking-tight sm:text-2xl">
-                {q.text}
-              </p>
-
-              {/* Options */}
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                {q.options.map((opt, i) => (
-                  <motion.button
-                    key={i}
-                    whileHover={{ x: 4 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => submitAnswer(currentIndex, i)}
-                    className={cn(
-                      "group flex w-full items-center gap-4 rounded-2xl border-2 p-5 text-left text-sm font-bold transition-all sm:text-base",
-                      chosen === i
-                        ? "border-brand bg-brand/10 text-textMain shadow-brand/5 shadow-lg"
-                        : "border-borderMuted bg-bgSurface/50 hover:border-brand/40 text-textMain shadow-sm",
-                    )}
-                  >
-                    <div
-                      className={cn(
-                        "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl font-mono text-sm transition-colors",
-                        chosen === i
-                          ? "bg-brand text-white"
-                          : "bg-bgDeep text-textDim group-hover:bg-brand/10 group-hover:text-brand",
-                      )}
-                    >
-                      {String.fromCharCode(65 + i)}
-                    </div>
-                    <span className="flex-1 leading-tight">{opt}</span>
-                    {chosen === i && (
-                      <div className="bg-brand/20 flex h-6 w-6 shrink-0 items-center justify-center rounded-full">
-                        <div className="bg-brand h-2 w-2 rounded-full" />
-                      </div>
-                    )}
-                  </motion.button>
-                ))}
-              </div>
-            </motion.div>
-
-            {/* Navigation buttons */}
-            <div className="mt-auto flex items-center justify-between gap-4 py-6">
+      <>
+        <PageHelmet
+          title="Free JAMB Mock Exam | SCHOOLDRA"
+          description="Take a full 180-question JAMB mock exam, free, with real scoring and timing — no account required."
+          canonical="https://www.schooldra.com/guest/mock"
+        />
+        <GuestLayout className="flex flex-col p-4 sm:p-6">
+          {/* Top bar */}
+          <div className="bg-bgCard/50 border-borderMuted relative z-10 mx-auto mb-8 flex w-full max-w-7xl items-center justify-between gap-4 rounded-3xl border p-3 shadow-xl shadow-black/10 backdrop-blur-md sm:p-4">
+            <div className="flex items-center gap-3">
               <button
-                onClick={prevQuestion}
-                disabled={currentIndex === 0}
+                onClick={() => setShowConfirmExit(true)}
+                className="bg-bgSurface border-borderMuted text-textDim hover:text-danger hover:border-danger/40 group rounded-2xl border p-2.5 transition-all"
+                title="Exit Exam"
+              >
+                <LogOut
+                  size={18}
+                  className="transition-transform group-hover:-translate-x-0.5"
+                />
+              </button>
+              <div className="bg-borderMuted/30 hidden h-8 w-px sm:block" />
+              <div className="hidden flex-col sm:flex">
+                <span className="text-brand mb-1 text-[10px] leading-none font-black tracking-widest uppercase">
+                  CBT Simulation
+                </span>
+                <span className="text-textMain text-xs leading-none font-bold">
+                  {selectedYear} Mock
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <div
                 className={cn(
-                  "flex items-center gap-2 rounded-2xl px-8 py-4 text-xs font-black tracking-widest uppercase transition-all",
-                  currentIndex === 0
-                    ? "bg-bgSurface text-textMuted border-borderMuted cursor-not-allowed border opacity-50"
-                    : "bg-bgCard border-borderMuted text-textMain hover:border-brand/40 border shadow-lg active:scale-95",
+                  "flex items-center gap-3 rounded-2xl border px-5 py-2.5 shadow-inner transition-all",
+                  status === "red"
+                    ? "bg-danger/10 border-danger/30 text-danger animate-pulse"
+                    : "bg-bgSurface border-borderMuted text-textMain",
                 )}
               >
-                <ChevronLeft size={18} />
-                Previous
-              </button>
+                <Timer
+                  size={18}
+                  className={cn(status === "red" && "animate-spin-slow")}
+                />
+                <span className="font-mono text-xl font-black tracking-tighter tabular-nums">
+                  {formattedTime}
+                </span>
+              </div>
+            </div>
 
+            <div className="flex items-center gap-2 sm:gap-4">
+              <div className="hidden flex-col items-end md:flex">
+                <span className="text-textDim mb-1 text-[10px] leading-none font-black tracking-widest uppercase">
+                  Progress
+                </span>
+                <span className="text-textMain text-xs leading-none font-bold">
+                  {answeredCount} / {questions.length}
+                </span>
+              </div>
               <button
-                onClick={() => {
-                  if (currentIndex === questions.length - 1) {
-                    setShowConfirmExit(true);
-                  } else {
-                    nextQuestion(currentIndex + 1);
-                  }
-                }}
-                className="bg-brand hover:bg-brand-light shadow-brand/20 flex items-center gap-2 rounded-2xl px-10 py-4 text-xs font-black tracking-widest text-white uppercase shadow-2xl transition-all active:scale-[0.98]"
+                onClick={() => setShowConfirmExit(true)}
+                className="bg-brand hover:bg-brand-light shadow-brand/20 rounded-2xl px-6 py-2.5 text-xs font-black tracking-widest text-white uppercase shadow-lg transition-all active:scale-[0.98]"
               >
-                {currentIndex === questions.length - 1
-                  ? "Finish Exam"
-                  : "Next Question"}
-                <ChevronRight size={18} />
+                Finish
               </button>
             </div>
           </div>
 
-          {/* Sidebar Navigator */}
-          <div className="bg-bgCard border-borderMuted hidden w-80 flex-col overflow-hidden rounded-4xl border p-6 shadow-2xl lg:flex">
-            <div className="mb-6 flex items-center justify-between">
-              <h4 className="text-textDim text-[10px] font-black tracking-[0.2em] uppercase">
-                Question Grid
-              </h4>
-              <div className="flex items-center gap-4">
-                <input
-                  type="number"
-                  value={jumpTo}
-                  onChange={(e) => setJumpTo(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      const n = parseInt(jumpTo) - 1;
-                      if (n >= 0 && n < questions.length) nextQuestion(n);
-                      setJumpTo("");
-                    }
-                  }}
-                  placeholder="#"
-                  className="bg-bgSurface border-borderMuted focus:border-brand w-12 rounded-xl border px-2 py-1 text-center text-xs font-bold transition-all outline-none"
-                />
-              </div>
-            </div>
-
-            <div className="custom-scrollbar flex-1 overflow-y-auto pr-2">
-              <div className="grid grid-cols-5 gap-2 pb-4">
-                {questions.map((_, i) => {
-                  const isAnswered = answers[i] !== undefined;
-                  const isActive = i === currentIndex;
-
+          <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 overflow-hidden lg:flex-row">
+            {/* Main Content Area */}
+            <div className="flex flex-1 flex-col overflow-y-auto pr-1">
+              {/* Subject Tabs */}
+              <div className="no-scrollbar mb-6 flex gap-2 overflow-x-auto pb-2">
+                {examSubjects.map((sub) => {
+                  const subInfo = AVAILABLE_SUBJECTS.find(
+                    (s) => s.name === sub,
+                  );
                   return (
                     <button
-                      key={i}
-                      onClick={() => nextQuestion(i)}
+                      key={sub}
+                      onClick={() => {
+                        setActiveSubject(sub);
+                        const firstIdx = questions.findIndex(
+                          (quest) => quest.subject === sub,
+                        );
+                        if (firstIdx !== -1) nextQuestion(firstIdx);
+                      }}
                       className={cn(
-                        "flex aspect-square items-center justify-center rounded-xl border font-mono text-xs font-bold transition-all",
-                        isActive
-                          ? "bg-brand border-brand shadow-brand/20 z-10 scale-110 text-white shadow-lg"
-                          : isAnswered
-                            ? "bg-success/10 text-success border-success/30 hover:border-success"
-                            : "bg-bgSurface text-textDim border-borderMuted hover:border-brand/40",
+                        "flex items-center gap-2 rounded-2xl border px-5 py-3 text-xs font-black tracking-widest whitespace-nowrap uppercase shadow-sm transition-all",
+                        activeSubject === sub
+                          ? "bg-brand border-brand shadow-brand/20 text-white"
+                          : "bg-bgCard text-textDim border-borderMuted hover:border-brand/40",
                       )}
                     >
-                      {i + 1}
+                      <span>{subInfo?.icon}</span>
+                      {sub}
                     </button>
                   );
                 })}
               </div>
+
+              {/* Question Card */}
+              <motion.div
+                key={currentIndex}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="bg-bgCard border-borderMuted group relative mb-6 overflow-hidden rounded-4xl border p-6 shadow-2xl shadow-black/10 sm:p-10"
+              >
+                <div className="bg-brand/20 group-hover:bg-brand absolute top-0 left-0 h-full w-1.5 transition-colors" />
+
+                <div className="mb-8 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="bg-brand/10 text-brand border-brand/20 rounded-xl border px-3 py-1.5 text-[10px] font-black tracking-widest uppercase">
+                      Question{" "}
+                      {subjectQuestions.findIndex((sq) => sq.id === q.id) + 1}
+                    </span>
+                    <span className="bg-bgSurface text-textDim border-borderMuted rounded-xl border px-3 py-1.5 text-[10px] font-black tracking-widest uppercase">
+                      {q.subject}
+                    </span>
+                  </div>
+                  <div className="text-textMuted font-mono text-[10px] font-bold tracking-widest uppercase">
+                    Global ID: #{q.id.slice(0, 8)}
+                  </div>
+                </div>
+
+                <p className="text-textMain mb-12 text-xl leading-relaxed font-medium tracking-tight sm:text-2xl">
+                  {q.text}
+                </p>
+
+                {/* Options */}
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  {q.options.map((opt, i) => (
+                    <motion.button
+                      key={i}
+                      whileHover={{ x: 4 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => submitAnswer(currentIndex, i)}
+                      className={cn(
+                        "group flex w-full items-center gap-4 rounded-2xl border-2 p-5 text-left text-sm font-bold transition-all sm:text-base",
+                        chosen === i
+                          ? "border-brand bg-brand/10 text-textMain shadow-brand/5 shadow-lg"
+                          : "border-borderMuted bg-bgSurface/50 hover:border-brand/40 text-textMain shadow-sm",
+                      )}
+                    >
+                      <div
+                        className={cn(
+                          "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl font-mono text-sm transition-colors",
+                          chosen === i
+                            ? "bg-brand text-white"
+                            : "bg-bgDeep text-textDim group-hover:bg-brand/10 group-hover:text-brand",
+                        )}
+                      >
+                        {String.fromCharCode(65 + i)}
+                      </div>
+                      <span className="flex-1 leading-tight">{opt}</span>
+                      {chosen === i && (
+                        <div className="bg-brand/20 flex h-6 w-6 shrink-0 items-center justify-center rounded-full">
+                          <div className="bg-brand h-2 w-2 rounded-full" />
+                        </div>
+                      )}
+                    </motion.button>
+                  ))}
+                </div>
+              </motion.div>
+
+              {/* Navigation buttons */}
+              <div className="mt-auto flex items-center justify-between gap-4 py-6">
+                <button
+                  onClick={prevQuestion}
+                  disabled={currentIndex === 0}
+                  className={cn(
+                    "flex items-center gap-2 rounded-2xl px-8 py-4 text-xs font-black tracking-widest uppercase transition-all",
+                    currentIndex === 0
+                      ? "bg-bgSurface text-textMuted border-borderMuted cursor-not-allowed border opacity-50"
+                      : "bg-bgCard border-borderMuted text-textMain hover:border-brand/40 border shadow-lg active:scale-95",
+                  )}
+                >
+                  <ChevronLeft size={18} />
+                  Previous
+                </button>
+
+                <button
+                  onClick={() => {
+                    if (currentIndex === questions.length - 1) {
+                      setShowConfirmExit(true);
+                    } else {
+                      nextQuestion(currentIndex + 1);
+                    }
+                  }}
+                  className="bg-brand hover:bg-brand-light shadow-brand/20 flex items-center gap-2 rounded-2xl px-10 py-4 text-xs font-black tracking-widest text-white uppercase shadow-2xl transition-all active:scale-[0.98]"
+                >
+                  {currentIndex === questions.length - 1
+                    ? "Finish Exam"
+                    : "Next Question"}
+                  <ChevronRight size={18} />
+                </button>
+              </div>
             </div>
 
-            <div className="border-borderMuted/30 mt-6 space-y-4 border-t pt-6">
-              <div className="flex items-center justify-between text-[10px] font-bold tracking-widest uppercase">
-                <span className="text-textDim">Answered</span>
-                <span className="text-success">{answeredCount} questions</span>
+            {/* Sidebar Navigator */}
+            <div className="bg-bgCard border-borderMuted hidden w-80 flex-col overflow-hidden rounded-4xl border p-6 shadow-2xl lg:flex">
+              <div className="mb-6 flex items-center justify-between">
+                <h4 className="text-textDim text-[10px] font-black tracking-[0.2em] uppercase">
+                  Question Grid
+                </h4>
+                <div className="flex items-center gap-4">
+                  <input
+                    type="number"
+                    value={jumpTo}
+                    onChange={(e) => setJumpTo(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        const n = parseInt(jumpTo) - 1;
+                        if (n >= 0 && n < questions.length) nextQuestion(n);
+                        setJumpTo("");
+                      }
+                    }}
+                    placeholder="#"
+                    className="bg-bgSurface border-borderMuted focus:border-brand w-12 rounded-xl border px-2 py-1 text-center text-xs font-bold transition-all outline-none"
+                  />
+                </div>
               </div>
-              <div className="bg-bgSurface border-borderMuted/30 h-1.5 overflow-hidden rounded-full border">
-                <div
-                  className="bg-success h-full rounded-full transition-all duration-500"
-                  style={{
-                    width: `${(answeredCount / questions.length) * 100}%`,
-                  }}
-                />
+
+              <div className="custom-scrollbar flex-1 overflow-y-auto pr-2">
+                <div className="grid grid-cols-5 gap-2 pb-4">
+                  {questions.map((_, i) => {
+                    const isAnswered = answers[i] !== undefined;
+                    const isActive = i === currentIndex;
+
+                    return (
+                      <button
+                        key={i}
+                        onClick={() => nextQuestion(i)}
+                        className={cn(
+                          "flex aspect-square items-center justify-center rounded-xl border font-mono text-xs font-bold transition-all",
+                          isActive
+                            ? "bg-brand border-brand shadow-brand/20 z-10 scale-110 text-white shadow-lg"
+                            : isAnswered
+                              ? "bg-success/10 text-success border-success/30 hover:border-success"
+                              : "bg-bgSurface text-textDim border-borderMuted hover:border-brand/40",
+                        )}
+                      >
+                        {i + 1}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="border-borderMuted/30 mt-6 space-y-4 border-t pt-6">
+                <div className="flex items-center justify-between text-[10px] font-bold tracking-widest uppercase">
+                  <span className="text-textDim">Answered</span>
+                  <span className="text-success">
+                    {answeredCount} questions
+                  </span>
+                </div>
+                <div className="bg-bgSurface border-borderMuted/30 h-1.5 overflow-hidden rounded-full border">
+                  <div
+                    className="bg-success h-full rounded-full transition-all duration-500"
+                    style={{
+                      width: `${(answeredCount / questions.length) * 100}%`,
+                    }}
+                  />
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Confirm exit modal */}
-        <AnimatePresence>
-          {showConfirmExit && (
-            <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md">
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                className="bg-bgCard border-borderMuted relative w-full max-w-md overflow-hidden rounded-[2.5rem] border p-8 shadow-2xl sm:p-10"
-              >
-                <div className="bg-brand absolute top-0 left-0 h-2 w-full" />
+          {/* Confirm exit modal */}
+          <AnimatePresence>
+            {showConfirmExit && (
+              <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md">
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                  className="bg-bgCard border-borderMuted relative w-full max-w-md overflow-hidden rounded-[2.5rem] border p-8 shadow-2xl sm:p-10"
+                >
+                  <div className="bg-brand absolute top-0 left-0 h-2 w-full" />
 
-                <div className="bg-brand/10 mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl">
-                  <CheckCircle size={32} className="text-brand" />
-                </div>
+                  <div className="bg-brand/10 mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl">
+                    <CheckCircle size={32} className="text-brand" />
+                  </div>
 
-                <h3 className="font-display mb-3 text-center text-2xl font-black tracking-tight">
-                  Submit Exam?
-                </h3>
+                  <h3 className="font-display mb-3 text-center text-2xl font-black tracking-tight">
+                    Submit Exam?
+                  </h3>
 
-                <p className="text-textDim mb-8 text-center text-sm leading-relaxed font-medium">
-                  You've answered{" "}
-                  <span className="text-textMain font-bold">
-                    {answeredCount}
-                  </span>{" "}
-                  out of{" "}
-                  <span className="text-textMain font-bold">
-                    {questions.length}
-                  </span>{" "}
-                  questions.
-                  {answeredCount < questions.length ? (
-                    <span className="text-danger mt-2 block font-bold">
-                      ⚠️ You have {questions.length - answeredCount} unanswered
-                      questions!
-                    </span>
-                  ) : (
-                    <span className="text-success mt-2 block font-bold">
-                      ✨ Great job completing all questions!
-                    </span>
-                  )}
-                </p>
+                  <p className="text-textDim mb-8 text-center text-sm leading-relaxed font-medium">
+                    You've answered{" "}
+                    <span className="text-textMain font-bold">
+                      {answeredCount}
+                    </span>{" "}
+                    out of{" "}
+                    <span className="text-textMain font-bold">
+                      {questions.length}
+                    </span>{" "}
+                    questions.
+                    {answeredCount < questions.length ? (
+                      <span className="text-danger mt-2 block font-bold">
+                        ⚠️ You have {questions.length - answeredCount}{" "}
+                        unanswered questions!
+                      </span>
+                    ) : (
+                      <span className="text-success mt-2 block font-bold">
+                        ✨ Great job completing all questions!
+                      </span>
+                    )}
+                  </p>
 
-                <div className="flex flex-col gap-3 sm:flex-row">
-                  <button
-                    onClick={() => setShowConfirmExit(false)}
-                    className="border-borderMuted hover:bg-bgSurface flex-1 rounded-2xl border py-4 text-xs font-black tracking-widest uppercase transition-all"
-                  >
-                    Keep Reviewing
-                  </button>
-                  <button
-                    onClick={handleFinishExam}
-                    className="bg-brand hover:bg-brand-light shadow-brand/20 flex-1 rounded-2xl py-4 text-xs font-black tracking-widest text-white uppercase shadow-xl transition-all"
-                  >
-                    Submit Now
-                  </button>
-                </div>
-              </motion.div>
-            </div>
-          )}
-        </AnimatePresence>
-      </GuestLayout>
+                  <div className="flex flex-col gap-3 sm:flex-row">
+                    <button
+                      onClick={() => setShowConfirmExit(false)}
+                      className="border-borderMuted hover:bg-bgSurface flex-1 rounded-2xl border py-4 text-xs font-black tracking-widest uppercase transition-all"
+                    >
+                      Keep Reviewing
+                    </button>
+                    <button
+                      onClick={handleFinishExam}
+                      className="bg-brand hover:bg-brand-light shadow-brand/20 flex-1 rounded-2xl py-4 text-xs font-black tracking-widest text-white uppercase shadow-xl transition-all"
+                    >
+                      Submit Now
+                    </button>
+                  </div>
+                </motion.div>
+              </div>
+            )}
+          </AnimatePresence>
+        </GuestLayout>
+      </>
     );
   }
 
-  // ── Setup Screen ────────────────────────────────────────────────
+  // ── Setup Screen ─────────────────────────────────────────────────────────
   return (
-    <GuestLayout className="flex flex-col items-center justify-center p-4">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="relative z-10 grid w-full max-w-5xl grid-cols-1 items-stretch gap-8 md:grid-cols-2"
-      >
-        {/* Setup Card */}
-        <div className="bg-bgCard border-borderMuted flex flex-col rounded-3xl border p-6 shadow-2xl shadow-black/20 backdrop-blur-sm sm:p-10">
-          <div className="mb-8 flex items-center justify-between">
-            <button
-              onClick={() => navigate("/guest")}
-              className="text-textDim hover:text-brand group flex items-center gap-2 text-xs font-bold tracking-widest uppercase transition-colors"
-            >
-              <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
-              Back
-            </button>
-            <div className="bg-brand/10 border-brand/20 flex items-center gap-2 rounded-full border px-3 py-1">
-              <div className="bg-brand h-1.5 w-1.5 animate-pulse rounded-full" />
-              <span className="text-brand text-[10px] font-bold tracking-tighter uppercase">
-                Guest Mock
-              </span>
-            </div>
-          </div>
-
-          <div className="mb-10 text-left">
-            <div className="mb-4 flex items-center gap-4">
-              <div className="bg-brand/10 border-brand/20 shadow-brand/5 flex h-14 w-14 items-center justify-center rounded-2xl border text-3xl shadow-xl">
-                🎓
-              </div>
-              <div>
-                <h2 className="font-display text-textMain text-3xl font-black tracking-tight">
-                  CBT Simulator
-                </h2>
-                <p className="text-textDim text-sm font-medium">
-                  Standard JAMB 4-Subject Combination
-                </p>
-              </div>
-            </div>
-
-            {error && (
-              <div
-                className={cn(
-                  "animate-in fade-in slide-in-from-top-4 mb-6 rounded-2xl border p-5 text-sm shadow-sm duration-300",
-                  error.includes("CONNECTION_ERROR") ||
-                    error.includes("OFFLINE")
-                    ? "network-error-alert"
-                    : "bg-danger/15 border-danger/30 text-danger dark:bg-danger/10",
-                )}
+    <>
+      <PageHelmet
+        title="Free JAMB Mock Exam | SCHOOLDRA"
+        description="Take a full 180-question JAMB mock exam, free, with real scoring and timing — no account required."
+        canonical="https://www.schooldra.com/guest/mock"
+      />
+      <GuestLayout className="flex flex-col items-center justify-center p-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="relative z-10 grid w-full max-w-5xl grid-cols-1 items-stretch gap-8 md:grid-cols-2"
+        >
+          {/* Setup Card */}
+          <div className="bg-bgCard border-borderMuted flex flex-col rounded-3xl border p-6 shadow-2xl shadow-black/20 backdrop-blur-sm sm:p-10">
+            <div className="mb-8 flex items-center justify-between">
+              <button
+                onClick={() => navigate("/guest")}
+                className="text-textDim hover:text-brand group flex items-center gap-2 text-xs font-bold tracking-widest uppercase transition-colors"
               >
-                <div className="flex items-start gap-3">
-                  <div
-                    className={cn(
-                      "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl shadow-sm",
-                      error.includes("CONNECTION_ERROR") ||
-                        error.includes("OFFLINE")
-                        ? "bg-warn/20 text-warn"
-                        : "bg-danger/20 text-danger",
-                    )}
-                  >
-                    <Info size={20} />
-                  </div>
-                  <div className="flex-1">
-                    <p
+                <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
+                Back
+              </button>
+              <div className="bg-brand/10 border-brand/20 flex items-center gap-2 rounded-full border px-3 py-1">
+                <div className="bg-brand h-1.5 w-1.5 animate-pulse rounded-full" />
+                <span className="text-brand text-[10px] font-bold tracking-tighter uppercase">
+                  Guest Mock
+                </span>
+              </div>
+            </div>
+
+            <div className="mb-10 text-left">
+              <div className="mb-4 flex items-center gap-4">
+                <div className="bg-brand/10 border-brand/20 shadow-brand/5 flex h-14 w-14 items-center justify-center rounded-2xl border text-3xl shadow-xl">
+                  🎓
+                </div>
+                <div>
+                  <h2 className="font-display text-textMain text-3xl font-black tracking-tight">
+                    CBT Simulator
+                  </h2>
+                  <p className="text-textDim text-sm font-medium">
+                    Standard JAMB 4-Subject Combination
+                  </p>
+                </div>
+              </div>
+
+              {error && (
+                <div
+                  className={cn(
+                    "animate-in fade-in slide-in-from-top-4 mb-6 rounded-2xl border p-5 text-sm shadow-sm duration-300",
+                    error.includes("CONNECTION_ERROR") ||
+                      error.includes("OFFLINE")
+                      ? "network-error-alert"
+                      : "bg-danger/15 border-danger/30 text-danger dark:bg-danger/10",
+                  )}
+                >
+                  <div className="flex items-start gap-3">
+                    <div
                       className={cn(
-                        "font-bold tracking-tight",
+                        "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl shadow-sm",
                         error.includes("CONNECTION_ERROR") ||
                           error.includes("OFFLINE")
-                          ? "text-amber-900 dark:text-amber-400"
-                          : "text-danger",
+                          ? "bg-warn/20 text-warn"
+                          : "bg-danger/20 text-danger",
                       )}
                     >
-                      {error.includes("CONNECTION_ERROR") ||
-                      error.includes("OFFLINE")
-                        ? "Connection Alert"
-                        : "System Alert"}
-                    </p>
-                    <p className="mt-1 opacity-90">{error}</p>
+                      <Info size={20} />
+                    </div>
+                    <div className="flex-1">
+                      <p
+                        className={cn(
+                          "font-bold tracking-tight",
+                          error.includes("CONNECTION_ERROR") ||
+                            error.includes("OFFLINE")
+                            ? "text-amber-900 dark:text-amber-400"
+                            : "text-danger",
+                        )}
+                      >
+                        {error.includes("CONNECTION_ERROR") ||
+                        error.includes("OFFLINE")
+                          ? "Connection Alert"
+                          : "System Alert"}
+                      </p>
+                      <p className="mt-1 opacity-90">{error}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex-1 space-y-6">
+              <div className="flex flex-col text-left">
+                <label className="text-brand mb-2 px-1 text-[10px] font-black tracking-[0.15em] uppercase">
+                  Examination Year
+                </label>
+                <div className="group relative">
+                  <select
+                    className="bg-bgSurface/50 border-borderMuted text-textMain focus:border-brand focus:ring-brand/20 w-full cursor-pointer appearance-none rounded-2xl border p-4 text-sm font-bold transition-all outline-none focus:ring-1"
+                    value={selectedYear}
+                    onChange={(e) => {
+                      setSelectedYear(e.target.value);
+                      setError(null);
+                    }}
+                  >
+                    {AVAILABLE_YEARS.map((year) => (
+                      <option key={year} value={year}>
+                        {year} Exam
+                      </option>
+                    ))}
+                  </select>
+                  <div className="text-textDim group-hover:text-brand pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 transition-colors">
+                    <ArrowRight className="h-4 w-4 rotate-90" />
                   </div>
                 </div>
               </div>
-            )}
-          </div>
 
-          <div className="flex-1 space-y-6">
-            <div className="flex flex-col text-left">
-              <label className="text-brand mb-2 px-1 text-[10px] font-black tracking-[0.15em] uppercase">
-                Examination Year
-              </label>
-              <div className="group relative">
-                <select
-                  className="bg-bgSurface/50 border-borderMuted text-textMain focus:border-brand focus:ring-brand/20 w-full cursor-pointer appearance-none rounded-2xl border p-4 text-sm font-bold transition-all outline-none focus:ring-1"
-                  value={selectedYear}
-                  onChange={(e) => {
-                    setSelectedYear(e.target.value);
-                    setError(null);
-                  }}
-                >
-                  {AVAILABLE_YEARS.map((year) => (
-                    <option key={year} value={year}>
-                      {year} Exam
-                    </option>
-                  ))}
-                </select>
-                <div className="text-textDim group-hover:text-brand pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 transition-colors">
-                  <ArrowRight className="h-4 w-4 rotate-90" />
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 gap-4 text-left sm:grid-cols-2">
-              <div className="flex flex-col">
-                <label className="text-brand mb-2 px-1 text-[10px] font-black tracking-[0.15em] uppercase">
-                  Subject 1 (Fixed)
-                </label>
-                <div className="bg-brand/5 border-brand/20 text-brand flex items-center gap-3 rounded-2xl border p-4 text-sm font-bold">
-                  <span className="text-lg">📖</span>
-                  English Language
-                </div>
-              </div>
-
-              {[1, 2, 3].map((idx) => (
-                <div key={idx} className="flex flex-col">
-                  <label className="text-textDim mb-2 px-1 text-[10px] font-black tracking-[0.15em] uppercase">
-                    Subject {idx + 1}
+              <div className="grid grid-cols-1 gap-4 text-left sm:grid-cols-2">
+                <div className="flex flex-col">
+                  <label className="text-brand mb-2 px-1 text-[10px] font-black tracking-[0.15em] uppercase">
+                    Subject 1 (Fixed)
                   </label>
-                  <div className="group relative">
-                    <select
-                      className="bg-bgSurface/50 border-borderMuted text-textMain focus:border-brand focus:ring-brand/20 w-full cursor-pointer appearance-none rounded-2xl border p-4 text-sm font-bold transition-all outline-none focus:ring-1"
-                      value={selectedCombination[idx]}
-                      onChange={(e) => updateSubject(idx, e.target.value)}
-                    >
-                      <option value="">Select subject</option>
-                      {AVAILABLE_SUBJECTS.filter((s) => s.id !== "English").map(
-                        (sub) => (
+                  <div className="bg-brand/5 border-brand/20 text-brand flex items-center gap-3 rounded-2xl border p-4 text-sm font-bold">
+                    <span className="text-lg">📖</span>
+                    English Language
+                  </div>
+                </div>
+
+                {[1, 2, 3].map((idx) => (
+                  <div key={idx} className="flex flex-col">
+                    <label className="text-textDim mb-2 px-1 text-[10px] font-black tracking-[0.15em] uppercase">
+                      Subject {idx + 1}
+                    </label>
+                    <div className="group relative">
+                      <select
+                        className="bg-bgSurface/50 border-borderMuted text-textMain focus:border-brand focus:ring-brand/20 w-full cursor-pointer appearance-none rounded-2xl border p-4 text-sm font-bold transition-all outline-none focus:ring-1"
+                        value={selectedCombination[idx]}
+                        onChange={(e) => updateSubject(idx, e.target.value)}
+                      >
+                        <option value="">Select subject</option>
+                        {AVAILABLE_SUBJECTS.filter(
+                          (s) => s.id !== "English",
+                        ).map((sub) => (
                           <option
                             key={sub.id}
                             value={sub.id}
@@ -873,119 +906,119 @@ const GuestMockExam: React.FC = () => {
                           >
                             {sub.icon} {sub.name}
                           </option>
-                        ),
-                      )}
-                    </select>
-                    <div className="text-textDim group-hover:text-brand pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 transition-colors">
-                      <ArrowRight className="h-4 w-4 rotate-90" />
+                        ))}
+                      </select>
+                      <div className="text-textDim group-hover:text-brand pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 transition-colors">
+                        <ArrowRight className="h-4 w-4 rotate-90" />
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
+
+            <button
+              onClick={handleStart}
+              disabled={selectedCombination.some((s) => s === "") || isLoading}
+              className={cn(
+                "mt-10 flex w-full items-center justify-center gap-3 rounded-2xl py-5 text-sm font-black tracking-widest uppercase transition-all",
+                selectedCombination.some((s) => s === "") || isLoading
+                  ? "bg-bgSurface text-textMuted border-borderMuted cursor-not-allowed border"
+                  : "bg-brand hover:bg-brand-light shadow-brand/20 text-white shadow-xl active:scale-[0.98]",
+              )}
+            >
+              {isLoading ? "Preparing Exam..." : "Start Simulation"}
+              <Zap className={cn("h-4 w-4", !isLoading && "fill-current")} />
+            </button>
           </div>
 
-          <button
-            onClick={handleStart}
-            disabled={selectedCombination.some((s) => s === "") || isLoading}
-            className={cn(
-              "mt-10 flex w-full items-center justify-center gap-3 rounded-2xl py-5 text-sm font-black tracking-widest uppercase transition-all",
-              selectedCombination.some((s) => s === "") || isLoading
-                ? "bg-bgSurface text-textMuted border-borderMuted cursor-not-allowed border"
-                : "bg-brand hover:bg-brand-light shadow-brand/20 text-white shadow-xl active:scale-[0.98]",
-            )}
-          >
-            {isLoading ? "Preparing Exam..." : "Start Simulation"}
-            <Zap className={cn("h-4 w-4", !isLoading && "fill-current")} />
-          </button>
-        </div>
+          {/* Guidelines Card */}
+          <div className="flex flex-col gap-6">
+            <div className="bg-bgCard border-borderMuted border-l-brand flex-1 rounded-3xl border border-l-4 p-8 shadow-xl backdrop-blur-sm sm:p-10">
+              <h3 className="text-brand mb-8 flex items-center gap-3 text-xs font-black tracking-[0.2em] uppercase">
+                <Info className="h-4 w-4" />
+                Exam Guidelines
+              </h3>
 
-        {/* Guidelines Card */}
-        <div className="flex flex-col gap-6">
-          <div className="bg-bgCard border-borderMuted border-l-brand flex-1 rounded-3xl border border-l-4 p-8 shadow-xl backdrop-blur-sm sm:p-10">
-            <h3 className="text-brand mb-8 flex items-center gap-3 text-xs font-black tracking-[0.2em] uppercase">
-              <Info className="h-4 w-4" />
-              Exam Guidelines
-            </h3>
-
-            <div className="space-y-6">
-              {[
-                {
-                  label: "English",
-                  value: "60 Questions",
-                  icon: <BookOpen className="h-4 w-4" />,
-                },
-                {
-                  label: "Other Subjects",
-                  value: "40 Questions Each",
-                  icon: <Target className="h-4 w-4" />,
-                },
-                {
-                  label: "Total Questions",
-                  value: "180 Items",
-                  icon: <Layers className="h-4 w-4" />,
-                },
-                {
-                  label: "Duration",
-                  value: "120 Minutes",
-                  icon: <Timer className="h-4 w-4" />,
-                },
-              ].map((item, i) => (
-                <div
-                  key={i}
-                  className="group flex items-center justify-between"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="bg-bgSurface text-textDim group-hover:text-brand flex h-8 w-8 items-center justify-center rounded-lg transition-colors">
-                      {item.icon}
+              <div className="space-y-6">
+                {[
+                  {
+                    label: "English",
+                    value: "60 Questions",
+                    icon: <BookOpen className="h-4 w-4" />,
+                  },
+                  {
+                    label: "Other Subjects",
+                    value: "40 Questions Each",
+                    icon: <Target className="h-4 w-4" />,
+                  },
+                  {
+                    label: "Total Questions",
+                    value: "180 Items",
+                    icon: <Layers className="h-4 w-4" />,
+                  },
+                  {
+                    label: "Duration",
+                    value: "120 Minutes",
+                    icon: <Timer className="h-4 w-4" />,
+                  },
+                ].map((item, i) => (
+                  <div
+                    key={i}
+                    className="group flex items-center justify-between"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="bg-bgSurface text-textDim group-hover:text-brand flex h-8 w-8 items-center justify-center rounded-lg transition-colors">
+                        {item.icon}
+                      </div>
+                      <span className="text-textMain text-sm font-bold">
+                        {item.label}
+                      </span>
                     </div>
-                    <span className="text-textMain text-sm font-bold">
-                      {item.label}
+                    <span className="text-brand font-mono text-sm font-black">
+                      {item.value}
                     </span>
                   </div>
-                  <span className="text-brand font-mono text-sm font-black">
-                    {item.value}
+                ))}
+              </div>
+
+              <div className="bg-success/5 border-success/20 mt-12 rounded-2xl border p-6">
+                <div className="mb-2 flex items-center gap-3">
+                  <CheckCircle className="text-success h-4 w-4" />
+                  <span className="text-success text-xs font-black tracking-widest uppercase">
+                    CBT Mode Active
                   </span>
                 </div>
-              ))}
-            </div>
-
-            <div className="bg-success/5 border-success/20 mt-12 rounded-2xl border p-6">
-              <div className="mb-2 flex items-center gap-3">
-                <CheckCircle className="text-success h-4 w-4" />
-                <span className="text-success text-xs font-black tracking-widest uppercase">
-                  CBT Mode Active
-                </span>
+                <p className="text-textDim text-[11px] leading-relaxed font-medium italic">
+                  Answers are hidden until you submit. The timer will
+                  automatically end your session if time runs out.
+                </p>
               </div>
-              <p className="text-textDim text-[11px] leading-relaxed font-medium italic">
-                Answers are hidden until you submit. The timer will
-                automatically end your session if time runs out.
-              </p>
             </div>
-          </div>
 
-          <div className="from-brand/20 to-brand/5 border-brand/20 group relative overflow-hidden rounded-3xl border bg-linear-to-br p-8">
-            <div className="bg-brand/10 absolute -right-8 -bottom-8 h-32 w-32 rounded-full blur-3xl transition-transform duration-1000 group-hover:scale-150" />
-            <div className="relative z-10">
-              <p className="text-textMain mb-2 flex items-center gap-2 text-sm font-bold">
-                <Sparkles className="text-brand h-4 w-4" />
-                Want to save your progress?
-              </p>
-              <p className="text-textDim mb-4 text-xs leading-relaxed">
-                Guest sessions are temporary. Create a free account to track
-                your mock scores and see detailed performance analytics.
-              </p>
-              <button
-                onClick={() => navigate("/signup")}
-                className="text-brand flex items-center gap-2 text-xs font-black tracking-widest uppercase hover:underline"
-              >
-                Join Schooldra Now <ArrowRight size={14} />
-              </button>
+            <div className="from-brand/20 to-brand/5 border-brand/20 group relative overflow-hidden rounded-3xl border bg-linear-to-br p-8">
+              <div className="bg-brand/10 absolute -right-8 -bottom-8 h-32 w-32 rounded-full blur-3xl transition-transform duration-1000 group-hover:scale-150" />
+              <div className="relative z-10">
+                <p className="text-textMain mb-2 flex items-center gap-2 text-sm font-bold">
+                  <Sparkles className="text-brand h-4 w-4" />
+                  Want to save your progress?
+                </p>
+                <p className="text-textDim mb-4 text-xs leading-relaxed">
+                  Guest sessions are temporary. Create a free account to track
+                  your mock scores and see detailed performance analytics.
+                </p>
+                <button
+                  onClick={() => navigate("/signup")}
+                  className="text-brand flex items-center gap-2 text-xs font-black tracking-widest uppercase hover:underline"
+                >
+                  Join Schooldra Now <ArrowRight size={14} />
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      </motion.div>
-    </GuestLayout>
+        </motion.div>
+      </GuestLayout>
+    </>
   );
 };
 

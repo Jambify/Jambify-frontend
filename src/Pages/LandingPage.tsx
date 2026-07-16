@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Helmet } from "react-helmet-async";
+import PageHelmet from "../components/SEO/PageHelmet";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import schooldraLogo from "../assets/schooldraLogo.png";
@@ -78,23 +78,11 @@ const LandingPage: React.FC = () => {
 
   return (
     <>
-      <Helmet>
-        <title>SCHOOLDRA - Best JAMB UTME Preparation App</title>
-        <meta
-          name="description"
-          content="Prepare for JAMB UTME with realistic mock exams, past questions, and AI-powered learning. Get the score you need for your dream course!"
-        />
-        <meta
-          property="og:title"
-          content="SCHOOLDRA - Best JAMB UTME Preparation App"
-        />
-        <meta
-          property="og:description"
-          content="Prepare for JAMB UTME with realistic mock exams, past questions, and AI-powered learning. Get the score you need for your dream course!"
-        />
-        <meta property="og:type" content="website" />
-        <link rel="canonical" href="https://www.schooldra.com" />
-      </Helmet>
+      <PageHelmet
+        title="SCHOOLDRA - Best JAMB UTME Preparation App"
+        description="Prepare for JAMB UTME with realistic mock exams, past questions, and AI-powered learning. Get the score you need for your dream course!"
+        canonical="https://www.schooldra.com"
+      />
 
       <div className="bg-bgMain text-textMain min-h-screen">
         {/* NAVIGATION */}
