@@ -47,31 +47,28 @@ async function main() {
   headless: true,
 });
 
-  for (const route of routes) {
-    // Fresh, fully isolated context per route — no shared state, no risk
-    // of the previous route's title/meta tags leaking into this one.
-    const context = await browser.newContext();
-    const page = await context.newPage();
+  const context = await browser.newContext();
+const page = await context.newPage();
 
-    const url = `${base}${route}`;
-    console.log(`Rendering ${url} ...`);
+for (const route of routes) {
+  const url = `${base}${route}`;
+  console.log(`Rendering ${url} ...`);
 
-    await page.goto(url, { waitUntil: "networkidle" });
-    // Small buffer so react-helmet-async and any client-side fetches
-    // (e.g. dynamic counts, dates) have settled before we snapshot.
-    await page.waitForTimeout(600);
+  await page.goto(url, { waitUntil: "networkidle" });
+  await page.waitForTimeout(600);
 
-    const html = await page.content();
+  const html = await page.content();
 
-    const outDir =
-      route === "/" ? "dist" : path.join("dist", route.replace(/^\//, ""));
-    fs.mkdirSync(outDir, { recursive: true });
-    fs.writeFileSync(path.join(outDir, "index.html"), html);
+  const outDir =
+    route === "/" ? "dist" : path.join("dist", route.replace(/^\//, ""));
 
-    console.log(`  → saved to ${path.join(outDir, "index.html")}`);
+  fs.mkdirSync(outDir, { recursive: true });
+  fs.writeFileSync(path.join(outDir, "index.html"), html);
 
-    await context.close();
-  }
+  console.log(`  → saved to ${path.join(outDir, "index.html")}`);
+}
+
+await context.close();
 
   await browser.close();
   await server.httpServer.close();
