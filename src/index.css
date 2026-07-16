@@ -2,15 +2,13 @@
    Tailwind v4 — single @import replaces all @tailwind
    directives. No tailwind.config.ts needed.
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-   @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=Syne:wght@400;500;600;700;800;900&display=swap');
 
-   
+@import url("https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=Syne:wght@400;500;600;700;800;900&display=swap");
 
-
+@import "tailwindcss";
 
 :root {
-  --font-display: "Syne", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-display: "DM Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
   --font-body: "DM Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono: "DM Mono", ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", monospace;
 }
@@ -19,36 +17,39 @@ body {
   font-family: var(--font-body);
 }
 
-h1, h2, h3, .font-display {
+h1,
+h2,
+h3,
+.font-display {
   font-family: var(--font-display);
 }
 
 /* ── Theme tokens (replaces tailwind.config.ts) ───────── */
 
 @theme {
-  /* Fonts */
-  --font-display: "Syne", sans-serif;
+  /* Fonts - Unified for Readability */
+  --font-display: "DM Sans", sans-serif;
   --font-body: "DM Sans", sans-serif;
   --font-mono: "DM Mono", monospace;
 
-  /* Brand — mentor palette (identical in both themes) */
-  --color-brand: #473BF0;
-  --color-brand-light: #6B5DFF;
+  /* Brand */
+  --color-brand: #473bf0;
+  --color-brand-light: #6b5dff;
   --color-brand-dim: rgba(71, 59, 240, 0.12);
 
-  /* Secondary Accent — Teal (informational, secondary states) */
-  --color-teal: #61A0AF;
-  --color-teal-light: #7FB3C4;
+  /* Secondary Accent */
+  --color-teal: #61a0af;
+  --color-teal-light: #7fb3c4;
   --color-teal-dim: rgba(97, 160, 175, 0.12);
 
-  /* Highlight — Pale Lime (rare, high-value usage) */
-  --color-lime: #F3FFB6;
-  --color-lime-dark: #D4E86F;
+  /* Highlight */
+  --color-lime: #f3ffb6;
+  --color-lime-dark: #d4e86f;
 
   /* Semantic */
   --color-success: #00c896;
   --color-success-dim: rgba(0, 200, 150, 0.12);
-  --color-danger: #DF2935;
+  --color-danger: #df2935;
   --color-danger-dim: rgba(223, 41, 53, 0.12);
   --color-warn: #ffb020;
   --color-warn-dim: rgba(255, 176, 32, 0.12);
@@ -149,7 +150,7 @@ h1, h2, h3, .font-display {
   --bgSurface: #f3eeff;
   --bgCard: #ffffff;
   --bgTrack: rgba(71, 59, 240, 0.08);
-  --borderMuted: rgba(71, 59, 240, 0.10);
+  --borderMuted: rgba(71, 59, 240, 0.1);
   --textMain: #1a1625;
   --textMuted: #5b5470;
   --textDim: #7d789a;
@@ -157,10 +158,10 @@ h1, h2, h3, .font-display {
     0 1px 3px rgba(71, 59, 240, 0.05), 0 6px 20px rgba(71, 59, 240, 0.07);
   --shadow-nav-val:
     0 -4px 12px rgba(71, 59, 240, 0.03), 0 -8px 24px rgba(71, 59, 240, 0.05);
-  --shadow-brand-val: 0 4px 20px rgba(71, 59, 240, 0.20);
+  --shadow-brand-val: 0 4px 20px rgba(71, 59, 240, 0.2);
   --shadow-teal-val: 0 4px 20px rgba(97, 160, 175, 0.15);
-  --shadow-success-val: 0 4px 16px rgba(0, 200, 150, 0.20);
-  --shadow-danger-val: 0 4px 16px rgba(223, 41, 53, 0.20);
+  --shadow-success-val: 0 4px 16px rgba(0, 200, 150, 0.2);
+  --shadow-danger-val: 0 4px 16px rgba(223, 41, 53, 0.2);
   --cd-opacity: 0.16;
   --scrollbar-thumb: rgba(71, 59, 240, 0.15);
   --scrollbar-thumb-hover: rgba(71, 59, 240, 0.28);
@@ -174,12 +175,13 @@ h1, h2, h3, .font-display {
 
 [data-theme="light"] .bg-bgSurface\/98 {
   background-color: rgba(255, 255, 255, 0.95) !important;
-  box-shadow: 0 -1px 0 rgba(71, 59, 240, 0.06),
-              0 -4px 16px rgba(71, 59, 240, 0.04) !important;
+  box-shadow:
+    0 -1px 0 rgba(71, 59, 240, 0.06),
+    0 -4px 16px rgba(71, 59, 240, 0.04) !important;
 }
 
 [data-theme="light"] .bg-bgCard {
-  box-shadow: 
+  box-shadow:
     0 0 0 1px rgba(71, 59, 240, 0.04),
     0 1px 3px rgba(71, 59, 240, 0.04),
     0 4px 16px rgba(71, 59, 240, 0.03) !important;
@@ -225,23 +227,45 @@ h1, h2, h3, .font-display {
   box-shadow: var(--shadow-success);
 }
 
-[data-theme="light"] .bg-brand\/10 { background-color: rgba(71, 59, 240, 0.08) !important; }
-[data-theme="light"] .bg-teal\/10 { background-color: rgba(97, 160, 175, 0.08) !important; }
-[data-theme="light"] .bg-lime\/10 { background-color: rgba(243, 255, 182, 0.12) !important; }
-[data-theme="light"] .bg-success\/10 { background-color: rgba(0, 200, 150, 0.08) !important; }
-[data-theme="light"] .bg-danger\/10 { background-color: rgba(223, 41, 53, 0.08) !important; }
-[data-theme="light"] .bg-warn\/10 { background-color: rgba(255, 176, 32, 0.08) !important; }
+[data-theme="light"] .bg-brand\/10 {
+  background-color: rgba(71, 59, 240, 0.08) !important;
+}
+[data-theme="light"] .bg-teal\/10 {
+  background-color: rgba(97, 160, 175, 0.08) !important;
+}
+[data-theme="light"] .bg-lime\/10 {
+  background-color: rgba(243, 255, 182, 0.12) !important;
+}
+[data-theme="light"] .bg-success\/10 {
+  background-color: rgba(0, 200, 150, 0.08) !important;
+}
+[data-theme="light"] .bg-danger\/10 {
+  background-color: rgba(223, 41, 53, 0.08) !important;
+}
+[data-theme="light"] .bg-warn\/10 {
+  background-color: rgba(255, 176, 32, 0.08) !important;
+}
 
 [data-theme="light"] button:active {
   background-color: rgba(71, 59, 240, 0.05);
 }
 
 [data-theme="light"] .ambient-glow {
-  background: radial-gradient(ellipse 70% 80% at 100% 50%, rgba(71, 59, 240, 0.07) 0%, rgba(71, 59, 240, 0.03) 40%, transparent 70%) !important;
+  background: radial-gradient(
+    ellipse 70% 80% at 100% 50%,
+    rgba(71, 59, 240, 0.07) 0%,
+    rgba(71, 59, 240, 0.03) 40%,
+    transparent 70%
+  ) !important;
 }
 :root .ambient-glow,
 html:not([data-theme="light"]) .ambient-glow {
-  background: radial-gradient(ellipse 70% 80% at 100% 50%, rgba(71, 59, 240, 0.10) 0%, rgba(71, 59, 240, 0.04) 40%, transparent 70%);
+  background: radial-gradient(
+    ellipse 70% 80% at 100% 50%,
+    rgba(71, 59, 240, 0.1) 0%,
+    rgba(71, 59, 240, 0.04) 40%,
+    transparent 70%
+  );
 }
 
 .auth-form-panel {
@@ -272,8 +296,12 @@ html:not([data-theme="light"]) .ambient-glow {
   border-color: var(--borderMuted);
 }
 
-[data-theme="light"] .font-display.font-black { font-weight: 800; }
-[data-theme="light"] .font-display.font-bold { font-weight: 600; }
+[data-theme="light"] .font-display.font-black {
+  font-weight: 800;
+}
+[data-theme="light"] .font-display.font-bold {
+  font-weight: 600;
+}
 
 [data-theme="light"] body {
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.015'/%3E%3C/svg%3E");
@@ -291,7 +319,7 @@ html:not([data-theme="light"]) .ambient-glow {
   outline-offset: 2px;
 }
 [data-theme="light"] ::selection {
-  background: rgba(71, 59, 240, 0.20);
+  background: rgba(71, 59, 240, 0.2);
   color: var(--textMain);
 }
 
@@ -331,18 +359,34 @@ html:not([data-theme="light"]) .ambient-glow {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 @keyframes slideDown {
-  from { opacity: 0; transform: translateY(-6px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
@@ -372,8 +416,13 @@ body {
   user-select: none;
 }
 
-::-webkit-scrollbar { width: 7px; height: 5px; }
-::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar {
+  width: 7px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
 ::-webkit-scrollbar-thumb {
   background: var(--scrollbar-thumb);
   border-radius: 99px;
@@ -384,24 +433,51 @@ body {
 }
 
 @supports (-webkit-touch-callout: none) {
-  .h-screen { height: 100vh; height: -webkit-fill-available; }
-  .min-h-screen { min-height: 100vh; min-height: -webkit-fill-available; }
+  .h-screen {
+    height: 100vh;
+    height: -webkit-fill-available;
+  }
+  .min-h-screen {
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+  }
 }
 
-.safe-area-top { padding-top: env(safe-area-inset-top); }
-.safe-area-bottom { padding-bottom: env(safe-area-inset-bottom); }
-.safe-area-left { padding-left: env(safe-area-inset-left); }
-.safe-area-right { padding-right: env(safe-area-inset-right); }
+.safe-area-top {
+  padding-top: env(safe-area-inset-top);
+}
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.safe-area-left {
+  padding-left: env(safe-area-inset-left);
+}
+.safe-area-right {
+  padding-right: env(safe-area-inset-right);
+}
 .safe-area-all {
   padding: env(safe-area-inset-top) env(safe-area-inset-right)
     env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
-.touch-target { min-height: 44px; min-width: 44px; position: relative; }
-.no-double-tap { touch-action: manipulation; }
-.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-.scrollbar-hide::-webkit-scrollbar { display: none; }
-.momentum-scroll { -webkit-overflow-scrolling: touch; }
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+  position: relative;
+}
+.no-double-tap {
+  touch-action: manipulation;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.momentum-scroll {
+  -webkit-overflow-scrolling: touch;
+}
 .no-select {
   -webkit-user-select: none;
   -moz-user-select: none;
@@ -415,7 +491,8 @@ body {
   user-select: text;
 }
 
-input, textarea {
+input,
+textarea {
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
@@ -439,13 +516,22 @@ button {
     -webkit-transform: translate3d(0, 0, 0);
     transform: translate3d(0, 0, 0);
   }
-  .scroll-ios { -webkit-overflow-scrolling: touch; }
+  .scroll-ios {
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
-.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
 
-:focus { outline: none; }
+:focus {
+  outline: none;
+}
 :focus-visible {
   outline: 2px solid var(--color-brand);
   outline-offset: 2px;
@@ -455,16 +541,24 @@ button {
   color: var(--textMain);
 }
 
-.line-clamp-1, .line-clamp-2, .line-clamp-3 {
+.line-clamp-1,
+.line-clamp-2,
+.line-clamp-3 {
   display: -webkit-box;
   -webkit-box-orient: vertical;
   overflow: hidden;
   line-clamp: var(--lines);
   -webkit-line-clamp: var(--lines);
 }
-.line-clamp-1 { --lines: 1; }
-.line-clamp-2 { --lines: 2; }
-.line-clamp-3 { --lines: 3; }
+.line-clamp-1 {
+  --lines: 1;
+}
+.line-clamp-2 {
+  --lines: 2;
+}
+.line-clamp-3 {
+  --lines: 3;
+}
 
 @viewport {
   width: device-width;
