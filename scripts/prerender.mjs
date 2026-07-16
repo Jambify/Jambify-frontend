@@ -12,7 +12,8 @@
 // which is exactly what caused the duplicate/wrong-title bug on the
 // first pass of this script.
 
-import { chromium } from "playwright";
+import { chromium } from "playwright-core";
+import chromiumBinary from "@sparticuz/chromium";
 import { preview } from "vite";
 import fs from "node:fs";
 import path from "node:path";
@@ -41,8 +42,10 @@ async function main() {
   console.log("Launching headless browser...");
   // ADD THESE ARGS to handle the Vercel/Linux environment
   const browser = await chromium.launch({
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
-  });
+  args: chromiumBinary.args,
+  executablePath: await chromiumBinary.executablePath(),
+  headless: true,
+});
 
   for (const route of routes) {
     // Fresh, fully isolated context per route — no shared state, no risk
