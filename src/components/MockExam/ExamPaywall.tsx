@@ -3,7 +3,7 @@ import { useUserStore, APP_CONFIG } from "../../Store/useUserStore";
 import { supabase } from "../../lib/supabase";
 import Button from "../ui/Button";
 import { Crown, Lock, CheckCircle, Loader2, ExternalLink } from "lucide-react";
-import schooldralogo from "../../assets/schooldraLogo.png";
+import schooldralogo from "../../assets/schooldraLogo.webp"; // Import the new logo
 
 interface ExamPaywallProps {
   onUpgrade: () => void;
@@ -93,7 +93,7 @@ const ExamPaywall: React.FC<ExamPaywallProps> = ({ onUpgrade, onBack }) => {
         customizations: {
           title: "SCHOOLDRA Pro",
           description: "Monthly subscription for professional JAMB prep tools",
-          logo: "https://Schooldra.com/SCHOOLDRA.LOGO.png",
+          logo: "https://Schooldra.com/SCHOOLDRA.LOGO.webp",
         },
         callback: async (data: any) => {
           console.log("Payment callback data:", data);

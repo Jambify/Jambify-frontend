@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Button from "./Button";
-import schooldraLogo from "../../assets/schooldraLogo.png";
+import schooldraLogo from "../../assets/schooldraLogo.webp";
 
 interface LoadingScreenProps {
   message?: string;

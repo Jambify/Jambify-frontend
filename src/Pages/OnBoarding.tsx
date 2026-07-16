@@ -7,7 +7,7 @@ import ConfirmModal from "../components/ui/ConfirmModal";
 import { cn } from "../lib/utils/utils";
 import LoadingScreen from "../components/ui/LoadingScreen";
 import CustomSubjectSelector from "../components/Settings/CustomSubjectSelector";
-import schooldraLogo from "../assets/schooldraLogo.png"
+import schooldraLogo from "../assets/schooldraLogo.webp"; // Import the new logo
 
 /* ── Updated Data with Professional Combos ── */
 const SUBJECT_COMBOS = [

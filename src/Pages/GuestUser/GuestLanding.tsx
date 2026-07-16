@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { BookOpen, Trophy, ArrowRight, LogIn, Zap } from "lucide-react";
 import ThemeToggle from "../../components/ui/ThemeToggle";
-import schooldraLogo from "../../assets/schooldraLogo.png";
+import schooldraLogo from "../../assets/schooldraLogo.webp";
 import PageHelmet from "../../components/SEO/PageHelmet";
 // import { cn } from "../../lib/utils/utils";
 

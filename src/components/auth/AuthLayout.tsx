@@ -3,7 +3,7 @@ import React, { type ReactNode } from "react";
 import { motion } from "framer-motion";
 import { ShieldCheck } from "lucide-react";
 import ThemeToggle from "../ui/ThemeToggle";
-import schooldralogo from "../../assets/schooldraLogo.png"
+import schooldralogo from "../../assets/schooldraLogo.webp"; // Import the new logo
 
 type AuthVariant = "signin" | "signup" | "otp";
 

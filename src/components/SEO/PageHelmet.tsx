@@ -17,7 +17,7 @@ interface PageHelmetProps {
 // "Primary Meta Tags" block. Moved here so PageHelmet is the single source
 // of truth for every social/SEO tag — nothing left split between a static
 // file and this component, which is what caused the duplicate-tag bug.
-const DEFAULT_OG_IMAGE = "https://www.schooldra.com/SCHOOLDRA.LOGO.png";
+const DEFAULT_OG_IMAGE = "https://www.schooldra.com/SCHOOLDRA.LOGO.webp";
 const SITE_NAME = "SCHOOLDRA";
 const LOCALE = "en_NG";
 const TWITTER_HANDLE = "@schooldra";

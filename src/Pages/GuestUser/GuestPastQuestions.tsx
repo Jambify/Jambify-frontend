@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import PageHelmet from "../../components/SEO/PageHelmet";
 import ThemeToggle from "../../components/ui/ThemeToggle";
-import schooldraLogo from "../../assets/schooldraLogo.png";
+import schooldraLogo from "../../assets/schooldraLogo.webp";
 import {
   Loader2,
   Search,

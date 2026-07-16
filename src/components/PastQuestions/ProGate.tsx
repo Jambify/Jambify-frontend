@@ -67,7 +67,7 @@ const ProGate: React.FC = () => {
         customizations: {
           title: "Schooldra Pro",
           description: "Full access to all JAMB prep features",
-          logo: "https://schooldra.vercel.app/Schooldra.LOGO.png",
+          logo: "https://schooldra.vercel.app/Schooldra.LOGO.webp",
         },
         callback: async (data: any) => {
           if (data.status === "successful" || data.status === "completed") {

@@ -4,7 +4,7 @@ import { useUserStore } from "../../Store/useUserStore";
 import { useExamCountdown } from "../../hooks/useExamCountdown";
 import Sidebar from "./Sidebar";
 import { useNetworkStatus } from "../../hooks/useNetworkStatus";
-import schooldraLogo from "../../assets/schooldraLogo.png";
+import schooldraLogo from "../../assets/schooldraLogo.webp";
 import {
   LayoutGrid,
   FileText,

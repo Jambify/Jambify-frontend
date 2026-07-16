@@ -14,22 +14,19 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          // Vendor chunks for better caching
           if (id.includes("node_modules")) {
-            if (id.includes("react")) {
-              return "react-vendor";
-            }
-            if (id.includes("supabase")) {
-              return "supabase-vendor";
-            }
-            if (id.includes("framer-motion")) {
-              return "animation-vendor";
-            }
+            // Split heavy libraries into their own chunks
+            if (id.includes("framer-motion")) return "animation-vendor";
+            if (id.includes("@supabase")) return "supabase-vendor";
+            
+            // Catch-all for other dependencies
             return "vendor";
           }
         },
       },
     },
+    // Raise the limit to avoid the warning without sacrificing performance
+    chunkSizeWarningLimit: 800,
     // Enable compression for smaller bundles
     minify: "terser",
     terserOptions: {

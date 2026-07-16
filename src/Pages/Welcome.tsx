@@ -4,7 +4,7 @@ import { useUserStore } from "../Store/useUserStore";
 import { motion } from "framer-motion";
 import Button from "../components/ui/Button";
 import { CheckCircle, Sparkles, Trophy, Target } from "lucide-react";
-import schooldraLogo from "../assets/schooldraLogo.png";
+import schooldraLogo from "../assets/schooldraLogo.webp";
 
 const REDIRECT_SECS = 8;
 
@@ -59,7 +59,6 @@ const Welcome: React.FC = () => {
     };
     return labels[combo] || combo;
   };
-  
 
   return (
     <div
@@ -87,10 +86,14 @@ const Welcome: React.FC = () => {
       )}
 
       <div className="mb-8 flex items-center gap-3">
-        <img src={schooldraLogo} alt="Schooldra"  className="h-15 w-15 flex items-center justify-center" />
-              <span className="font-display text-3xl item-center font-bold tracking-tight">
-                Schooldra
-              </span>
+        <img
+          src={schooldraLogo}
+          alt="Schooldra"
+          className="flex h-15 w-15 items-center justify-center"
+        />
+        <span className="font-display item-center text-3xl font-bold tracking-tight">
+          Schooldra
+        </span>
       </div>
 
       <div className="w-full max-w-md">

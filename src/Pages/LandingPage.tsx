@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import PageHelmet from "../components/SEO/PageHelmet";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
-import schooldraLogo from "../assets/schooldraLogo.png";
+import schooldraLogo from "../assets/schooldraLogo.webp";
 import mockExamImg from "../assets/showcase-mockexam.png";
 import pastQuestionsImg from "../assets/showcase-pastquestions.png";
 import performanceImg from "../assets/showcase-performance.png";

@@ -3,7 +3,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { cn } from "../../lib/utils/utils";
 import { useUserStore } from "../../Store/useUserStore";
 import { MessageSquare, Trophy, Sparkles, ArrowRight } from "lucide-react";
-import schooldraLogo from "../../assets/schooldraLogo.png";
+import schooldraLogo from "../../assets/schooldraLogo.webp";
 interface NavItem {
   label: string;
   path: string;
