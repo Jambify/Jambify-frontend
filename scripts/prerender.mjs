@@ -54,7 +54,10 @@ for (const route of routes) {
   const url = `${base}${route}`;
   console.log(`Rendering ${url} ...`);
 
-  await page.goto(url, { waitUntil: "networkidle" });
+await page.goto(url, {
+  waitUntil: "domcontentloaded",
+  timeout: 60000,
+});
   await page.waitForTimeout(600);
 
   const html = await page.content();
