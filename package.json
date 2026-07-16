@@ -8,7 +8,7 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "prerender": "node scripts/prerender.mjs",
-    "vercel-build": "npm run build && npx playwright install chromium && npm run prerender",
+    "vercel-build": "npm run build && PLAYWRIGHT_BROWSERS_PATH=0 npx playwright install chromium && node scripts/prerender.mjs",
     "format": "prettier --write ."
   },
   "overrides": {
