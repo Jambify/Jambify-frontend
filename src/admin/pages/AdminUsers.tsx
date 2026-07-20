@@ -463,130 +463,154 @@ const AdminUsers: React.FC = () => {
   };
 
   // ── Actions ────────────────────────────────────────────────────────────────
-  const handleAction = async (
-    action: "pro" | "freeze" | "delete",
-    user: AdminUser,
-  ) => {
-    if (user.id === currentUserId) {
-      toast("error", "You can't modify your own account!");
-      return;
-    }
+  // ── Actions ────────────────────────────────────────────────────────────────
+const logAudit = async (
+  action: string,
+  target: AdminUser,
+  metadata: Record<string, any> = {},
+) => {
+  const { data: { user: adminUser } } = await supabase.auth.getUser();
+  await supabase.from("admin_audit_log").insert({
+    admin_id: adminUser?.id,
+    admin_email: adminUser?.email,
+    action,
+    target_user_id: target.id,
+    target_email: target.email,
+    metadata,
+  });
+};
 
-    if (action === "delete") {
-      setDeleteTarget(user);
-      return;
-    }
+const handleAction = async (
+  action: "pro" | "freeze" | "delete",
+  user: AdminUser,
+) => {
+  if (user.id === currentUserId) {
+    toast("error", "You can't modify your own account!");
+    return;
+  }
 
-    const key = `${action}-${user.id}`;
-    setActionLoading(key);
+  if (action === "delete") {
+    setDeleteTarget(user);
+    return;
+  }
 
-    try {
-      if (action === "pro") {
-        const newPro = !user.is_pro;
+  const key = `${action}-${user.id}`;
+  setActionLoading(key);
 
-        // 1. ALWAYS update profiles table first (this is the source of truth)
-        const { error: profileError } = await supabase
-          .from("profiles")
-          .update({ is_pro: newPro })
-          .eq("id", user.id);
-        if (profileError) throw profileError;
+  try {
+    if (action === "pro") {
+      const newPro = !user.is_pro;
 
-        // 2. Try to update pro_users (but don't fail if it errors)
-        try {
-          if (newPro) {
-            // Grant pro: upsert
-            await supabase.from("pro_users").upsert(
-              {
-                user_id: user.id,
-                email: user.email,
-                status: "active",
-                plan_type: "monthly",
-                updated_at: new Date().toISOString(),
-              },
-              { onConflict: "user_id" },
-            );
-          } else {
-            // Revoke pro: mark inactive or ignore
-            await supabase
-              .from("pro_users")
-              .update({
-                status: "inactive",
-                updated_at: new Date().toISOString(),
-              })
-              .eq("user_id", user.id);
-          }
-        } catch (proErr) {
-          console.warn("pro_users update failed (non-critical):", proErr);
-        }
-
-        // Update local state
-        setUsers((prev) =>
-          prev.map((u) => (u.id === user.id ? { ...u, is_pro: newPro } : u)),
+      // Always route through pro_users — the trigger keeps profiles.is_pro in sync.
+      // No more direct writes to profiles.is_pro from the admin panel.
+      if (newPro) {
+        const { error } = await supabase.from("pro_users").upsert(
+          {
+            user_id: user.id,
+            email: user.email,
+            status: "active",
+            plan_type: "admin_grant",
+            payment_reference: `admin-grant-${Date.now()}`,
+            expires_at: new Date(
+              Date.now() + 30 * 24 * 60 * 60 * 1000,
+            ).toISOString(), // 30-day comp grant; adjust as needed
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "user_id" },
         );
-        if (selected?.id === user.id)
-          setSelected((prev) => (prev ? { ...prev, is_pro: newPro } : null));
-        toast(
-          "success",
-          `Pro ${newPro ? "granted" : "revoked"} for ${user.name}`,
-        );
-      }
-
-      if (action === "freeze") {
-        const newFrozen = !user.is_frozen;
-        const { error } = await supabase
-          .from("profiles")
-          .update({ is_frozen: newFrozen })
-          .eq("id", user.id);
         if (error) throw error;
-        setUsers((prev) =>
-          prev.map((u) =>
-            u.id === user.id ? { ...u, is_frozen: newFrozen } : u,
-          ),
+      } else {
+        // Row may not exist yet (e.g. never subscribed) — upsert is safe either way
+        const { error } = await supabase.from("pro_users").upsert(
+          {
+            user_id: user.id,
+            email: user.email,
+            status: "inactive",
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "user_id" },
         );
-        if (selected?.id === user.id)
-          setSelected((prev) =>
-            prev ? { ...prev, is_frozen: newFrozen } : null,
-          );
-        toast(
-          "success",
-          `Account ${newFrozen ? "frozen" : "unfrozen"}: ${user.name}`,
-        );
+        if (error) throw error;
       }
-    } catch (err: any) {
-      toast("error", err.message ?? "Action failed");
-    } finally {
-      setActionLoading(null);
-    }
-  };
 
-  const handleDelete = async () => {
-    if (!deleteTarget) return;
-    if (deleteTarget.id === currentUserId) {
-      toast("error", "You can't delete your own account!");
-      setDeleteTarget(null);
-      return;
+      setUsers((prev) =>
+        prev.map((u) => (u.id === user.id ? { ...u, is_pro: newPro } : u)),
+      );
+      if (selected?.id === user.id)
+        setSelected((prev) => (prev ? { ...prev, is_pro: newPro } : null));
+
+      await logAudit(newPro ? "grant_pro" : "revoke_pro", user, {
+        previous_status: user.is_pro,
+      });
+
+      toast("success", `Pro ${newPro ? "granted" : "revoked"} for ${user.name}`);
     }
 
-    const key = `delete-${deleteTarget.id}`;
-    setActionLoading(key);
-    try {
-      // Delete profile row — Supabase cascade should handle related rows
+    if (action === "freeze") {
+      const newFrozen = !user.is_frozen;
       const { error } = await supabase
         .from("profiles")
-        .delete()
-        .eq("id", deleteTarget.id);
+        .update({ is_frozen: newFrozen })
+        .eq("id", user.id);
       if (error) throw error;
 
-      setUsers((prev) => prev.filter((u) => u.id !== deleteTarget.id));
-      if (selected?.id === deleteTarget.id) setSelected(null);
-      toast("success", `Deleted: ${deleteTarget.name}`);
-      setDeleteTarget(null);
-    } catch (err: any) {
-      toast("error", err.message ?? "Delete failed");
-    } finally {
-      setActionLoading(null);
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.id === user.id ? { ...u, is_frozen: newFrozen } : u,
+        ),
+      );
+      if (selected?.id === user.id)
+        setSelected((prev) =>
+          prev ? { ...prev, is_frozen: newFrozen } : null,
+        );
+
+      await logAudit(newFrozen ? "freeze" : "unfreeze", user);
+
+      toast(
+        "success",
+        `Account ${newFrozen ? "frozen" : "unfrozen"}: ${user.name}`,
+      );
     }
-  };
+  } catch (err: any) {
+    toast("error", err.message ?? "Action failed");
+  } finally {
+    setActionLoading(null);
+  }
+};
+
+const handleDelete = async () => {
+  if (!deleteTarget) return;
+  if (deleteTarget.id === currentUserId) {
+    toast("error", "You can't delete your own account!");
+    setDeleteTarget(null);
+    return;
+  }
+
+  const key = `delete-${deleteTarget.id}`;
+  setActionLoading(key);
+  try {
+    // Log BEFORE deleting — target_user_id FK would otherwise dangle after cascade
+    await logAudit("delete", deleteTarget, {
+      was_pro: deleteTarget.is_pro,
+      university: deleteTarget.university,
+    });
+
+    const { error } = await supabase
+      .from("profiles")
+      .delete()
+      .eq("id", deleteTarget.id);
+    if (error) throw error;
+
+    setUsers((prev) => prev.filter((u) => u.id !== deleteTarget.id));
+    if (selected?.id === deleteTarget.id) setSelected(null);
+    toast("success", `Deleted: ${deleteTarget.name}`);
+    setDeleteTarget(null);
+  } catch (err: any) {
+    toast("error", err.message ?? "Delete failed");
+  } finally {
+    setActionLoading(null);
+  }
+};
 
   // Reset to page 1 when search/filter changes
   useEffect(() => {

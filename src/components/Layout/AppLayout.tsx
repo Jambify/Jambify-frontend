@@ -5,6 +5,7 @@ import { useExamCountdown } from "../../hooks/useExamCountdown";
 import Sidebar from "./Sidebar";
 import { useNetworkStatus } from "../../hooks/useNetworkStatus";
 import schooldraLogo from "../../assets/schooldraLogo.webp";
+import AnnouncementBanner from "../ui/AnnouncementBanner";
 import {
   LayoutGrid,
   FileText,
@@ -94,8 +95,10 @@ const AppLayout: React.FC<LayoutProps> = ({
   const initials = getInitials(displayName);
 
   return (
+    
     <div className="bg-bgMain text-textMain selection:bg-brand/30 min-h-screen font-sans">
-      {/* Network Status Toast */}
+      <AnnouncementBanner />
+      {/* Network Status Toast */} 
       <AnimatePresence>
         {!isOnline && (
           <motion.div

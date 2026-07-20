@@ -10,7 +10,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { cn } from '../lib/utils/utils';
 import {
   Users, BarChart2, ShieldAlert,
-  Menu, X, Home,
+  Menu, X, Home,Clock, Megaphone,
 } from 'lucide-react';
 
 interface AdminLayoutProps {
@@ -19,8 +19,11 @@ interface AdminLayoutProps {
 }
 
 const NAV = [
-  { path: '/admin',       label: 'Overview',  icon: BarChart2,  end: true },
-  { path: '/admin/users', label: 'Users',     icon: Users,      end: false },
+  { path: '/admin',           label: 'Overview',   icon: BarChart2,   end: true },
+  { path: '/admin/users',     label: 'Users',      icon: Users,       end: false },
+  { path: '/admin/audit-log', label: 'Audit Log',  icon: Clock,       end: false }, // add Clock to lucide import
+  { path: '/admin/AdminBroadcast', label: 'AdminBroadcast',  icon: Megaphone,       end: false }, // add Clock to lucide import
+  
 ];
 
 const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title }) => {

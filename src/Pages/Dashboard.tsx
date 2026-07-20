@@ -21,7 +21,6 @@ import {
   CheckCircle2,
   Zap,
   GraduationCap,
-  
 } from "lucide-react";
 import { cn } from "../lib/utils/utils";
 
@@ -226,8 +225,9 @@ const Dashboard: React.FC = () => {
                 JAMB {examYear} Prep
               </span>
               {university && (
-                <span className="bg-bgSurface border-borderMuted text-textDim inline-flex max-w-50 items-center gap-1.5 truncate rounded-full border px-2.5 py-1 text-[10px]">
-                  <GraduationCap size={12} /> {university}
+                <span className="bg-bgSurface border-borderMuted text-textDim inline-flex max-w-50 min-w-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px]">
+                  <GraduationCap size={12} className="shrink-0" />
+                  <span className="truncate">{university}</span>
                 </span>
               )}
             </div>
