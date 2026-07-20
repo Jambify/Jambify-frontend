@@ -95,10 +95,12 @@ const AppLayout: React.FC<LayoutProps> = ({
   const initials = getInitials(displayName);
 
   return (
-    
     <div className="bg-bgMain text-textMain selection:bg-brand/30 min-h-screen font-sans">
-      <AnnouncementBanner />
-      {/* Network Status Toast */} 
+      <div className=" lg:pt-5 lg:pl-64">
+        <AnnouncementBanner />
+      </div>
+
+      {/* Network Status Toast */}
       <AnimatePresence>
         {!isOnline && (
           <motion.div
@@ -144,12 +146,16 @@ const AppLayout: React.FC<LayoutProps> = ({
         <aside className="bg-bgSurface border-borderMuted fixed top-0 bottom-0 left-0 z-100 hidden w-60 flex-col border-r lg:flex">
           <div className="border-borderMuted flex items-center justify-between border-b p-6 pb-4">
             <a href="/dashboard">
-            <div className="flex items-center gap-1 cursor-pointer">
-              <img src={schooldraLogo} alt="Schooldra Logo" className="h-8 w-8" />
-              <span className="text-brand-light text-lg font-black tracking-wider">
-                Schooldra
-              </span>
-            </div>
+              <div className="flex cursor-pointer items-center gap-1">
+                <img
+                  src={schooldraLogo}
+                  alt="Schooldra Logo"
+                  className="h-8 w-8"
+                />
+                <span className="text-brand-light text-lg font-black tracking-wider">
+                  Schooldra
+                </span>
+              </div>
             </a>
             {isPro && (
               <div className="bg-brand/10 text-brand border-brand/20 rounded border px-1.5 py-0.5 text-[9px] font-black tracking-widest uppercase">

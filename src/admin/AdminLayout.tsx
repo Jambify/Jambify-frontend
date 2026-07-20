@@ -11,6 +11,7 @@ import { cn } from '../lib/utils/utils';
 import {
   Users, BarChart2, ShieldAlert,
   Menu, X, Home,Clock, Megaphone,
+  Database,
 } from 'lucide-react';
 
 interface AdminLayoutProps {
@@ -23,6 +24,7 @@ const NAV = [
   { path: '/admin/users',     label: 'Users',      icon: Users,       end: false },
   { path: '/admin/audit-log', label: 'Audit Log',  icon: Clock,       end: false }, // add Clock to lucide import
   { path: '/admin/AdminBroadcast', label: 'AdminBroadcast',  icon: Megaphone,       end: false }, // add Clock to lucide import
+  { path: '/admin/Adminquestions', label: 'AdminQuestions',  icon: Database,       end: false }, // add Clock to lucide import
   
 ];
 

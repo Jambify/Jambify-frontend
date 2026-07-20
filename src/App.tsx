@@ -43,6 +43,7 @@ import AdminOverview from "./admin/pages/AdminOverview";
 import AdminUsers from "./admin/pages/AdminUsers";
 import AdminAuditLog from "./admin/pages/AdminAuditLog";
 import AdminBroadcast from "./admin/pages/AdminBroadcast";
+import Adminquestions from "./admin/pages/Adminquestions"
 
 // Make supabase available in console for debugging
 if (typeof window !== "undefined") {
@@ -255,6 +256,16 @@ const App: React.FC = () => {
               <AdminGuard>
                 <AdminLayout title="AdminBroadcast">
                   <AdminBroadcast />
+                </AdminLayout>
+              </AdminGuard>
+            }
+          />
+          <Route
+            path="/admin/Adminquestions"
+            element={
+              <AdminGuard>
+                <AdminLayout title="Adminquestions">
+                  <Adminquestions />
                 </AdminLayout>
               </AdminGuard>
             }
