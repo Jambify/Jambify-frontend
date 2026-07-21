@@ -3,6 +3,11 @@
  * ─────────────────────────────────────
  * Question bank management: search, filter, add, edit, delete.
  * Requires the admin write policies in questions_admin_policies.sql to be run first.
+ *
+ * FIX: fetchQuestions now filters by subject/search SERVER-SIDE and pages through
+ * results in chunks of 1000 (Supabase/PostgREST's hard per-request row cap), so
+ * subjects whose rows fell outside the first 1000 (by created_at) are no longer
+ * silently dropped.
  */
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
@@ -27,9 +32,10 @@ interface Question {
   subject: string;
   topic: string | null;
   year: number | null;
-  question: string;
+  text: string; // DB column is "text", not "question"
   options: string[];
   answer: number; // index into options
+  difficulty: string; // DB enum — must match Quiz.tsx/questionService.ts: 'Easy' | 'Medium' | 'Hard'
   explanation: string | null;
   created_at: string;
 }
@@ -49,7 +55,7 @@ const SUBJECTS = [
   "Biology",
   "Economics",
   "Government",
-  "Literature in English",
+  "Literature", // was "Literature in English" — didn't match Quiz.tsx's fetch queries
   "CRS",
   "IRS",
   "Commerce",
@@ -57,15 +63,22 @@ const SUBJECTS = [
   "History",
 ];
 
+// Must match resolveDifficulty() in questionService.ts exactly (capitalized)
+const DIFFICULTIES = ["Easy", "Medium", "Hard"];
+
 const EMPTY_FORM = {
   subject: SUBJECTS[0],
   topic: "",
   year: new Date().getFullYear(),
-  question: "",
+  text: "",
   options: ["", "", "", ""],
   answer: 0,
+  difficulty: DIFFICULTIES[1], // "medium"
   explanation: "",
 };
+
+// Supabase/PostgREST hard cap per request — page through in chunks this size
+const FETCH_CHUNK = 1000;
 
 // ── Toast bar ─────────────────────────────────────────────────────────
 
@@ -119,7 +132,7 @@ const QuestionModal: React.FC<{
   };
 
   const handleSave = async () => {
-    if (!form.question.trim() || form.options.some((o) => !o.trim())) {
+    if (!form.text.trim() || form.options.some((o) => !o.trim())) {
       toast("error", "Question text and all 4 options are required");
       return;
     }
@@ -129,9 +142,10 @@ const QuestionModal: React.FC<{
         subject: form.subject,
         topic: form.topic.trim() || null,
         year: form.year || null,
-        question: form.question.trim(),
+        text: form.text.trim(),
         options: form.options.map((o) => o.trim()),
         answer: form.answer,
+        difficulty: form.difficulty,
         explanation: form.explanation.trim() || null,
       };
 
@@ -212,11 +226,26 @@ const QuestionModal: React.FC<{
               Question
             </label>
             <textarea
-              value={form.question}
-              onChange={(e) => setForm((f) => ({ ...f, question: e.target.value }))}
+              value={form.text}
+              onChange={(e) => setForm((f) => ({ ...f, text: e.target.value }))}
               rows={3}
               className="bg-bgSurface border-borderMuted text-textMain w-full resize-none rounded-lg border px-3 py-2 text-sm outline-none focus:border-brand"
             />
+          </div>
+
+          <div>
+            <label className="text-textDim mb-1.5 block text-xs font-bold tracking-widest uppercase">
+              Difficulty
+            </label>
+            <select
+              value={form.difficulty}
+              onChange={(e) => setForm((f) => ({ ...f, difficulty: e.target.value }))}
+              className="bg-bgSurface border-borderMuted text-textMain w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-brand"
+            >
+              {DIFFICULTIES.map((d) => (
+                <option key={d} value={d}>{d}</option>
+              ))}
+            </select>
           </div>
 
           <div>
@@ -300,7 +329,7 @@ const DeleteConfirm: React.FC<{
         <Trash2 className="text-danger h-5 w-5" />
       </div>
       <h3 className="font-display mb-1 text-center text-lg font-bold">Delete Question?</h3>
-      <p className="text-textDim mb-5 line-clamp-2 text-center text-sm">{question.question}</p>
+      <p className="text-textDim mb-5 line-clamp-2 text-center text-sm">{question.text}</p>
       <div className="flex gap-3">
         <button
           onClick={onCancel}
@@ -327,8 +356,10 @@ const PER_PAGE = 20;
 
 const AdminQuestions: React.FC = () => {
   const [questions, setQuestions] = useState<Question[]>([]);
+  const [totalCount, setTotalCount] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [subjectFilter, setSubjectFilter] = useState<string>("all");
   const [page, setPage] = useState(1);
   const [modalOpen, setModalOpen] = useState(false);
@@ -345,21 +376,58 @@ const AdminQuestions: React.FC = () => {
   }, []);
   const removeToast = (id: number) => setToasts((prev) => prev.filter((t) => t.id !== id));
 
+  // Debounce the search box so we don't hit the DB on every keystroke
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search), 350);
+    return () => clearTimeout(t);
+  }, [search]);
+
   const fetchQuestions = useCallback(async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("questions")
-        .select("id, subject, topic, year, question, options, answer, explanation, created_at")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      setQuestions((data ?? []) as Question[]);
+      let allRows: Question[] = [];
+      let from = 0;
+      let grandTotal = 0;
+
+      // Page through in chunks of FETCH_CHUNK — Supabase/PostgREST caps each
+      // request's result set (default 1000 rows) regardless of table size.
+      while (true) {
+        let query = supabase
+          .from("questions")
+          .select(
+            "id, subject, topic, year, text, options, answer, difficulty, explanation, created_at",
+            { count: "exact" },
+          )
+          .order("created_at", { ascending: false });
+
+        if (subjectFilter !== "all") {
+          query = query.eq("subject", subjectFilter);
+        }
+        if (debouncedSearch.trim()) {
+          const term = debouncedSearch.trim();
+          query = query.or(`text.ilike.%${term}%,topic.ilike.%${term}%`);
+        }
+
+        const { data, error, count } = await query.range(from, from + FETCH_CHUNK - 1);
+        if (error) throw error;
+
+        allRows = allRows.concat((data ?? []) as Question[]);
+        grandTotal = count ?? allRows.length;
+
+        if (!data || data.length < FETCH_CHUNK || allRows.length >= grandTotal) {
+          break;
+        }
+        from += FETCH_CHUNK;
+      }
+
+      setQuestions(allRows);
+      setTotalCount(grandTotal);
     } catch (err: any) {
       toast("error", err.message ?? "Failed to load questions");
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, [toast, subjectFilter, debouncedSearch]);
 
   useEffect(() => {
     fetchQuestions();
@@ -367,19 +435,12 @@ const AdminQuestions: React.FC = () => {
 
   useEffect(() => {
     setPage(1);
-  }, [search, subjectFilter]);
+  }, [debouncedSearch, subjectFilter]);
 
-  const filtered = questions.filter((q) => {
-    const matchesSearch =
-      !search ||
-      q.question.toLowerCase().includes(search.toLowerCase()) ||
-      (q.topic ?? "").toLowerCase().includes(search.toLowerCase());
-    const matchesSubject = subjectFilter === "all" || q.subject === subjectFilter;
-    return matchesSearch && matchesSubject;
-  });
-
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
-  const paginated = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
+  // Filtering is now done server-side in fetchQuestions, so `questions`
+  // already reflects the current search + subject filter.
+  const totalPages = Math.max(1, Math.ceil(questions.length / PER_PAGE));
+  const paginated = questions.slice((page - 1) * PER_PAGE, page * PER_PAGE);
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
@@ -388,6 +449,7 @@ const AdminQuestions: React.FC = () => {
       const { error } = await supabase.from("questions").delete().eq("id", deleteTarget.id);
       if (error) throw error;
       setQuestions((prev) => prev.filter((q) => q.id !== deleteTarget.id));
+      setTotalCount((c) => Math.max(0, c - 1));
       toast("success", "Question deleted");
       setDeleteTarget(null);
     } catch (err: any) {
@@ -413,7 +475,7 @@ const AdminQuestions: React.FC = () => {
       <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="font-display text-lg font-semibold">Question Bank</h2>
-          <p className="text-textDim text-sm">{questions.length} questions total</p>
+          <p className="text-textDim text-sm">{totalCount} questions total</p>
         </div>
         <button
           onClick={openAdd}
@@ -452,7 +514,7 @@ const AdminQuestions: React.FC = () => {
           <div className="flex items-center justify-center py-16">
             <Loader2 className="text-brand h-6 w-6 animate-spin" />
           </div>
-        ) : filtered.length === 0 ? (
+        ) : questions.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
             <BookOpen className="text-textDim h-10 w-10" />
             <p className="text-textDim text-sm">No questions match your search</p>
@@ -475,7 +537,7 @@ const AdminQuestions: React.FC = () => {
                       <span className="text-textDim text-[10px]">{q.year}</span>
                     )}
                   </div>
-                  <p className="text-textMain truncate text-sm">{q.question}</p>
+                  <p className="text-textMain truncate text-sm">{q.text}</p>
                 </div>
                 <div className="flex shrink-0 items-center gap-1">
                   <button
@@ -503,7 +565,7 @@ const AdminQuestions: React.FC = () => {
       {totalPages > 1 && (
         <div className="flex items-center justify-between text-sm">
           <span className="text-textDim text-xs">
-            {filtered.length} question{filtered.length !== 1 ? "s" : ""} · Page {page} of {totalPages}
+            {questions.length} question{questions.length !== 1 ? "s" : ""} · Page {page} of {totalPages}
           </span>
           <div className="flex gap-2">
             <button
@@ -532,9 +594,10 @@ const AdminQuestions: React.FC = () => {
                   subject: editing.subject,
                   topic: editing.topic ?? "",
                   year: editing.year ?? new Date().getFullYear(),
-                  question: editing.question,
+                  text: editing.text,
                   options: editing.options,
                   answer: editing.answer,
+                  difficulty: editing.difficulty ?? DIFFICULTIES[1],
                   explanation: editing.explanation ?? "",
                 }
               : EMPTY_FORM

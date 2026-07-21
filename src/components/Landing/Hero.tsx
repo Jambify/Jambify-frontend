@@ -2,22 +2,53 @@
  * src/components/landing/Hero.tsx
  * ───────────────────────────────────
  * Split hero: headline + stats on the left, product demo video on the right.
+ * The question-count stat is fetched live from Supabase so it never goes
+ * stale as questions are added/removed via the admin panel.
  */
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowRight, Play } from "lucide-react";
 import { fadeUp } from "./animation";
+import { supabase } from "../../lib/supabase";
 import heroDemoVideo from "../../assets/Hero-Demo.mp4";
 
-const STATS = [
-  { value: "4,180+", label: "Questions from 1990–2024" },
-  { value: "180", label: "Questions per mock, real UTME timing" },
-  { value: "4", label: "Subjects tracked per student" },
-];
+// Shown instantly while the real count loads, and as a fallback if the
+// fetch fails — keeps the layout stable instead of flashing "0+" or blank.
+const FALLBACK_QUESTION_COUNT = 4180;
 
 const Hero: React.FC = () => {
+  const [questionCount, setQuestionCount] = useState<number>(FALLBACK_QUESTION_COUNT);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function fetchCount() {
+      const { count, error } = await supabase
+        .from("questions")
+        .select("id", { count: "exact", head: true });
+
+      if (!cancelled && !error && typeof count === "number") {
+        setQuestionCount(count);
+      }
+      // On error, questionCount just stays at FALLBACK_QUESTION_COUNT — no visible failure.
+    }
+
+    fetchCount();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const formattedCount = questionCount.toLocaleString();
+
+  const stats = [
+    { value: `${formattedCount}+`, label: "Questions from 1990–2024" },
+    { value: "180", label: "Questions per mock, real UTME timing" },
+    { value: "4", label: "Subjects tracked per student" },
+  ];
+
   return (
     <section className="mx-auto max-w-6xl px-6 pt-14 pb-10 lg:pt-20 lg:pb-16">
       <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_1fr]">
@@ -42,8 +73,9 @@ const Hero: React.FC = () => {
             transition={{ ...fadeUp.transition, delay: 0.1 }}
             className="text-textMuted mx-auto mt-5 max-w-xl text-lg lg:mx-0"
           >
-            Real mock exams, 12,000+ past questions with worked solutions, and a
-            dashboard that tells you which topics are actually costing you marks.
+            Real mock exams, {formattedCount}+ past questions with an AI Tutor that
+            explains every answer, and a dashboard that tells you which topics are
+            actually costing you marks.
           </motion.p>
           <motion.div
             {...fadeUp}
@@ -69,7 +101,7 @@ const Hero: React.FC = () => {
             transition={{ ...fadeUp.transition, delay: 0.2 }}
             className="mt-10 grid max-w-lg grid-cols-3 gap-6 border-t border-borderMuted pt-6 lg:mx-0"
           >
-            {STATS.map((s) => (
+            {stats.map((s) => (
               <div key={s.label} className="text-center lg:text-left">
                 <div className="font-display text-2xl font-extrabold">{s.value}</div>
                 <div className="text-textMuted mt-1 text-xs leading-snug">{s.label}</div>

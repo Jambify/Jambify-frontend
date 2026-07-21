@@ -11,6 +11,7 @@ import { useMockStore } from "../../Store/useMockStore";
 import { useUserStore } from "../../Store/useUserStore";
 import AppLayout from "../../components/Layout/AppLayout";
 import ExamPaywall from "../../components/MockExam/ExamPaywall";
+import ReportQuestionButton from "../../components/shared/ReportQuestionButton";
 import { cn } from "../../lib/utils/utils";
 import { useAIChat, type ChatMessage } from "../../hooks/useAIChat";
 import { buildQuestionContext } from "../../lib/ai";
@@ -70,7 +71,7 @@ Your goal is to provide deep, professional insights into JAMB questions.
 2. Provide a 'Truth Score' (0-100%).
 3. Explain why the answer is correct and others are wrong in under 150 words.
 4. Use professional, clear tone.
-5. Format verification clearly at the top.`,
+5. CRITICAL: Never use markdown formatting — no **bold**, *italics*, backticks, or asterisk/dash bullets. This chat displays plain text only, so markdown symbols show up as literal characters on screen. Present the Truth Score and structure using plain text and line breaks only, e.g. "Truth Score: 92%" on its own line.`,
   });
 
   // On open: auto-send the initial explanation request
@@ -508,16 +509,19 @@ const ReviewScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                         </p>
                       </div>
 
-                      <div className="flex items-center justify-between gap-4">
-                        <button
-                          onClick={() => setSelectedAIQuestion(q)}
-                          className="bg-brand shadow-brand/20 hover:bg-brand-light flex shrink-0 items-center gap-2 rounded-xl px-4 py-2.5 text-white shadow-lg transition-all hover:scale-105 active:scale-95"
-                        >
-                          <Sparkles size={14} />
-                          <span className="text-[11px] font-bold tracking-tight uppercase">
-                            Ask AI Tutor
-                          </span>
-                        </button>
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setSelectedAIQuestion(q)}
+                            className="bg-brand shadow-brand/20 hover:bg-brand-light flex shrink-0 items-center gap-2 rounded-xl px-4 py-2.5 text-white shadow-lg transition-all hover:scale-105 active:scale-95"
+                          >
+                            <Sparkles size={14} />
+                            <span className="text-[11px] font-bold tracking-tight uppercase">
+                              Ask AI Tutor
+                            </span>
+                          </button>
+                          <ReportQuestionButton questionId={q.id} context="mock_review" />
+                        </div>
                         <div className="min-w-0 text-right">
                           <p className="text-textDim font-mono text-[9px] uppercase">
                             Topic

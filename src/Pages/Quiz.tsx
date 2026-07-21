@@ -6,6 +6,7 @@ import QuestionCard from "../components/Quiz/QuestionCard";
 import TimerBar from "../components/Quiz/TimeBar";
 import ResultsScreen from "../components/Quiz/ResultScreen";
 import Button from "../components/ui/Button";
+import ReportQuestionButton from "../components/shared/ReportQuestionButton";
 
 import {
   fetchQuestionsByTopic,
@@ -439,6 +440,12 @@ const Quiz: React.FC = () => {
 
         <TimerBar />
         <QuestionCard />
+        <div className="mt-3 flex justify-end">
+          <ReportQuestionButton
+            questionId={questions[currentIndex].id}
+            context="quiz"
+          />
+        </div>
 
         {/* ── Exit Modal Overlay ── */}
         {showExitModal && (

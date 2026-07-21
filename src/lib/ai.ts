@@ -35,8 +35,8 @@ Rules:
 - Reference JAMB past questions and patterns when relevant
 - Keep responses focused and under 300 words unless a detailed explanation is needed
 - Use Nigerian context and examples where helpful
-- Format responses with clear structure (use bullet points, numbered steps where appropriate)
-- Never give answers without explanations`;
+- Never give answers without explanations
+- CRITICAL: Never use markdown formatting — no **bold**, *italics*, backticks, or asterisk/dash bullet lists. This chat displays plain text only, so any markdown symbols will show up as literal characters on screen. For structure, use plain numbered steps ("1.", "2.") or line breaks instead of markdown syntax.`;
 
 // ── Core fetch helper ─────────────────────────────────────────────────────────
 

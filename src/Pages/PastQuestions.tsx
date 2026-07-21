@@ -3,6 +3,7 @@ import AppLayout from "../components/Layout/AppLayout";
 import { useUserStore } from "../Store/useUserStore";
 import { SUBJECT_COMBO_MAP } from "../Store/useSubjectStore";
 import QuestionAIHelper from "../components/PastQuestions/QuestionAIHelper";
+import ReportQuestionButton from "../components/shared/ReportQuestionButton";
 import Button from "../components/ui/Button";
 import {
   Loader2,
@@ -634,6 +635,7 @@ const PastQuestions = () => {
                         <QuestionAIHelper question={q} />
                       </div>
                     )}
+                     <ReportQuestionButton questionId={q.id} context="past-question" />
                   </div>
                 );
               })}
