@@ -1,7 +1,7 @@
 // src/admin/pages/AdminBroadcast.tsx
 import React, { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
-import { Megaphone, Loader2, Trash2, Send, Clock } from "lucide-react";
+import { Megaphone, Loader2, Trash2, Send, Clock, CheckCircle2, XCircle } from "lucide-react";
 import { cn } from "../../lib/utils/utils";
 
 interface Announcement {
@@ -13,6 +13,11 @@ interface Announcement {
   target_audience: "all" | "pro" | "free";
   target_user_id: string | null;
   created_at: string;
+}
+
+interface Toast {
+  kind: "success" | "error";
+  text: string;
 }
 
 const TYPES = [
@@ -37,6 +42,14 @@ const AdminBroadcast: React.FC = () => {
   const [message, setMessage] = useState("");
   const [type, setType] = useState("info");
   const [audience, setAudience] = useState<Announcement["target_audience"]>("all");
+  const [toast, setToast] = useState<Toast | null>(null);
+
+  // Auto-dismiss toast after 4s
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(null), 4000);
+    return () => clearTimeout(t);
+  }, [toast]);
 
   const load = async () => {
     setLoading(true);
@@ -68,32 +81,59 @@ const AdminBroadcast: React.FC = () => {
       setMessage("");
       setType("info");
       setAudience("all");
+      setToast({ kind: "success", text: "Announcement sent." });
       load();
+    } else {
+      setToast({ kind: "error", text: "Failed to send: " + error.message });
     }
     setSending(false);
   };
 
   const handleDeactivate = async (id: string) => {
     await supabase.from("announcements").update({ is_active: false }).eq("id", id);
+    setToast({ kind: "success", text: "Announcement deactivated." });
     load();
   };
 
-  // Manually trigger the "expiring within 7 days" reminder batch.
-  // Safe to click repeatedly — reminder_sent_at prevents duplicates.
   const handleRunReminders = async () => {
     setRunningReminders(true);
     const { data, error } = await supabase.rpc("send_expiry_reminders");
     if (!error) {
-      alert(`Sent ${data ?? 0} renewal reminder(s).`);
+      const count = data ?? 0;
+      setToast({
+        kind: "success",
+        text: count > 0
+          ? `Sent ${count} renewal reminder${count === 1 ? "" : "s"}.`
+          : "No Pro users are due for a reminder right now.",
+      });
       load();
     } else {
-      alert("Failed to send reminders: " + error.message);
+      setToast({ kind: "error", text: "Failed to send reminders: " + error.message });
     }
     setRunningReminders(false);
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 relative">
+      {/* Toast */}
+      {toast && (
+        <div
+          className={cn(
+            "fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 rounded-brand-lg border px-4 py-3 text-sm font-medium shadow-lg max-w-[90vw]",
+            toast.kind === "success"
+              ? "bg-success/10 border-success/30 text-success"
+              : "bg-danger/10 border-danger/30 text-danger",
+          )}
+        >
+          {toast.kind === "success" ? (
+            <CheckCircle2 className="w-4 h-4 shrink-0" />
+          ) : (
+            <XCircle className="w-4 h-4 shrink-0" />
+          )}
+          <span>{toast.text}</span>
+        </div>
+      )}
+
       {/* Composer */}
       <div className="bg-bgCard border-borderMuted rounded-brand-lg border p-5 space-y-3">
         <p className="text-textDim text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5">
