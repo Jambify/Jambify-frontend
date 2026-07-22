@@ -219,13 +219,13 @@ const Dashboard: React.FC = () => {
         <div className="bg-bgCard border-borderMuted rounded-brand-xl relative overflow-hidden border p-6 md:p-8">
           <div>
             {/* Tag line */}
-            <div className="mb-3 flex items-center gap-2">
-              <span className="bg-brand/10 border-brand/20 text-brand-light inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold tracking-widest uppercase">
+            <div className="mb-3 flex flex-wrap items-center gap-2">
+              <span className="bg-brand/10 border-brand/20 text-brand-light inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold tracking-widest whitespace-nowrap uppercase">
                 <Zap className="h-3 w-3" />
                 JAMB {examYear} Prep
               </span>
               {university && (
-                <span className="bg-bgSurface border-borderMuted text-textDim inline-flex max-w-50 min-w-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px]">
+                <span className="bg-bgSurface border-borderMuted text-textDim inline-flex max-w-[140px] min-w-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] sm:max-w-50">
                   <GraduationCap size={12} className="shrink-0" />
                   <span className="truncate">{university}</span>
                 </span>

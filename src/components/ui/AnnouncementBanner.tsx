@@ -26,9 +26,25 @@ const AnnouncementBanner: React.FC = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      // Determine whether this user currently has an active Pro subscription
+      const { data: proRow } = await supabase
+        .from("pro_users")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("status", "active")
+        .limit(1)
+        .maybeSingle();
+      const isPro = !!proRow;
+      const audienceKey = isPro ? "pro" : "free";
+
+      // Fetch announcements that are either:
+      //  - targeted directly at this user (individual reminders), or
+      //  - broadcast to "all", or to this user's audience segment
       const { data: announcements } = await supabase
         .from("announcements")
-        .select("id, title, message, type")
+        .select("id, title, message, type, is_active, target_audience, target_user_id, created_at")
+        .eq("is_active", true)
+        .or(`target_user_id.eq.${user.id},and(target_user_id.is.null,target_audience.eq.all),and(target_user_id.is.null,target_audience.eq.${audienceKey})`)
         .order("created_at", { ascending: false });
 
       const { data: dismissed } = await supabase

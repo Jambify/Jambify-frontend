@@ -9,12 +9,11 @@ export type LegalBlock =
 
 export const privacyPolicyContent: LegalBlock[] = [
   { type: "p", text: "Schooldra (\u201cSchoolDra,\u201d \u201cwe,\u201d \u201cus,\u201d or \u201cour\u201d) provides a Progressive Web App designed to help students in Nigeria prepare for the Unified Tertiary Matriculation Examination (UTME/JAMB). This Privacy Policy explains what personal data we collect, why we collect it, how we use and protect it, and the rights you have over it. It applies to all users of Schooldra, including free and paid (subscription) users." },
-  { type: "note", text: "Bracketed placeholders like [INSERT DATE] must be filled in before publishing, and we recommend a quick legal review before launch given that some Schooldra users are minors." },
-
+  
   { type: "h1", text: "1. Who We Are" },
-  { type: "p", text: "Schooldra is operated by [INSERT LEGAL/BUSINESS NAME], based in Nigeria. For any questions about this Policy or your data, you can reach us at:" },
+  { type: "p", text: "Schooldra is operated by Schooldra Technologies, based in Nigeria. For any questions about this Policy or your data, you can reach us at:" },
   { type: "bullet", text: "Email: support@schooldra.com" },
-  { type: "bullet", text: "WhatsApp: [INSERT WHATSAPP SUPPORT LINE]" },
+  { type: "bullet", text: "WhatsApp: 07011872350" },
 
   { type: "h1", text: "2. Information We Collect" },
   { type: "h2", text: "2.1 Account Information" },
@@ -53,14 +52,14 @@ export const privacyPolicyContent: LegalBlock[] = [
 
   { type: "h1", text: "6. Sharing Your Information" },
   { type: "p", text: "We do not sell your personal data. We share information only with:" },
-  { type: "bullet", text: "Supabase \u2014 our database, authentication, and realtime infrastructure provider" },
-  { type: "bullet", text: "Payment processors (e.g. Flutterwave) \u2014 to process subscription payments" },
-  { type: "bullet", text: "Hosting/infrastructure providers (e.g. Vercel) \u2014 to run and serve the app" },
+  { type: "bullet", text: "Supabase — our database, authentication, and realtime infrastructure provider" },
+  { type: "bullet", text: "Payment processors (e.g. Flutterwave) — to process subscription payments" },
+  { type: "bullet", text: "Hosting/infrastructure providers (e.g. Vercel) — to run and serve the app" },
   { type: "bullet", text: "Law enforcement or regulators, where required by Nigerian law or a valid legal request" },
   { type: "p", text: "Other members of a study group you join can see your display name and the messages you post in that group." },
 
   { type: "h1", text: "7. Data Storage and Security" },
-  { type: "p", text: "Your data is stored on Supabase's infrastructure with encryption in transit and at rest. We apply reasonable technical and organizational measures \u2014 including access controls and row-level security \u2014 to protect your data from unauthorized access, loss, or misuse. However, no system is 100% secure, and we cannot guarantee absolute security." },
+  { type: "p", text: "Your data is stored on Supabase's infrastructure with encryption in transit and at rest. We apply reasonable technical and organizational measures — including access controls and row-level security — to protect your data from unauthorized access, loss, or misuse. However, no system is 100% secure, and we cannot guarantee absolute security." },
 
   { type: "h1", text: "8. Data Retention" },
   { type: "p", text: "We retain your account and academic performance data for as long as your account remains active, so that your history and progress are preserved. If you delete your account, we will delete or anonymize your personal data within a reasonable period, except where we are required to retain certain records (e.g. transaction records) for legal or accounting purposes." },
@@ -91,8 +90,8 @@ export const privacyPolicyContent: LegalBlock[] = [
 ];
 
 export const termsOfServiceContent: LegalBlock[] = [
-  { type: "p", text: "These Terms of Service (\u201cTerms\u201d) govern your access to and use of Schooldra, a Progressive Web App for JAMB/UTME exam preparation, operated by [INSERT LEGAL/BUSINESS NAME] (\u201cSchoolDra,\u201d \u201cwe,\u201d \u201cus,\u201d or \u201cour\u201d). By creating an account or using Schooldra, you agree to these Terms. If you do not agree, please do not use the app." },
-  { type: "note", text: "Bracketed placeholders must be filled in before publishing. We recommend a quick review by a Nigeria-qualified lawyer before this goes live, especially around the payment and minors sections." },
+  { type: "p", text: "These Terms of Service (\u201cTerms\u201d) govern your access to and use of Schooldra, a Progressive Web App for JAMB/UTME exam preparation, operated by Schooldra Technologies (\u201cSchoolDra,\u201d \u201cwe,\u201d \u201cus,\u201d or \u201cour\u201d). By creating an account or using Schooldra, you agree to these Terms. If you do not agree, please do not use the app." },
+  { type: "note", text: "We recommend a quick review by a Nigeria-qualified lawyer before this goes live, especially around the payment and minors sections." },
 
   { type: "h1", text: "1. Eligibility and Accounts" },
   { type: "p", text: "Schooldra is intended for students preparing for JAMB/UTME. If you are under 18, you confirm that you have your parent's or guardian's permission to use Schooldra and, where relevant, to subscribe to a paid plan. You are responsible for maintaining the confidentiality of your login credentials and for all activity that occurs under your account. Notify us immediately at support@schooldra.com if you suspect unauthorized use of your account." },
