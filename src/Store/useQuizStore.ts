@@ -27,6 +27,7 @@ interface QuizState {
   updateTime: (seconds: number) => void;
   next: () => void;
   reset: () => void;
+  resetProgress: () => void; // NEW
   setSelectedSubject: (s: string) => void;
   setSelectedTopic: (t: string) => void;
   setSelectedDifficulty: (d: "Easy" | "Medium" | "Hard" | "All") => void;
@@ -108,6 +109,22 @@ export const useQuizStore = create<QuizState>()(
           quizDuration: 1800,
           selectedTopic: "All",
           selectedDifficulty: "All",
+        });
+      },
+       resetProgress: () => {
+        useStudyTrackingStore.getState().stopStudySession();
+        localStorage.removeItem("schooldra-quiz-session-timer-end");
+        set({
+          questions: [],
+          currentIndex: 0,
+          answers: {},
+          isStarted: false,
+          isFinished: false,
+          hasAnswered: false,
+          isFinishedQuiz: false,
+          timeLeft: 0,
+          quizDuration: 1800,
+          // selectedSubject, selectedTopic, selectedDifficulty intentionally untouched
         });
       },
 

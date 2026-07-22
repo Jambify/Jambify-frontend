@@ -68,6 +68,7 @@ const Quiz: React.FC = () => {
     setSelectedDifficulty,
     loadQuestions,
     reset,
+    resetProgress, // NEW
     isFinished,
     setSubjectAndTopic,
   } = useQuizStore();
@@ -350,7 +351,7 @@ const Quiz: React.FC = () => {
       >
         <ResultsScreen
           onRetry={() => {
-            reset();
+           resetProgress();
             handleStart();
           }}
           onHome={() => {
