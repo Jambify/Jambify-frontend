@@ -12,6 +12,8 @@ import {
   fetchQuestionsByTopic,
   fetchQuestionsWithFallback,
   LIKELY_TOPICS,
+  getRecentlySeenQuestionIds, // NEW
+  recordSeenQuestions,        // NEW
 } from "../Services/questionService";
 import LoadingScreen from "../components/ui/LoadingScreen";
 import NetworkErrorAlert from "../components/ui/NetworkErrorAlert";
@@ -35,11 +37,7 @@ const QUIZ_SUBJECTS = [
   { name: "Biology", icon: "🧬", color: "from-green-500 to-emerald-700" },
   { name: "Economics", icon: "📊", color: "from-orange-400 to-amber-600" },
   { name: "Government", icon: "🏛️", color: "from-purple-500 to-indigo-700" },
-  {
-    name: "Literature",
-    icon: "📚",
-    color: "from-pink-500 to-rose-700",
-  },
+  { name: "Literature", icon: "📚", color: "from-pink-500 to-rose-700" },
   { name: "History", icon: "📜", color: "from-amber-700 to-orange-900" },
   { name: "Geography", icon: "🌍", color: "from-blue-400 to-cyan-600" },
   { name: "CRS", icon: "✝️", color: "from-indigo-400 to-blue-600" },
@@ -54,9 +52,7 @@ const Quiz: React.FC = () => {
   const [showAllSubjects, setShowAllSubjects] = useState(false);
   const [showExitModal, setShowExitModal] = useState(false);
   const [showResults, setShowResults] = useState(false);
-  const [selectedMode, setSelectedMode] = useState<
-    "quick" | "standard" | "marathon"
-  >("standard");
+  const [selectedMode, setSelectedMode] = useState<"quick" | "standard" | "marathon">("standard");
 
   const topicsRef = React.useRef<HTMLDivElement>(null);
 
@@ -105,7 +101,6 @@ const Quiz: React.FC = () => {
     [],
   );
 
-  // ── ADD THESE TWO BACK ───────────────────────────────
   const currentSubjectData = useMemo(() => {
     return subjectsMaster.find((s) => s.name === selectedSubject);
   }, [selectedSubject, subjectsMaster]);
@@ -125,11 +120,9 @@ const Quiz: React.FC = () => {
   const sortedQuizSubjects = useMemo(() => {
     if (!selectedSubject || selectedSubject === "All") return QUIZ_SUBJECTS;
 
-    // Find the selected subject
     const selected = QUIZ_SUBJECTS.find((s) => s.name === selectedSubject);
     if (!selected) return QUIZ_SUBJECTS;
 
-    // Filter out the selected one and put it at the start
     const remaining = QUIZ_SUBJECTS.filter((s) => s.name !== selectedSubject);
     return [selected, ...remaining];
   }, [selectedSubject]);
@@ -138,7 +131,6 @@ const Quiz: React.FC = () => {
     ? sortedQuizSubjects
     : sortedQuizSubjects.slice(0, 6);
 
-  // Sync results state with store
   useEffect(() => {
     if (isFinished) {
       setShowResults(true);
@@ -147,12 +139,8 @@ const Quiz: React.FC = () => {
     }
   }, [isFinished]);
 
-  // Handle persistence reset on unmount if quiz is not active
   useEffect(() => {
     return () => {
-      // If we are leaving the page and the quiz is finished, we should reset
-      // so the next visit starts fresh.
-      // But we don't reset if the user is in the middle of a quiz.
       const state = useQuizStore.getState();
       if (state.isFinished) {
         state.reset();
@@ -167,7 +155,6 @@ const Quiz: React.FC = () => {
       setSelectedTopic("All");
     }
 
-    // Auto-scroll to topics if a subject is selected
     if (selectedSubject && selectedSubject !== "All") {
       setTimeout(() => {
         topicsRef.current?.scrollIntoView({
@@ -178,10 +165,8 @@ const Quiz: React.FC = () => {
     }
   }, [selectedSubject, setSelectedTopic, location.search]);
 
-  /** Clean up when leaving the page */
   useEffect(
     () => () => {
-      // Removed reset() from here to allow session persistence on refresh.
       // Resetting is now handled by the user explicitly finishing or exiting the quiz.
     },
     [],
@@ -209,28 +194,23 @@ const Quiz: React.FC = () => {
     setIsLoadingQuestions(true);
     setShowSlowNetworkWarning(false);
 
-    // Set timeout for slow network warning
     const slowNetworkTimer = setTimeout(() => {
       setShowSlowNetworkWarning(true);
-    }, 5000); // 5 seconds
+    }, 5000);
 
-    // For marathon mode: use all topics, all difficulty, 15 min duration, large question count
     const isMarathon = selectedMode === "marathon";
     const adjustedTopic = isMarathon ? "All" : selectedTopic;
     const adjustedDifficulty = isMarathon ? "All" : selectedDifficulty;
     const targetCount = isMarathon ? 100 : selectedMode === "quick" ? 10 : 20;
 
-    // Wait a tiny bit for the loader to mount smoothly
     await new Promise((r) => setTimeout(r, 100));
 
     try {
-      // ── CHECK NETWORK & CACHE ──────────────────────────────
       const isOnline = navigator.onLine;
       const offlineStore = useOfflineStore.getState();
 
       let qs: Question[] = [];
 
-      // Try offline first if user is offline
       if (!isOnline) {
         console.log("📴 User is offline. Checking local cache...");
         const packs = offlineStore.downloadedPacks.filter((p) =>
@@ -253,27 +233,33 @@ const Quiz: React.FC = () => {
         }
       }
 
-      // ── ONLINE FETCHING WITH ROBUST FALLBACK ──────────────────
       if (qs.length === 0) {
+        // NEW — fetch this user's recently-seen question IDs for this subject
+        // so we don't hand back questions they've already answered.
+        // Skipped for marathon: it draws from the whole subject anyway,
+        // and excluding IDs there would only slow down a 100-question pull.
+        const recentIds = !isMarathon
+  ? await getRecentlySeenQuestionIds(selectedSubject, adjustedTopic) // NEW: pass topic
+  : [];
+
         try {
           if (adjustedTopic === "All") {
-            // Get questions for the whole subject
             qs = await fetchQuestionsWithFallback(
               selectedSubject,
               "Random",
               targetCount,
               adjustedDifficulty,
+              recentIds, // NEW
             );
           } else {
-            // 1. Try fetching from specific topic first
             qs = await fetchQuestionsByTopic(
               selectedSubject,
               adjustedTopic,
               targetCount,
               adjustedDifficulty,
+              recentIds, // NEW
             );
 
-            // 2. Fallback: If not enough questions in topic, fill from general subject
             if (qs.length < targetCount) {
               console.log(
                 `⚠️ Only found ${qs.length} questions for topic "${adjustedTopic}". Filling remaining ${targetCount - qs.length} from subject.`,
@@ -283,11 +269,11 @@ const Quiz: React.FC = () => {
               const fallbackQs = await fetchQuestionsWithFallback(
                 selectedSubject,
                 "Random",
-                remainingCount * 2, // Fetch more to ensure diversity
+                remainingCount * 2,
                 adjustedDifficulty,
+                recentIds, // NEW
               );
 
-              // Filter out duplicates
               const existingIds = new Set(qs.map((q) => q.id));
               const uniqueFallback = fallbackQs.filter(
                 (q) => !existingIds.has(q.id),
@@ -305,12 +291,14 @@ const Quiz: React.FC = () => {
       }
 
       // Final check: if still empty or not enough, try one last broad sweep
+      // (deliberately no exclusion here — this is the "give the user *something*"
+      // safety net, so repeats are allowed only as an absolute last resort)
       if (qs.length < targetCount) {
         const lastResort = await fetchQuestionsWithFallback(
           selectedSubject,
           "Random",
           targetCount * 2,
-          "All", // Drop difficulty constraint for last resort
+          "All",
         );
 
         const existingIds = new Set(qs.map((q) => q.id));
@@ -326,10 +314,13 @@ const Quiz: React.FC = () => {
         );
       }
 
-      // Ensure we have EXACTLY targetCount if possible
       if (qs.length > targetCount) {
         qs = qs.slice(0, targetCount);
       }
+
+      // NEW — fire-and-forget: don't await, so logging what was seen
+      // never delays the quiz from starting.
+      recordSeenQuestions(selectedSubject, qs.map((q) => q.id), adjustedTopic).catch(() => {}); // NEW: pass topic
 
       const duration = isMarathon
         ? 15 * 60
@@ -383,10 +374,9 @@ const Quiz: React.FC = () => {
         isSidebarOpen={isSidebarOpen}
         setIsSidebarOpen={setIsSidebarOpen}
       >
-        {/* <Progress header */}
         <div className="mb-6 flex items-center gap-4">
           <button
-            onClick={() => setShowExitModal(true)} // Trigger Modal
+            onClick={() => setShowExitModal(true)}
             className="bg-bgCard border-borderMuted text-textMain hover:border-danger/30 hover:text-danger touch-target no-double-tap flex shrink-0 items-center gap-1.5 rounded-full border px-4 py-2 text-xs font-bold shadow-sm transition-all active:scale-95"
           >
             <svg
@@ -403,7 +393,6 @@ const Quiz: React.FC = () => {
             <span>Exit Quiz</span>
           </button>
 
-          {/* Progress indicator — use text for many questions, dots otherwise */}
           <div className="flex flex-1 items-center justify-center gap-1">
             {questions.length <= 30 ? (
               questions.map((_, i) => (
@@ -423,7 +412,6 @@ const Quiz: React.FC = () => {
                 />
               ))
             ) : (
-              // For many questions, use a simple percentage or step indicator
               <div className="text-textDim flex items-center gap-2 text-xs font-medium">
                 <span>
                   {Math.round(((currentIndex + 1) / questions.length) * 100)}%
@@ -447,7 +435,6 @@ const Quiz: React.FC = () => {
           />
         </div>
 
-        {/* ── Exit Modal Overlay ── */}
         {showExitModal && (
           <div className="animate-fadeIn fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm dark:bg-black/80">
             <div className="bg-bgCard border-borderMuted rounded-brand-xl animate-slideDown w-full max-w-sm border p-6 shadow-2xl">
@@ -487,7 +474,6 @@ const Quiz: React.FC = () => {
       setIsSidebarOpen={setIsSidebarOpen}
     >
       <div className="mx-auto max-w-2xl">
-        {/* Network Error Alert */}
         {(loadError?.includes("CONNECTION_ERROR") ||
           loadError?.includes("OFFLINE")) && (
           <NetworkErrorAlert
@@ -500,7 +486,6 @@ const Quiz: React.FC = () => {
           />
         )}
 
-        {/* Error Message */}
         {loadError &&
           !loadError.includes("CONNECTION_ERROR") &&
           !loadError.includes("OFFLINE") && (
@@ -526,7 +511,7 @@ const Quiz: React.FC = () => {
               </div>
             </div>
           )}
-        {/* <Hero */}
+
         <div className="mb-10 pt-4 text-center">
           <div className="bg-brand/10 border-brand/20 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border text-3xl">
             📝
@@ -544,7 +529,6 @@ const Quiz: React.FC = () => {
           </p>
         </div>
 
-        {/* Subject filter */}
         <div className="mb-8">
           <div className="mb-4 flex items-center justify-between">
             <p className="text-textDim flex items-center gap-2 text-[11px] font-black tracking-widest uppercase">
@@ -559,7 +543,6 @@ const Quiz: React.FC = () => {
             </button>
           </div>
 
-          {/* 📱 Mobile Scrollable List */}
           <div className="scrollbar-none flex gap-2 overflow-x-auto pb-2 sm:hidden">
             {sortedQuizSubjects.map((s) => (
               <button
@@ -577,7 +560,6 @@ const Quiz: React.FC = () => {
             ))}
           </div>
 
-          {/* 💻 Desktop Grid */}
           <div className="hidden grid-cols-3 gap-3 sm:grid">
             {visibleSubjects.map((s) => (
               <button
@@ -589,7 +571,6 @@ const Quiz: React.FC = () => {
                     : "bg-bgCard border-borderMuted hover:border-brand/30 dark:hover:border-brand/40 dark:hover:bg-bgSurface hover:shadow-sm"
                 }`}
               >
-                {/* Background Gradient on Select */}
                 {selectedSubject === s.name && (
                   <div
                     className={`absolute inset-0 bg-linear-to-br opacity-20 ${s.color}`}
@@ -617,7 +598,6 @@ const Quiz: React.FC = () => {
           </div>
         </div>
 
-        {/* Topic filter - Only if subject is selected and not marathon mode */}
         {selectedSubject !== "All" && selectedMode !== "marathon" && (
           <div
             ref={topicsRef}
@@ -702,7 +682,6 @@ const Quiz: React.FC = () => {
           </div>
         )}
 
-        {/* 3. Select Difficulty */}
         {selectedSubject !== "All" && selectedMode !== "marathon" && (
           <div className="animate-in fade-in slide-in-from-bottom-4 mb-10 duration-700">
             <p className="text-textDim mb-4 flex items-center gap-2 text-[11px] font-black tracking-widest uppercase">
@@ -737,7 +716,6 @@ const Quiz: React.FC = () => {
           </div>
         )}
 
-        {/* <Mode cards */}
         <div className="mb-8 grid grid-cols-1 gap-3 sm:grid-cols-3">
           {[
             {

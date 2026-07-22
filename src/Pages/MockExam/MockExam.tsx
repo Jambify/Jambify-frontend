@@ -30,6 +30,7 @@ import LoadingScreen from "../../components/ui/LoadingScreen";
 import NetworkErrorAlert from "../../components/ui/NetworkErrorAlert";
 import { saveMockExamHistory } from "../../Services/MockHistoryService";
 import MockHistory from "../../components/MockExam/MockHistory";
+import schooldraLogo from "../../../src/assets/schooldraLogo.webp"
 
 import {
   Menu,
@@ -42,6 +43,7 @@ import {
   AlertTriangle,
   X,
 } from "lucide-react";
+import { motion, } from "framer-motion";
 
 import { useOfflineStore } from "../../Store/useOfflineStore";
 
@@ -675,9 +677,21 @@ const MockExam: React.FC = () => {
         <div className="bg-bgCard border-borderMuted hidden w-72 flex-col overflow-y-auto border-r lg:flex">
           <div className="border-borderMuted bg-bgSurface/50 border-b p-5">
             <div className="mb-6 flex items-center gap-2">
-              <div className="bg-brand font-display shadow-brand/20 flex h-8 w-8 items-center justify-center rounded-lg text-sm font-black text-white shadow-lg">
-                S
-              </div>
+             <motion.div
+            // className="bg-brand shadow-brand/40 group relative mb-6 flex h-20 w-20 items-center justify-center overflow-hidden rounded-4xl shadow-2xl"
+            animate={{
+              y: [0, -8, 0],
+              rotate: [0, 2, -2, 0],
+            }}
+            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+          >
+            <div className="absolute inset-0 bg-linear-to-tr from-white/25 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+            <img
+              src={schooldraLogo}
+              alt="Schooldra"
+              className="flex h-25 w-25 items-center justify-center"
+            />
+          </motion.div>
               <span className="font-display text-sm font-bold tracking-tight">
                 Schooldra{" "}
                 <span className="text-textDim ml-1 text-[10px] font-medium uppercase">

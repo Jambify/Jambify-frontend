@@ -10,23 +10,17 @@ const normalizeSubject = (subject: string): string => {
   if (lower === "crs") return "CRS";
   if (lower === "irs") return "IRS";
   if (lower === "literature") return "Literature";
-  // If it's already correctly cased, return as-is
   return subject;
 };
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 type Difficulty = "Easy" | "Medium" | "Hard";
 
-// Valid years your DB actually has data for
-// const VALID_YEARS = [2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025] as const;
 const MIN_YEAR = 2015;
 const MAX_YEAR = 2025;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-/**
- * Fisher-Yates shuffle that also tracks the correct answer index.
- */
 const shuffleOptions = (
   options: string[],
   correctIndex: number,
@@ -44,41 +38,25 @@ const shuffleOptions = (
   };
 };
 
-/**
- * Normalises a DB row (any shape) into the internal Question type.
- */
 const mapDbToQuestion = (row: any, subject: string): Question => {
-  // Extract options from various possible formats
   let rawOptions: string[] = [];
   try {
     if (Array.isArray(row.options)) {
       rawOptions = row.options;
     } else if (typeof row.options === "string" && row.options.startsWith("{")) {
-      // Handle Postgres array string format "{a,b,c}" if needed
       rawOptions = row.options
         .slice(1, -1)
         .split(",")
         .map((s: string) => s.trim().replace(/^"|"$/g, ""));
     } else if (row.option_a) {
-      rawOptions = [
-        row.option_a,
-        row.option_b,
-        row.option_c,
-        row.option_d,
-      ].filter(Boolean);
+      rawOptions = [row.option_a, row.option_b, row.option_c, row.option_d].filter(Boolean);
     } else if (row.option && row.option.a) {
-      rawOptions = [
-        row.option.a,
-        row.option.b,
-        row.option.c,
-        row.option.d,
-      ].filter(Boolean);
+      rawOptions = [row.option.a, row.option.b, row.option.c, row.option.d].filter(Boolean);
     }
   } catch (e) {
     console.warn("[mapDbToQuestion] Error parsing options:", e);
   }
 
-  // Extract correct-answer index
   let rawAnswer = 0;
   try {
     if (typeof row.answer === "number") rawAnswer = row.answer;
@@ -94,8 +72,6 @@ const mapDbToQuestion = (row: any, subject: string): Question => {
 
   const { shuffled, newIndex } = shuffleOptions(rawOptions, rawAnswer);
 
-  // Ensure ID is a string, but note that the DB expects UUID format
-  // If it's a local question with a non-UUID ID, it might fail DB operations
   return {
     id: row.id?.toString() ?? "",
     subject: (row.subject ?? subject) as any,
@@ -103,38 +79,24 @@ const mapDbToQuestion = (row: any, subject: string): Question => {
     difficulty: (row.difficulty ?? "Medium") as any,
     text: row.text ?? row.question ?? "Question text missing",
     instruction: row.instruction ?? row.section ?? row.passage ?? "",
-    options:
-      shuffled.length > 0
-        ? shuffled
-        : ["Option A", "Option B", "Option C", "Option D"],
+    options: shuffled.length > 0 ? shuffled : ["Option A", "Option B", "Option C", "Option D"],
     answer: newIndex >= 0 ? newIndex : 0,
     explanation: row.explanation ?? row.solution ?? "No explanation available.",
     topic: row.topic ?? "General",
   };
 };
 
-/**
- * Parse year input to a number or null (for "Random").
- * Clamps to VALID_YEARS range.
- */
 function resolveYear(year: string | number | null | undefined): number | null {
   if (!year) return null;
   const s = year.toString();
   if (s.toLowerCase().includes("random") || s === "") return null;
   const n = parseInt(s, 10);
   if (isNaN(n)) return null;
-  // Clamp to valid range
   return Math.min(MAX_YEAR, Math.max(MIN_YEAR, n));
 }
 
-/**
- * Convert "All" / undefined to undefined so the filter is omitted,
- * otherwise return the exact difficulty string the enum expects.
- * Your DB enum has exactly: 'Easy', 'Medium', 'Hard'
- */
 function resolveDifficulty(d: string | undefined): Difficulty | undefined {
   if (!d || d === "All") return undefined;
-  // Normalise case to match enum
   const map: Record<string, Difficulty> = {
     easy: "Easy",
     medium: "Medium",
@@ -143,16 +105,130 @@ function resolveDifficulty(d: string | undefined): Difficulty | undefined {
   return map[d.toLowerCase()];
 }
 
-// ── Main service function ─────────────────────────────────────────────────────
+// ── Random-slice fetcher ───────────────────────────────────────────────────────
+async function fetchRandomSlice(
+  applyFilters: (q: any) => any,
+  fetchSize: number,
+): Promise<any[]> {
+  const countBuilder = applyFilters(
+    supabase.from("questions").select("id", { count: "exact", head: true }),
+  );
+  const { count } = await countBuilder;
+
+  const total = count ?? 0;
+  if (total === 0) return [];
+
+  const windowSize = Math.min(fetchSize, total);
+  const maxOffset = Math.max(0, total - windowSize);
+  const randomOffset = Math.floor(Math.random() * (maxOffset + 1));
+
+  const dataBuilder = applyFilters(supabase.from("questions").select("*"));
+  const { data } = await dataBuilder.range(randomOffset, randomOffset + windowSize - 1);
+
+  return data ?? [];
+}
+
+// ── Recently-seen tracking (opt-in, additive) ──────────────────────────────────
 
 /**
- * Fetches questions with a multi-tier fallback:
- *  1. Try exact year + subject (+ optional difficulty)
- *  2. If not enough, try nearby years (increment +1, -1, +2, -2, etc.)
- *  3. If still not enough, relax difficulty
- *  4. If still not enough, try any year/any difficulty
- *  5. Last resort: local TypeScript data
+ * Fetch this user's question IDs seen TODAY (resets naturally at local midnight)
+ * for a given subject + topic, so callers can pass them as `excludeIds`.
+ * Returns [] silently on any error or if logged out — never blocks a quiz.
  */
+export async function getRecentlySeenQuestionIds(
+  subject: string,
+  topic: string = "All",
+): Promise<string[]> {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return [];
+
+    const formattedSubject =
+      subject.trim().charAt(0).toUpperCase() + subject.trim().slice(1).toLowerCase();
+
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+
+    let q = supabase
+      .from("user_seen_questions")
+      .select("question_id")
+      .eq("user_id", user.id)
+      .eq("subject", normalizeSubject(formattedSubject))
+      .gte("seen_at", startOfToday.toISOString());
+
+    if (topic && topic !== "All") {
+      q = q.eq("topic", topic);
+    } else {
+      q = q.is("topic", null);
+    }
+
+    const { data, error } = await q;
+
+    if (error) {
+      console.warn("[getRecentlySeenQuestionIds] error:", error.message);
+      return [];
+    }
+    return (data ?? []).map((r: any) => r.question_id);
+  } catch (err) {
+    console.error("[getRecentlySeenQuestionIds]", err);
+    return [];
+  }
+}
+
+/**
+ * Record question IDs the user was just shown, tagged by subject + topic,
+ * so today's exclusion list can be looked up later. Fire-and-forget —
+ * never throws, never blocks the quiz.
+ *
+ * Also performs an occasional lazy purge of old rows (~5% of calls), so the
+ * table stays small even without a Supabase Cron Job configured. This purge
+ * is a safety net only — see the SQL Cron Job option below for the primary
+ * cleanup path.
+ */
+export async function recordSeenQuestions(
+  subject: string,
+  questionIds: string[],
+  topic: string = "All",
+): Promise<void> {
+  if (questionIds.length === 0) return;
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const formattedSubject =
+      subject.trim().charAt(0).toUpperCase() + subject.trim().slice(1).toLowerCase();
+
+    const rows = questionIds.map((qid) => ({
+      user_id: user.id,
+      question_id: qid,
+      subject: normalizeSubject(formattedSubject),
+      topic: topic && topic !== "All" ? topic : null,
+    }));
+
+    const { error } = await supabase.from("user_seen_questions").insert(rows);
+    if (error) console.warn("[recordSeenQuestions] error:", error.message);
+
+    // Lazy purge safety net — fires ~5% of the time, never awaited,
+    // never blocks or slows down the quiz. Deletes anything older than 2 days.
+    if (Math.random() < 0.05) {
+  (async () => {
+    try {
+      await supabase
+        .from("user_seen_questions")
+        .delete()
+        .lt("seen_at", new Date(Date.now() - 2 * 86400_000).toISOString());
+    } catch {
+      // best-effort cleanup, safe to ignore failures
+    }
+  })();
+}
+  } catch (err) {
+    console.error("[recordSeenQuestions]", err);
+  }
+}
+
+// ── Main service function ─────────────────────────────────────────────────────
+
 export const fetchQuestionsWithFallback = async (
   subject: string,
   year: string | number,
@@ -160,20 +236,16 @@ export const fetchQuestionsWithFallback = async (
   difficulty: string = "All",
   excludeIds: string[] = [],
 ): Promise<Question[]> => {
-  // Normalise inputs
   const formattedSubject =
-    subject.trim().charAt(0).toUpperCase() +
-    subject.trim().slice(1).toLowerCase();
+    subject.trim().charAt(0).toUpperCase() + subject.trim().slice(1).toLowerCase();
   const resolvedYear = resolveYear(year);
   const resolvedDiff =
     difficulty === "All"
       ? undefined
       : ((difficulty.trim().charAt(0).toUpperCase() +
-        difficulty.trim().slice(1).toLowerCase()) as Difficulty);
+          difficulty.trim().slice(1).toLowerCase()) as Difficulty);
   const fetchedIds = new Set<string>(excludeIds);
   let finalQuestions: Question[] = [];
-
-  // Also track content hashes to avoid same question with different IDs
   const seenContent = new Set<string>();
 
   console.log("🚀 [questionService] fetch params:", {
@@ -184,40 +256,40 @@ export const fetchQuestionsWithFallback = async (
     excluding: excludeIds.length,
   });
 
-  // Helper to fetch questions for a specific year and difficulty
   const fetchForYearAndDiff = async (
     targetYear: number | null,
     targetDiff: Difficulty | undefined,
     needed: number,
   ): Promise<Question[]> => {
-    let q = supabase
-      .from("questions")
-      .select("*")
-      .eq("subject", normalizeSubject(formattedSubject));
+    const applyFilters = (q: any) => {
+      let query = q.eq("subject", normalizeSubject(formattedSubject));
 
-    if (targetYear !== null) {
-      q = q.eq("year", targetYear);
-    } else {
-      q = q.gte("year", MIN_YEAR).lte("year", MAX_YEAR);
-    }
-
-    if (targetDiff) {
-      q = q.eq("difficulty", targetDiff);
-    }
-
-    if (fetchedIds.size > 0) {
-      const idList = Array.from(fetchedIds).filter(
-        (id) => !isNaN(Number(id)),
-      );
-      if (idList.length > 0) {
-        q = q.not("id", "in", `(${idList.join(",")})`);
+      if (targetYear !== null) {
+        query = query.eq("year", targetYear);
+      } else {
+        query = query.gte("year", MIN_YEAR).lte("year", MAX_YEAR);
       }
-    }
 
-    const { data } = await q.limit(needed * 10);
+      if (targetDiff) {
+        query = query.eq("difficulty", targetDiff);
+      }
+
+      // FIX: previously filtered IDs down to numeric-only, which silently
+      // dropped every UUID and disabled exclusion entirely. Question IDs
+      // are UUIDs in this schema, so they're used as-is.
+      if (fetchedIds.size > 0) {
+        const idList = Array.from(fetchedIds);
+        if (idList.length > 0) {
+          query = query.not("id", "in", `(${idList.join(",")})`);
+        }
+      }
+      return query;
+    };
+
+    const data = await fetchRandomSlice(applyFilters, needed * 10);
     const results: Question[] = [];
 
-    if (data && data.length > 0) {
+    if (data.length > 0) {
       const shuffled = [...data].sort(() => Math.random() - 0.5);
       for (const row of shuffled) {
         const mapped = mapDbToQuestion(row, formattedSubject);
@@ -234,7 +306,7 @@ export const fetchQuestionsWithFallback = async (
   };
 
   try {
-    // ── TIER 1: Primary Attempt (Exact Year + Specified Difficulty) ─────────
+    // ── TIER 1: Primary Attempt ─────────
     if (finalQuestions.length < requiredCount) {
       const needed = requiredCount - finalQuestions.length;
       const results = await fetchForYearAndDiff(resolvedYear, resolvedDiff, needed);
@@ -242,12 +314,11 @@ export const fetchQuestionsWithFallback = async (
       console.log(`🎯 [Tier 1] Got ${results.length} questions`);
     }
 
-    // ── TIER 2: Try Nearby Years (Exact Difficulty) ────────────────────────
+    // ── TIER 2: Nearby Years ────────────────────────
     if (finalQuestions.length < requiredCount && resolvedYear !== null) {
-      // Generate nearby years in order: +1, -1, +2, -2, etc.
       const nearbyYears: number[] = [];
       let offset = 1;
-      while (nearbyYears.length < (MAX_YEAR - MIN_YEAR)) {
+      while (nearbyYears.length < MAX_YEAR - MIN_YEAR) {
         const higher: number = resolvedYear + offset;
         const lower: number = resolvedYear - offset;
 
@@ -269,7 +340,7 @@ export const fetchQuestionsWithFallback = async (
       }
     }
 
-    // ── TIER 3: Relax Difficulty (Exact Year + Any Difficulty) ──────────────
+    // ── TIER 3: Relax Difficulty ──────────────────────
     if (finalQuestions.length < requiredCount && resolvedYear !== null && resolvedDiff) {
       const needed = requiredCount - finalQuestions.length;
       const results = await fetchForYearAndDiff(resolvedYear, undefined, needed);
@@ -290,11 +361,7 @@ export const fetchQuestionsWithFallback = async (
       const remaining = requiredCount - finalQuestions.length;
       console.log(`📦 [Tier 5] Pulling ${remaining} from local data`);
 
-      const local = getLocalQuestions(
-        subject,
-        resolvedYear ?? "Random",
-        requiredCount * 2,
-      );
+      const local = getLocalQuestions(subject, resolvedYear ?? "Random", requiredCount * 2);
       for (const q of local) {
         if (finalQuestions.length >= requiredCount) break;
         if (!fetchedIds.has(q.id)) {
@@ -304,338 +371,121 @@ export const fetchQuestionsWithFallback = async (
       }
     }
 
-    console.log(
-      `🎁 [questionService] Returning ${finalQuestions.length} questions total`,
-    );
+    console.log(`🎁 [questionService] Returning ${finalQuestions.length} questions total`);
     return finalQuestions.slice(0, requiredCount).sort(() => Math.random() - 0.5);
   } catch (err) {
     console.error("🔥 [questionService] Critical failure:", err);
-    // Return local fallback
     return getLocalQuestions(subject, resolvedYear ?? "Random", requiredCount);
   }
 };
 
-// ── Topic helpers ─────────────────────────────────────────────────────────────
-
-// ── Topic helpers ─────────────────────────────────────────────────────────────
+// ── Topic list (unchanged) ─────────────────────────────────────────────────────
 
 export const LIKELY_TOPICS: Record<string, string[]> = {
-  English: [
-    "Vocabulary",
-    "Phonetics",
-    "Grammar",
-    "Comprehension",
-    "Novel",
-    "Cloze Passage",
-    "Spelling",
-  ],
-  Mathematics: [
-   "Algebra",
-   "Geometry",
-   "Arithmetic",
-   "Statistics",
-   "Calculus  ",
-   "Probability",
-  ],
+  English: ["Vocabulary", "Phonetics", "Grammar", "Comprehension", "Novel", "Cloze Passage", "Spelling"],
+  Mathematics: ["Algebra", "Geometry", "Arithmetic", "Statistics", "Calculus  ", "Probability"],
   Physics: [
-    "Astronomy",
-    "Atomic Physics",
-    "Biology/Optics",
-    "Current Electricity",
-    "Elasticity",
-    "Electric Fields",
-    "Electrochemistry",
-    "Electromagnetic Induction",
-    "Electromagnetic Spectrum",
-    "Electromagnetism",
-    "Electrostatics",
-    "Energy Quantization",
-    "Fields",
-    "Gases",
-    "Gravitational Field",
-    "Gravitational Fields",
-    "Heat Energy",
-    "Hydrostatics",
-    "Magnetism",
-    "Measurement",
-    "Mechanics",
-    "Meteorology",
-    "Modern Physics",
-    "Optics",
-    "States of Matter",
-    "Thermal Expansion",
-    "Thermal Physics",
-    "Units and Measurements",
-    "Waves",
+    "Astronomy", "Atomic Physics", "Biology/Optics", "Current Electricity", "Elasticity",
+    "Electric Fields", "Electrochemistry", "Electromagnetic Induction", "Electromagnetic Spectrum",
+    "Electromagnetism", "Electrostatics", "Energy Quantization", "Fields", "Gases",
+    "Gravitational Field", "Gravitational Fields", "Heat Energy", "Hydrostatics", "Magnetism",
+    "Measurement", "Mechanics", "Meteorology", "Modern Physics", "Optics", "States of Matter",
+    "Thermal Expansion", "Thermal Physics", "Units and Measurements", "Waves",
   ],
   Chemistry: [
-    "Acid-Base Titrations",
-    "Acids and Bases",
-    "Acids/Bases",
-    "Allotropy",
-    "Alloys",
-    "Analytical Chemistry",
-    "Anorganic Chemistry",
-    "Atomic Structure",
-    "Biochemistry",
-    "Carbon and Compounds",
-    "Chemical Bonding",
-    "Chemical Changes",
-    "Chemical Equilibrium",
-    "Chemical Formulas",
-    "Chemical Kinetics",
-    "Colloids",
-    "Coordination Chemistry",
-    "Corrosion",
-    "Earth Chemistry",
-    "Electrochemistry",
-    "Electrolysis",
-    "Environmental Chemistry",
-    "Equilibrium",
-    "Gas Laws",
-    "Gases",
-    "Hygroscopic Substances",
-    "Industrial Chemistry",
-    "Inorganic Chem",
-    "Inorganic Chemistry",
-    "Kinetic Theory",
-    "Laboratory Safety",
-    "Material Science",
-    "Matter and Changes",
-    "Matter and Mixtures",
-    "Matter and Properties",
-    "Metallurgy",
-    "Metals and Compounds",
-    "Nuclear Chemistry",
-    "Organic Chemistry",
-    "Periodic Table",
-    "Periodic Trends",
-    "Physical Chemistry",
-    "Physical Properties",
-    "Polymer Chemistry",
-    "Polymers",
-    "Qualitative Analysis",
-    "Rates of Radicals",
-    "Rates of Reactions",
-    "Reaction Rates",
-    "Redox",
-    "Redox Reactions",
-    "Separation Techniques",
-    "Solubility",
-    "Solutions",
-    "States of Matter",
-    "Stoichiometry",
-    "Thermodynamics",
-    "Titration",
-    "Water",
-    "Water Chemistry",
+    "Acid-Base Titrations", "Acids and Bases", "Acids/Bases", "Allotropy", "Alloys",
+    "Analytical Chemistry", "Anorganic Chemistry", "Atomic Structure", "Biochemistry",
+    "Carbon and Compounds", "Chemical Bonding", "Chemical Changes", "Chemical Equilibrium",
+    "Chemical Formulas", "Chemical Kinetics", "Colloids", "Coordination Chemistry", "Corrosion",
+    "Earth Chemistry", "Electrochemistry", "Electrolysis", "Environmental Chemistry",
+    "Equilibrium", "Gas Laws", "Gases", "Hygroscopic Substances", "Industrial Chemistry",
+    "Inorganic Chem", "Inorganic Chemistry", "Kinetic Theory", "Laboratory Safety",
+    "Material Science", "Matter and Changes", "Matter and Mixtures", "Matter and Properties",
+    "Metallurgy", "Metals and Compounds", "Nuclear Chemistry", "Organic Chemistry",
+    "Periodic Table", "Periodic Trends", "Physical Chemistry", "Physical Properties",
+    "Polymer Chemistry", "Polymers", "Qualitative Analysis", "Rates of Radicals",
+    "Rates of Reactions", "Reaction Rates", "Redox", "Redox Reactions", "Separation Techniques",
+    "Solubility", "Solutions", "States of Matter", "Stoichiometry", "Thermodynamics", "Titration",
+    "Water", "Water Chemistry",
   ],
   Biology: [
-    "Ecology",
-    "Genetics",
-    "Cell Biology",
-    "Adaptation",
-    "Reproduction",
-    "Zoology",
-    "Plant Physiology",
-    "Classification",
-    "Health",
-    "Excretory System",
-    "Physiology",
-    "Circulatory System",
-    "Nutrition",
-    "Botany",
-    "Evolution",
-    "Microbiology",
-    "Nervous System",
-    "Respiratory System",
-    "Endocrine System",
-    "Digestive System",
-    "Photosynthesis",
-    "General",
+    "Ecology", "Genetics", "Cell Biology", "Adaptation", "Reproduction", "Zoology",
+    "Plant Physiology", "Classification", "Health", "Excretory System", "Physiology",
+    "Circulatory System", "Nutrition", "Botany", "Evolution", "Microbiology", "Nervous System",
+    "Respiratory System", "Endocrine System", "Digestive System", "Photosynthesis", "General",
   ],
   Economics: [
-    "Agricultural Economics",
-    "Business Finance",
-    "Business Organizations",
-    "Consumer Behaviour",
-    "Demand",
-    "Demand and Supply",
-    "Development Economics",
-    "Distribution",
-    "Economic Analysis",
-    "Economic Growth",
-    "Economic Systems",
-    "Elasticity",
-    "Environmental Economics",
-    "Factors of Production",
-    "Financial Institutions",
-    "General Knowledge",
-    "Industrialization",
-    "Inflation",
-    "International Organizations",
-    "International Trade",
-    "Introduction to Economics",
-    "Labour Economics",
-    "Land Economics",
-    "Location of Industries",
-    "Macroeconomics",
-    "Market Mechanisms",
-    "Market Structures",
-    "Marketing",
-    "Mathematics",
-    "Methodology",
-    "Monetary Economics",
-    "Monetary Policy",
-    "Money and Banking",
-    "Money Market",
-    "National Income",
-    "Natural Resources",
-    "Petroleum Economics",
-    "Population",
-    "Price Control",
-    "Price System",
-    "Price Theory",
-    "Production",
-    "Production Possibility Frontier",
-    "Production Theory",
-    "Production/Costs",
-    "Public Finance",
-    "Statistics",
-    "Supply",
-    "Supply/Demand",
-    "Unemployment",
+    "Agricultural Economics", "Business Finance", "Business Organizations", "Consumer Behaviour",
+    "Demand", "Demand and Supply", "Development Economics", "Distribution", "Economic Analysis",
+    "Economic Growth", "Economic Systems", "Elasticity", "Environmental Economics",
+    "Factors of Production", "Financial Institutions", "General Knowledge", "Industrialization",
+    "Inflation", "International Organizations", "International Trade", "Introduction to Economics",
+    "Labour Economics", "Land Economics", "Location of Industries", "Macroeconomics",
+    "Market Mechanisms", "Market Structures", "Marketing", "Mathematics", "Methodology",
+    "Monetary Economics", "Monetary Policy", "Money and Banking", "Money Market", "National Income",
+    "Natural Resources", "Petroleum Economics", "Population", "Price Control", "Price System",
+    "Price Theory", "Production", "Production Possibility Frontier", "Production Theory",
+    "Production/Costs", "Public Finance", "Statistics", "Supply", "Supply/Demand", "Unemployment",
   ],
   Government: [
-    "Arms of Government",
-    "Citizenship",
-    "Colonial Administration",
-    "Constitutions",
-    "Democracy",
-    "Economic Policy",
-    "Elections",
-    "Foreign Policy",
-    "Geography",
-    "History",
-    "International Organizations",
-    "International Relations",
-    "Nigerian Foreign Policy",
-    "Nigerian Government",
-    "Political Ideologies",
-    "Political Parties",
-    "Political Science",
-    "Pressure Groups",
-    "Public Administration",
-    "Public Opinion",
-    "Systems of Government",
+    "Arms of Government", "Citizenship", "Colonial Administration", "Constitutions", "Democracy",
+    "Economic Policy", "Elections", "Foreign Policy", "Geography", "History",
+    "International Organizations", "International Relations", "Nigerian Foreign Policy",
+    "Nigerian Government", "Political Ideologies", "Political Parties", "Political Science",
+    "Pressure Groups", "Public Administration", "Public Opinion", "Systems of Government",
   ],
   Literature: [
-    "1984",
-    "Animal Farm",
-    "Attahiru",
-    "Drama",
-    "Faceless",
-    "Hamlet",
-    "Harvest of Corruption",
-    "Legal/Publishing",
-    "Literary Appreciation",
-    "Literary Authors",
-    "Literary Principles",
-    "Lonely Days",
-    "Macbeth",
-    "Morountodun",
-    "Native Son",
-    "Othello",
-    "Phonetics",
-    "Poetry",
-    "Prose",
-    "The Joy of Motherhood",
-    "The New Man",
-    "The Wives Revolt",
-    "Twelfth Night",
+    "1984", "Animal Farm", "Attahiru", "Drama", "Faceless", "Hamlet", "Harvest of Corruption",
+    "Legal/Publishing", "Literary Appreciation", "Literary Authors", "Literary Principles",
+    "Lonely Days", "Macbeth", "Morountodun", "Native Son", "Othello", "Phonetics", "Poetry",
+    "Prose", "The Joy of Motherhood", "The New Man", "The Wives Revolt", "Twelfth Night",
     "Witnesses to Tears",
   ],
-  Geography: [
-    "Physical Geography",
-    "Human Geography",
-    "Map Reading",
-    "Regional Geography",
-  ],
-  CRS: [
-    "Old Testament", 
-    "New Testament"
-  ],
+  Geography: ["Physical Geography", "Human Geography", "Map Reading", "Regional Geography"],
+  CRS: ["Old Testament", "New Testament"],
   Commerce: [
-    "Business Organization",
-    "International Trade",
-    "Finance",
-    "Business Documents",
-    "Production",
-    "Business Law",
-    "Marketing",
-    "Banking",
-    "Distribution",
+    "Business Organization", "International Trade", "Finance", "Business Documents",
+    "Production", "Business Law", "Marketing", "Banking", "Distribution",
   ],
   History: [
-    "Pre-Colonial Africa",
-    "Colonial Rule",
-    "Independence Movements",
-    "Post-Independence",
+    "Pre-Colonial Africa", "Colonial Rule", "Independence Movements", "Post-Independence",
     "Nigerian History",
   ],
-  IRS: [
-    "Tawheed", 
-    "Seerah", 
-    "Fiqh", 
-    "Hadith", 
-    "Quranic Studies"
-  ],
-  
+  IRS: ["Tawheed", "Seerah", "Fiqh", "Hadith", "Quranic Studies"],
 };
 
-// Helper to normalize topic names to match LIKELY_TOPICS
 export const normalizeTopicName = (topic: string, subject: string): string => {
   const subjectTopics = LIKELY_TOPICS[subject] || [];
   const topicLower = topic.toLowerCase();
 
-  // 1. Check for EXACT match first (highest priority)
   for (const validTopic of subjectTopics) {
     if (validTopic.toLowerCase() === topicLower) {
       return validTopic;
     }
   }
 
-  // 2. Check for exact sub-match (e.g., "Digestive" is in "Digestive System")
   for (const validTopic of subjectTopics) {
     if (validTopic.toLowerCase().includes(topicLower) || topicLower.includes(validTopic.toLowerCase())) {
       return validTopic;
     }
   }
 
-  // 3. Check if any word in the topic matches any word in a valid topic
   const topicWords = topicLower.split(" ");
   for (const validTopic of subjectTopics) {
     const validWords = validTopic.toLowerCase().split(" ");
-    const hasMatch = topicWords.some(tWord => validWords.some(vWord => tWord === vWord));
+    const hasMatch = topicWords.some((tWord) => validWords.some((vWord) => tWord === vWord));
     if (hasMatch) {
       return validTopic;
     }
   }
 
-  // 4. Fallback: just capitalize first letter
   return topic.charAt(0).toUpperCase() + topic.slice(1);
 };
 
-/**
- * Fetch unique topics for a subject from Supabase, merged with known defaults.
- */
-export const fetchTopicsBySubject = async (
-  subject: string,
-): Promise<string[]> => {
+export const fetchTopicsBySubject = async (subject: string): Promise<string[]> => {
   try {
     const formattedSubject =
-      subject.trim().charAt(0).toUpperCase() +
-      subject.trim().slice(1).toLowerCase();
+      subject.trim().charAt(0).toUpperCase() + subject.trim().slice(1).toLowerCase();
     const { data, error } = await supabase
       .from("questions")
       .select("topic")
@@ -649,8 +499,8 @@ export const fetchTopicsBySubject = async (
 
     const dbTopics = data
       ? (Array.from(
-        new Set(data.map((r) => normalizeTopicName(r.topic || "", formattedSubject)).filter(Boolean)),
-      ) as string[])
+          new Set(data.map((r) => normalizeTopicName(r.topic || "", formattedSubject)).filter(Boolean)),
+        ) as string[])
       : [];
 
     const fallbackTopics = LIKELY_TOPICS[formattedSubject] ?? [];
@@ -658,16 +508,11 @@ export const fetchTopicsBySubject = async (
   } catch (err) {
     console.error("[fetchTopicsBySubject]", err);
     const formattedSubject =
-      subject.trim().charAt(0).toUpperCase() +
-      subject.trim().slice(1).toLowerCase();
+      subject.trim().charAt(0).toUpperCase() + subject.trim().slice(1).toLowerCase();
     return LIKELY_TOPICS[formattedSubject] ?? [];
   }
 };
 
-/**
- * Fetch all questions for Past Questions browsing.
- * Can filter by subject, year, topic, difficulty.
- */
 export const fetchAllQuestionsForBrowse = async (
   subject?: string,
   year?: string | number,
@@ -675,16 +520,11 @@ export const fetchAllQuestionsForBrowse = async (
   difficulty?: string,
 ): Promise<Question[]> => {
   try {
-    let q = supabase
-      .from("questions")
-      .select("*")
-      .gte("year", MIN_YEAR)
-      .lte("year", MAX_YEAR);
+    let q = supabase.from("questions").select("*").gte("year", MIN_YEAR).lte("year", MAX_YEAR);
 
     if (subject && subject !== "All") {
       const formattedSubject =
-        subject.trim().charAt(0).toUpperCase() +
-        subject.trim().slice(1).toLowerCase();
+        subject.trim().charAt(0).toUpperCase() + subject.trim().slice(1).toLowerCase();
       q = q.eq("subject", normalizeSubject(formattedSubject));
     }
 
@@ -735,10 +575,6 @@ export const fetchAllQuestionsForBrowse = async (
   }
 };
 
-/**
- * Fetch questions by subject + topic.
- * Falls back to general subject questions if topic returns nothing.
- */
 export const fetchQuestionsByTopic = async (
   subject: string,
   topic: string,
@@ -747,36 +583,30 @@ export const fetchQuestionsByTopic = async (
   excludeIds: string[] = [],
 ): Promise<Question[]> => {
   try {
-    // Cap Novel questions at 10 max
     const actualLimit = topic.toLowerCase() === "novel" ? Math.min(limit, 10) : limit;
-
     const formattedSubject =
-      subject.trim().charAt(0).toUpperCase() +
-      subject.trim().slice(1).toLowerCase();
+      subject.trim().charAt(0).toUpperCase() + subject.trim().slice(1).toLowerCase();
     const resolvedDiff = resolveDifficulty(difficulty);
 
-    let q = supabase
-      .from("questions")
-      .select("*")
-      .eq("subject", normalizeSubject(formattedSubject))
-      .eq("topic", topic)
-      .gte("year", MIN_YEAR)
-      .lte("year", MAX_YEAR);
+    const applyFilters = (q: any) => {
+      let query = q
+        .eq("subject", normalizeSubject(formattedSubject))
+        .eq("topic", topic)
+        .gte("year", MIN_YEAR)
+        .lte("year", MAX_YEAR);
 
-    if (resolvedDiff) q = q.eq("difficulty", resolvedDiff);
+      if (resolvedDiff) query = query.eq("difficulty", resolvedDiff);
 
-    if (excludeIds.length > 0) {
-      const idList = excludeIds.filter((id) => !isNaN(Number(id)));
-      if (idList.length > 0) {
-        q = q.not("id", "in", `(${idList.join(",")})`);
+      // FIX: same issue as above — no numeric filter, IDs are UUIDs
+      if (excludeIds.length > 0) {
+        query = query.not("id", "in", `(${excludeIds.join(",")})`);
       }
-    }
+      return query;
+    };
 
-    const { data, error } = await q.limit(actualLimit * 5);
+    const data = await fetchRandomSlice(applyFilters, actualLimit * 5);
 
-    if (error) throw error;
-
-    if (data && data.length > 0) {
+    if (data.length > 0) {
       const fetchedIds = new Set<string>(excludeIds);
       const seenContent = new Set<string>();
       const finalQuestions: Question[] = [];
@@ -797,25 +627,11 @@ export const fetchQuestionsByTopic = async (
       return finalQuestions;
     }
 
-    // Topic returned nothing — fall back to general subject fetch
-    return fetchQuestionsWithFallback(
-      formattedSubject,
-      "Random",
-      actualLimit,
-      difficulty,
-      excludeIds,
-    );
+    return fetchQuestionsWithFallback(formattedSubject, "Random", actualLimit, difficulty, excludeIds);
   } catch (err) {
     console.error("[fetchQuestionsByTopic]", err);
     const formattedSubject =
-      subject.trim().charAt(0).toUpperCase() +
-      subject.trim().slice(1).toLowerCase();
-    return fetchQuestionsWithFallback(
-      formattedSubject,
-      "Random",
-      limit,
-      difficulty,
-      excludeIds,
-    );
+      subject.trim().charAt(0).toUpperCase() + subject.trim().slice(1).toLowerCase();
+    return fetchQuestionsWithFallback(formattedSubject, "Random", limit, difficulty, excludeIds);
   }
 };

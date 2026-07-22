@@ -78,17 +78,26 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
 
         <div className="relative z-10 flex h-full flex-col p-10 xl:p-12">
           {/* Logo */}
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-            className="flex items-center gap-1"
+          <div className="flex items-center gap-3">
+               <motion.div
+            // className="bg-brand shadow-brand/40 group relative mb-6 flex h-20 w-20 items-center justify-center overflow-hidden rounded-4xl shadow-2xl"
+            animate={{
+              y: [0, -8, 0],
+              rotate: [0, 2, -2, 0],
+            }}
+            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
           >
-            <img src={schooldraLogo} alt="Schooldra Logo" className="h-25 w-25" />
-            <span className="text-brand-light  font-black tracking-wider text-2xl">
+            <div className="absolute inset-0 bg-linear-to-tr from-white/25 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+            <img
+              src={schooldraLogo}
+              alt="Schooldra"
+              className="flex h-25 w-25 items-center justify-center"
+            />
+          </motion.div>
+           <span className="text-brand-light  font-black tracking-wider text-2xl">
               SCHOOLDRA
             </span>
-          </motion.div>
+            </div>
 
           {/* Core copy */}
           <motion.div
