@@ -5,6 +5,20 @@
 // waits for React + react-helmet-async to finish rendering, and saves the
 // fully-rendered HTML to disk at that route's path.
 //
+// FIX: previously, the "/" route's prerendered HTML was written straight
+// to dist/index.html — which is ALSO the file Vercel's catch-all rewrite
+// (`/(.*) -> /`) falls back to for every route with no static file of its
+// own (dashboard, admin, quiz, etc). That meant every one of those routes
+// briefly rendered the full landing page on refresh, before React
+// hydrated and the router swapped in the real content.
+//
+// Fix: copy the PRISTINE Vite-built index.html (bare shell, before any
+// route overwrites it) to dist/app.html first. That becomes the fallback
+// target in vercel.json. dist/index.html still gets the prerendered
+// landing page for direct SEO hits on "/" — Vercel serves exact static
+// file matches before applying rewrites, so that keeps working exactly
+// as before.
+//
 // Why a fresh browser CONTEXT per route (not just a new page): a browser
 // context is a fully isolated session — its own DOM/JS state, no shared
 // carryover. Reusing a single page object across routes risked Helmet
@@ -38,6 +52,14 @@ async function main() {
   console.log("Starting local preview server of dist/ ...");
   const server = await preview({ preview: { port: 4173 } });
   const base = "http://localhost:4173";
+
+  // ── Preserve the pristine SPA shell BEFORE anything overwrites it ──
+  // This is what Vercel's catch-all rewrite will fall back to for every
+  // route that has no prerendered static file of its own.
+  const pristineIndex = path.join("dist", "index.html");
+  const appShell = path.join("dist", "app.html");
+  fs.copyFileSync(pristineIndex, appShell);
+  console.log(`Preserved pristine SPA shell → ${appShell}`);
 
   console.log("Launching headless browser...");
   // ADD THESE ARGS to handle the Vercel/Linux environment
