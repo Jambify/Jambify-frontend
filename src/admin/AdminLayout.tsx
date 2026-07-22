@@ -11,7 +11,7 @@ import { cn } from '../lib/utils/utils';
 import {
   Users, BarChart2, ShieldAlert,
   Menu, X, Home,Clock, Megaphone,
-  Database, AlertTriangle
+  Database, AlertTriangle, UserCog
 } from 'lucide-react';
 
 interface AdminLayoutProps {
@@ -26,7 +26,7 @@ const NAV = [
   { path: '/admin/AdminBroadcast', label: 'AdminBroadcast',  icon: Megaphone,       end: false }, // add Clock to lucide import
   { path: '/admin/Adminquestions', label: 'AdminQuestions',  icon: Database,       end: false }, // add Clock to lucide import
   { path: '/admin/reports', label: 'FlaggedReports',  icon: AlertTriangle,       end: false }, // add Clock to lucide import
-  
+  { path: '/admin/roles', label: 'Admin Roles', icon: UserCog, end: false },
 ];
 
 const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title }) => {
