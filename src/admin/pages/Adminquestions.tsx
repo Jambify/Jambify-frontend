@@ -13,6 +13,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import { cn } from "../../lib/utils/utils";
+import { logAdminAction } from "../../lib/utils/Auditlog";
 import {
   Search,
   Plus,
@@ -149,13 +150,17 @@ const QuestionModal: React.FC<{
         explanation: form.explanation.trim() || null,
       };
 
+      const targetLabel = `${payload.subject} — ${payload.text.slice(0, 60)}${payload.text.length > 60 ? "…" : ""}`;
+
       if (editingId) {
         const { error } = await supabase.from("questions").update(payload).eq("id", editingId);
         if (error) throw error;
+        logAdminAction("question_updated", targetLabel, { question_id: editingId, subject: payload.subject });
         toast("success", "Question updated");
       } else {
-        const { error } = await supabase.from("questions").insert(payload);
+        const { data: inserted, error } = await supabase.from("questions").insert(payload).select("id").single();
         if (error) throw error;
+        logAdminAction("question_added", targetLabel, { question_id: inserted?.id, subject: payload.subject });
         toast("success", "Question added");
       }
       onSaved();
@@ -448,6 +453,13 @@ const AdminQuestions: React.FC = () => {
     try {
       const { error } = await supabase.from("questions").delete().eq("id", deleteTarget.id);
       if (error) throw error;
+
+      const targetLabel = `${deleteTarget.subject} — ${deleteTarget.text.slice(0, 60)}${deleteTarget.text.length > 60 ? "…" : ""}`;
+      logAdminAction("question_deleted", targetLabel, {
+        question_id: deleteTarget.id,
+        subject: deleteTarget.subject,
+      });
+
       setQuestions((prev) => prev.filter((q) => q.id !== deleteTarget.id));
       setTotalCount((c) => Math.max(0, c - 1));
       toast("success", "Question deleted");

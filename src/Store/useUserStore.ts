@@ -238,11 +238,18 @@ export const useUserStore = create<UserState>()(
 
           const onboardingComplete = data.onboarding_complete === true;
 
-          // Check if user is admin
-          const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL as string | undefined;
-          const isCurrentUserAdmin = ADMIN_EMAIL
-            ? data.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase()
-            : false;
+          // Check if user is admin — query admin_users directly, the same
+          // source of truth AdminGuard.tsx and every admin RLS policy uses.
+          // Previously this compared against a single VITE_ADMIN_EMAIL env
+          // var, which broke as soon as that var was removed and never
+          // supported more than one admin in the first place.
+          const { data: adminRow } = await supabase
+            .from("admin_users")
+            .select("user_id")
+            .eq("user_id", id)
+            .maybeSingle();
+
+          const isCurrentUserAdmin = !!adminRow;
 
           set({
             name: data.name || get().name,

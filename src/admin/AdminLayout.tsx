@@ -3,6 +3,16 @@
  * ──────────────────────────
  * Shell layout for the admin panel.
  * Completely separate from AppLayout — no student UI bleeds in.
+ *
+ * NAV order changed to priority: things that need frequent/urgent attention
+ * first, sensitive/occasional admin housekeeping last.
+ *   1. Overview          — daily glance, entry point
+ *   2. Flagged Reports    — time-sensitive, students are waiting
+ *   3. Users              — day-to-day account management
+ *   4. Question Bank      — content management
+ *   5. AdminBroadcast     — occasional campaigns
+ *   6. Admin Roles        — sensitive, infrequent
+ *   7. Audit Log          — infrequent review/oversight
  */
 
 import React, { useState } from 'react';
@@ -10,8 +20,8 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { cn } from '../lib/utils/utils';
 import {
   Users, BarChart2, ShieldAlert,
-  Menu, X, Home,Clock, Megaphone,
-  Database, AlertTriangle, UserCog
+  Menu, X, Home, Clock, Megaphone,
+  Database, AlertTriangle, UserCog,
 } from 'lucide-react';
 
 interface AdminLayoutProps {
@@ -20,13 +30,13 @@ interface AdminLayoutProps {
 }
 
 const NAV = [
-  { path: '/admin',           label: 'Overview',   icon: BarChart2,   end: true },
-  { path: '/admin/users',     label: 'Users',      icon: Users,       end: false },
-  { path: '/admin/audit-log', label: 'Audit Log',  icon: Clock,       end: false }, // add Clock to lucide import
-  { path: '/admin/AdminBroadcast', label: 'AdminBroadcast',  icon: Megaphone,       end: false }, // add Clock to lucide import
-  { path: '/admin/Adminquestions', label: 'AdminQuestions',  icon: Database,       end: false }, // add Clock to lucide import
-  { path: '/admin/reports', label: 'FlaggedReports',  icon: AlertTriangle,       end: false }, // add Clock to lucide import
-  { path: '/admin/roles', label: 'Admin Roles', icon: UserCog, end: false },
+  { path: '/admin',                 label: 'Overview',        icon: BarChart2,     end: true },
+  { path: '/admin/reports',         label: 'FlaggedReports',   icon: AlertTriangle, end: false },
+  { path: '/admin/users',           label: 'Users',            icon: Users,         end: false },
+  { path: '/admin/Adminquestions',  label: 'AdminQuestions',   icon: Database,      end: false },
+  { path: '/admin/AdminBroadcast',  label: 'AdminBroadcast',   icon: Megaphone,     end: false },
+  { path: '/admin/roles',           label: 'Admin Roles',      icon: UserCog,       end: false },
+  { path: '/admin/audit-log',       label: 'Audit Log',        icon: Clock,         end: false },
 ];
 
 const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title }) => {

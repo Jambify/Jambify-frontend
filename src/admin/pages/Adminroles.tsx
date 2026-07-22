@@ -18,6 +18,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import { cn } from "../../lib/utils/utils";
+import { logAdminAction } from "../../lib/utils/Auditlog";
 import {
   ShieldPlus,
   Trash2,
@@ -26,6 +27,7 @@ import {
   AlertTriangle,
   X,
   UserCog,
+  Lock,
 } from "lucide-react";
 
 interface AdminUser {
@@ -114,6 +116,11 @@ const AdminRoles: React.FC = () => {
     fetchAdmins();
   }, [fetchAdmins]);
 
+  // Only full admins may add/remove — enforced again server-side by
+  // is_super_admin() in RLS, this is just for showing/hiding the UI.
+  const ownAdmin = admins.find((a) => a.user_id === currentUserId);
+  const isFullAdmin = ownAdmin?.role === "admin";
+
   const handleAdd = async () => {
     const email = newEmail.trim().toLowerCase();
     if (!email) {
@@ -148,6 +155,11 @@ const AdminRoles: React.FC = () => {
 
       if (insertError) throw insertError;
 
+      logAdminAction("admin_added", profile.email ?? email, {
+        role: newRole,
+        name: profile.name,
+      });
+
       toast("success", `${profile.name ?? email} added as ${newRole}`);
       setNewEmail("");
       fetchAdmins();
@@ -177,6 +189,11 @@ const AdminRoles: React.FC = () => {
 
       if (error) throw error;
 
+      logAdminAction("admin_removed", admin.profile?.email ?? admin.user_id, {
+        role: admin.role,
+        name: admin.profile?.name,
+      });
+
       setAdmins((prev) => prev.filter((a) => a.user_id !== admin.user_id));
       toast("success", "Admin access removed");
     } catch (err: any) {
@@ -196,40 +213,50 @@ const AdminRoles: React.FC = () => {
         </p>
       </div>
 
-      {/* Add admin */}
-      <div className="bg-bgCard border-borderMuted space-y-3 rounded-xl border p-5">
-        <p className="text-textDim text-xs font-bold tracking-widest uppercase">
-          Add Admin
-        </p>
-        <div className="flex flex-col gap-3 sm:flex-row">
-          <input
-            value={newEmail}
-            onChange={(e) => setNewEmail(e.target.value)}
-            placeholder="user@example.com"
-            type="email"
-            className="bg-bgSurface border-borderMuted text-textMain placeholder:text-textDim flex-1 rounded-lg border px-3 py-2.5 text-sm outline-none focus:border-brand"
-          />
-          <select
-            value={newRole}
-            onChange={(e) => setNewRole(e.target.value)}
-            className="bg-bgSurface border-borderMuted text-textMain rounded-lg border px-3 py-2.5 text-sm outline-none focus:border-brand"
-          >
-            <option value="admin">Admin</option>
-            <option value="moderator">Moderator</option>
-          </select>
-          <button
-            onClick={handleAdd}
-            disabled={adding}
-            className="bg-brand hover:bg-brand-light flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
-          >
-            {adding ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldPlus className="h-4 w-4" />}
-            Add
-          </button>
+      {/* Add admin — full admins only. Also enforced server-side via
+          is_super_admin() in RLS, so this isn't just a UI-level restriction. */}
+      {!loading && !isFullAdmin ? (
+        <div className="bg-bgCard border-borderMuted flex items-center gap-3 rounded-xl border p-5">
+          <Lock className="text-textDim h-4 w-4 shrink-0" />
+          <p className="text-textDim text-sm">
+            Only admins can add or remove roles. Moderators can view this list.
+          </p>
         </div>
-        <p className="text-textDim text-xs">
-          The person must already have a Schooldra account — you can't grant access to an email that hasn't signed up.
-        </p>
-      </div>
+      ) : (
+        <div className="bg-bgCard border-borderMuted space-y-3 rounded-xl border p-5">
+          <p className="text-textDim text-xs font-bold tracking-widest uppercase">
+            Add Admin
+          </p>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <input
+              value={newEmail}
+              onChange={(e) => setNewEmail(e.target.value)}
+              placeholder="user@example.com"
+              type="email"
+              className="bg-bgSurface border-borderMuted text-textMain placeholder:text-textDim flex-1 rounded-lg border px-3 py-2.5 text-sm outline-none focus:border-brand"
+            />
+            <select
+              value={newRole}
+              onChange={(e) => setNewRole(e.target.value)}
+              className="bg-bgSurface border-borderMuted text-textMain rounded-lg border px-3 py-2.5 text-sm outline-none focus:border-brand"
+            >
+              <option value="admin">Admin</option>
+              <option value="moderator">Moderator</option>
+            </select>
+            <button
+              onClick={handleAdd}
+              disabled={adding}
+              className="bg-brand hover:bg-brand-light flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+            >
+              {adding ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldPlus className="h-4 w-4" />}
+              Add
+            </button>
+          </div>
+          <p className="text-textDim text-xs">
+            The person must already have a Schooldra account — you can't grant access to an email that hasn't signed up.
+          </p>
+        </div>
+      )}
 
       {/* Admin list */}
       <div className="bg-bgCard border-borderMuted overflow-hidden rounded-xl border">
@@ -267,23 +294,25 @@ const AdminRoles: React.FC = () => {
                       {admin.profile?.university ? ` · ${admin.profile.university}` : ""}
                     </p>
                   </div>
-                  <button
-                    onClick={() => handleRemove(admin)}
-                    disabled={removingId === admin.user_id || isSelf || admins.length <= 1}
-                    title={isSelf ? "You can't remove your own access" : "Remove admin access"}
-                    className={cn(
-                      "shrink-0 rounded-lg p-2",
-                      isSelf || admins.length <= 1
-                        ? "text-textDim/40 cursor-not-allowed"
-                        : "text-textDim hover:bg-danger/10 hover:text-danger",
-                    )}
-                  >
-                    {removingId === admin.user_id ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Trash2 className="h-4 w-4" />
-                    )}
-                  </button>
+                  {isFullAdmin && (
+                    <button
+                      onClick={() => handleRemove(admin)}
+                      disabled={removingId === admin.user_id || isSelf || admins.length <= 1}
+                      title={isSelf ? "You can't remove your own access" : "Remove admin access"}
+                      className={cn(
+                        "shrink-0 rounded-lg p-2",
+                        isSelf || admins.length <= 1
+                          ? "text-textDim/40 cursor-not-allowed"
+                          : "text-textDim hover:bg-danger/10 hover:text-danger",
+                      )}
+                    >
+                      {removingId === admin.user_id ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Trash2 className="h-4 w-4" />
+                      )}
+                    </button>
+                  )}
                 </div>
               );
             })}

@@ -6,7 +6,10 @@
 
 import React, { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
-import { Loader2, Crown, ShieldOff, ShieldCheck, Trash2, Clock } from "lucide-react";
+import {
+  Loader2, Crown, ShieldOff, ShieldCheck, Trash2, Clock,
+  UserPlus, UserMinus, Flag, FilePlus, FileEdit, FileX,
+} from "lucide-react";
 import { cn } from "../../lib/utils/utils";
 
 interface AuditEntry {
@@ -24,6 +27,12 @@ const ACTION_META: Record<string, { label: string; icon: React.ReactNode; color:
   freeze: { label: "Froze Account", icon: <ShieldOff className="h-3.5 w-3.5" />, color: "text-blue-400 bg-blue-500/10 border-blue-500/20" },
   unfreeze: { label: "Unfroze Account", icon: <ShieldCheck className="h-3.5 w-3.5" />, color: "text-success bg-success/10 border-success/20" },
   delete: { label: "Deleted Account", icon: <Trash2 className="h-3.5 w-3.5" />, color: "text-danger bg-danger/10 border-danger/20" },
+  admin_added: { label: "Added Admin", icon: <UserPlus className="h-3.5 w-3.5" />, color: "text-brand-light bg-brand/10 border-brand/20" },
+  admin_removed: { label: "Removed Admin", icon: <UserMinus className="h-3.5 w-3.5" />, color: "text-danger bg-danger/10 border-danger/20" },
+  report_status_change: { label: "Updated Report", icon: <Flag className="h-3.5 w-3.5" />, color: "text-blue-400 bg-blue-500/10 border-blue-500/20" },
+  question_added: { label: "Added Question", icon: <FilePlus className="h-3.5 w-3.5" />, color: "text-success bg-success/10 border-success/20" },
+  question_updated: { label: "Edited Question", icon: <FileEdit className="h-3.5 w-3.5" />, color: "text-warn bg-warn/10 border-warn/20" },
+  question_deleted: { label: "Deleted Question", icon: <FileX className="h-3.5 w-3.5" />, color: "text-danger bg-danger/10 border-danger/20" },
 };
 
 const AdminAuditLog: React.FC = () => {
