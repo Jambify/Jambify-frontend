@@ -1,7 +1,7 @@
 // src/admin/pages/AdminBroadcast.tsx
 import React, { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
-import { Megaphone, Loader2, Trash2, Send, Clock, CheckCircle2, XCircle } from "lucide-react";
+import { Megaphone, Loader2, Trash2, Send, Clock, CheckCircle2, XCircle, ChevronDown } from "lucide-react";
 import { cn } from "../../lib/utils/utils";
 
 interface Announcement {
@@ -33,9 +33,13 @@ const AUDIENCES: { value: Announcement["target_audience"]; label: string }[] = [
   { value: "free", label: "Free users" },
 ];
 
+const PAGE_SIZE = 15; // NEW
+
 const AdminBroadcast: React.FC = () => {
   const [list, setList] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false); // NEW
+  const [hasMore, setHasMore] = useState(true); // NEW
   const [sending, setSending] = useState(false);
   const [runningReminders, setRunningReminders] = useState(false);
   const [title, setTitle] = useState("");
@@ -44,21 +48,38 @@ const AdminBroadcast: React.FC = () => {
   const [audience, setAudience] = useState<Announcement["target_audience"]>("all");
   const [toast, setToast] = useState<Toast | null>(null);
 
-  // Auto-dismiss toast after 4s
   useEffect(() => {
     if (!toast) return;
     const t = setTimeout(() => setToast(null), 4000);
     return () => clearTimeout(t);
   }, [toast]);
 
+  // Load the first page (used on mount and after send/deactivate)
   const load = async () => {
     setLoading(true);
     const { data } = await supabase
       .from("announcements")
       .select("id, title, message, type, is_active, target_audience, target_user_id, created_at")
-      .order("created_at", { ascending: false });
-    setList((data ?? []) as Announcement[]);
+      .order("created_at", { ascending: false })
+      .range(0, PAGE_SIZE - 1);
+    const rows = (data ?? []) as Announcement[];
+    setList(rows);
+    setHasMore(rows.length === PAGE_SIZE);
     setLoading(false);
+  };
+
+  // NEW — fetch the next page and append
+  const loadMore = async () => {
+    setLoadingMore(true);
+    const { data } = await supabase
+      .from("announcements")
+      .select("id, title, message, type, is_active, target_audience, target_user_id, created_at")
+      .order("created_at", { ascending: false })
+      .range(list.length, list.length + PAGE_SIZE - 1);
+    const rows = (data ?? []) as Announcement[];
+    setList((prev) => [...prev, ...rows]);
+    setHasMore(rows.length === PAGE_SIZE);
+    setLoadingMore(false);
   };
 
   useEffect(() => {
@@ -217,51 +238,69 @@ const AdminBroadcast: React.FC = () => {
         </button>
       </div>
 
-      {/* List */}
-      <div className="bg-bgCard border-borderMuted rounded-brand-lg border divide-y divide-borderMuted overflow-hidden">
-        {loading ? (
-          <div className="flex justify-center py-10">
-            <Loader2 className="w-5 h-5 animate-spin text-brand" />
-          </div>
-        ) : list.length === 0 ? (
-          <p className="text-textDim text-sm text-center py-10">No announcements yet</p>
-        ) : (
-          list.map((a) => (
-            <div key={a.id} className="px-4 py-3 flex items-start gap-3">
-              <div className="min-w-0 flex-1">
-                <p className="text-textMain text-sm font-semibold truncate">{a.title}</p>
-                <p className="text-textDim text-xs mt-0.5 line-clamp-2">{a.message}</p>
-                <p className="text-textDim text-[10px] mt-1 flex items-center gap-2 flex-wrap">
-                  <span>
-                    {new Date(a.created_at).toLocaleDateString("en-GB", {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                    })}
-                    {!a.is_active && " · inactive"}
-                  </span>
-                  <span className="rounded-full border border-borderMuted bg-bgSurface px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-textDim">
-                    {a.target_user_id
-                      ? "Individual reminder"
-                      : a.target_audience === "all"
-                        ? "Everyone"
-                        : a.target_audience === "pro"
-                          ? "Pro only"
-                          : "Free only"}
-                  </span>
-                </p>
-              </div>
-              {a.is_active && (
-                <button
-                  onClick={() => handleDeactivate(a.id)}
-                  className="text-textDim hover:text-danger p-1.5 shrink-0"
-                  title="Deactivate"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
-              )}
+      {/* List — capped height, internal scroll, paginated fetch */}
+      <div className="bg-bgCard border-borderMuted rounded-brand-lg border overflow-hidden">
+        <div className="max-h-[520px] overflow-y-auto divide-y divide-borderMuted"> {/* NEW: scroll container */}
+          {loading ? (
+            <div className="flex justify-center py-10">
+              <Loader2 className="w-5 h-5 animate-spin text-brand" />
             </div>
-          ))
+          ) : list.length === 0 ? (
+            <p className="text-textDim text-sm text-center py-10">No announcements yet</p>
+          ) : (
+            list.map((a) => (
+              <div key={a.id} className="px-4 py-3 flex items-start gap-3">
+                <div className="min-w-0 flex-1">
+                  <p className="text-textMain text-sm font-semibold truncate">{a.title}</p>
+                  <p className="text-textDim text-xs mt-0.5 line-clamp-2">{a.message}</p>
+                  <p className="text-textDim text-[10px] mt-1 flex items-center gap-2 flex-wrap">
+                    <span>
+                      {new Date(a.created_at).toLocaleDateString("en-GB", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                      {!a.is_active && " · inactive"}
+                    </span>
+                    <span className="rounded-full border border-borderMuted bg-bgSurface px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-textDim">
+                      {a.target_user_id
+                        ? "Individual reminder"
+                        : a.target_audience === "all"
+                          ? "Everyone"
+                          : a.target_audience === "pro"
+                            ? "Pro only"
+                            : "Free only"}
+                    </span>
+                  </p>
+                </div>
+                {a.is_active && (
+                  <button
+                    onClick={() => handleDeactivate(a.id)}
+                    className="text-textDim hover:text-danger p-1.5 shrink-0"
+                    title="Deactivate"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* NEW — Load more, sits below the scroll container so it's always reachable */}
+        {!loading && hasMore && (
+          <button
+            onClick={loadMore}
+            disabled={loadingMore}
+            className="w-full flex items-center justify-center gap-1.5 py-3 text-xs font-semibold text-textDim hover:text-textMain border-t border-borderMuted disabled:opacity-50"
+          >
+            {loadingMore ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <ChevronDown className="w-3.5 h-3.5" />
+            )}
+            Load more
+          </button>
         )}
       </div>
     </div>
