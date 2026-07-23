@@ -23,6 +23,7 @@ import {
   Menu, X, Home, Clock, Megaphone,
   Database, AlertTriangle, UserCog,
 } from 'lucide-react';
+import schooldraLogo from "../assets/schooldraLogo.webp"
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -65,9 +66,13 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title }) => {
         {/* Logo */}
         <div className="flex items-center justify-between px-5 py-5 border-b border-borderMuted shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 bg-brand rounded-lg flex items-center justify-center font-display font-black text-white text-sm shadow-lg shadow-brand/40">
-              S
-            </div>
+            <div className="flex cursor-pointer items-center gap-1">
+                <img
+                  src={schooldraLogo}
+                  alt="Schooldra Logo"
+                  className="h-8 w-8"
+                />
+                </div>
             <div className="font-display font-bold text-sm tracking-tight">
               Schooldra <span className="text-brand text-[10px] font-bold uppercase tracking-widest ml-1">Admin</span>
             </div>
