@@ -86,7 +86,7 @@ const Hero: React.FC = () => {
               to="/signup"
               className="bg-brand hover:bg-brand-light flex items-center gap-2 rounded-full px-7 py-3.5 text-sm font-bold text-white transition-colors"
             >
-              Start Free — no card <ArrowRight className="h-4 w-4" />
+              Start Free <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
               to="/guest"

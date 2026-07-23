@@ -5,6 +5,10 @@
  *
  * Layout (desktop): left context panel | center chat | right suggestions
  * Layout (mobile):  stacked — context strip → chat → input
+ *
+ * Role-aware: admins/moderators get a staff-mode system prompt (direct,
+ * technical, can discuss the question bank itself) instead of the
+ * student-facing encouraging-tutor prompt.
  */
 
 import React, { useEffect, useRef, useState } from "react";
@@ -25,16 +29,28 @@ import {
   AlertTriangle,
   Calendar,
   Trophy,
+  ShieldCheck, // NEW — staff badge icon
 } from "lucide-react";
 
-// ── Mentor system prompt ──────────────────────────────────────────────────────
+// ── Mentor system prompt (students) ───────────────────────────────────────────
 const MENTOR_SYSTEM = `You are Schooldra AI, a friendly and expert JAMB exam preparation mentor for Nigerian students.
 You know the student's profile and weak subjects (provided in context).
 Be encouraging, specific, and always relate advice back to JAMB preparation.
 Keep responses concise (under 250 words) unless a detailed explanation is needed.
 Use bullet points and numbered steps for clarity. Reference Nigerian context where helpful.`;
 
-// ── Starter prompts (shown when chat is empty) ────────────────────────────────
+// NEW — system prompt for admins/moderators. Same subject-matter expertise,
+// but treats the person as staff rather than a student.
+const STAFF_MENTOR_SYSTEM = `You are Schooldra AI, operating in staff mode for a Schooldra team member (admin or moderator), not a student.
+Speak to them as a colleague — skip encouragement/motivational framing, be direct and technical.
+You may discuss the JAMB question bank itself: flag potentially incorrect answers, ambiguous wording,
+outdated syllabus references, or duplicate/near-duplicate questions if asked.
+You may also answer meta-questions about how a topic is typically tested, common student misconceptions,
+or how to explain a concept to students, since this may inform their moderation work.
+No strict length cap — give as much detail as the question warrants.
+Use bullet points and numbered steps for clarity where useful.`;
+
+// ── Starter prompts (students) ─────────────────────────────────────────────────
 const BASE_STARTERS = [
   {
     icon: "📅",
@@ -59,6 +75,34 @@ const BASE_STARTERS = [
     label: "Common JAMB mistakes",
     prompt:
       "What are the most common mistakes students make in JAMB and how do I avoid them?",
+  },
+];
+
+// NEW — starter prompts shown to staff instead of students
+const STAFF_STARTERS = [
+  {
+    icon: "🔎",
+    label: "Check a question",
+    prompt:
+      "I want to review a question from our bank for accuracy. I'll paste the question, options, and marked answer — please verify it's correct and flag anything ambiguous.",
+  },
+  {
+    icon: "📊",
+    label: "Common misconceptions",
+    prompt:
+      "What are the most common student misconceptions in a JAMB subject I'm moderating? Pick a subject and break it down.",
+  },
+  {
+    icon: "🧩",
+    label: "Explain a tricky topic",
+    prompt:
+      "Explain a commonly-confused JAMB topic the way I'd need to explain it to a struggling student, so I can improve our content around it.",
+  },
+  {
+    icon: "🗂️",
+    label: "Syllabus check",
+    prompt:
+      "Is there anything in the current JAMB syllabus that's commonly outdated in older question banks? What should I watch for when reviewing questions?",
   },
 ];
 
@@ -127,9 +171,18 @@ const MentorChat: React.FC = () => {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  const { name, targetScore, examDate, examYear, questionsCompleted } =
-    useUserStore();
+  const {
+    name,
+    targetScore,
+    examDate,
+    examYear,
+    questionsCompleted,
+    isAdmin,      // NEW
+    isModerator,  // NEW
+  } = useUserStore();
   const { subjects, loadSubjects, isInitialized } = useSubjectStore();
+
+  const isStaff = isAdmin || isModerator; // NEW
 
   useEffect(() => {
     if (!isInitialized) loadSubjects();
@@ -140,8 +193,16 @@ const MentorChat: React.FC = () => {
     .sort((a, b) => a.accuracy - b.accuracy)
     .slice(0, 3);
 
-  // Build personalized system prompt with user context
-  const systemPrompt = `${MENTOR_SYSTEM}
+  // Build personalized system prompt with user context.
+  // Staff get a different base prompt and a lighter context block
+  // (no "weak subjects" framing, which doesn't apply to them).
+  const systemPrompt = isStaff
+    ? `${STAFF_MENTOR_SYSTEM}
+
+Staff member:
+- Name: ${name || "Team member"}
+- Role: ${isAdmin ? "Admin" : "Moderator"}`
+    : `${MENTOR_SYSTEM}
 
 Student profile:
 - Name: ${name || "Student"}
@@ -149,12 +210,12 @@ Student profile:
 - Exam: JAMB ${examYear} (${examDate})
 - Questions completed: ${questionsCompleted}
 - Weak subjects: ${
-    weakSubjects.length > 0
-      ? weakSubjects
-          .map((s) => `${s.name} (${s.accuracy}% accuracy)`)
-          .join(", ")
-      : "None identified yet"
-  }`;
+        weakSubjects.length > 0
+          ? weakSubjects
+              .map((s) => `${s.name} (${s.accuracy}% accuracy)`)
+              .join(", ")
+          : "None identified yet"
+      }`;
 
   const {
     messages,
@@ -166,22 +227,25 @@ Student profile:
     messagesRemaining,
   } = useAIChat({
     systemPrompt,
-    storageKey: `schooldra-mentor-${name || "guest"}`,  });
+    storageKey: `schooldra-mentor-${name || "guest"}`,
+  });
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isLoading]);
 
-  // Build personalized starters based on weak subjects
-  const starters = [
-    ...BASE_STARTERS,
-    ...weakSubjects.slice(0, 2).map((s) => ({
-      icon: s.icon,
-      label: `Help with ${s.name}`,
-      prompt: `I'm struggling with ${s.name} — my accuracy is only ${s.accuracy}%. What are the most important topics to focus on and how should I study them for JAMB?`,
-    })),
-  ];
+  // Build starters based on role first, then weak subjects for students
+  const starters = isStaff
+    ? STAFF_STARTERS
+    : [
+        ...BASE_STARTERS,
+        ...weakSubjects.slice(0, 2).map((s) => ({
+          icon: s.icon,
+          label: `Help with ${s.name}`,
+          prompt: `I'm struggling with ${s.name} — my accuracy is only ${s.accuracy}%. What are the most important topics to focus on and how should I study them for JAMB?`,
+        })),
+      ];
 
   const handleSend = () => {
     if (!input.trim() || isLoading) return;
@@ -205,12 +269,6 @@ Student profile:
       isSidebarOpen={isSidebarOpen}
       setIsSidebarOpen={setIsSidebarOpen}
     >
-      {/*
-        Escape the AppLayout's p-4 lg:p-7 padding so we can fill the
-        full available height. We use -mx and -mt to pull back to the
-        padding edge, then add px/pt back on the inner container.
-        Height = viewport - topbar(56px) - bottom padding(28px) = calc(100vh - 84px)
-      */}
       <div
         className="-mx-4 -mt-4 flex gap-3 overflow-hidden px-4 pt-4 lg:-mx-7 lg:-mt-7 lg:px-7 lg:pt-7"
         style={{ height: "calc(100vh - 56px - 1.75rem)" }}
@@ -236,36 +294,46 @@ Student profile:
               </div>
             </div>
             <p className="text-textDim text-[11px] leading-relaxed">
-              Your personal JAMB tutor. Ask anything about your subjects, exam
-              strategy, or study plans.
+              {isStaff
+                ? "Staff mode — direct answers, question-bank review, and moderation support."
+                : "Your personal JAMB tutor. Ask anything about your subjects, exam strategy, or study plans."}
             </p>
-          </div>
-
-          {/* Profile snapshot */}
-          <div className="bg-bgCard border-borderMuted rounded-brand-lg space-y-2.5 border p-4">
-            <p className="text-textDim mb-3 text-[10px] font-bold tracking-widest uppercase">
-              Your Profile
-            </p>
-            <div className="text-textMuted flex items-center gap-2 text-xs">
-              <Calendar className="text-brand h-3.5 w-3.5 shrink-0" />
-              <span>
-                JAMB {examYear} · {examDate}
-              </span>
-            </div>
-            {targetScore && (
-              <div className="text-textMuted flex items-center gap-2 text-xs">
-                <Trophy className="text-warn h-3.5 w-3.5 shrink-0" />
-                <span>Target: {targetScore}</span>
+            {/* NEW — staff badge */}
+            {isStaff && (
+              <div className="bg-brand/10 border-brand/20 text-brand-light mt-3 flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide">
+                <ShieldCheck className="h-3 w-3" />
+                {isAdmin ? "Admin mode" : "Moderator mode"}
               </div>
             )}
-            <div className="text-textMuted flex items-center gap-2 text-xs">
-              <BookOpen className="text-success h-3.5 w-3.5 shrink-0" />
-              <span>{questionsCompleted} questions done</span>
-            </div>
           </div>
 
-          {/* Weak subjects */}
-          {weakSubjects.length > 0 && (
+          {/* Profile snapshot — students only, not relevant to staff */}
+          {!isStaff && (
+            <div className="bg-bgCard border-borderMuted rounded-brand-lg space-y-2.5 border p-4">
+              <p className="text-textDim mb-3 text-[10px] font-bold tracking-widest uppercase">
+                Your Profile
+              </p>
+              <div className="text-textMuted flex items-center gap-2 text-xs">
+                <Calendar className="text-brand h-3.5 w-3.5 shrink-0" />
+                <span>
+                  JAMB {examYear} · {examDate}
+                </span>
+              </div>
+              {targetScore && (
+                <div className="text-textMuted flex items-center gap-2 text-xs">
+                  <Trophy className="text-warn h-3.5 w-3.5 shrink-0" />
+                  <span>Target: {targetScore}</span>
+                </div>
+              )}
+              <div className="text-textMuted flex items-center gap-2 text-xs">
+                <BookOpen className="text-success h-3.5 w-3.5 shrink-0" />
+                <span>{questionsCompleted} questions done</span>
+              </div>
+            </div>
+          )}
+
+          {/* Weak subjects — students only */}
+          {!isStaff && weakSubjects.length > 0 && (
             <div className="bg-bgCard border-borderMuted rounded-brand-lg border p-4">
               <p className="text-textDim mb-3 flex items-center gap-1.5 text-[10px] font-bold tracking-widest uppercase">
                 <AlertTriangle className="text-warn h-3 w-3" /> Needs Work
@@ -319,6 +387,11 @@ Student profile:
               <div>
                 <p className="text-textMain text-sm font-semibold">
                   Schooldra AI Mentor
+                  {isStaff && (
+                    <span className="text-brand-light ml-1.5 text-[10px] font-bold uppercase tracking-wide">
+                      · Staff
+                    </span>
+                  )}
                 </p>
                 <div className="flex items-center gap-1.5">
                   <span className="bg-success h-1.5 w-1.5 animate-pulse rounded-full" />
@@ -360,19 +433,28 @@ Student profile:
           {/* Mobile context strip */}
           {showContext && (
             <div className="bg-bgSurface border-borderMuted text-textMuted flex flex-wrap gap-3 border-b px-4 py-3 text-xs lg:hidden">
-              <span className="flex items-center gap-1">
-                <Calendar className="h-3 w-3" /> JAMB {examYear}
-              </span>
-              {targetScore && (
-                <span className="flex items-center gap-1">
-                  <Trophy className="h-3 w-3" /> Target: {targetScore}
+              {isStaff ? (
+                <span className="text-brand-light flex items-center gap-1">
+                  <ShieldCheck className="h-3 w-3" />
+                  {isAdmin ? "Admin mode" : "Moderator mode"}
                 </span>
-              )}
-              {weakSubjects.length > 0 && (
-                <span className="text-warn flex items-center gap-1">
-                  <AlertTriangle className="h-3 w-3" />
-                  Weak: {weakSubjects.map((s) => s.name).join(", ")}
-                </span>
+              ) : (
+                <>
+                  <span className="flex items-center gap-1">
+                    <Calendar className="h-3 w-3" /> JAMB {examYear}
+                  </span>
+                  {targetScore && (
+                    <span className="flex items-center gap-1">
+                      <Trophy className="h-3 w-3" /> Target: {targetScore}
+                    </span>
+                  )}
+                  {weakSubjects.length > 0 && (
+                    <span className="text-warn flex items-center gap-1">
+                      <AlertTriangle className="h-3 w-3" />
+                      Weak: {weakSubjects.map((s) => s.name).join(", ")}
+                    </span>
+                  )}
+                </>
               )}
             </div>
           )}
@@ -387,12 +469,14 @@ Student profile:
                 </div>
                 <div>
                   <h2 className="font-display text-textMain mb-1 text-xl font-bold">
-                    Hi {name || "there"} 👋
+                    {isStaff ? `Hey ${name || "there"}` : `Hi ${name || "there"} 👋`}
                   </h2>
                   <p className="text-textDim max-w-xs text-sm leading-relaxed">
-                    {weakSubjects.length > 0
-                      ? `I've reviewed your progress. You need work on ${weakSubjects[0].name}. What would you like to focus on?`
-                      : "I'm your personal JAMB tutor. Ask me anything about your subjects or exam strategy."}
+                    {isStaff
+                      ? "Staff mode is on — ask about the question bank, common misconceptions, or anything that helps your moderation work."
+                      : weakSubjects.length > 0
+                        ? `I've reviewed your progress. You need work on ${weakSubjects[0].name}. What would you like to focus on?`
+                        : "I'm your personal JAMB tutor. Ask me anything about your subjects or exam strategy."}
                   </p>
                 </div>
 
@@ -441,12 +525,10 @@ Student profile:
             !isAtLimit &&
             messages[messages.length - 1]?.role === "ai" && (
               <div className="no-scrollbar flex shrink-0 gap-2 overflow-x-auto px-4 pb-2">
-                {[
-                  "Give me an example",
-                  "Simplify that",
-                  "Quiz me on this",
-                  "What else should I know?",
-                ].map((s) => (
+                {(isStaff
+                  ? ["Give me an example", "Go deeper", "Any related edge cases?", "What else should I check?"]
+                  : ["Give me an example", "Simplify that", "Quiz me on this", "What else should I know?"]
+                ).map((s) => (
                   <button
                     key={s}
                     onClick={() => sendMessage(s)}
@@ -513,7 +595,9 @@ Student profile:
                 placeholder={
                   isAtLimit
                     ? "Session limit reached — start a new chat"
-                    : "Ask anything about JAMB…"
+                    : isStaff
+                      ? "Ask about the question bank, topics, or moderation…"
+                      : "Ask anything about JAMB…"
                 }
                 disabled={isLoading || isAtLimit}
                 className="no-scrollbar placeholder:text-textDim text-textMain max-h-30 min-h-9 flex-1 resize-none border-none bg-transparent px-2 py-1.5 text-sm focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50"
@@ -541,7 +625,7 @@ Student profile:
         <aside className="no-scrollbar hidden h-full w-48 shrink-0 flex-col gap-3 overflow-y-auto xl:flex">
           <div className="bg-bgCard border-borderMuted rounded-brand-lg border p-4">
             <p className="text-textDim mb-3 text-[10px] font-bold tracking-widest uppercase">
-              Quick Ask
+              {isStaff ? "Staff Quick Ask" : "Quick Ask"}
             </p>
             <div className="space-y-1.5">
               {starters.map((s, i) => (
@@ -561,12 +645,12 @@ Student profile:
 
           <div className="bg-bgCard border-borderMuted rounded-brand-lg border p-4">
             <p className="text-textDim mb-2 flex items-center gap-1.5 text-[10px] font-bold tracking-widest uppercase">
-              <Target className="text-brand h-3 w-3" /> Pro Tip
+              <Target className="text-brand h-3 w-3" /> {isStaff ? "Note" : "Pro Tip"}
             </p>
             <p className="text-textDim text-[11px] leading-relaxed">
-              Be specific in your questions. Instead of "help me with
-              Chemistry", try "explain the difference between alkanes and
-              alkenes for JAMB".
+              {isStaff
+                ? "You can paste a full question, its options, and marked answer directly into chat for a quick accuracy check."
+                : 'Be specific in your questions. Instead of "help me with Chemistry", try "explain the difference between alkanes and alkenes for JAMB".'}
             </p>
           </div>
         </aside>

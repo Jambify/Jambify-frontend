@@ -79,6 +79,7 @@ interface UserState {
   lastStreakWeek: string | null;
   lastSeenStreakPopup: number;
   isAdmin: boolean;
+  isModerator: boolean; // NEW
 
   // ── Auth ─────────────────────────────────────────────
   isAuthenticated: boolean;
@@ -155,6 +156,7 @@ const DEFAULTS = {
   isFrozen: false,
   hasSeenWelcome: false,
   isAdmin: false,
+  isModerator: false, // NEW
   downloadedData: {},
   isAuthenticated: false,
   isLoading: false,
@@ -238,18 +240,19 @@ export const useUserStore = create<UserState>()(
 
           const onboardingComplete = data.onboarding_complete === true;
 
-          // Check if user is admin — query admin_users directly, the same
+          // Check user's role — query admin_users directly, the same
           // source of truth AdminGuard.tsx and every admin RLS policy uses.
-          // Previously this compared against a single VITE_ADMIN_EMAIL env
-          // var, which broke as soon as that var was removed and never
-          // supported more than one admin in the first place.
+          // admin_users.role distinguishes full admins from moderators;
+          // both get admin-panel access, but only 'admin' triggers the
+          // hard redirect away from the student app (see RouteGuard).
           const { data: adminRow } = await supabase
             .from("admin_users")
-            .select("user_id")
+            .select("role")
             .eq("user_id", id)
             .maybeSingle();
 
-          const isCurrentUserAdmin = !!adminRow;
+          const isCurrentUserAdmin = adminRow?.role === "admin";
+          const isCurrentUserModerator = adminRow?.role === "moderator";
 
           set({
             name: data.name || get().name,
@@ -277,6 +280,7 @@ export const useUserStore = create<UserState>()(
             _profileReady: true,
             hasSeenWelcome: data.has_seen_welcome ?? false,
             isAdmin: isCurrentUserAdmin,
+            isModerator: isCurrentUserModerator, // NEW
           });
 
           return { onboardingComplete, profileExists: true };

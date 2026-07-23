@@ -9,6 +9,11 @@
  * Usage:
  *   import { askAI, streamAI } from '../lib/ai';
  *   const reply = await askAI([{ role: 'user', parts: [{ text: 'Hello' }] }]);
+ *
+ * Role-aware behavior:
+ *   Pass `role` ("student" | "moderator" | "admin") to askAI/streamAI and the
+ *   AI will use a different system instruction for staff vs. students.
+ *   Callers should derive this from useUserStore (isAdmin / isModerator).
  */
 
 export interface GeminiMessage {
@@ -16,15 +21,16 @@ export interface GeminiMessage {
   parts: { text: string }[];
 }
 
+export type ChatRole = "student" | "moderator" | "admin"; // NEW
+
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY as string | undefined;
 // gemini-2.5-flash: free tier on v1beta, best price-performance model
 // Model code confirmed at: https://ai.google.dev/gemini-api/docs/models/gemini-2.5-flash
 const MODEL = "gemini-2.5-flash";
 const BASE_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}`;
 
-// ── System instruction injected into every request ────────────────────────────
-// Keeps the AI focused on JAMB prep and prevents off-topic responses.
-const SYSTEM_INSTRUCTION = `You are Schooldra AI, an expert JAMB (Joint Admissions and Matriculation Board) 
+// ── System instruction for regular students (unchanged) ────────────────────────
+const STUDENT_SYSTEM_INSTRUCTION = `You are Schooldra AI, an expert JAMB (Joint Admissions and Matriculation Board) 
 exam preparation tutor for Nigerian students. You specialize in all JAMB subjects: 
 English, Mathematics, Physics, Chemistry, Biology, Economics, Government, Literature, CRS/IRS.
 
@@ -38,12 +44,37 @@ Rules:
 - Never give answers without explanations
 - CRITICAL: Never use markdown formatting — no **bold**, *italics*, backticks, or asterisk/dash bullet lists. This chat displays plain text only, so any markdown symbols will show up as literal characters on screen. For structure, use plain numbered steps ("1.", "2.") or line breaks instead of markdown syntax.`;
 
+// NEW — system instruction for admins/moderators. Same subject-matter
+// expertise, but treats the person as staff rather than a student: skips
+// the "encouraging tutor" framing, allows more technical/direct answers,
+// and can discuss Schooldra itself (content quality, question accuracy,
+// how a topic is typically tested) rather than only tutoring a student.
+const STAFF_SYSTEM_INSTRUCTION = `You are Schooldra AI, operating in staff mode for a Schooldra team member 
+(admin or moderator), not a student. You still specialize in all JAMB subjects: 
+English, Mathematics, Physics, Chemistry, Biology, Economics, Government, Literature, CRS/IRS.
+
+Rules:
+- Speak to the person as a colleague, not a student — skip encouragement/motivational framing
+- Be direct, technical, and concise; assume subject-matter familiarity
+- You may discuss the JAMB question bank itself: flag potentially incorrect answers, 
+  ambiguous wording, outdated syllabus references, or duplicate/near-duplicate questions if asked
+- You may answer meta-questions about how a topic is typically tested, common student 
+  misconceptions, or how to explain a concept to students, since this may inform their moderation work
+- No response length cap — give as much detail as the question warrants
+- CRITICAL: Never use markdown formatting — no **bold**, *italics*, backticks, or asterisk/dash bullet lists. This chat displays plain text only, so any markdown symbols will show up as literal characters on screen. For structure, use plain numbered steps ("1.", "2.") or line breaks instead of markdown syntax.`;
+
+function resolveSystemInstruction(role?: ChatRole, override?: string): string {
+  if (override) return override; // explicit systemPrompt always wins
+  if (role === "admin" || role === "moderator") return STAFF_SYSTEM_INSTRUCTION;
+  return STUDENT_SYSTEM_INSTRUCTION;
+}
+
 // ── Core fetch helper ─────────────────────────────────────────────────────────
 
-function buildBody(history: GeminiMessage[], systemPrompt?: string) {
+function buildBody(history: GeminiMessage[], systemPrompt: string) {
   return JSON.stringify({
     system_instruction: {
-      parts: [{ text: systemPrompt ?? SYSTEM_INSTRUCTION }],
+      parts: [{ text: systemPrompt }],
     },
     contents: history,
     generationConfig: {
@@ -78,6 +109,7 @@ function buildBody(history: GeminiMessage[], systemPrompt?: string) {
 export async function askAI(
   history: GeminiMessage[],
   systemPrompt?: string,
+  role?: ChatRole, // NEW
 ): Promise<string> {
   if (!API_KEY) {
     return "⚠️ AI is not configured yet. Add VITE_GEMINI_API_KEY to your .env file. Get a free key at https://aistudio.google.com/app/apikey";
@@ -86,7 +118,7 @@ export async function askAI(
   const res = await fetch(`${BASE_URL}:generateContent?key=${API_KEY}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: buildBody(history, systemPrompt),
+    body: buildBody(history, resolveSystemInstruction(role, systemPrompt)),
   });
 
   if (!res.ok) {
@@ -109,6 +141,7 @@ export async function streamAI(
   onDone: () => void,
   onError: (err: Error) => void,
   systemPrompt?: string,
+  role?: ChatRole, // NEW
 ): Promise<void> {
   if (!API_KEY) {
     onChunk(
@@ -124,7 +157,7 @@ export async function streamAI(
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: buildBody(history, systemPrompt),
+        body: buildBody(history, resolveSystemInstruction(role, systemPrompt)),
       },
     );
 
