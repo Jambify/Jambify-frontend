@@ -12,6 +12,12 @@
  * This means the person being added must have already signed up at least
  * once — there's no way to grant admin to an email that's never registered.
  *
+ * Owner protection: admin_users.is_owner marks a single permanent account
+ * that no one — including other full admins — can remove or demote. This
+ * is enforced at the DB level via triggers (prevent_owner_removal,
+ * prevent_owner_role_change), not just hidden here in the UI, so it can't
+ * be bypassed by direct API calls.
+ *
  * Requires admin_users_policies.sql to have been run.
  */
 
@@ -28,11 +34,13 @@ import {
   X,
   UserCog,
   Lock,
+  Crown, // NEW — owner badge
 } from "lucide-react";
 
 interface AdminUser {
   user_id: string;
   role: string | null;
+  is_owner: boolean; // NEW
   created_at: string;
   profile?: {
     name: string | null;
@@ -76,7 +84,7 @@ const AdminRoles: React.FC = () => {
 
       const { data: adminRows, error: adminError } = await supabase
         .from("admin_users")
-        .select("user_id, role, created_at")
+        .select("user_id, role, is_owner, created_at") // NEW: is_owner
         .order("created_at", { ascending: true });
 
       if (adminError) throw adminError;
@@ -149,6 +157,8 @@ const AdminRoles: React.FC = () => {
         return;
       }
 
+      // is_owner is intentionally never set here — ownership can only be
+      // granted directly via SQL, never through this UI or the app's API.
       const { error: insertError } = await supabase
         .from("admin_users")
         .insert({ user_id: profile.id, role: newRole });
@@ -171,6 +181,10 @@ const AdminRoles: React.FC = () => {
   };
 
   const handleRemove = async (admin: AdminUser) => {
+    if (admin.is_owner) {
+      toast("error", "The owner account can't be removed");
+      return;
+    }
     if (admin.user_id === currentUserId) {
       toast("error", "You can't remove your own admin access from here");
       return;
@@ -187,6 +201,8 @@ const AdminRoles: React.FC = () => {
         .delete()
         .eq("user_id", admin.user_id);
 
+      // The DB trigger prevent_owner_removal() also blocks this server-side
+      // even if this client-side check were somehow bypassed.
       if (error) throw error;
 
       logAdminAction("admin_removed", admin.profile?.email ?? admin.user_id, {
@@ -285,6 +301,12 @@ const AdminRoles: React.FC = () => {
                           You
                         </span>
                       )}
+                      {admin.is_owner && (
+                        <span className="bg-warn/10 text-warn flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase">
+                          <Crown className="h-2.5 w-2.5" />
+                          Owner
+                        </span>
+                      )}
                       <span className="bg-bgSurface text-textDim rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase">
                         {admin.role ?? "admin"}
                       </span>
@@ -297,11 +319,22 @@ const AdminRoles: React.FC = () => {
                   {isFullAdmin && (
                     <button
                       onClick={() => handleRemove(admin)}
-                      disabled={removingId === admin.user_id || isSelf || admins.length <= 1}
-                      title={isSelf ? "You can't remove your own access" : "Remove admin access"}
+                      disabled={
+                        removingId === admin.user_id ||
+                        isSelf ||
+                        admin.is_owner ||
+                        admins.length <= 1
+                      }
+                      title={
+                        admin.is_owner
+                          ? "The owner account can't be removed"
+                          : isSelf
+                            ? "You can't remove your own access"
+                            : "Remove admin access"
+                      }
                       className={cn(
                         "shrink-0 rounded-lg p-2",
-                        isSelf || admins.length <= 1
+                        isSelf || admin.is_owner || admins.length <= 1
                           ? "text-textDim/40 cursor-not-allowed"
                           : "text-textDim hover:bg-danger/10 hover:text-danger",
                       )}
