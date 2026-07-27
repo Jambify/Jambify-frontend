@@ -104,13 +104,13 @@ async function main() {
   // here — that package is built for unpacking a Lambda-specific binary
   // inside a running serverless function, not a normal build step.)
   const browser = await chromium.launch({
-    // Uses the system-installed Google Chrome instead of downloading
-    // Playwright's own Chromium build — avoids repeat CDN downloads on
-    // flaky connections. Requires Chrome to already be installed on
-    // whatever machine runs this (your laptop, or Vercel's build image
-    // if using this there). If Chrome isn't installed, remove the
-    // `channel` line and Playwright will use its own downloaded browser.
-    channel: "chrome",
+    // Uses the system-installed Google Chrome ONLY when explicitly opted
+    // into via USE_SYSTEM_CHROME (set this locally if you want to skip
+    // downloading Playwright's own Chromium build). Vercel's build
+    // machines have no browser installed at all, so this must stay off
+    // there — Playwright downloads and manages its own Chromium instead
+    // (see the `npx playwright install chromium` step in package.json).
+    ...(process.env.USE_SYSTEM_CHROME ? { channel: "chrome" } : {}),
     headless: true,
   });
 
