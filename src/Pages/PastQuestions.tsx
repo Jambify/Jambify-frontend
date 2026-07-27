@@ -1,4 +1,5 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
 import AppLayout from "../components/Layout/AppLayout";
 import { useUserStore } from "../Store/useUserStore";
 import { SUBJECT_COMBO_MAP } from "../Store/useSubjectStore";
@@ -48,21 +49,22 @@ const VALID_YEARS = [
   "2015",
 ] as const;
 
+// --- ALL SUBJECTS SORTED ALPHABETICALLY ---
 const ALL_SUBJECTS = [
+  "Biology",
+  "Chemistry",
+  "Commerce",
+  "CRS",
+  "Economics",
   "English",
+  "Geography",
+  "Government",
+  "History",
+  "IRS",
+  "Literature",
   "Mathematics",
   "Physics",
-  "Chemistry",
-  "Biology",
-  "Economics",
-  "Government",
-  "Literature",
-  "History",
-  "Geography",
-  "CRS",
-  "IRS",
-  "Commerce",
-];
+].sort();
 
 const SUBJECT_COLORS: Record<string, string> = {
   English: "#7B5FFF",
@@ -90,14 +92,35 @@ const PastQuestions = () => {
       ? (SUBJECT_COMBO_MAP[subjectCombo] ?? [])
       : [];
 
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // --- DEFAULT SUBJECT: "All" ---
+  const defaultSubject = "All";
+
+  // Read filters from the URL
+  const filters: Filters = useMemo(() => {
+    const subjectParam = searchParams.get("subject");
+    const yearParam = searchParams.get("year");
+    const topicParam = searchParams.get("topic");
+    const difficultyParam = searchParams.get("difficulty");
+    const searchParam = searchParams.get("q");
+
+    return {
+      subject:
+        subjectParam && ALL_SUBJECTS.includes(subjectParam)
+          ? subjectParam
+          : "All",
+      year:
+        yearParam && (VALID_YEARS as readonly string[]).includes(yearParam)
+          ? yearParam
+          : "All",
+      topic: topicParam || "All",
+      difficulty: difficultyParam || "All",
+      search: searchParam || "",
+    };
+  }, [searchParams]);
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [filters, setFilters] = useState<Filters>({
-    subject: userSubjects[0] || "All",
-    year: "All",
-    topic: "All",
-    difficulty: "All",
-    search: "",
-  });
   const [page, setPage] = useState(1);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [availableTopics, setAvailableTopics] = useState<string[]>([]);
@@ -129,9 +152,12 @@ const PastQuestions = () => {
     setLoadingError(null);
 
     try {
+      // --- FIX: When subject is "All", pass undefined or null to fetch all subjects ---
+      const subjectParam = filters.subject === "All" ? undefined : filters.subject;
+      
       const qs = await Promise.race([
         fetchAllQuestionsForBrowse(
-          filters.subject,
+          subjectParam,
           filters.year,
           filters.topic,
           filters.difficulty,
@@ -166,9 +192,12 @@ const PastQuestions = () => {
       setIsLoading(true);
       setLoadingError(null);
       try {
+        // --- FIX: When subject is "All", pass undefined to fetch all subjects ---
+        const subjectParam = filters.subject === "All" ? undefined : filters.subject;
+        
         const qs = await Promise.race([
           fetchAllQuestionsForBrowse(
-            filters.subject,
+            subjectParam,
             filters.year,
             filters.topic,
             filters.difficulty,
@@ -231,17 +260,30 @@ const PastQuestions = () => {
     return filteredQuestions.slice(start, start + PAGE_SIZE);
   }, [filteredQuestions, page]);
 
-  const handleFilterChange = (next: Partial<Filters>) => {
-    setFilters((prev) => ({
-      ...prev,
-      ...next,
-      ...(next.subject && next.subject !== prev.subject
-        ? { topic: "All" }
-        : {}),
-    }));
-    setPage(1);
-    setExpandedId(null);
-  };
+  const handleFilterChange = useCallback(
+    (next: Partial<Filters>) => {
+      const merged: Filters = {
+        ...filters,
+        ...next,
+        ...(next.subject && next.subject !== filters.subject
+          ? { topic: "All" }
+          : {}),
+      };
+
+      const params = new URLSearchParams();
+      if (merged.subject !== "All") params.set("subject", merged.subject);
+      if (merged.year !== "All") params.set("year", merged.year);
+      if (merged.topic !== "All") params.set("topic", merged.topic);
+      if (merged.difficulty !== "All")
+        params.set("difficulty", merged.difficulty);
+      if (merged.search) params.set("q", merged.search);
+
+      setSearchParams(params, { replace: false });
+      setPage(1);
+      setExpandedId(null);
+    },
+    [filters, setSearchParams],
+  );
 
   if (!isPro) {
     return (
@@ -262,7 +304,6 @@ const PastQuestions = () => {
       setIsSidebarOpen={setIsSidebarOpen}
     >
       <div className="mx-auto max-w-5xl space-y-6 px-4 py-6">
-        {/* Scroll to Top Button */}
         {showScrollTop && (
           <button
             onClick={scrollToTop}
@@ -272,6 +313,7 @@ const PastQuestions = () => {
             <ArrowUp size={20} className="text-white" />
           </button>
         )}
+
         {/* Header */}
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
@@ -289,7 +331,6 @@ const PastQuestions = () => {
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Refresh Button - Match Subjects/Performance Page Style */}
             <button
               onClick={handleManualRefresh}
               disabled={isManualRefreshing}
@@ -301,7 +342,6 @@ const PastQuestions = () => {
               />
               {isManualRefreshing ? "Refreshing..." : "Refresh Data"}
             </button>
-            {/* Status Indicator */}
             <div className="text-textDim bg-bgCard border-borderMuted flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold shadow-sm">
               <span
                 className={`h-2 w-2 rounded-full ${loadingError ? "bg-warning" : isLoading ? "bg-brand animate-pulse" : "bg-success animate-pulse"}`}
@@ -330,14 +370,7 @@ const PastQuestions = () => {
                 className="bg-bgSurface border-borderMuted text-textMain focus:ring-brand/50 w-full rounded-xl border px-4 py-2.5 focus:ring-2 focus:outline-none"
               >
                 <option value="All">All Subjects</option>
-                {userSubjects.map((s: string) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-                {ALL_SUBJECTS.filter(
-                  (s: string) => !userSubjects.includes(s),
-                ).map((s: string) => (
+                {ALL_SUBJECTS.map((s: string) => (
                   <option key={s} value={s}>
                     {s}
                   </option>
@@ -411,7 +444,7 @@ const PastQuestions = () => {
           </div>
         </div>
 
-        {/* Loading State - Show indicator only if no data yet */}
+        {/* Loading State */}
         {isLoading && questions.length === 0 && (
           <div className="mx-auto flex max-w-350 flex-col items-center justify-center gap-6 px-2 py-20 lg:px-4">
             <div className="bg-brand/10 flex h-20 w-20 items-center justify-center rounded-3xl">
@@ -428,7 +461,7 @@ const PastQuestions = () => {
           </div>
         )}
 
-        {/* Error Banner - Show if we have data but refresh failed */}
+        {/* Error Banner */}
         {loadingError && questions.length > 0 && (
           <div className="bg-warning/10 border-warning/30 flex flex-col gap-3 rounded-xl border p-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
@@ -455,7 +488,7 @@ const PastQuestions = () => {
           </div>
         )}
 
-        {/* Full Page Error - Show if we have no data at all */}
+        {/* Full Page Error */}
         {loadingError && questions.length === 0 && (
           <div className="mx-auto flex max-w-350 flex-col items-center justify-center gap-6 px-2 py-20 lg:px-4">
             <div className="bg-danger/10 flex h-20 w-20 items-center justify-center rounded-3xl">
@@ -495,7 +528,7 @@ const PastQuestions = () => {
               variant="secondary"
               onClick={() =>
                 handleFilterChange({
-                  subject: userSubjects[0] || "All",
+                  subject: "All",
                   year: "All",
                   topic: "All",
                   difficulty: "All",
@@ -635,7 +668,7 @@ const PastQuestions = () => {
                         <QuestionAIHelper question={q} />
                       </div>
                     )}
-                     <ReportQuestionButton questionId={q.id} context="past-question" />
+                    <ReportQuestionButton questionId={q.id} context="past-question" />
                   </div>
                 );
               })}

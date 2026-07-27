@@ -44,7 +44,6 @@ const SignUp: React.FC = () => {
     setLoading(true);
 
     try {
-      // Step A: Check if this email already has a confirmed account
       const { data: statusData, error: statusErr } = await supabase.rpc(
         "check_email_status",
         { p_email: email.trim().toLowerCase() },
@@ -60,16 +59,12 @@ const SignUp: React.FC = () => {
         return;
       }
 
-      // Step B: If email exists but is unconfirmed (ghost record),
-      // clean it up so Supabase will send a fresh OTP
       if (statusData?.exists === true && statusData?.confirmed === false) {
         const { data: cleanupData } = await supabase.rpc(
           "cleanup_unverified_user",
           { p_email: email.trim().toLowerCase() },
         );
 
-        // If cleanup returned 'pending', the OTP may still be valid —
-        // jump straight to the OTP step so they can try entering it
         if (cleanupData?.status === "pending") {
           const formattedName = toTitleCase(fullName.trim());
           storeEmail(email);
@@ -79,10 +74,8 @@ const SignUp: React.FC = () => {
           setLoading(false);
           return;
         }
-        // If 'deleted', fall through and send a fresh OTP below
       }
 
-      // Step C: Send the OTP
       const formattedName = toTitleCase(fullName.trim());
       storeEmail(email);
       setName(formattedName);
@@ -168,7 +161,6 @@ const SignUp: React.FC = () => {
     setError("");
     setLoading(true);
     try {
-      // Clean up ghost record first so resend always works
       await supabase.rpc("cleanup_unverified_user", {
         p_email: email.trim().toLowerCase(),
       });
@@ -261,6 +253,7 @@ const SignUp: React.FC = () => {
               <label className="text-textMuted mb-2 block px-1 text-xs font-bold tracking-widest uppercase">
                 Verification Code
               </label>
+              {/* --- OTP INPUT WITH DISABLED STATE --- */}
               <input
                 type="text"
                 inputMode="numeric"
@@ -268,19 +261,25 @@ const SignUp: React.FC = () => {
                 autoFocus
                 maxLength={6}
                 value={otp}
+                disabled={loading}
                 onChange={(e) => {
                   setError("");
                   setOtp(e.target.value.replace(/\D/g, ""));
                 }}
                 placeholder="000000"
                 style={{ fontSize: "16px" }}
-                className="bg-bgSurface border-borderMuted rounded-brand-lg text-textMain focus:ring-brand/40 placeholder:text-textDim/30 w-full border py-4 text-center font-mono text-2xl tracking-[0.5em] transition-all outline-none focus:border-transparent focus:ring-2"
+                className={`bg-bgSurface border-borderMuted rounded-brand-lg text-textMain focus:ring-brand/40 placeholder:text-textDim/30 w-full border py-4 text-center font-mono text-2xl tracking-[0.5em] transition-all outline-none focus:border-transparent focus:ring-2 ${
+                  loading ? "opacity-50 cursor-not-allowed" : ""
+                }`}
               />
             </div>
+            {/* --- SUBMIT BUTTON WITH DISABLED STATE --- */}
             <button
               type="submit"
               disabled={otp.length !== 6 || loading}
-              className="bg-brand hover:bg-brand-light rounded-brand-lg shadow-brand/20 flex w-full items-center justify-center gap-2 py-4 font-bold text-white shadow-lg transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+              className={`bg-brand hover:bg-brand-light rounded-brand-lg shadow-brand/20 flex w-full items-center justify-center gap-2 py-4 font-bold text-white shadow-lg transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 ${
+                loading ? "cursor-wait" : ""
+              }`}
             >
               {loading ? (
                 <>
@@ -365,13 +364,17 @@ const SignUp: React.FC = () => {
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
                 <User className="text-textDim group-focus-within:text-brand-light h-5 w-5 transition-colors" />
               </div>
+              {/* --- NAME INPUT WITH DISABLED STATE --- */}
               <input
                 type="text"
                 required
                 value={fullName}
+                disabled={loading}
                 onChange={(e) => setFullName(e.target.value)}
                 style={{ fontSize: "16px" }}
-                className="bg-bgSurface border-borderMuted rounded-brand-lg text-textMain focus:ring-brand/40 placeholder:text-textDim/50 w-full border py-3.5 pr-4 pl-12 transition-all outline-none focus:border-transparent focus:ring-2"
+                className={`bg-bgSurface border-borderMuted rounded-brand-lg text-textMain focus:ring-brand/40 placeholder:text-textDim/50 w-full border py-3.5 pr-4 pl-12 transition-all outline-none focus:border-transparent focus:ring-2 ${
+                  loading ? "opacity-50 cursor-not-allowed" : ""
+                }`}
                 placeholder="e.g. Adeola Okafor"
               />
             </div>
@@ -384,21 +387,28 @@ const SignUp: React.FC = () => {
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
                 <Mail className="text-textDim group-focus-within:text-brand-light h-5 w-5 transition-colors" />
               </div>
+              {/* --- EMAIL INPUT WITH DISABLED STATE --- */}
               <input
                 type="email"
                 required
                 value={email}
+                disabled={loading}
                 onChange={(e) => setEmail(e.target.value)}
                 style={{ fontSize: "16px" }}
-                className="bg-bgSurface border-borderMuted rounded-brand-lg text-textMain focus:ring-brand/40 placeholder:text-textDim/50 w-full border py-3.5 pr-4 pl-12 transition-all outline-none focus:border-transparent focus:ring-2"
+                className={`bg-bgSurface border-borderMuted rounded-brand-lg text-textMain focus:ring-brand/40 placeholder:text-textDim/50 w-full border py-3.5 pr-4 pl-12 transition-all outline-none focus:border-transparent focus:ring-2 ${
+                  loading ? "opacity-50 cursor-not-allowed" : ""
+                }`}
                 placeholder="e.g. adeola@example.com"
               />
             </div>
           </div>
+          {/* --- SUBMIT BUTTON WITH DISABLED STATE --- */}
           <button
             type="submit"
             disabled={!email || !fullName || loading || cooldown > 0}
-            className="bg-brand hover:bg-brand-light rounded-brand-lg shadow-brand/20 flex w-full items-center justify-center gap-2 py-4 font-bold text-white shadow-lg transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+            className={`bg-brand hover:bg-brand-light rounded-brand-lg shadow-brand/20 flex w-full items-center justify-center gap-2 py-4 font-bold text-white shadow-lg transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 ${
+              loading ? "cursor-wait" : ""
+            }`}
           >
             {loading ? (
               <>

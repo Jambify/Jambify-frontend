@@ -77,6 +77,7 @@ const AVAILABLE_YEARS = [
   "2018",
   "2017",
   "2016",
+  "2015",
 ];
 
 const shuffleArray = <T,>(array: T[]): T[] => {

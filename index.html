@@ -12,17 +12,14 @@
     <!-- TODO: Replace with actual verification code from Google Search Console -->
     <!-- <meta name="google-site-verification" content="YOUR_VERIFICATION_CODE" /> -->
 
-    <!-- Primary Meta Tags -->
-    <title>SCHOOLDRA - JAMB UTME Exam Preparation App</title>
-    <meta name="title" content="SCHOOLDRA - JAMB UTME Exam Preparation App" />
-    <meta
-      name="description"
-      content="Prepare for JAMB UTME with SCHOOLDRA - past questions, mock exams, AI tutoring, and performance tracking tailored for Nigerian students"
-    />
-    <meta
-      name="keywords"
-      content="JAMB, UTME, Nigerian exam, JAMB past questions, JAMB mock exam, JAMB preparation, JAMB study app, JAMB tutor"
-    />
+    <!-- Bare placeholder title — PageHelmet (via react-helmet-async) sets the
+         real title/description/keywords/canonical/OG/Twitter tags on every
+         route. Do NOT add a static title tag or meta description/OG/Twitter
+         tags here again — that's what caused duplicate title tags to show up
+         in prerendered HTML (react-helmet-async only manages tags it
+         rendered itself; it can't remove ones baked into this file). -->
+    <title>SCHOOLDRA</title>
+
     <meta name="author" content="SCHOOLDRA" />
     <meta name="language" content="English" />
     <meta
@@ -30,44 +27,6 @@
       content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1"
     />
     <meta name="revisit-after" content="7 days" />
-
-    <!-- Canonical Link -->
-    <link rel="canonical" href="https://www.schooldra.com/" />
-
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://www.schooldra.com/" />
-    <meta
-      property="og:title"
-      content="SCHOOLDRA - JAMB UTME Exam Preparation App"
-    />
-    <meta
-      property="og:description"
-      content="Prepare for JAMB UTME with SCHOOLDRA - past questions, mock exams, AI tutoring, and performance tracking tailored for Nigerian students"
-    />
-    <meta
-      property="og:image"
-      content="https://www.schooldra.com/SCHOOLDRA.LOGO.webp"
-    />
-    <meta property="og:site_name" content="SCHOOLDRA" />
-    <meta property="og:locale" content="en_NG" />
-
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image" />
-    <meta property="twitter:url" content="https://www.schooldra.com/" />
-    <meta
-      property="twitter:title"
-      content="SCHOOLDRA - JAMB UTME Exam Preparation App"
-    />
-    <meta
-      property="twitter:description"
-      content="Prepare for JAMB UTME with SCHOOLDRA - past questions, mock exams, AI tutoring, and performance tracking tailored for Nigerian students"
-    />
-    <meta
-      property="twitter:image"
-      content="https://www.schooldra.com/SCHOOLDRA.LOGO.webp"
-    />
-    <meta property="twitter:creator" content="@schooldra" />
 
     <!-- iOS PWA Configuration -->
     <meta name="mobile-web-app-capable" content="yes" />
@@ -84,13 +43,6 @@
     <meta name="theme-color" content="#473BF0" />
     <meta name="background_color" content="#0a0a0f" />
 
-    <!-- Preload critical resources -->
-    <!-- <link
-      rel="preload"
-      as="style"
-      href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800;900&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=DM+Mono:wght@400;500&display=swap"
-    /> -->
-
     <!-- Google Fonts: load here so they are available before first paint -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -98,7 +50,6 @@
       href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800,900 &family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=DM+Mono:wght@400;500&display=swap"
       rel="stylesheet"
     />
-    <!-- <link rel="stylesheet" href="/src/index.css" /> -->
     <script src="https://checkout.flutterwave.com/v3.js"></script>
     <script>
       (function () {
@@ -120,7 +71,8 @@
       })();
     </script>
 
-    <!-- Structured Data: Schema.org -->
+    <!-- Structured Data: Schema.org — kept here (not in PageHelmet) since
+         this is site-wide, not per-page, information. -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -161,28 +113,6 @@
           "target": "https://www.schooldra.com/search?q={search_term_string}",
           "query-input": "required name=search_term_string"
         }
-      }
-    </script>
-
-    <!-- Structured Data: BreadcrumbList for navigation hierarchy -->
-    <script type="application/ld+json">
-      {
-        "@context": "https://schema.org",
-        "@type": "BreadcrumbList",
-        "itemListElement": [
-          {
-            "@type": "ListItem",
-            "position": 1,
-            "name": "Home",
-            "item": "https://www.schooldra.com"
-          },
-          {
-            "@type": "ListItem",
-            "position": 2,
-            "name": "Guest Quiz",
-            "item": "https://www.schooldra.com/guest/quiz"
-          }
-        ]
       }
     </script>
   </head>

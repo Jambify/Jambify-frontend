@@ -1,5 +1,6 @@
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   src/App.tsx — fixed duplicate /privacy-policy route conflict
+   src/App.tsx — added dynamic /guest/past-questions/:subject and
+   /guest/past-questions/:subject/:year routes for SEO (see comment below).
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
@@ -69,8 +70,22 @@ const App: React.FC = () => {
           <Route path="/guest" element={<GuestLanding />} />
           <Route path="/guest/quiz" element={<GuestQuiz />} />
           <Route path="/guest/mock" element={<GuestMock />} />
+
+          {/* SEO routes — one component (GuestPastQuestions) reads subject/year
+              from the URL via useParams instead of local filter state, so each
+              subject/year combination is its own crawlable, prerenderable URL.
+              Order matters: react-router matches top-down, but since these are
+              nested static -> dynamic -> dynamic, no ambiguity here. */}
           <Route
             path="/guest/past-questions"
+            element={<GuestPastQuestions />}
+          />
+          <Route
+            path="/guest/past-questions/:subject"
+            element={<GuestPastQuestions />}
+          />
+          <Route
+            path="/guest/past-questions/:subject/:year"
             element={<GuestPastQuestions />}
           />
 

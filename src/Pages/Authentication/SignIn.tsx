@@ -13,6 +13,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "../../lib/supabase";
 import AuthLayout from "../../components/auth/AuthLayout";
 import PageHelmet from "../../components/SEO/PageHelmet";
+
 type Step = "form" | "otp";
 
 const SignIn: React.FC = () => {
@@ -35,7 +36,6 @@ const SignIn: React.FC = () => {
           id: session.user.id,
           email: session.user.email || "",
         });
-        // FIX: force:true + use returned value
         const { onboardingComplete, profileExists } = await syncProfile(true);
         if (!profileExists || !onboardingComplete) {
           navigate("/onboarding", { replace: true });
@@ -61,8 +61,6 @@ const SignIn: React.FC = () => {
     try {
       storeEmail(email);
 
-      // Check if this email is confirmed before sending OTP
-      // This gives a much clearer error than Supabase's generic message
       const { data: status } = await supabase.rpc("check_email_status", {
         p_email: email.trim().toLowerCase(),
       });
@@ -83,7 +81,6 @@ const SignIn: React.FC = () => {
         return;
       }
 
-      // Email exists and is confirmed — send the OTP
       const { error: otpErr } = await supabase.auth.signInWithOtp({
         email: email.trim().toLowerCase(),
         options: { shouldCreateUser: false },
@@ -133,15 +130,12 @@ const SignIn: React.FC = () => {
       }
 
       if (data?.session) {
-        // Set identity first
         useUserStore.setState({
           isAuthenticated: true,
           id: data.session.user.id,
           email: data.session.user.email || email,
         });
 
-        // FIX 1: force:true bypasses the 5-second cache
-        // FIX 2: use returned value — not getState() after set()
         const { onboardingComplete, profileExists } = await syncProfile(true);
 
         console.log(
@@ -151,7 +145,6 @@ const SignIn: React.FC = () => {
           profileExists,
         );
 
-        // Navigate based on fresh DB value — no stale state
         navigate(onboardingComplete ? "/dashboard" : "/onboarding", {
           replace: true,
         });
@@ -259,6 +252,7 @@ const SignIn: React.FC = () => {
               <label className="text-textMuted mb-2 block px-1 text-xs font-bold tracking-widest uppercase">
                 Verification Code
               </label>
+              {/* --- INPUT WITH DISABLED STATE --- */}
               <input
                 type="text"
                 inputMode="numeric"
@@ -266,19 +260,25 @@ const SignIn: React.FC = () => {
                 autoFocus
                 maxLength={6}
                 value={otp}
+                disabled={loading} // ← DISABLED WHEN LOADING
                 onChange={(e) => {
                   setError("");
                   setOtp(e.target.value.replace(/\D/g, ""));
                 }}
                 placeholder="000000"
                 style={{ fontSize: "16px" }}
-                className="bg-bgSurface border-borderMuted rounded-brand-lg text-textMain focus:ring-brand/40 placeholder:text-textDim/30 w-full border py-4 text-center font-mono text-2xl tracking-[0.5em] transition-all outline-none focus:border-transparent focus:ring-2"
+                className={`bg-bgSurface border-borderMuted rounded-brand-lg text-textMain focus:ring-brand/40 placeholder:text-textDim/30 w-full border py-4 text-center font-mono text-2xl tracking-[0.5em] transition-all outline-none focus:border-transparent focus:ring-2 ${
+                  loading ? "opacity-50 cursor-not-allowed" : ""
+                }`}
               />
             </div>
+            {/* --- BUTTON WITH DISABLED STATE --- */}
             <button
               type="submit"
               disabled={otp.length !== 6 || loading}
-              className="bg-brand hover:bg-brand-light rounded-brand-lg shadow-brand/20 flex w-full items-center justify-center gap-2 py-4 font-bold text-white shadow-lg transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+              className={`bg-brand hover:bg-brand-light rounded-brand-lg shadow-brand/20 flex w-full items-center justify-center gap-2 py-4 font-bold text-white shadow-lg transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 ${
+                loading ? "cursor-wait" : ""
+              }`}
             >
               {loading ? (
                 <>
@@ -371,24 +371,31 @@ const SignIn: React.FC = () => {
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
                 <Mail className="text-textDim group-focus-within:text-brand-light h-5 w-5 transition-colors" />
               </div>
+              {/* --- EMAIL INPUT WITH DISABLED STATE --- */}
               <input
                 type="email"
                 required
                 value={email}
+                disabled={loading} // ← DISABLED WHEN LOADING
                 onChange={(e) => {
                   setError("");
                   setEmail(e.target.value);
                 }}
                 style={{ fontSize: "16px" }}
-                className="bg-bgSurface border-borderMuted rounded-brand-lg text-textMain focus:ring-brand/40 placeholder:text-textDim/50 w-full border py-3.5 pr-4 pl-12 transition-all outline-none focus:border-transparent focus:ring-2"
+                className={`bg-bgSurface border-borderMuted rounded-brand-lg text-textMain focus:ring-brand/40 placeholder:text-textDim/50 w-full border py-3.5 pr-4 pl-12 transition-all outline-none focus:border-transparent focus:ring-2 ${
+                  loading ? "opacity-50 cursor-not-allowed" : ""
+                }`}
                 placeholder="Enter your email"
               />
             </div>
           </div>
+          {/* --- SUBMIT BUTTON WITH DISABLED STATE --- */}
           <button
             type="submit"
             disabled={!email || loading || cooldown > 0}
-            className="bg-brand hover:bg-brand-light rounded-brand-lg shadow-brand/20 flex w-full items-center justify-center gap-2 py-4 font-bold text-white shadow-lg transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+            className={`bg-brand hover:bg-brand-light rounded-brand-lg shadow-brand/20 flex w-full items-center justify-center gap-2 py-4 font-bold text-white shadow-lg transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 ${
+              loading ? "cursor-wait" : ""
+            }`}
           >
             {loading ? (
               <>

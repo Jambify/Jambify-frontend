@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import PageHelmet from "../../components/SEO/PageHelmet";
 import ThemeToggle from "../../components/ui/ThemeToggle";
 import schooldraLogo from "../../assets/schooldraLogo.webp";
@@ -18,12 +18,6 @@ import {
 } from "lucide-react";
 import type { Question } from "../../Types";
 import { fetchAllQuestionsForBrowse } from "../../Services/questionService";
-
-interface Filters {
-  subject: string;
-  year: string;
-  search: string;
-}
 
 const VALID_YEARS = [
   "All",
@@ -56,6 +50,15 @@ const ALL_SUBJECTS = [
   "Commerce",
 ];
 
+// URL slugs are lowercase (nicer URLs, matches how people type searches);
+// this maps a lowercase slug back to the exact casing the rest of the app
+// (and the DB `subject` column) expects.
+const SUBJECT_BY_SLUG: Record<string, string> = Object.fromEntries(
+  ALL_SUBJECTS.map((s) => [s.toLowerCase(), s]),
+);
+
+const VALID_YEAR_SET = new Set(VALID_YEARS.filter((y) => y !== "All"));
+
 // Theme tokens, not hardcoded hex — so a future palette change (like the
 // one earlier in this project) updates these automatically instead of
 // needing another hunt-and-replace pass.
@@ -81,12 +84,23 @@ const FREE_PREVIEW_LIMIT = 12;
 
 const GuestPastQuestions = () => {
   const navigate = useNavigate();
+  const { subject: subjectSlug, year: yearParam } = useParams<{
+    subject?: string;
+    year?: string;
+  }>();
 
-  const [filters, setFilters] = useState<Filters>({
-    subject: "All",
-    year: "All",
-    search: "",
-  });
+  // Derive subject/year from the URL. Anything that doesn't match a known
+  // subject or a valid year quietly falls back to "All" rather than 404ing —
+  // keeps this forgiving for typo'd or old links.
+  const subject = subjectSlug
+    ? (SUBJECT_BY_SLUG[subjectSlug.toLowerCase()] ?? "All")
+    : "All";
+  const year =
+    yearParam && VALID_YEAR_SET.has(yearParam as any) ? yearParam : "All";
+
+  // Search stays local — it's a live filter, not something worth its own URL.
+  const [search, setSearch] = useState("");
+
   const [questions, setQuestions] = useState<Question[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingError, setLoadingError] = useState<string | null>(null);
@@ -99,8 +113,8 @@ const GuestPastQuestions = () => {
       setLoadingError(null);
       try {
         const qs = await fetchAllQuestionsForBrowse(
-          filters.subject,
-          filters.year,
+          subject,
+          year,
           "All",
           "All",
         );
@@ -119,18 +133,17 @@ const GuestPastQuestions = () => {
     return () => {
       isMounted = false;
     };
-  }, [filters.subject, filters.year]);
+  }, [subject, year]);
 
   const filteredQuestions = useMemo(() => {
     return questions.filter((q) => {
-      if (!filters.search) return true;
-      const search = filters.search.toLowerCase();
+      if (!search) return true;
+      const s = search.toLowerCase();
       return (
-        q.text.toLowerCase().includes(search) ||
-        q.topic.toLowerCase().includes(search)
+        q.text.toLowerCase().includes(s) || q.topic.toLowerCase().includes(s)
       );
     });
-  }, [questions, filters.search]);
+  }, [questions, search]);
 
   const preview = filteredQuestions.slice(0, FREE_PREVIEW_LIMIT);
   const remainingCount = Math.max(
@@ -138,17 +151,50 @@ const GuestPastQuestions = () => {
     filteredQuestions.length - FREE_PREVIEW_LIMIT,
   );
 
-  const handleFilterChange = (next: Partial<Filters>) => {
-    setFilters((prev) => ({ ...prev, ...next }));
-    setExpandedId(null);
+  // Navigation-based filter changes — each selection is a real URL, not
+  // just a state update, so it's linkable, shareable, and crawlable.
+  const buildPath = (nextSubject: string, nextYear: string) => {
+    if (nextSubject === "All") return "/guest/past-questions";
+    const base = `/guest/past-questions/${nextSubject.toLowerCase()}`;
+    return nextYear === "All" ? base : `${base}/${nextYear}`;
   };
+
+  const handleSubjectChange = (newSubject: string) => {
+    navigate(buildPath(newSubject, newSubject === "All" ? "All" : year));
+  };
+
+  const handleYearChange = (newYear: string) => {
+    // A year alone has no clean URL slot without a subject — ignore until
+    // a subject is picked (the <select> is disabled below in that case too).
+    if (subject === "All") return;
+    navigate(buildPath(subject, newYear));
+  };
+
+  const resetExpanded = () => setExpandedId(null);
+
+  // Per-page SEO copy — this is the actual payoff of the URL restructure.
+  const pageTitle =
+    subject !== "All" && year !== "All"
+      ? `JAMB ${subject} Past Questions ${year} | SCHOOLDRA`
+      : subject !== "All"
+        ? `JAMB ${subject} Past Questions | SCHOOLDRA`
+        : "Free JAMB Past Questions | SCHOOLDRA";
+
+  const pageDescription =
+    subject !== "All" && year !== "All"
+      ? `Practice real JAMB UTME ${subject} past questions from ${year}, free — no account required. Sign up for full access to every year and subject.`
+      : subject !== "All"
+        ? `Browse JAMB UTME ${subject} past questions across every year, free — no account required. Sign up for full access.`
+        : "Browse real JAMB UTME past questions by subject and year, free — no account required. Sign up for full access to every year and subject.";
+
+  const canonical = `https://www.schooldra.com${buildPath(subject, year)}`;
 
   return (
     <div className="bg-bgMain text-textMain min-h-screen">
       <PageHelmet
-        title="Free JAMB Past Questions | SCHOOLDRA"
-        description="Browse real JAMB UTME past questions by subject and year, free — no account required. Sign up for full access to every year and subject."
-        canonical="https://www.schooldra.com/guest/past-questions"
+        title={pageTitle}
+        description={pageDescription}
+        canonical={canonical}
       />
 
       {/* Simple guest header — no sidebar, matches GuestLanding style */}
@@ -192,7 +238,11 @@ const GuestPastQuestions = () => {
         <div>
           <div className="mb-1 flex items-center gap-2">
             <h1 className="font-display text-textMain text-2xl font-bold tracking-tight lg:text-3xl">
-              Past Questions
+              {subject !== "All" && year !== "All"
+                ? `${subject} Past Questions — ${year}`
+                : subject !== "All"
+                  ? `${subject} Past Questions`
+                  : "Past Questions"}
             </h1>
             <span className="border-teal/25 bg-teal/10 text-teal rounded-full border px-2.5 py-1 text-[10px] font-bold">
               FREE PREVIEW
@@ -203,6 +253,23 @@ const GuestPastQuestions = () => {
           </p>
         </div>
 
+        {/* Crawlable internal links to each subject — helps search engines
+            discover the /guest/past-questions/:subject pages, not just the
+            sitemap. Only shown on the "All subjects" base page. */}
+        {subject === "All" && (
+          <div className="flex flex-wrap gap-2">
+            {ALL_SUBJECTS.map((s) => (
+              <Link
+                key={s}
+                to={`/guest/past-questions/${s.toLowerCase()}`}
+                className="bg-bgCard border-borderMuted text-textDim hover:text-textMain hover:border-brand/30 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors"
+              >
+                {s}
+              </Link>
+            ))}
+          </div>
+        )}
+
         {/* Filters */}
         <div className="bg-bgCard border-borderMuted space-y-4 rounded-2xl border p-5">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -211,8 +278,11 @@ const GuestPastQuestions = () => {
                 Subject
               </label>
               <select
-                value={filters.subject}
-                onChange={(e) => handleFilterChange({ subject: e.target.value })}
+                value={subject}
+                onChange={(e) => {
+                  handleSubjectChange(e.target.value);
+                  resetExpanded();
+                }}
                 className="bg-bgSurface border-borderMuted text-textMain focus:ring-brand/50 w-full rounded-xl border px-4 py-2.5 focus:ring-2 focus:outline-none"
               >
                 <option value="All">All Subjects</option>
@@ -229,9 +299,13 @@ const GuestPastQuestions = () => {
                 Year
               </label>
               <select
-                value={filters.year}
-                onChange={(e) => handleFilterChange({ year: e.target.value })}
-                className="bg-bgSurface border-borderMuted text-textMain focus:ring-brand/50 w-full rounded-xl border px-4 py-2.5 focus:ring-2 focus:outline-none"
+                value={year}
+                onChange={(e) => {
+                  handleYearChange(e.target.value);
+                  resetExpanded();
+                }}
+                disabled={subject === "All"}
+                className="bg-bgSurface border-borderMuted text-textMain focus:ring-brand/50 w-full rounded-xl border px-4 py-2.5 focus:ring-2 focus:outline-none disabled:opacity-50"
               >
                 {VALID_YEARS.map((y) => (
                   <option key={y} value={y}>
@@ -251,14 +325,20 @@ const GuestPastQuestions = () => {
                   className="text-textDim absolute top-1/2 left-4 -translate-y-1/2"
                 />
                 <input
-                  value={filters.search}
-                  onChange={(e) => handleFilterChange({ search: e.target.value })}
+                  value={search}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                    resetExpanded();
+                  }}
                   placeholder="Search..."
                   className="bg-bgSurface border-borderMuted text-textMain focus:ring-brand/50 w-full rounded-xl border py-2.5 pr-4 pl-12 focus:ring-2 focus:outline-none"
                 />
-                {filters.search && (
+                {search && (
                   <button
-                    onClick={() => handleFilterChange({ search: "" })}
+                    onClick={() => {
+                      setSearch("");
+                      resetExpanded();
+                    }}
                     className="text-textDim hover:text-textMain absolute top-1/2 right-3 -translate-y-1/2"
                   >
                     <X size={18} />
@@ -290,7 +370,7 @@ const GuestPastQuestions = () => {
 
         {/* No results */}
         {!isLoading && !loadingError && preview.length === 0 && (
-          <div className="bg-bgCard border-borderMuted rounded-2xl border p-12 text-center">
+          <div data-testid="no-results" className="bg-bgCard border-borderMuted rounded-2xl border p-12 text-center">
             <h3 className="text-textMain mb-2 text-xl font-bold">
               No questions found
             </h3>
@@ -327,6 +407,7 @@ const GuestPastQuestions = () => {
                 return (
                   <div
                     key={q.id}
+                    data-testid="question-card"
                     className="bg-bgCard border-borderMuted overflow-hidden rounded-2xl border transition-all"
                   >
                     <button
