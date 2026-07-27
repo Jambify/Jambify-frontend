@@ -35,6 +35,7 @@
 // first pass of this script.
 
 import { chromium } from "playwright";
+import chromiumBinary from "@sparticuz/chromium";
 import { preview } from "vite";
 import fs from "node:fs";
 import path from "node:path";
@@ -103,16 +104,28 @@ async function main() {
   // inside a serverless function. (@sparticuz/chromium was the wrong tool
   // here — that package is built for unpacking a Lambda-specific binary
   // inside a running serverless function, not a normal build step.)
-  const browser = await chromium.launch({
-    // Uses the system-installed Google Chrome ONLY when explicitly opted
-    // into via USE_SYSTEM_CHROME (set this locally if you want to skip
-    // downloading Playwright's own Chromium build). Vercel's build
-    // machines have no browser installed at all, so this must stay off
-    // there — Playwright downloads and manages its own Chromium instead
-    // (see the `npx playwright install chromium` step in package.json).
-    ...(process.env.USE_SYSTEM_CHROME ? { channel: "chrome" } : {}),
-    headless: true,
-  });
+  const browser = await chromium.launch(
+    process.env.VERCEL
+      ? {
+          // Vercel's build container has no apt-get and is missing shared
+          // libraries (libnspr4.so etc.) that regular Chromium binaries
+          // expect — that's the "error while loading shared libraries"
+          // failure. @sparticuz/chromium ships a self-contained binary
+          // built specifically to run without those system libraries, so
+          // use it whenever the VERCEL env var is present (Vercel sets
+          // this automatically on every build — nothing to configure).
+          args: chromiumBinary.args,
+          executablePath: await chromiumBinary.executablePath(),
+          headless: true,
+        }
+      : {
+          // Local machine (or any non-Vercel environment): plain
+          // Playwright-managed Chromium, optionally the system-installed
+          // Chrome if USE_SYSTEM_CHROME is set (skips downloading).
+          ...(process.env.USE_SYSTEM_CHROME ? { channel: "chrome" } : {}),
+          headless: true,
+        },
+  );
 
   const context = await browser.newContext();
   const page = await context.newPage();
