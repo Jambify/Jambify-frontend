@@ -15,9 +15,7 @@
     <!-- Bare placeholder title — PageHelmet (via react-helmet-async) sets the
          real title/description/keywords/canonical/OG/Twitter tags on every
          route. Do NOT add a static title tag or meta description/OG/Twitter
-         tags here again — that's what caused duplicate title tags to show up
-         in prerendered HTML (react-helmet-async only manages tags it
-         rendered itself; it can't remove ones baked into this file). -->
+         tags here again. -->
     <title>SCHOOLDRA</title>
 
     <meta name="author" content="SCHOOLDRA" />
@@ -47,7 +45,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800,900 &family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=DM+Mono:wght@400;500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800;900&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=DM+Mono:wght@400;500&display=swap"
       rel="stylesheet"
     />
     <script src="https://checkout.flutterwave.com/v3.js"></script>
@@ -71,8 +69,7 @@
       })();
     </script>
 
-    <!-- Structured Data: Schema.org — kept here (not in PageHelmet) since
-         this is site-wide, not per-page, information. -->
+    <!-- Structured Data: Schema.org -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
