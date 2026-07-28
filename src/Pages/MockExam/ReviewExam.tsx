@@ -6,7 +6,7 @@
  */
 
 import React, { useState, useMemo, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { useMockStore } from "../../Store/useMockStore";
 import { useUserStore } from "../../Store/useUserStore";
 import AppLayout from "../../components/Layout/AppLayout";
@@ -28,6 +28,7 @@ import {
   ArrowUp,
 } from "lucide-react";
 import Button from "../../components/Layout/Button";
+import type { Question } from "../../Types";
 
 // ── Typing dots ───────────────────────────────────────────────────────────────
 const TypingDots: React.FC = () => (
@@ -53,7 +54,7 @@ const TypingDots: React.FC = () => (
 
 // ── AI Drawer ─────────────────────────────────────────────────────────────────
 interface AIDrawerProps {
-  question: any;
+  question: Question;
   onClose: () => void;
 }
 
@@ -287,7 +288,7 @@ const ReviewScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   const [statusFilter, setStatusFilter] = useState<
     "all" | "correct" | "incorrect"
   >("all");
-  const [selectedAIQuestion, setSelectedAIQuestion] = useState<any | null>(
+  const [selectedAIQuestion, setSelectedAIQuestion] = useState<Question | null>(
     null,
   );
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -406,10 +407,10 @@ const ReviewScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             </div>
             <div className="no-scrollbar flex max-w-full items-center gap-2 overflow-x-auto pb-1">
               <Filter size={12} className="text-textDim shrink-0" />
-              {["all", "correct", "incorrect"].map((f) => (
+              {(["all", "correct", "incorrect"] as const).map((f) => (
                 <button
                   key={f}
-                  onClick={() => setStatusFilter(f as any)}
+                  onClick={() => setStatusFilter(f)}
                   className={cn(
                     "shrink-0 rounded-lg border px-3 py-1 text-[10px] font-bold tracking-wider uppercase transition-all",
                     statusFilter === f
@@ -520,7 +521,10 @@ const ReviewScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                               Ask AI Tutor
                             </span>
                           </button>
-                          <ReportQuestionButton questionId={q.id} context="mock_review" />
+                          <ReportQuestionButton
+                            questionId={q.id}
+                            context="mock_review"
+                          />
                         </div>
                         <div className="min-w-0 text-right">
                           <p className="text-textDim font-mono text-[9px] uppercase">

@@ -1,4 +1,5 @@
 // src/utils/examCalculations.ts
+import type { Question } from "../Types";
 
 export interface SubjectScore {
   subject: string;
@@ -35,7 +36,7 @@ export const getPerformanceIndicator = (
 };
 
 export const calculateExamResults = (
-  questions: any[],
+  questions: Question[],
   answers: Record<number, number>,
 ): ExamResult => {
   const totalQuestions = questions.length;

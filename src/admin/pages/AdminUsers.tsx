@@ -25,7 +25,6 @@ import {
   Mail,
   GraduationCap,
   Target,
-  Flame,
   BookOpen,
   Calendar,
 } from "lucide-react";
@@ -57,6 +56,10 @@ type ToastType = "success" | "error";
 interface Toast {
   id: number;
   type: ToastType;
+  message: string;
+}
+
+interface PostgrestError {
   message: string;
 }
 
@@ -236,7 +239,7 @@ const UserDrawer: React.FC<{
               <div key={label} className="flex items-start gap-2.5 text-sm">
                 <Icon className="text-textDim mt-0.5 h-3.5 w-3.5 shrink-0" />
                 <span className="text-textDim w-20 shrink-0">{label}</span>
-                <span className="text-textMain break-words">{value}</span>
+                <span className="text-textMain wrap-break">{value}</span>
               </div>
             ))}
           </div>
@@ -326,7 +329,7 @@ const DeleteConfirm: React.FC<{
   onCancel: () => void;
   loading: boolean;
 }> = ({ user, onConfirm, onCancel, loading }) => (
-  <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+  <div className="fixed inset-0 z-60 flex items-center justify-center p-4">
     <div
       className="absolute inset-0 bg-black/60 backdrop-blur-sm"
       onClick={onCancel}
@@ -419,8 +422,9 @@ const AdminUsers: React.FC = () => {
 
       if (error) throw error;
       setUsers((data ?? []) as AdminUser[]);
-    } catch (err: any) {
-      toast("error", err.message ?? "Failed to load users");
+    } catch (err: unknown) {
+      const error = err as PostgrestError;
+      toast("error", error.message ?? "Failed to load users");
     } finally {
       setLoading(false);
     }
@@ -464,153 +468,160 @@ const AdminUsers: React.FC = () => {
 
   // ── Actions ────────────────────────────────────────────────────────────────
   // ── Actions ────────────────────────────────────────────────────────────────
-const logAudit = async (
-  action: string,
-  target: AdminUser,
-  metadata: Record<string, any> = {},
-) => {
-  const { data: { user: adminUser } } = await supabase.auth.getUser();
-  await supabase.from("admin_audit_log").insert({
-    admin_id: adminUser?.id,
-    admin_email: adminUser?.email,
-    action,
-    target_user_id: target.id,
-    target_email: target.email,
-    metadata,
-  });
-};
+  const logAudit = async (
+    action: string,
+    target: AdminUser,
+    metadata: Record<string, unknown> = {},
+  ) => {
+    const {
+      data: { user: adminUser },
+    } = await supabase.auth.getUser();
+    await supabase.from("admin_audit_log").insert({
+      admin_id: adminUser?.id,
+      admin_email: adminUser?.email,
+      action,
+      target_user_id: target.id,
+      target_email: target.email,
+      metadata,
+    });
+  };
 
-const handleAction = async (
-  action: "pro" | "freeze" | "delete",
-  user: AdminUser,
-) => {
-  if (user.id === currentUserId) {
-    toast("error", "You can't modify your own account!");
-    return;
-  }
+  const handleAction = async (
+    action: "pro" | "freeze" | "delete",
+    user: AdminUser,
+  ) => {
+    if (user.id === currentUserId) {
+      toast("error", "You can't modify your own account!");
+      return;
+    }
 
-  if (action === "delete") {
-    setDeleteTarget(user);
-    return;
-  }
+    if (action === "delete") {
+      setDeleteTarget(user);
+      return;
+    }
 
-  const key = `${action}-${user.id}`;
-  setActionLoading(key);
+    const key = `${action}-${user.id}`;
+    setActionLoading(key);
 
-  try {
-    if (action === "pro") {
-      const newPro = !user.is_pro;
+    try {
+      if (action === "pro") {
+        const newPro = !user.is_pro;
 
-      // Always route through pro_users — the trigger keeps profiles.is_pro in sync.
-      // No more direct writes to profiles.is_pro from the admin panel.
-      if (newPro) {
-        const { error } = await supabase.from("pro_users").upsert(
-          {
-            user_id: user.id,
-            email: user.email,
-            status: "active",
-            plan_type: "admin_grant",
-            payment_reference: `admin-grant-${Date.now()}`,
-            expires_at: new Date(
-              Date.now() + 30 * 24 * 60 * 60 * 1000,
-            ).toISOString(), // 30-day comp grant; adjust as needed
-            updated_at: new Date().toISOString(),
-          },
-          { onConflict: "user_id" },
+        // Always route through pro_users — the trigger keeps profiles.is_pro in sync.
+        // No more direct writes to profiles.is_pro from the admin panel.
+        if (newPro) {
+          const { error } = await supabase.from("pro_users").upsert(
+            {
+              user_id: user.id,
+              email: user.email,
+              status: "active",
+              plan_type: "admin_grant",
+              payment_reference: `admin-grant-${Date.now()}`,
+              expires_at: new Date(
+                Date.now() + 30 * 24 * 60 * 60 * 1000,
+              ).toISOString(), // 30-day comp grant; adjust as needed
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: "user_id" },
+          );
+          if (error) throw error;
+        } else {
+          // Row may not exist yet (e.g. never subscribed) — upsert is safe either way
+          const { error } = await supabase.from("pro_users").upsert(
+            {
+              user_id: user.id,
+              email: user.email,
+              status: "inactive",
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: "user_id" },
+          );
+          if (error) throw error;
+        }
+
+        setUsers((prev) =>
+          prev.map((u) => (u.id === user.id ? { ...u, is_pro: newPro } : u)),
         );
-        if (error) throw error;
-      } else {
-        // Row may not exist yet (e.g. never subscribed) — upsert is safe either way
-        const { error } = await supabase.from("pro_users").upsert(
-          {
-            user_id: user.id,
-            email: user.email,
-            status: "inactive",
-            updated_at: new Date().toISOString(),
-          },
-          { onConflict: "user_id" },
+        if (selected?.id === user.id)
+          setSelected((prev) => (prev ? { ...prev, is_pro: newPro } : null));
+
+        await logAudit(newPro ? "grant_pro" : "revoke_pro", user, {
+          previous_status: user.is_pro,
+        });
+
+        toast(
+          "success",
+          `Pro ${newPro ? "granted" : "revoked"} for ${user.name}`,
         );
-        if (error) throw error;
       }
 
-      setUsers((prev) =>
-        prev.map((u) => (u.id === user.id ? { ...u, is_pro: newPro } : u)),
-      );
-      if (selected?.id === user.id)
-        setSelected((prev) => (prev ? { ...prev, is_pro: newPro } : null));
+      if (action === "freeze") {
+        const newFrozen = !user.is_frozen;
+        const { error } = await supabase
+          .from("profiles")
+          .update({ is_frozen: newFrozen })
+          .eq("id", user.id);
+        if (error) throw error;
 
-      await logAudit(newPro ? "grant_pro" : "revoke_pro", user, {
-        previous_status: user.is_pro,
+        setUsers((prev) =>
+          prev.map((u) =>
+            u.id === user.id ? { ...u, is_frozen: newFrozen } : u,
+          ),
+        );
+        if (selected?.id === user.id)
+          setSelected((prev) =>
+            prev ? { ...prev, is_frozen: newFrozen } : null,
+          );
+
+        await logAudit(newFrozen ? "freeze" : "unfreeze", user);
+
+        toast(
+          "success",
+          `Account ${newFrozen ? "frozen" : "unfrozen"}: ${user.name}`,
+        );
+      }
+    } catch (err: unknown) {
+      const error = err as PostgrestError;
+      toast("error", error.message ?? "Action failed");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    if (deleteTarget.id === currentUserId) {
+      toast("error", "You can't delete your own account!");
+      setDeleteTarget(null);
+      return;
+    }
+
+    const key = `delete-${deleteTarget.id}`;
+    setActionLoading(key);
+    try {
+      // Log BEFORE deleting — target_user_id FK would otherwise dangle after cascade
+      await logAudit("delete", deleteTarget, {
+        was_pro: deleteTarget.is_pro,
+        university: deleteTarget.university,
       });
 
-      toast("success", `Pro ${newPro ? "granted" : "revoked"} for ${user.name}`);
-    }
-
-    if (action === "freeze") {
-      const newFrozen = !user.is_frozen;
       const { error } = await supabase
         .from("profiles")
-        .update({ is_frozen: newFrozen })
-        .eq("id", user.id);
+        .delete()
+        .eq("id", deleteTarget.id);
       if (error) throw error;
 
-      setUsers((prev) =>
-        prev.map((u) =>
-          u.id === user.id ? { ...u, is_frozen: newFrozen } : u,
-        ),
-      );
-      if (selected?.id === user.id)
-        setSelected((prev) =>
-          prev ? { ...prev, is_frozen: newFrozen } : null,
-        );
-
-      await logAudit(newFrozen ? "freeze" : "unfreeze", user);
-
-      toast(
-        "success",
-        `Account ${newFrozen ? "frozen" : "unfrozen"}: ${user.name}`,
-      );
+      setUsers((prev) => prev.filter((u) => u.id !== deleteTarget.id));
+      if (selected?.id === deleteTarget.id) setSelected(null);
+      toast("success", `Deleted: ${deleteTarget.name}`);
+      setDeleteTarget(null);
+    } catch (err: unknown) {
+      const error = err as PostgrestError;
+      toast("error", error.message ?? "Delete failed");
+    } finally {
+      setActionLoading(null);
     }
-  } catch (err: any) {
-    toast("error", err.message ?? "Action failed");
-  } finally {
-    setActionLoading(null);
-  }
-};
-
-const handleDelete = async () => {
-  if (!deleteTarget) return;
-  if (deleteTarget.id === currentUserId) {
-    toast("error", "You can't delete your own account!");
-    setDeleteTarget(null);
-    return;
-  }
-
-  const key = `delete-${deleteTarget.id}`;
-  setActionLoading(key);
-  try {
-    // Log BEFORE deleting — target_user_id FK would otherwise dangle after cascade
-    await logAudit("delete", deleteTarget, {
-      was_pro: deleteTarget.is_pro,
-      university: deleteTarget.university,
-    });
-
-    const { error } = await supabase
-      .from("profiles")
-      .delete()
-      .eq("id", deleteTarget.id);
-    if (error) throw error;
-
-    setUsers((prev) => prev.filter((u) => u.id !== deleteTarget.id));
-    if (selected?.id === deleteTarget.id) setSelected(null);
-    toast("success", `Deleted: ${deleteTarget.name}`);
-    setDeleteTarget(null);
-  } catch (err: any) {
-    toast("error", err.message ?? "Delete failed");
-  } finally {
-    setActionLoading(null);
-  }
-};
+  };
 
   // Reset to page 1 when search/filter changes
   useEffect(() => {
@@ -653,7 +664,7 @@ const handleDelete = async () => {
               key={f}
               onClick={() => setFilter(f)}
               className={cn(
-                "rounded-[8px] px-3 py-1.5 text-xs font-semibold capitalize transition-all",
+                "rounded-lg px-3 py-1.5 text-xs font-semibold capitalize transition-all",
                 filter === f
                   ? "bg-bgCard text-textMain shadow-sm"
                   : "text-textDim hover:text-textMain",
@@ -726,23 +737,23 @@ const handleDelete = async () => {
                             {u.name?.slice(0, 2).toUpperCase() ?? "??"}
                           </div>
                           <div className="min-w-0">
-                            <p className="text-textMain hover:text-brand-light max-w-[160px] truncate font-medium transition-colors">
+                            <p className="text-textMain hover:text-brand-light max-w-40 truncate font-medium transition-colors">
                               {u.name || "—"}
                             </p>
-                            <p className="text-textDim max-w-[160px] truncate text-[11px]">
+                            <p className="text-textDim max-w-40 truncate text-[11px]">
                               {u.email}
                             </p>
                           </div>
                         </button>
                       </td>
                       {/* University */}
-                      <td className="text-textMuted max-w-[140px] px-4 py-3">
+                      <td className="text-textMuted max-w-35 px-4 py-3">
                         <span className="block truncate">
                           {u.university || "—"}
                         </span>
                       </td>
                       {/* Subjects */}
-                      <td className="text-textDim max-w-[160px] px-4 py-3">
+                      <td className="text-textDim max-w-40 px-4 py-3">
                         <span className="block truncate text-xs">
                           {u.subject_combo || "—"}
                         </span>

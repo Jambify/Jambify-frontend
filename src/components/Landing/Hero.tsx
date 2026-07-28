@@ -7,7 +7,7 @@
  */
 
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { motion } from "framer-motion";
 import { ArrowRight, Play } from "lucide-react";
 import { fadeUp } from "./animation";

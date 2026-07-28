@@ -1,6 +1,7 @@
 // src/Services/questionService.ts
 
 import { supabase } from "../lib/supabase";
+import type { PostgrestFilterBuilder } from "@supabase/supabase-js";
 import type { Question } from "../Types";
 import { getLocalQuestions } from "../Data/Questions";
 
@@ -15,6 +16,36 @@ const normalizeSubject = (subject: string): string => {
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 type Difficulty = "Easy" | "Medium" | "Hard";
+
+type DbOptionShape = { a?: string; b?: string; c?: string; d?: string };
+
+interface DbQuestionRow {
+  id?: string | number;
+  subject?: string;
+  year?: string | number;
+  examyear?: string | number;
+  difficulty?: string;
+  text?: string;
+  question?: string;
+  instruction?: string;
+  section?: string;
+  passage?: string;
+  explanation?: string;
+  solution?: string;
+  topic?: string;
+  options?: string[] | string;
+  option_a?: string;
+  option_b?: string;
+  option_c?: string;
+  option_d?: string;
+  option?: DbOptionShape;
+  answer?: number | string;
+  answer_index?: number;
+}
+
+interface UserSeenQuestionRow {
+  question_id: string;
+}
 
 const MIN_YEAR = 2015;
 const MAX_YEAR = 2025;
@@ -38,7 +69,7 @@ const shuffleOptions = (
   };
 };
 
-const mapDbToQuestion = (row: any, subject: string): Question => {
+const mapDbToQuestion = (row: DbQuestionRow, subject: string): Question => {
   let rawOptions: string[] = [];
   try {
     if (Array.isArray(row.options)) {
@@ -49,9 +80,15 @@ const mapDbToQuestion = (row: any, subject: string): Question => {
         .split(",")
         .map((s: string) => s.trim().replace(/^"|"$/g, ""));
     } else if (row.option_a) {
-      rawOptions = [row.option_a, row.option_b, row.option_c, row.option_d].filter(Boolean);
+      // NOTE: .filter(Boolean) doesn't narrow (string | undefined)[] -> string[]
+      // in TypeScript's eyes, so we use an explicit type predicate instead.
+      rawOptions = [row.option_a, row.option_b, row.option_c, row.option_d].filter(
+        (opt): opt is string => Boolean(opt),
+      );
     } else if (row.option && row.option.a) {
-      rawOptions = [row.option.a, row.option.b, row.option.c, row.option.d].filter(Boolean);
+      rawOptions = [row.option.a, row.option.b, row.option.c, row.option.d].filter(
+        (opt): opt is string => Boolean(opt),
+      );
     }
   } catch (e) {
     console.warn("[mapDbToQuestion] Error parsing options:", e);
@@ -74,9 +111,9 @@ const mapDbToQuestion = (row: any, subject: string): Question => {
 
   return {
     id: row.id?.toString() ?? "",
-    subject: (row.subject ?? subject) as any,
-    year: parseInt(row.year ?? row.examyear ?? "2023", 10),
-    difficulty: (row.difficulty ?? "Medium") as any,
+    subject: (row.subject ?? subject) as Question["subject"],
+    year: parseInt(String(row.year ?? row.examyear ?? "2023"), 10),
+    difficulty: (row.difficulty ?? "Medium") as Question["difficulty"],
     text: row.text ?? row.question ?? "Question text missing",
     instruction: row.instruction ?? row.section ?? row.passage ?? "",
     options: shuffled.length > 0 ? shuffled : ["Option A", "Option B", "Option C", "Option D"],
@@ -107,9 +144,14 @@ function resolveDifficulty(d: string | undefined): Difficulty | undefined {
 
 // ── Random-slice fetcher ───────────────────────────────────────────────────────
 async function fetchRandomSlice(
-  applyFilters: (q: any) => any,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase's
+  // PostgrestFilterBuilder generic signature is version-fragile (it changed
+  // shape between supabase-js versions and now requires 4-8 type args).
+  // Typing this precisely would break on the next supabase-js upgrade, so
+  // we deliberately keep it loose here rather than chase the exact generics.
+  applyFilters: <Q extends PostgrestFilterBuilder<any, any, any, any>>(q: Q) => Q,
   fetchSize: number,
-): Promise<any[]> {
+): Promise<DbQuestionRow[]> {
   const countBuilder = applyFilters(
     supabase.from("questions").select("id", { count: "exact", head: true }),
   );
@@ -125,7 +167,7 @@ async function fetchRandomSlice(
   const dataBuilder = applyFilters(supabase.from("questions").select("*"));
   const { data } = await dataBuilder.range(randomOffset, randomOffset + windowSize - 1);
 
-  return data ?? [];
+  return (data ?? []) as DbQuestionRow[];
 }
 
 // ── Recently-seen tracking (opt-in, additive) ──────────────────────────────────
@@ -168,7 +210,7 @@ export async function getRecentlySeenQuestionIds(
       console.warn("[getRecentlySeenQuestionIds] error:", error.message);
       return [];
     }
-    return (data ?? []).map((r: any) => r.question_id);
+    return (data ?? []).map((r: UserSeenQuestionRow) => r.question_id);
   } catch (err) {
     console.error("[getRecentlySeenQuestionIds]", err);
     return [];
@@ -211,17 +253,17 @@ export async function recordSeenQuestions(
     // Lazy purge safety net — fires ~5% of the time, never awaited,
     // never blocks or slows down the quiz. Deletes anything older than 2 days.
     if (Math.random() < 0.05) {
-  (async () => {
-    try {
-      await supabase
-        .from("user_seen_questions")
-        .delete()
-        .lt("seen_at", new Date(Date.now() - 2 * 86400_000).toISOString());
-    } catch {
-      // best-effort cleanup, safe to ignore failures
+      (async () => {
+        try {
+          await supabase
+            .from("user_seen_questions")
+            .delete()
+            .lt("seen_at", new Date(Date.now() - 2 * 86400_000).toISOString());
+        } catch {
+          // best-effort cleanup, safe to ignore failures
+        }
+      })();
     }
-  })();
-}
   } catch (err) {
     console.error("[recordSeenQuestions]", err);
   }
@@ -243,9 +285,9 @@ export const fetchQuestionsWithFallback = async (
     difficulty === "All"
       ? undefined
       : ((difficulty.trim().charAt(0).toUpperCase() +
-          difficulty.trim().slice(1).toLowerCase()) as Difficulty);
+        difficulty.trim().slice(1).toLowerCase()) as Difficulty);
   const fetchedIds = new Set<string>(excludeIds);
-  let finalQuestions: Question[] = [];
+  const finalQuestions: Question[] = [];
   const seenContent = new Set<string>();
 
   console.log("🚀 [questionService] fetch params:", {
@@ -499,8 +541,8 @@ export const fetchTopicsBySubject = async (subject: string): Promise<string[]> =
 
     const dbTopics = data
       ? (Array.from(
-          new Set(data.map((r) => normalizeTopicName(r.topic || "", formattedSubject)).filter(Boolean)),
-        ) as string[])
+        new Set(data.map((r) => normalizeTopicName(r.topic || "", formattedSubject)).filter(Boolean)),
+      ) as string[])
       : [];
 
     const fallbackTopics = LIKELY_TOPICS[formattedSubject] ?? [];

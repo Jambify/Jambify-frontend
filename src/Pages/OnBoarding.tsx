@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { useUserStore } from "../Store/useUserStore";
 import StepIndicator from "../components/OnBoarding/StepIndicator";
 import Button from "../components/ui/Button";
@@ -88,6 +88,11 @@ const FALLBACK_UNIVERSITIES = [
   "Kwara State University",
   "University of Calabar (UNICAL)",
 ];
+
+interface UniversityResult {
+  name: string;
+  country: string;
+}
 
 interface FormData {
   name: string;
@@ -228,9 +233,9 @@ const Onboarding: React.FC = () => {
               `https://raw.githubusercontent.com/Hipo/university-domains-list/master/world_universities_and_domains.json`,
             );
             if (backupRes.ok) {
-              const allUnis = await backupRes.json();
+              const allUnis = (await backupRes.json()) as UniversityResult[];
               const nigeriaUnis = allUnis.filter(
-                (u: any) =>
+                (u: UniversityResult) =>
                   u.country === "Nigeria" &&
                   u.name.toLowerCase().includes(uniSearch.toLowerCase()),
               );
@@ -243,7 +248,9 @@ const Onboarding: React.FC = () => {
         }
 
         if (success && data.length > 0) {
-          setUniResults(data.map((u: any) => u.name));
+          setUniResults(
+            (data as UniversityResult[]).map((u: UniversityResult) => u.name),
+          );
           setUseFallback(false);
         } else {
           const fallbackResults = getFilteredFallbackUniversities(uniSearch);
@@ -352,10 +359,14 @@ const Onboarding: React.FC = () => {
     <div className="bg-bgMain text-textMain flex min-h-screen flex-col items-center justify-center p-4">
       {/* Brand Header */}
       <div className="mb-10 flex items-center gap-3">
-        <img src={schooldraLogo} alt="Schooldra"  className="h-15 w-15 flex items-center justify-center" />
-              <span className="font-display text-3xl item-center font-bold tracking-tight">
-                Schooldra
-              </span>
+        <img
+          src={schooldraLogo}
+          alt="Schooldra"
+          className="flex h-15 w-15 items-center justify-center"
+        />
+        <span className="font-display item-center text-3xl font-bold tracking-tight">
+          Schooldra
+        </span>
       </div>
 
       <div className="w-full max-w-xl">

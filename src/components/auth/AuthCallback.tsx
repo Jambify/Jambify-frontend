@@ -1,7 +1,7 @@
 // components/auth/AuthCallback.tsx
 
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { supabase } from "../../lib/supabase";
 import { useUserStore } from "../../Store/useUserStore";
 import { motion } from "framer-motion";

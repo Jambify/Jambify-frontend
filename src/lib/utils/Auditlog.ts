@@ -17,7 +17,7 @@ import { supabase } from "../../lib/supabase";
 export async function logAdminAction(
   action: string,
   targetEmail: string,
-  metadata: Record<string, any> = {},
+  metadata: Record<string, unknown> = {},
 ): Promise<void> {
   try {
     const { data: { user } } = await supabase.auth.getUser();

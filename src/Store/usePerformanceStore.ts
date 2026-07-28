@@ -14,6 +14,15 @@ import {
 import { useUserStore } from "./useUserStore";
 import { supabase } from "../lib/supabase";
 
+export interface MockHistoryEntry {
+  id: string;
+  date: string;
+  score: number;
+  jambScore: number;
+}
+
+type TopicPerformance = Record<string, { subject: string; correct: number; total: number }>;
+
 // Helper to get week number and year (same as in PerformanceService)
 const getWeekAndYear = (date: Date): string => {
   const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
@@ -29,7 +38,7 @@ interface PerformanceState {
   topicStats: TopicStat[];
   subjectPerformance: SubjectPerformance[];
   mockScores: number[];
-  mockHistory: any[]; // Added
+  mockHistory: MockHistoryEntry[];
   totalQuestions: number;
   avgAccuracy: number;
   isLoading: boolean;
@@ -51,7 +60,7 @@ interface PerformanceState {
     timeTaken: number,
     correctCount?: number,
     totalQuestions?: number,
-    topicPerformance?: Record<string, any>, // Added
+    topicPerformance?: TopicPerformance,
   ) => Promise<{
     correct: number;
     total: number;
@@ -298,7 +307,7 @@ export const usePerformanceStore = create<PerformanceState>()(
       timeTaken: number,
       correctCount?: number,
       totalQuestions?: number,
-      topicPerformance?: Record<string, any>,
+      topicPerformance?: TopicPerformance,
     ) => {
       console.log("📝 [addQuizResult] called with:", {
         mode,

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router";
 import AppLayout from "../components/Layout/AppLayout";
 import { useQuizStore } from "../Store/useQuizStore";
 import QuestionCard from "../components/Quiz/QuestionCard";

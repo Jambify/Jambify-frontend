@@ -1,5 +1,5 @@
 import React from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router";
 import { cn } from "../../lib/utils/utils";
 import { useUserStore } from "../../Store/useUserStore";
 import { MessageSquare, Trophy, Sparkles, ArrowRight } from "lucide-react";

@@ -21,7 +21,7 @@
  */
 
 import React, { useEffect, useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate } from "react-router";
 import { supabase } from "../lib/supabase";
 
 type Status = "checking" | "authorised" | "denied";

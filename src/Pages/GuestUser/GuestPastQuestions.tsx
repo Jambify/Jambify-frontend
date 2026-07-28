@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router";
 import PageHelmet from "../../components/SEO/PageHelmet";
 import ThemeToggle from "../../components/ui/ThemeToggle";
 import schooldraLogo from "../../assets/schooldraLogo.webp";
@@ -56,8 +56,9 @@ const ALL_SUBJECTS = [
 const SUBJECT_BY_SLUG: Record<string, string> = Object.fromEntries(
   ALL_SUBJECTS.map((s) => [s.toLowerCase(), s]),
 );
-
-const VALID_YEAR_SET = new Set(VALID_YEARS.filter((y) => y !== "All"));
+const VALID_YEAR_SET: Set<string> = new Set(
+  VALID_YEARS.filter((y) => y !== "All"),
+);
 
 // Theme tokens, not hardcoded hex — so a future palette change (like the
 // one earlier in this project) updates these automatically instead of
@@ -95,8 +96,12 @@ const GuestPastQuestions = () => {
   const subject = subjectSlug
     ? (SUBJECT_BY_SLUG[subjectSlug.toLowerCase()] ?? "All")
     : "All";
+   
   const year =
-    yearParam && VALID_YEAR_SET.has(yearParam as any) ? yearParam : "All";
+  yearParam && VALID_YEAR_SET.has(yearParam)
+    ? yearParam
+    : "All";
+      
 
   // Search stays local — it's a live filter, not something worth its own URL.
   const [search, setSearch] = useState("");
@@ -123,7 +128,8 @@ const GuestPastQuestions = () => {
         console.error("Error loading guest past questions:", e);
         if (isMounted)
           setLoadingError(
-            (e as Error)?.message || "Failed to load questions. Please try again.",
+            (e as Error)?.message ||
+              "Failed to load questions. Please try again.",
           );
       } finally {
         if (isMounted) setIsLoading(false);
@@ -370,7 +376,10 @@ const GuestPastQuestions = () => {
 
         {/* No results */}
         {!isLoading && !loadingError && preview.length === 0 && (
-          <div data-testid="no-results" className="bg-bgCard border-borderMuted rounded-2xl border p-12 text-center">
+          <div
+            data-testid="no-results"
+            className="bg-bgCard border-borderMuted rounded-2xl border p-12 text-center"
+          >
             <h3 className="text-textMain mb-2 text-xl font-bold">
               No questions found
             </h3>
@@ -516,12 +525,12 @@ const GuestPastQuestions = () => {
                   <Lock className="text-brand h-5 w-5" />
                 </div>
                 <h3 className="font-display text-textMain text-lg font-bold">
-                  {remainingCount} more question{remainingCount !== 1 ? "s" : ""}{" "}
-                  waiting for you
+                  {remainingCount} more question
+                  {remainingCount !== 1 ? "s" : ""} waiting for you
                 </h3>
                 <p className="text-textDim max-w-sm text-sm">
-                  Create a free account to unlock every past question from
-                  2015 to 2025, across every subject.
+                  Create a free account to unlock every past question from 2015
+                  to 2025, across every subject.
                 </p>
                 <button
                   onClick={() => navigate("/signup")}

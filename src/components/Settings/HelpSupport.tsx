@@ -1,7 +1,7 @@
 // src/components/Settings/HelpSupport.tsx
 
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import {
   HelpCircle,
   MessageSquare,
@@ -85,7 +85,7 @@ const HelpSupport: React.FC = () => {
       } else {
         throw new Error("Submission failed");
       }
-    } catch (error) {
+    } catch{
       setSubmitStatus("error");
     } finally {
       setIsSubmitting(false);

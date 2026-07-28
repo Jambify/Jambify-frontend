@@ -1,5 +1,5 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { motion } from "framer-motion";
 import { BookOpen, Trophy, ArrowRight, LogIn, Zap } from "lucide-react";
 import ThemeToggle from "../../components/ui/ThemeToggle";

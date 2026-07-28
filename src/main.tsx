@@ -12,11 +12,11 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
-import { BrowserRouter } from "react-router-dom";
+import { BrowserRouter } from "react-router";
 import { HelmetProvider } from "react-helmet-async";
 import { supabase } from "./lib/supabase";
 import { useUserStore } from "./Store/useUserStore";
-import { initTheme } from "./components/ui/ThemeToggle";
+import { initTheme } from "./components/ui/themeUtils";
 import "./index.css";
 
 // Apply saved/system theme before first paint — prevents flash of wrong theme

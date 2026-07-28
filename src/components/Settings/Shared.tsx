@@ -1,11 +1,4 @@
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   4. Add these two shared helpers at the bottom of any
-      Settings component file, or create:
-      src/components/Settings/shared.tsx
-      and import Section, Field, inputCls from there.
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 import React from "react";
-import { cn } from "../../lib/utils/utils";
 
 export const Section: React.FC<{
   title: string;
@@ -35,13 +28,4 @@ export const Field: React.FC<{
   </div>
 );
 
-export const inputCls = (hasError: boolean) =>
-  cn(
-    "w-full px-4 py-2.5 bg-bgSurface rounded-brand border text-sm text-textMain",
-    "placeholder:text-textDim focus:outline-none transition-colors",
-    hasError
-      ? "border-danger focus:border-danger"
-      : "border-borderMuted focus:border-brand/50",
-  );
-
-export default { Section, Field, inputCls };
+export default { Section, Field };

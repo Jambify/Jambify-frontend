@@ -33,7 +33,7 @@ const SocialProofMarquee: React.FC = () => {
         <p className="text-textDim mb-5 text-center text-xs font-bold tracking-widest uppercase">
           Trusted by students preparing at
         </p>
-        <div className="relative flex overflow-x-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
+        <div className="relative flex overflow-x-hidden mask-[linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
           <motion.div
             className="flex gap-10 whitespace-nowrap"
             initial={{ x: "0%" }}

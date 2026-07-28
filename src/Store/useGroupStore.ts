@@ -1,5 +1,6 @@
 // src/Store/useGroupStore.ts
 import { create } from "zustand";
+import { PostgrestError } from "@supabase/supabase-js";
 import { supabase } from "../lib/supabase";
 import { useUserStore } from "./useUserStore";
 
@@ -13,8 +14,8 @@ export interface ChatMessage {
   message: string;
   created_at: string;
   is_edited: boolean;
-  status?: MessageStatus; // only on outgoing messages
-  reply_to?: ReplyPreview | null; // quoted message info
+  status?: MessageStatus;
+  reply_to?: ReplyPreview | null;
 }
 
 export interface ReplyPreview {
@@ -36,6 +37,27 @@ export interface StudyGroup {
   created_at: string;
   isActive: boolean;
   recentMembers: string[];
+}
+
+interface GroupMessageJoinRow {
+  id: string;
+  group_id: string;
+  user_id: string;
+  message: string;
+  created_at: string;
+  is_edited: boolean;
+  reply_to_id?: string | null;
+  profiles: { name: string } | null;
+}
+
+
+
+
+
+interface ReplyMessageRow {
+  id: string;
+  user_id: string;
+  message: string;
 }
 
 interface GroupState {
@@ -187,8 +209,8 @@ export const useGroupStore = create<GroupState>()((set, get) => ({
 
       if (error) throw error;
       await Promise.all([get().loadGroups(), get().loadMyGroups()]);
-    } catch (err: any) {
-      set({ error: err.message });
+    } catch (err) {
+      set({ error: err instanceof Error ? err.message : String(err) });
     } finally {
       set({ loading: false });
     }
@@ -278,7 +300,7 @@ export const useGroupStore = create<GroupState>()((set, get) => ({
         )
         .eq("group_id", groupId)
         .order("created_at", { ascending: true })
-        .limit(100)) as { data: any[]; error: any };
+        .limit(100)) as { data: GroupMessageJoinRow[] | null; error: PostgrestError | null };
 
       if (msgErr) throw msgErr;
       if (!msgs || msgs.length === 0) {
@@ -304,7 +326,7 @@ export const useGroupStore = create<GroupState>()((set, get) => ({
       const replyIds = msgs
         .filter((m) => m.reply_to_id)
         .map((m) => m.reply_to_id);
-      let replyMap = new Map<string, { author: string; message: string }>();
+      const replyMap = new Map<string, { author: string; message: string }>();
 
       if (replyIds.length > 0) {
         const { data: replyMsgs } = await supabase
@@ -419,7 +441,7 @@ export const useGroupStore = create<GroupState>()((set, get) => ({
 
       // Remove from retry queue on success
       failedMessages.delete(tempId);
-    } catch (err: any) {
+    } catch (err) {
       console.error("sendMessage error:", err);
       // Mark as 'failed'
       set((s) => ({
@@ -511,7 +533,7 @@ export const useGroupStore = create<GroupState>()((set, get) => ({
               .from("group_messages")
               .select("id, user_id, message")
               .eq("id", row.reply_to_id)
-              .single()) as { data: any; error: any };
+              .single()) as { data: ReplyMessageRow | null; error: PostgrestError | null };
 
             if (replyMsg) {
               const replyAuthor = await get().getName(replyMsg.user_id);

@@ -1,5 +1,6 @@
 // src/services/database.ts
 import { supabase } from "../lib/supabase";
+import type { QuizSession, SM2Card } from "../Types/database";
 
 // Maps short subject ID to full name (for database enum)
 const SHORT_ID_TO_FULL_NAME: Record<string, string> = {
@@ -24,7 +25,7 @@ export const getQuestions = async (subject?: string) => {
 };
 
 // Quiz Sessions
-export const saveQuizSession = async (sessionData: any) => {
+export const saveQuizSession = async (sessionData: Omit<QuizSession, "id" | "created_at"> & { id?: string; created_at?: string }) => {
   return await supabase.from("quiz_sessions").insert(sessionData);
 };
 
@@ -79,6 +80,6 @@ export const getDueCards = async () => {
     .lte("due_date", new Date().toISOString());
 };
 
-export const updateCard = async (cardId: string, data: any) => {
+export const updateCard = async (cardId: string, data: Partial<Omit<SM2Card, "id" | "user_id">>) => {
   return await supabase.from("sm2_cards").update(data).eq("id", cardId);
 };

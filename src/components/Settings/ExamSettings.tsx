@@ -3,7 +3,8 @@ import { useUserStore } from "../../Store/useUserStore";
 import { useExamCountdown } from "../../hooks/useExamCountdown";
 import Button from "../ui/Button";
 import { cn } from "../../lib/utils/utils";
-import { Section, Field, inputCls } from "./Shared";
+import { Section, Field } from "./Shared";
+import { inputCls } from "./SharedUtils";
 import { Calendar, Clock } from "lucide-react";
 
 const TARGET_SCORES = [

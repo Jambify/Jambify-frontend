@@ -1,6 +1,6 @@
 // src/Pages/Dashboard.tsx
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import AppLayout from "../components/Layout/AppLayout";
 import { useUserStore } from "../Store/useUserStore";
 import { useExamCountdown } from "../hooks/useExamCountdown";
@@ -51,6 +51,7 @@ function countdownMotivation(days: number): string {
 
 import { usePerformanceStore } from "../Store/usePerformanceStore";
 import { SUBJECT_COMBO_MAP } from "../Store/useSubjectStore";
+import type { TopicStat } from "../Services/PerformanceService";
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -122,16 +123,18 @@ const Dashboard: React.FC = () => {
     : subjectCombo
       ? SUBJECT_COMBO_MAP[subjectCombo] || [subjectCombo]
       : [];
-  const filteredTopicStats = topicStats.filter((t: any) =>
+  const filteredTopicStats = topicStats.filter((t: TopicStat) =>
     userSubjects.some((s) => s.toLowerCase() === t.subject.toLowerCase()),
   );
 
   // Dynamic weak/strong topics from live data
-  const weakTopics = filteredTopicStats.filter((t: any) => t.accuracy < 60);
+  const weakTopics = filteredTopicStats.filter(
+    (t: TopicStat) => t.accuracy < 60,
+  );
 
   // Highest and Lowest topic logic
   const sortedTopics = [...filteredTopicStats].sort(
-    (a: any, b: any) => b.accuracy - a.accuracy,
+    (a: TopicStat, b: TopicStat) => b.accuracy - a.accuracy,
   );
   const highestTopic = sortedTopics.length > 0 ? sortedTopics[0] : null;
   const lowestTopic =

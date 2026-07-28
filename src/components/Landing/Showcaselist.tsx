@@ -7,7 +7,7 @@
  */
 
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import ShowcaseSection from "./Showcasesection";
 import mockExamImg from "../../assets/showcase-mockexam.png";
 import pastQuestionsImg from "../../assets/showcase-pastquestions.png";

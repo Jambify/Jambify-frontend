@@ -1,5 +1,13 @@
 import { create } from "zustand";
 import { supabase } from "../lib/supabase";
+import type { PostgrestError } from "@supabase/supabase-js";
+
+interface ProfileRow {
+  id: string;
+  name?: string;
+  university?: string;
+  overall_score?: number;
+}
 
 export interface LeaderboardEntry {
   id: string;
@@ -57,7 +65,7 @@ export const useLeaderboardStore = create<LeaderboardState>()((set, get) => ({
         .from("profiles")
         .select("id, name, university, overall_score")
         .order("overall_score", { ascending: false })
-        .limit(20)) as { data: any[]; error: any };
+        .limit(20)) as { data: ProfileRow[] | null; error: PostgrestError | null };
 
       // If we get a column missing error (42703), immediately trigger the safe fallback
       if (error) {
@@ -91,7 +99,7 @@ export const useLeaderboardStore = create<LeaderboardState>()((set, get) => ({
       const { data, error } = (await supabase
         .from("profiles")
         .select("id, name, university")
-        .limit(20)) as { data: any[]; error: any };
+        .limit(20)) as { data: ProfileRow[] | null; error: PostgrestError | null };
 
       if (error) throw error;
 
@@ -106,7 +114,7 @@ export const useLeaderboardStore = create<LeaderboardState>()((set, get) => ({
 }));
 
 /** Helper to map raw profile data to LeaderboardEntry format */
-const mapProfilesToEntries = (data: any[]): LeaderboardEntry[] => {
+const mapProfilesToEntries = (data: ProfileRow[]): LeaderboardEntry[] => {
   return data.map((profile, index) => {
     const name = profile.name || "Anonymous User";
     const initials = name

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router";
 import AppLayout from "../components/Layout/AppLayout";
 import { useUserStore } from "../Store/useUserStore";
 import ProfileForm from "../components/Settings/ProfileForm";
@@ -9,6 +9,10 @@ import HelpSupport from "../components/Settings/HelpSupport";
 import { cn } from "../lib/utils/utils";
 
 type Tab = "profile" | "exam" | "account" | "help";
+
+interface SettingsLocationState {
+  activeTab?: Tab;
+}
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: "profile", label: "Profile", icon: "👤" },
@@ -23,7 +27,7 @@ const Settings: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<Tab>(
-    (location.state as any)?.activeTab || "profile",
+    (location.state as SettingsLocationState)?.activeTab || "profile",
   );
   const initials = name
     .split(" ")
@@ -54,7 +58,7 @@ const Settings: React.FC = () => {
           {(isAdmin || isModerator) && (
             <button
               onClick={() => navigate("/admin")}
-              className="bg-brand hover:bg-brand/90 flex w-full items-center justify-center gap-2 rounded-brand px-4 py-3 text-sm font-bold text-white transition-all sm:w-auto sm:py-2"
+              className="bg-brand hover:bg-brand/90 rounded-brand flex w-full items-center justify-center gap-2 px-4 py-3 text-sm font-bold text-white transition-all sm:w-auto sm:py-2"
             >
               🛠️ Admin Panel
             </button>

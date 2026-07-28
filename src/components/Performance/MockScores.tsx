@@ -2,7 +2,7 @@
 
 import React from "react";
 import { usePerformanceStore } from "../../Store/usePerformanceStore";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 
 const TARGET = 280;
 const MAX = 400;

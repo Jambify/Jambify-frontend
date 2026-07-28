@@ -9,7 +9,6 @@ import {
   Circle,
   Zap,
   PartyPopper,
-  Rocket,
 } from "lucide-react";
 
 const DAYS_SHORT = ["M", "T", "W", "T", "F", "S", "S"];

@@ -5,6 +5,18 @@ import Button from "../ui/Button";
 import { Crown, Lock, CheckCircle, Loader2, ExternalLink } from "lucide-react";
 import schooldralogo from "../../assets/schooldraLogo.webp"; // Import the new logo
 
+declare global {
+  interface Window {
+    FlutterwaveCheckout?: (options: Record<string, unknown>) => void;
+  }
+}
+
+interface FlutterwaveCallbackData {
+  status: string;
+  tx_ref: string;
+  [key: string]: unknown;
+}
+
 interface ExamPaywallProps {
   onUpgrade: () => void;
   onBack: () => void;
@@ -40,7 +52,7 @@ const ExamPaywall: React.FC<ExamPaywallProps> = ({ onUpgrade, onBack }) => {
     setVerifyError(null);
 
     // Load Flutterwave script if not already present (it should be in index.html now)
-    if (!(window as any).FlutterwaveCheckout) {
+    if (!window.FlutterwaveCheckout) {
       console.log("Loading Flutterwave script dynamically...");
       const script = document.createElement("script");
       script.src = "https://checkout.flutterwave.com/v3.js";
@@ -80,7 +92,7 @@ const ExamPaywall: React.FC<ExamPaywallProps> = ({ onUpgrade, onBack }) => {
     }
 
     try {
-      (window as any).FlutterwaveCheckout({
+      window.FlutterwaveCheckout?.({
         public_key: flwKey,
         tx_ref: `schooldra-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
         amount: 3000,
@@ -95,7 +107,7 @@ const ExamPaywall: React.FC<ExamPaywallProps> = ({ onUpgrade, onBack }) => {
           description: "Monthly subscription for professional JAMB prep tools",
           logo: "https://Schooldra.com/SCHOOLDRA.LOGO.webp",
         },
-        callback: async (data: any) => {
+        callback: async (data: FlutterwaveCallbackData) => {
           console.log("Payment callback data:", data);
           if (data.status === "successful" || data.status === "completed") {
             // Grant Pro immediately in frontend for better UX, then verify
@@ -157,7 +169,7 @@ const ExamPaywall: React.FC<ExamPaywallProps> = ({ onUpgrade, onBack }) => {
           ).toISOString(),
           updated_at: new Date().toISOString(),
         },
-        { onConflict: "user_id" }
+        { onConflict: "user_id" },
       );
 
       if (proError) {
@@ -194,11 +206,13 @@ const ExamPaywall: React.FC<ExamPaywallProps> = ({ onUpgrade, onBack }) => {
       setTimeout(() => {
         onUpgrade();
       }, 2000);
-    } catch (err: any) {
+    } catch (err) {
       console.error("Verification error:", err);
-      setVerifyError(
-        err.message ?? "Verification failed. Please contact support.",
-      );
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Verification failed. Please contact support.";
+      setVerifyError(message);
     } finally {
       setIsVerifying(false);
     }

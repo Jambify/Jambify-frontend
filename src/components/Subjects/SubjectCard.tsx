@@ -1,5 +1,5 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import type { Subject } from "../../Types/subject";
 import TopicList from "./SubjectTopic";
 import { cn } from "../../lib/utils/utils";

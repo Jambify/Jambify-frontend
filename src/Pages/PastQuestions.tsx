@@ -1,8 +1,8 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router";
 import AppLayout from "../components/Layout/AppLayout";
 import { useUserStore } from "../Store/useUserStore";
-import { SUBJECT_COMBO_MAP } from "../Store/useSubjectStore";
+// import { SUBJECT_COMBO_MAP } from "../Store/useSubjectStore";
 import QuestionAIHelper from "../components/PastQuestions/QuestionAIHelper";
 import ReportQuestionButton from "../components/shared/ReportQuestionButton";
 import Button from "../components/ui/Button";
@@ -85,17 +85,12 @@ const SUBJECT_COLORS: Record<string, string> = {
 const PAGE_SIZE = 20;
 
 const PastQuestions = () => {
-  const { subjectCombo, isPro } = useUserStore();
-  const userSubjects = Array.isArray(subjectCombo)
-    ? subjectCombo
-    : subjectCombo
-      ? (SUBJECT_COMBO_MAP[subjectCombo] ?? [])
-      : [];
+  const {  isPro } = useUserStore();
+  
 
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // --- DEFAULT SUBJECT: "All" ---
-  const defaultSubject = "All";
+  
 
   // Read filters from the URL
   const filters: Filters = useMemo(() => {

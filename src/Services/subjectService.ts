@@ -3,6 +3,15 @@
 import { supabase } from "../lib/supabase";
 import type { Subject } from "../Types/subject";
 
+interface SubjectProgressRow {
+  id?: string;
+  user_id?: string;
+  subject: string;
+  accuracy: number;
+  questions_done: number;
+  updated_at?: string;
+}
+
 // Master list of subjects (static data)
 const SUBJECTS_MASTER = [
   { id: "eng", name: "English", icon: "📖", color: "#7B5FFF", total: 420 },
@@ -97,7 +106,7 @@ export const fetchUserSubjects = async (): Promise<Subject[]> => {
   if (error) throw error;
 
   // Create a map of existing progress, using FULL_NAME_TO_SHORT_ID
-  const progressMap = new Map<string, any>();
+  const progressMap = new Map<string, SubjectProgressRow>();
   existingProgress?.forEach((p) => {
     const shortId = FULL_NAME_TO_SHORT_ID[p.subject];
     if (shortId) progressMap.set(shortId, p);

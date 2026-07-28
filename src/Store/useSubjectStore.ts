@@ -24,8 +24,18 @@ interface SubjectState {
   initialize: () => Promise<void>;
 }
 
+// Moved above ALL_SUBJECTS_MASTER so the array below can be typed with it.
+interface MasterSubjectEntry {
+  id: string;
+  name: string;
+  color: string;
+  total: number;
+  topics?: string[];
+  icon?: string;
+}
+
 // Complete master list of all possible subjects with their details
-export const ALL_SUBJECTS_MASTER = [
+export const ALL_SUBJECTS_MASTER: MasterSubjectEntry[] = [
   {
     id: "eng",
     name: "English",
@@ -158,10 +168,10 @@ export const ALL_SUBJECTS_MASTER = [
   { id: "lit", name: "Literature in English", color: "var(--color-brand)", total: 300 },
   { id: "crs", name: "CRS", color: "var(--color-brand)", total: 250 },
   { id: "irs", name: "IRS", color: "var(--color-success)", total: 250 },
-  { 
-    id: "com", 
-    name: "Commerce", 
-    color: "var(--color-warn)", 
+  {
+    id: "com",
+    name: "Commerce",
+    color: "var(--color-warn)",
     total: 300,
     topics: [
       "Business Organization",
@@ -219,8 +229,8 @@ export const SUBJECT_COMBO_MAP: Record<string, string[]> = {
 };
 
 // Map subject name to master subject object
-export const getSubjectFromName = (name: string) => {
-  const nameMap: Record<string, any> = {
+export const getSubjectFromName = (name: string): MasterSubjectEntry | undefined => {
+  const nameMap: Record<string, MasterSubjectEntry | undefined> = {
     English: ALL_SUBJECTS_MASTER.find((s) => s.name === "English"),
     Mathematics: ALL_SUBJECTS_MASTER.find((s) => s.name === "Mathematics"),
     Physics: ALL_SUBJECTS_MASTER.find((s) => s.name === "Physics"),
@@ -315,14 +325,17 @@ const fetchUserSubjects = async (): Promise<Subject[]> => {
     return {
       id: master.id,
       name: master.name,
-      icon: master.icon,
+      // No subject in ALL_SUBJECTS_MASTER currently sets an icon, so master.icon
+      // is undefined here — fall back to a default so this matches Subject["icon"]
+      // (a required string), rather than widening the Subject type instead.
+      icon: master.icon ?? "📘",
       color: master.color,
       accuracy: accuracy,
       completed: 0, // Removed questions done, as per user request
       total: master.total,
       rank: rank,
       weakTopics: weakTopics,
-      topics: (master as any).topics || [],
+      topics: master.topics || [],
     };
   });
 

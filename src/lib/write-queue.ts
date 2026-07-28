@@ -1,16 +1,41 @@
 import Dexie from "dexie";
 import { supabase } from "./supabase";
+import type { QuizSession, SubjectProgress } from "../Types/database";
 
-interface QueuedWrite {
+interface TopicProgressDB {
+    user_id: string;
+    subject: string;
+    topic: string;
+    correct: number;
+    incorrect: number;
+    total: number;
+    accuracy: number;
+    last_attempt_at: string;
+    id?: string;
+}
+
+type QuizSessionInsert = Omit<QuizSession, "id" | "created_at"> & { created_at?: string };
+type SubjectProgressUpsert = Omit<SubjectProgress, "id"> & { id?: string };
+type TopicProgressUpsert = Omit<TopicProgressDB, "id"> & { id?: string };
+
+type QueuedWriteType = "quiz_session" | "subject_progress" | "topic_progress";
+
+interface QueuedWrite<T = unknown> {
     id?: number;
-    type: "quiz_session" | "subject_progress" | "topic_progress";
-    data: any;
+    type: QueuedWriteType;
+    data: T;
     createdAt: Date;
     retries: number;
 }
 
+type QueuedWriteDataMap = {
+    quiz_session: QuizSessionInsert;
+    subject_progress: SubjectProgressUpsert;
+    topic_progress: TopicProgressUpsert;
+};
+
 class WriteQueueDB extends Dexie {
-    writes!: Dexie.Table<QueuedWrite, number>;
+    writes!: Dexie.Table<QueuedWrite<unknown>, number>;
 
     constructor() {
         super("schooldra-write-queue");
@@ -22,9 +47,9 @@ class WriteQueueDB extends Dexie {
 
 const queueDB = new WriteQueueDB();
 
-export async function enqueueWrite(
-    type: QueuedWrite["type"],
-    data: any
+export async function enqueueWrite<T extends QueuedWriteType>(
+    type: T,
+    data: QueuedWriteDataMap[T]
 ): Promise<void> {
     await queueDB.writes.add({
         type,
@@ -42,13 +67,13 @@ async function processQueue(): Promise<void> {
         try {
             switch (write.type) {
                 case "quiz_session":
-                    await supabase.from("quiz_sessions").insert(write.data);
+                    await supabase.from("quiz_sessions").insert(write.data as QueuedWriteDataMap["quiz_session"]);
                     break;
                 case "subject_progress":
-                    await supabase.from("subject_progress").upsert(write.data);
+                    await supabase.from("subject_progress").upsert(write.data as QueuedWriteDataMap["subject_progress"]);
                     break;
                 case "topic_progress":
-                    await supabase.from("topic_progress").upsert(write.data);
+                    await supabase.from("topic_progress").upsert(write.data as QueuedWriteDataMap["topic_progress"]);
                     break;
             }
             await queueDB.writes.delete(write.id!);
@@ -72,4 +97,3 @@ if (typeof window !== "undefined") {
         processQueue();
     });
 }
-

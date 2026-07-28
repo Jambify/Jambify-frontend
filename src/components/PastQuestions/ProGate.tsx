@@ -4,6 +4,19 @@ import Button from "../ui/Button";
 import { APP_CONFIG } from "../../Store/useUserStore"; // Importing the app config for pricing details
 import { Crown } from "lucide-react";
 import { supabase } from "../../lib/supabase";
+
+declare global {
+  interface Window {
+    FlutterwaveCheckout?: (options: Record<string, unknown>) => void;
+  }
+}
+
+interface FlutterwaveCallbackData {
+  status: string;
+  tx_ref: string;
+  [key: string]: unknown;
+}
+
 const PRO_FEATURES = [
   "Download all subject packs for offline use",
   "Access 4,180+ real JAMB questions (1990–2024)",
@@ -26,7 +39,7 @@ const ProGate: React.FC = () => {
     setIsInitiating(true);
     setError(null);
 
-    if (!(window as any).FlutterwaveCheckout) {
+    if (!window.FlutterwaveCheckout) {
       const script = document.createElement("script");
       script.src = "https://checkout.flutterwave.com/v3.js";
       script.async = true;
@@ -54,7 +67,7 @@ const ProGate: React.FC = () => {
     }
 
     try {
-      (window as any).FlutterwaveCheckout({
+      window.FlutterwaveCheckout?.({
         public_key: flwKey,
         tx_ref: `schooldra-pro-${Date.now()}`,
         amount: 3000,
@@ -69,7 +82,7 @@ const ProGate: React.FC = () => {
           description: "Full access to all JAMB prep features",
           logo: "https://schooldra.vercel.app/Schooldra.LOGO.webp",
         },
-        callback: async (data: any) => {
+        callback: async (data: FlutterwaveCallbackData) => {
           if (data.status === "successful" || data.status === "completed") {
             try {
               // Record or update the transaction in pro_users table
@@ -109,7 +122,7 @@ const ProGate: React.FC = () => {
           setShowCancelConfirm(true);
         },
       });
-    } catch (err) {
+    } catch {
       setError("Could not initiate payment.");
     }
   };

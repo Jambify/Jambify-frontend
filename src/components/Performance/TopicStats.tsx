@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { usePerformanceStore } from "../../Store/usePerformanceStore";
 import { useUserStore } from "../../Store/useUserStore";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { cn } from "../../lib/utils/utils";
 import { SUBJECT_COMBO_MAP } from "../../Store/useSubjectStore";
 import { ArrowRight } from "lucide-react";  

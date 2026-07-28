@@ -56,6 +56,16 @@ interface Toast {
   message: string;
 }
 
+interface ReporterProfile {
+  id: string;
+  name: string | null;
+  university: string | null;
+}
+
+interface PostgrestError {
+  message: string;
+}
+
 const STATUS_COLORS: Record<string, string> = {
   open: "bg-warn/10 text-warn border-warn/30",
   reviewed: "bg-blue-500/10 text-blue-400 border-blue-500/30",
@@ -92,7 +102,8 @@ const AdminReports: React.FC = () => {
       //    question_reports.question_id -> questions.id exists).
       const { data: reportsData, error: reportsError } = await supabase
         .from("question_reports")
-        .select(`
+        .select(
+          `
           id,
           question_id,
           reported_by,
@@ -104,7 +115,8 @@ const AdminReports: React.FC = () => {
           questions:question_id (
             id, subject, topic, year, text, options, answer
           )
-        `)
+        `,
+        )
         .order("created_at", { ascending: false });
 
       if (reportsError) throw reportsError;
@@ -114,10 +126,15 @@ const AdminReports: React.FC = () => {
       // 2) Separately fetch the reporting students' profiles, then merge
       //    in JS — this sidesteps the missing profiles FK entirely.
       const reporterIds = Array.from(
-        new Set(rows.map((r) => r.reported_by).filter((id): id is string => !!id)),
+        new Set(
+          rows.map((r) => r.reported_by).filter((id): id is string => !!id),
+        ),
       );
 
-      let profileMap = new Map<string, { name: string | null; university: string | null }>();
+      let profileMap = new Map<
+        string,
+        { name: string | null; university: string | null }
+      >();
 
       if (reporterIds.length > 0) {
         const { data: profilesData, error: profilesError } = await supabase
@@ -128,7 +145,7 @@ const AdminReports: React.FC = () => {
         if (profilesError) throw profilesError;
 
         profileMap = new Map(
-          (profilesData ?? []).map((p: any) => [
+          (profilesData ?? []).map((p: ReporterProfile) => [
             p.id,
             { name: p.name, university: p.university },
           ]),
@@ -141,8 +158,9 @@ const AdminReports: React.FC = () => {
       }));
 
       setReports(merged);
-    } catch (err: any) {
-      toast("error", err.message ?? "Failed to load question reports");
+    } catch (err: unknown) {
+      const error = err as PostgrestError;
+      toast("error", error.message ?? "Failed to load question reports");
     } finally {
       setLoading(false);
     }
@@ -168,8 +186,9 @@ const AdminReports: React.FC = () => {
         prev.map((r) => (r.id === id ? { ...r, status: newStatus } : r)),
       );
       toast("success", `Report marked as ${newStatus}`);
-    } catch (err: any) {
-      toast("error", err.message ?? "Failed to update report status");
+    } catch (err: unknown) {
+      const error = err as PostgrestError;
+      toast("error", error.message ?? "Failed to update report status");
     } finally {
       setUpdatingId(null);
     }

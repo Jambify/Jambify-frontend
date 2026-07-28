@@ -17,7 +17,7 @@ interface AuditEntry {
   admin_email: string;
   action: string;
   target_email: string;
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
   created_at: string;
 }
 

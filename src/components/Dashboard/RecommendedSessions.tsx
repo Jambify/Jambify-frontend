@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { useSubjectStore } from "../../Store/useSubjectStore";
 import { useUserStore } from "../../Store/useUserStore";
 import { cn } from "../../lib/utils/utils";

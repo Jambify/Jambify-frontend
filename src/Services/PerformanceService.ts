@@ -1,5 +1,6 @@
 
 import { supabase } from "../lib/supabase";
+import type { PostgrestError } from "@supabase/supabase-js";
 import { normalizeTopicName } from "./questionService";
 
 // ===========================================================
@@ -46,7 +47,7 @@ export interface QuizSubmissionData {
 
 type SupabaseResponse<T> = {
   data: T | null;
-  error: any;
+  error: PostgrestError | null;
 };
 
 
@@ -422,7 +423,7 @@ export const submitQuizSession = async (
   timeTakenSeconds: number,
   correctCount?: number,
   totalQuestions?: number,
-  topicPerformance?: Record<string, any>,
+  topicPerformance?: Record<string, { subject: string; correct: number; total: number }>,
 ) => {
   console.log("🚀 [submitQuizSession] called with:", {
     mode,

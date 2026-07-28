@@ -1,5 +1,5 @@
 import React from "react";
-import { X, Trophy, Flame, Zap, Star, Crown, Rocket } from "lucide-react";
+import { X, Trophy, Flame, Star, Crown, Rocket } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Button from "./Button";
 

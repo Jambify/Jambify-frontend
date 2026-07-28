@@ -1,6 +1,7 @@
 // src/Store/useUserStore.ts
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { PostgrestError } from "@supabase/supabase-js";
 import { supabase } from "../lib/supabase";
 import { useSubjectStore } from "./useSubjectStore";
 import { usePerformanceStore } from "./usePerformanceStore";
@@ -9,6 +10,7 @@ import { useDailyGoalsStore } from "./useDailyGoalsStore";
 import { useQuizStore } from "./useQuizStore";
 import { useStudyTrackingStore } from "./useStudyTrackingStore";
 import { useGoalStore } from "./useGoal";
+import type { TopicStat } from "../Services/PerformanceService";
 
 
 useStudyTrackingStore.getState().reset();
@@ -34,7 +36,29 @@ interface ExamUpdate {
   examDate: string;
 }
 interface DownloadedData {
-  [key: string]: any;
+  [key: string]: unknown;
+}
+
+interface ProfileRow {
+  name?: string | null;
+  university?: string | null;
+  target_score?: string | null;
+  exam_year?: string | null;
+  exam_date?: string | null;
+  subject_combo?: string | null;
+  email?: string | null;
+  is_pro?: boolean | null;
+  is_frozen?: boolean | null;
+  overall_score?: number | null;
+  accuracy?: number | null;
+  streak?: number | null;
+  questions_completed?: number | null;
+  total_questions?: number | null;
+  topic_performance?: TopicStat[] | null;
+  last_streak_week?: string | null;
+  last_seen_streak_popup?: number | null;
+  onboarding_complete?: boolean | null;
+  has_seen_welcome?: boolean | null;
 }
 
 export const APP_CONFIG = {
@@ -66,7 +90,7 @@ interface UserState {
   questionsCompleted: number;
   totalQuestions: number;
   schoolRank: number;
-  topicStats: any[]; // Added for compatibility
+  topicStats: TopicStat[];
   // daysToExam is NOT stored — computed live by useExamCountdown
   onboardingComplete: boolean;
   isPro: boolean;
@@ -111,7 +135,7 @@ interface UserState {
   upgradeToPro: () => void;
   downgradeToPro: () => void;
   setDownloadedData: (data: DownloadedData) => void;
-  addDownloadedData: (key: string, data: any) => void;
+  addDownloadedData: (key: string, data: unknown) => void;
   setShowStreakPopup: (show: boolean, streak?: number) => void;
   setLastSeenStreakPopup: (streak: number) => Promise<void>;
 
@@ -233,7 +257,7 @@ export const useUserStore = create<UserState>()(
             .from("profiles")
             .select("*")
             .eq("id", id)
-            .maybeSingle()) as { data: any; error: any };
+            .maybeSingle()) as { data: ProfileRow | null; error: PostgrestError | null };
 
           if (error) throw error;
           if (!data) {

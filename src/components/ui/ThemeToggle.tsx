@@ -1,116 +1,12 @@
-/**
- * ThemeToggle.tsx
- * ───────────────
- * Sun / Moon toggle — dark (default) ↔ light theme.
- *
- * DOM strategy:
- *   dark  → <html>                    (no attribute, :root vars apply)
- *   light → <html data-theme="light"> ([data-theme="light"] vars apply)
- *
- * Theme swap is SYNCHRONOUS — setAttribute/removeAttribute happens
- * in the same microtask as the click handler. CSS transitions on
- * .theme-ready * handle the smooth animation automatically.
- * No rAF, no setTimeout, no intermediate states = no flash.
- *
- * Preload guard:
- *   `.preload` on <html> (added by initTheme) suppresses all transitions
- *   until 100ms after the page loads, preventing cold-load flash.
- */
-
 import React, { useEffect, useRef, useState } from "react";
+import {
+  STORAGE_KEY,
+  TRANSITION_MS,
+  type Theme,
+  setHtmlTheme,
+  applyTheme,
+} from "./themeUtils";
 
-/* ── constants ────────────────────────────────────────── */
-
-const STORAGE_KEY = "schooldra-theme";
-const TRANSITION_MS = 200;
-
-/* ── types ────────────────────────────────────────────── */
-
-type Theme = "dark" | "light";
-
-/* ── pure helpers ─────────────────────────────────────── */
-
-function getSystemTheme(): Theme {
-  if (typeof window === "undefined") return "dark";
-  return window.matchMedia("(prefers-color-scheme: light)").matches
-    ? "light"
-    : "dark";
-}
-
-function getSavedTheme(): Theme | null {
-  try {
-    const v = localStorage.getItem(STORAGE_KEY);
-    if (v === "light" || v === "dark") return v;
-  } catch {
-    /* private browsing */
-  }
-  return null;
-}
-
-function persistTheme(theme: Theme) {
-  try {
-    localStorage.setItem(STORAGE_KEY, theme);
-  } catch {
-    /* ignore */
-  }
-}
-
-/* ── Single atomic DOM write ──────────────────────────── */
-// setAttribute and removeAttribute are both single operations.
-// The browser will never see a state with NO theme applied.
-function setHtmlTheme(theme: Theme) {
-  if (theme === "light") {
-    document.documentElement.setAttribute("data-theme", "light");
-  } else {
-    document.documentElement.removeAttribute("data-theme");
-  }
-}
-
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   initTheme — call synchronously in main.tsx before render
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-export function initTheme() {
-  const html = document.documentElement;
-  const theme = getSavedTheme() ?? getSystemTheme();
-
-  // Block transitions during initial paint so the correct theme
-  // is applied instantly with no animation on page load.
-  html.classList.add("preload");
-
-  // Apply theme synchronously — no rAF, no delay.
-  setHtmlTheme(theme);
-
-  // Remove preload guard after first paint + a small buffer.
-  // Using 'load' event ensures the DOM is fully painted first.
-  const enable = () => {
-    setTimeout(() => {
-      html.classList.remove("preload");
-      html.classList.add("theme-ready");
-    }, 100);
-  };
-
-  if (document.readyState === "complete") {
-    enable();
-  } else {
-    window.addEventListener("load", enable, { once: true });
-  }
-}
-
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   applyTheme — synchronous, atomic, no intermediate state
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-function applyTheme(theme: Theme) {
-  // Write the new theme value in ONE synchronous operation.
-  // setAttribute/removeAttribute is atomic — the browser never
-  // renders a frame where neither theme is applied.
-  // The .theme-ready CSS rule handles the 200ms transition.
-  setHtmlTheme(theme);
-  persistTheme(theme);
-}
-
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   ThemeToggle component
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 const ThemeToggle: React.FC = () => {
   const [theme, setTheme] = useState<Theme>(() => {
     if (typeof document !== "undefined") {
@@ -121,10 +17,8 @@ const ThemeToggle: React.FC = () => {
     return "dark";
   });
 
-  // Debounce: ignore clicks until the CSS transition finishes
   const pendingRef = useRef(false);
 
-  // Cross-tab sync
   useEffect(() => {
     const handler = (e: StorageEvent) => {
       if (e.key !== STORAGE_KEY) return;
@@ -143,13 +37,9 @@ const ThemeToggle: React.FC = () => {
 
     const next: Theme = theme === "dark" ? "light" : "dark";
 
-    // 1. Swap the DOM attribute synchronously — zero intermediate state
     applyTheme(next);
-
-    // 2. Update React state so the icon animates
     setTheme(next);
 
-    // 3. Re-enable after the CSS transition completes
     setTimeout(() => {
       pendingRef.current = false;
     }, TRANSITION_MS + 50);

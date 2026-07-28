@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { useUserStore } from "../Store/useUserStore";
 import { motion } from "framer-motion";
 import Button from "../components/ui/Button";

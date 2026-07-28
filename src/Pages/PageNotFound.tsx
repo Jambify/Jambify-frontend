@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import AppLayout from "../components/Layout/AppLayout";
 import Button from "../components/ui/Button";
 import { useState } from "react";

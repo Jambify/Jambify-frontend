@@ -49,12 +49,12 @@ const getInitialState = (): StudyTrackingState => ({
 });
 
 // Debounce helper
-function debounce<T extends (...args: any[]) => any>(
-  func: T,
+function debounce<TArgs extends unknown[], TReturn>(
+  func: (...args: TArgs) => TReturn,
   wait: number
-): (...args: Parameters<T>) => void {
+): (...args: TArgs) => void {
   let timeout: ReturnType<typeof setTimeout> | null = null;
-  return function (this: any, ...args: Parameters<T>) {
+  return function (this: unknown, ...args: TArgs) {
     if (timeout) clearTimeout(timeout);
     timeout = setTimeout(() => func.apply(this, args), wait);
   };

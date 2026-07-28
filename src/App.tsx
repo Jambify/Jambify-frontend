@@ -3,7 +3,7 @@
    /guest/past-questions/:subject/:year routes for SEO (see comment below).
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 import React from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router";
 import Dashboard from "./Pages/Dashboard";
 import Landing from "./Pages/LandingPage";
 import Quiz from "./Pages/Quiz";
@@ -36,6 +36,7 @@ import { supabase } from "./lib/supabase";
 import ScrollToTop from "./components/Scrolltotop";
 import FrozenAccountGuard from "./components/auth/FrozenAccountGuard";
 import ProRevokedModal from "./components/auth/ProRevokedModal";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 // ── Admin imports ─────────────────────────────────────────────────────────────
 import AdminGuard from "./admin/AdminGuard";
@@ -44,13 +45,18 @@ import AdminOverview from "./admin/pages/AdminOverview";
 import AdminUsers from "./admin/pages/AdminUsers";
 import AdminAuditLog from "./admin/pages/AdminAuditLog";
 import AdminBroadcast from "./admin/pages/AdminBroadcast";
-import Adminquestions from "./admin/pages/Adminquestions"
+import Adminquestions from "./admin/pages/Adminquestions";
 import AdminReports from "./admin/pages/AdminReports";
-import AdminRoles from "./admin/pages/Adminroles"
+import AdminRoles from "./admin/pages/Adminroles";
 
-// Make supabase available in console for debugging
+declare global {
+  interface Window {
+    supabase?: SupabaseClient;
+  }
+}
+
 if (typeof window !== "undefined") {
-  (window as any).supabase = supabase;
+  window.supabase = supabase;
 }
 
 const App: React.FC = () => {
@@ -104,9 +110,9 @@ const App: React.FC = () => {
             path="/guest/terms-of-service"
             element={
               <GuestTermsOfService
-                // title="Terms of Service"
-                // effectiveDate="July 14, 2026"
-                // blocks={[]}
+              // title="Terms of Service"
+              // effectiveDate="July 14, 2026"
+              // blocks={[]}
               />
             }
           />

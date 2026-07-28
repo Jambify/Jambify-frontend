@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import AppLayout from "../components/Layout/AppLayout";
 import ExamPaywall from "../components/MockExam/ExamPaywall";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { useUserStore } from "../Store/useUserStore";
 import { Crown, CheckCircle } from "lucide-react";
 

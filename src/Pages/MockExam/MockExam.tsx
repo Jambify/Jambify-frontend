@@ -11,7 +11,7 @@
 // src/Pages/MockExam/MockExam.tsx
 
 import React, { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import AppLayout from "../../components/Layout/AppLayout";
 import { useMockStore } from "../../Store/useMockStore";
 import { useUserStore } from "../../Store/useUserStore";
@@ -26,11 +26,12 @@ import { useExamTimer } from "../../hooks/useExamTimer";
 import { cn } from "../../lib/utils/utils";
 
 import { fetchQuestionsWithFallback } from "../../Services/questionService";
+import type { Question } from "../../Types";
 import LoadingScreen from "../../components/ui/LoadingScreen";
 import NetworkErrorAlert from "../../components/ui/NetworkErrorAlert";
 import { saveMockExamHistory } from "../../Services/MockHistoryService";
 import MockHistory from "../../components/MockExam/MockHistory";
-import schooldraLogo from "../../../src/assets/schooldraLogo.webp"
+import schooldraLogo from "../../../src/assets/schooldraLogo.webp";
 
 import {
   Menu,
@@ -43,7 +44,7 @@ import {
   AlertTriangle,
   X,
 } from "lucide-react";
-import { motion, } from "framer-motion";
+import { motion } from "framer-motion";
 
 import { useOfflineStore } from "../../Store/useOfflineStore";
 
@@ -212,13 +213,13 @@ const MockExam: React.FC = () => {
       const isOnline = navigator.onLine;
       const offlineStore = useOfflineStore.getState();
 
-      const finalQuestionsList: any[] = [];
+      const finalQuestionsList: Question[] = [];
 
       for (const subjectId of selectedCombination) {
         const config = AVAILABLE_SUBJECTS.find((s) => s.id === subjectId);
         if (!config) continue;
 
-        let fetched: any[] = [];
+        let fetched: Question[] = [];
 
         // Try offline first if user is offline
         if (!isOnline) {
@@ -297,7 +298,7 @@ const MockExam: React.FC = () => {
         }
 
         // Randomize options for each question to prevent memorization
-        const randomized = fetched.map((q: any) => {
+        const randomized = fetched.map((q: Question) => {
           const correctOptionText = q.options[q.answer];
           const shuffledOptions = shuffleArray(q.options);
           const newCorrectIndex = shuffledOptions.indexOf(correctOptionText);
@@ -313,10 +314,10 @@ const MockExam: React.FC = () => {
 
       startExam(finalQuestionsList, MOCK_DURATION);
       setActiveSubject(selectedCombination[0]);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error starting exam:", error);
       setErrorMessage(
-        error.message ||
+        (error instanceof Error ? error.message : undefined) ||
           "Failed to load questions. Please check your connection.",
       );
     } finally {
@@ -678,21 +679,25 @@ const MockExam: React.FC = () => {
         <div className="bg-bgCard border-borderMuted hidden w-72 flex-col overflow-y-auto border-r lg:flex">
           <div className="border-borderMuted bg-bgSurface/50 border-b p-5">
             <div className="mb-6 flex items-center gap-2">
-             <motion.div
-            // className="bg-brand shadow-brand/40 group relative mb-6 flex h-20 w-20 items-center justify-center overflow-hidden rounded-4xl shadow-2xl"
-            animate={{
-              y: [0, -8, 0],
-              rotate: [0, 2, -2, 0],
-            }}
-            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-          >
-            <div className="absolute inset-0 bg-linear-to-tr from-white/25 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
-            <img
-              src={schooldraLogo}
-              alt="Schooldra"
-              className="flex h-25 w-25 items-center justify-center"
-            />
-          </motion.div>
+              <motion.div
+                // className="bg-brand shadow-brand/40 group relative mb-6 flex h-20 w-20 items-center justify-center overflow-hidden rounded-4xl shadow-2xl"
+                animate={{
+                  y: [0, -8, 0],
+                  rotate: [0, 2, -2, 0],
+                }}
+                transition={{
+                  duration: 5,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              >
+                <div className="absolute inset-0 bg-linear-to-tr from-white/25 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+                <img
+                  src={schooldraLogo}
+                  alt="Schooldra"
+                  className="flex h-25 w-25 items-center justify-center"
+                />
+              </motion.div>
               <span className="font-display text-sm font-bold tracking-tight">
                 Schooldra{" "}
                 <span className="text-textDim ml-1 text-[10px] font-medium uppercase">
@@ -803,7 +808,7 @@ const MockExam: React.FC = () => {
           </div>
 
           {/* Question Content */}
-          <main className="scrollbar-thin scrollbar-thumb-borderMuted flex-1 overflow-y-auto p-4 sm:p-8 lg:p-12">
+          <main className="scrollbar-thumb-borderMuted flex-1 scrollbar-thin overflow-y-auto p-4 sm:p-8 lg:p-12">
             <div className="mx-auto w-full max-w-3xl">
               <div className="bg-bgCard border-borderMuted rounded-brand-2xl mb-10 border p-6 shadow-xl transition-all sm:p-10">
                 <div className="mb-8 flex items-center justify-between">
@@ -956,7 +961,7 @@ const MockExam: React.FC = () => {
                 <X size={20} />
               </button>
             </div>
-            <div className="scrollbar-thin flex-1 space-y-10 overflow-y-auto px-5 py-8 pb-32">
+            <div className="flex-1 scrollbar-thin space-y-10 overflow-y-auto px-5 py-8 pb-32">
               <div>
                 <h3 className="text-brand mb-5 flex items-center gap-2 text-[10px] font-black tracking-[0.2em] uppercase">
                   <div className="bg-brand h-3 w-1 rounded-full"></div>

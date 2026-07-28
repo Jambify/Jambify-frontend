@@ -1,7 +1,7 @@
 // src/components/MockExam/MockResultScreen.tsx
 
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { useMockStore } from "../../Store/useMockStore";
 import { useUserStore } from "../../Store/useUserStore";
 import Button from "../ui/Button";

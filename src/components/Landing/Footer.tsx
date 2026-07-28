@@ -4,7 +4,7 @@
  */
 
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import schooldraLogo from "../../assets/schooldraLogo.webp";
 
 const Footer: React.FC = () => {

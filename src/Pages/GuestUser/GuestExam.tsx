@@ -1,7 +1,7 @@
 // src/Pages/Guest/GuestMockExam.tsx
 
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { fetchQuestionsWithFallback } from "../../Services/questionService";
 import LoadingScreen from "../../components/ui/LoadingScreen";
 import type { Question } from "../../Types";
@@ -151,10 +151,10 @@ const GuestMockExam: React.FC = () => {
       setCurrentIndex(0);
       setIsStarted(true);
       setActiveSubject(selectedCombination[0]);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Guest Mock Exam Error:", error);
       setError(
-        error.message ||
+        (error instanceof Error ? error.message : undefined) ||
           "Failed to load questions. Please check your connection.",
       );
     } finally {

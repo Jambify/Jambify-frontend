@@ -65,7 +65,7 @@ async function fetchQuestionsForPack(packId: string): Promise<Question[]> {
     } else if (typeof row.options === "string") {
       try {
         options = JSON.parse(row.options);
-      } catch (e) {
+      } catch{
         options = [row.option_a, row.option_b, row.option_c, row.option_d].filter(Boolean);
       }
     }
@@ -108,7 +108,7 @@ interface OfflineState {
   downloadPack: (id: string) => Promise<void>;
   removePack: (id: string) => Promise<void>;
   isPackAvailable: (id: string) => boolean;
-  getOfflineQuestions: (packId: string) => Promise<any[]>;
+  getOfflineQuestions: (packId: string) => Promise<Question[]>;
 }
 
 /** Pack sizes in bytes for tracking (approximate) */

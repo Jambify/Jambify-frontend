@@ -224,12 +224,12 @@ const getInitialGoals = (): Goal[] => {
 };
 
 // Debounce helper
-function debounce<T extends (...args: any[]) => any>(
+function debounce<T extends (...args: unknown[]) => unknown>(
   func: T,
   wait: number
 ): (...args: Parameters<T>) => void {
   let timeout: ReturnType<typeof setTimeout> | null = null;
-  return function (this: any, ...args: Parameters<T>) {
+  return function (this: unknown, ...args: Parameters<T>) {
     if (timeout) clearTimeout(timeout);
     timeout = setTimeout(() => func.apply(this, args), wait);
   };
@@ -309,7 +309,7 @@ export const useGoalStore = create<GoalState>()(
           const currentGoals = get().goals;
 
           let hasChanges = false;
-          let updatedGoals = currentGoals.map((goal) => {
+          const updatedGoals = currentGoals.map((goal) => {
             const goalDef = todayGoalDefs.find((g) => g.id === goal.id);
             if (!goalDef) return goal;
 
