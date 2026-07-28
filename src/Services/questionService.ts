@@ -144,7 +144,7 @@ function resolveDifficulty(d: string | undefined): Difficulty | undefined {
 
 // ── Random-slice fetcher ───────────────────────────────────────────────────────
 async function fetchRandomSlice(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase's
+   
   // PostgrestFilterBuilder generic signature is version-fragile (it changed
   // shape between supabase-js versions and now requires 4-8 type args).
   // Typing this precisely would break on the next supabase-js upgrade, so

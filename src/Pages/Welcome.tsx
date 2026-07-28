@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { useUserStore } from "../Store/useUserStore";
 import { motion } from "framer-motion";
@@ -7,6 +7,16 @@ import { CheckCircle, Sparkles, Trophy, Target } from "lucide-react";
 import schooldraLogo from "../assets/schooldraLogo.webp";
 
 const REDIRECT_SECS = 8;
+
+interface ConfettiParticle {
+  initialX: number;
+  initialRotate: number;
+  animateRotate: number;
+  duration: number;
+  delay: number;
+  repeatDelay: number;
+  left: number;
+}
 
 const Welcome: React.FC = () => {
   const navigate = useNavigate();
@@ -17,18 +27,13 @@ const Welcome: React.FC = () => {
 
   const [showConfetti, setShowConfetti] = useState(false);
 
-  // ── FIX: Pre-calculate confetti particles to avoid Math.random during render ─
-  const confettiParticles = useMemo(() => {
-    return [...Array(20)].map(() => ({
-      initialX: Math.random() * 400 - 200,
-      initialRotate: Math.random() * 360,
-      animateRotate: Math.random() * 720,
-      duration: 3 + Math.random() * 2,
-      delay: Math.random() * 2,
-      repeatDelay: Math.random() * 5,
-      left: Math.random() * 100,
-    }));
-  }, []);
+  // FIX: Math.random() must not run during render (not even inside useMemo,
+  // since the memo callback still executes on the render pass). Generate the
+  // particles inside the mount effect below instead, where it's genuinely
+  // outside of render.
+  const [confettiParticles, setConfettiParticles] = useState<
+    ConfettiParticle[]
+  >([]);
 
   // ── FIX: call markWelcomeAsSeen before every navigate('/') ─
   const goToDashboard = () => {
@@ -39,12 +44,27 @@ const Welcome: React.FC = () => {
   useEffect(() => {
     setShowConfetti(true);
 
+    // Generate confetti particle data here — this runs once on mount,
+    // outside the render phase, so Math.random() here is fine.
+    setConfettiParticles(
+      [...Array(20)].map(() => ({
+        initialX: Math.random() * 400 - 200,
+        initialRotate: Math.random() * 360,
+        animateRotate: Math.random() * 720,
+        duration: 3 + Math.random() * 2,
+        delay: Math.random() * 2,
+        repeatDelay: Math.random() * 5,
+        left: Math.random() * 100,
+      })),
+    );
+
     // Auto-navigate after countdown
     const timer = setTimeout(() => {
       goToDashboard(); // ← was navigate('/') — now calls markWelcomeAsSeen first
     }, REDIRECT_SECS * 1000);
 
     return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // empty deps — only runs once on mount
 
   const getSubjectLabel = (combo: string | string[]) => {

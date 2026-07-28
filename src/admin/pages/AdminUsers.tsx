@@ -467,7 +467,6 @@ const AdminUsers: React.FC = () => {
   };
 
   // ── Actions ────────────────────────────────────────────────────────────────
-  // ── Actions ────────────────────────────────────────────────────────────────
   const logAudit = async (
     action: string,
     target: AdminUser,
@@ -510,6 +509,14 @@ const AdminUsers: React.FC = () => {
         // Always route through pro_users — the trigger keeps profiles.is_pro in sync.
         // No more direct writes to profiles.is_pro from the admin panel.
         if (newPro) {
+          // NOTE: Date.now() below only ever executes when this async function
+          // runs in response to the admin clicking "Grant Pro Access" (see
+          // onAction={() => onAction("pro", user)} in UserDrawer above) — it
+          // never runs during render. The purity rule's static analysis can't
+          // see that this whole function is only reachable via onClick, so it
+          // flags it conservatively; suppressing here is correct rather than
+          // restructuring already-correct event-handler code.
+          // eslint-disable-next-line react-hooks/purity -- runs only inside onClick handler, never during render
           const { error } = await supabase.from("pro_users").upsert(
             {
               user_id: user.id,
@@ -517,6 +524,7 @@ const AdminUsers: React.FC = () => {
               status: "active",
               plan_type: "admin_grant",
               payment_reference: `admin-grant-${Date.now()}`,
+              // eslint-disable-next-line react-hooks/purity -- runs only inside onClick handler, never during render
               expires_at: new Date(
                 Date.now() + 30 * 24 * 60 * 60 * 1000,
               ).toISOString(), // 30-day comp grant; adjust as needed
