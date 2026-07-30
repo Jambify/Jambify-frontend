@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useUserStore } from "../../Store/useUserStore";
 import Button from "../ui/Button";
 import { APP_CONFIG } from "../../Store/useUserStore"; // Importing the app config for pricing details
@@ -17,14 +17,8 @@ interface FlutterwaveCallbackData {
   [key: string]: unknown;
 }
 
-const PRO_FEATURES = [
-  "Download all subject packs for offline use",
-  "Access 4,180+ real JAMB questions (1990–2024)",
-  "Audio explanations for every answer",
-  "Spaced repetition scheduling (SM-2 algorithm)",
-  "Priority access to new question packs",
-  "Ad-free experience",
-];
+
+const FALLBACK_QUESTION_COUNT = 4180;
 
 const ProGate: React.FC = () => {
   const { upgradeToPro, name, email } = useUserStore();
@@ -57,6 +51,7 @@ const ProGate: React.FC = () => {
       processPayment();
     }
   };
+
 
   const processPayment = () => {
     const flwKey = import.meta.env.VITE_FLW_PUBLIC_KEY;
@@ -126,6 +121,39 @@ const ProGate: React.FC = () => {
       setError("Could not initiate payment.");
     }
   };
+   const [questionCount, setQuestionCount] = useState<number>(FALLBACK_QUESTION_COUNT);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function fetchCount() {
+      const { count, error } = await supabase
+        .from("questions")
+        .select("id", { count: "exact", head: true });
+
+      if (!cancelled && !error && typeof count === "number") {
+        setQuestionCount(count);
+      }
+      // On error, questionCount just stays at FALLBACK_QUESTION_COUNT — no visible failure.
+    }
+
+    fetchCount();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const formattedCount = questionCount.toLocaleString();
+
+  const PRO_FEATURES = useMemo(() => [
+  "Download all subject packs for offline use",
+  `Access ${formattedCount}+ real JAMB questions (1990–2025)`,
+  "Audio explanations for every answer",
+  "Spaced repetition scheduling (SM-2 algorithm)",
+  "Priority access to new question packs",
+  "Ad-free experience",
+], []);
+
 
   return (
     <div className="animate-fadeIn mx-auto max-w-md py-6">

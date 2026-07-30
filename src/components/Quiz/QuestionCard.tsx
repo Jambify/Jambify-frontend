@@ -4,6 +4,7 @@ import OptionButton from "./OptionButton";
 import ExplanationBox from "./Explanation";
 import { useState } from "react";
 import Button from "../ui/Button";
+import ReportQuestionButton from "../shared/ReportQuestionButton";
 import { sanitizeQuestionText,  } from "../../lib/sanitize-html";
 
 const SUBJ_STYLES: Record<string, { bg: string; text: string }> = {
@@ -51,9 +52,11 @@ const QuestionCard: React.FC = () => {
           >
             ● {q.difficulty}
           </span>
-          <span className="text-textDim ml-auto hidden max-w-[40%] truncate text-[11px] sm:inline">
+          <span className="text-textDim ml-auto hidden max-w-[30%] truncate text-[11px] sm:inline">
             Topic: {q.topic}
           </span>
+          {/* Report button — anchored to the question itself, always visible without scrolling */}
+          <ReportQuestionButton questionId={q.id} context="quiz" compact />
         </div>
 
         {/* Question text */}

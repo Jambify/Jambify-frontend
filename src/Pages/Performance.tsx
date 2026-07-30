@@ -6,6 +6,7 @@ import AppLayout from "../components/Layout/AppLayout";
 import { usePerformanceStore } from "../Store/usePerformanceStore";
 import { useUserStore } from "../Store/useUserStore";
 import { useSubjectStore, SUBJECT_COMBO_MAP } from "../Store/useSubjectStore";
+import { computeBestWorstSubjects } from "../lib/subjectInsights";
 import WeeklyChart from "../components/Performance/WeeklyChart";
 import PageLoader from "../components/ui/PageLoader";
 import {
@@ -35,21 +36,6 @@ const getSubjectIcon = (subject: string) => {
   };
   return icons[subject] || "📖";
 };
-
-type BestSubjectResult =
-  | { type: "subject"; subject: string; best_score: number }
-  | { type: "no_data" }
-  | { type: "no_subjects" };
-
-type WorstSubjectResult =
-  | {
-      type: "weak_topic" | "low_accuracy" | "subject";
-      subject: string;
-      worst_score: number;
-    }
-  | { type: "all_good" }
-  | { type: "no_data" }
-  | { type: "no_subjects" };
 
 const Performance: React.FC = () => {
   const navigate = useNavigate();
@@ -133,85 +119,10 @@ const Performance: React.FC = () => {
       ? SUBJECT_COMBO_MAP[subjectCombo] || []
       : [];
 
-  const bestSubject: BestSubjectResult = (() => {
-    if (userSubjects.length === 0) return { type: "no_subjects" };
-    const eligibleSubjects = subjects.filter((s) => s.accuracy > 0);
-    if (eligibleSubjects.length > 0) {
-      const sorted = [...eligibleSubjects].sort(
-        (a, b) => b.accuracy - a.accuracy,
-      );
-      const sub = sorted[0];
-      if (sub)
-        return { type: "subject", subject: sub.name, best_score: sub.accuracy };
-    }
-    return { type: "no_data" };
-  })();
-
-  const worstSubject: WorstSubjectResult = (() => {
-    if (userSubjects.length === 0) return { type: "no_subjects" };
-
-    const subjectsWithWeakTopics = subjects.filter(
-      (s) => s.weakTopics && s.weakTopics.length > 0,
-    );
-    if (subjectsWithWeakTopics.length > 0) {
-      const sorted = [...subjectsWithWeakTopics].sort(
-        (a, b) => a.accuracy - b.accuracy,
-      );
-      const sub = sorted[0];
-      if (sub)
-        return {
-          type: "weak_topic",
-          subject: sub.name,
-          worst_score: sub.accuracy,
-        };
-    }
-
-    const lowAccuracySubjects = subjects.filter(
-      (s) => s.accuracy > 0 && s.accuracy < 50,
-    );
-    if (lowAccuracySubjects.length > 0) {
-      const sorted = [...lowAccuracySubjects].sort(
-        (a, b) => a.accuracy - b.accuracy,
-      );
-      const sub = sorted[0];
-      if (sub)
-        return {
-          type: "low_accuracy",
-          subject: sub.name,
-          worst_score: sub.accuracy,
-        };
-    }
-
-    const attemptedSubjects = subjects.filter((s) => s.accuracy > 0);
-    if (attemptedSubjects.length > 0) {
-      const sorted = [...attemptedSubjects].sort(
-        (a, b) => a.accuracy - b.accuracy,
-      );
-      const sub = sorted[0];
-      if (sub) {
-        if (
-          bestSubject.type === "subject" &&
-          sub.name === bestSubject.subject
-        ) {
-          if (attemptedSubjects.length === 1) return { type: "all_good" };
-          const nextSub = sorted[1];
-          if (nextSub)
-            return {
-              type: "subject",
-              subject: nextSub.name,
-              worst_score: nextSub.accuracy,
-            };
-        }
-        return {
-          type: "subject",
-          subject: sub.name,
-          worst_score: sub.accuracy,
-        };
-      }
-    }
-
-    return { type: "no_data" };
-  })();
+  const { best: bestSubject, worst: worstSubject } = computeBestWorstSubjects(
+    subjects,
+    userSubjects,
+  );
 
   const userSubjectsWithIcons = userSubjects.map((name) => ({
     name,
@@ -385,26 +296,28 @@ const Performance: React.FC = () => {
             label="Worst Subject"
             value={
               worstSubject.type === "weak_topic" ||
-              worstSubject.type === "low_accuracy" ||
-              worstSubject.type === "subject"
+              worstSubject.type === "low_accuracy"
                 ? worstSubject.subject
                 : worstSubject.type === "all_good"
                   ? "You're killing it!"
-                  : worstSubject.type === "no_data"
-                    ? "Start Practice"
-                    : "Select Subjects"
+                  : worstSubject.type === "need_more_data"
+                    ? "Keep practicing"
+                    : worstSubject.type === "no_data"
+                      ? "Start Practice"
+                      : "Select Subjects"
             }
             sub={
               worstSubject.type === "weak_topic"
                 ? "Weak topic needs attention"
-                : worstSubject.type === "low_accuracy" ||
-                    worstSubject.type === "subject"
+                : worstSubject.type === "low_accuracy"
                   ? `Lowest: ${Math.round(worstSubject.worst_score)}% score`
                   : worstSubject.type === "all_good"
                     ? "All subjects are strong!"
-                    : worstSubject.type === "no_data"
-                      ? "Take a quiz to see"
-                      : "Choose your combo"
+                    : worstSubject.type === "need_more_data"
+                      ? "Try another subject to compare"
+                      : worstSubject.type === "no_data"
+                        ? "Take a quiz to see"
+                        : "Choose your combo"
             }
             color="text-danger"
             icon="⚠️"

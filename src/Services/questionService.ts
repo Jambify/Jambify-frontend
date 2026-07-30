@@ -47,7 +47,7 @@ interface UserSeenQuestionRow {
   question_id: string;
 }
 
-const MIN_YEAR = 2015;
+const MIN_YEAR = 2010;
 const MAX_YEAR = 2025;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -586,14 +586,35 @@ export const fetchAllQuestionsForBrowse = async (
       q = q.eq("difficulty", resolvedDiff);
     }
 
-    const { data, error } = await q;
+    // FIX: a single unbounded `await q` silently truncates at Supabase's
+    // default 1000-row cap with no error thrown — it just looks like a
+    // smaller dataset than actually exists (e.g. "All Subjects" reporting
+    // 977 when the real total across subjects is in the thousands).
+    // Loop in fixed-size batches via .range() until a batch comes back
+    // shorter than the batch size — that's the only reliable signal that
+    // we've reached the actual end of the result set.
+    const BATCH_SIZE = 1000;
+    let allRows: DbQuestionRow[] = [];
+    let batchOffset = 0;
 
-    if (error) {
-      console.error("[fetchAllQuestionsForBrowse] Error:", error);
-      return [];
+    while (true) {
+      const { data, error } = await q.range(batchOffset, batchOffset + BATCH_SIZE - 1);
+
+      if (error) {
+        console.error("[fetchAllQuestionsForBrowse] Error:", error);
+        break;
+      }
+
+      const batch = (data ?? []) as DbQuestionRow[];
+      allRows = allRows.concat(batch);
+
+      if (batch.length < BATCH_SIZE) break;
+      batchOffset += BATCH_SIZE;
     }
 
-    if (data && data.length > 0) {
+    const data = allRows;
+
+    if (data.length > 0) {
       const seenContent = new Set<string>();
       const finalQuestions: Question[] = [];
 

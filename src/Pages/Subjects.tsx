@@ -1,5 +1,3 @@
-// src/Pages/Subjects.tsx (Updated with mobile fixes + desktop header fix + 2-col grid)
-
 import React, { useState, useEffect } from "react";
 import AppLayout from "../components/Layout/AppLayout";
 import { useSubjectStore } from "../Store/useSubjectStore";
@@ -8,25 +6,10 @@ import PageLoader from "../components/ui/PageLoader";
 import { usePerformanceStore } from "../Store/usePerformanceStore";
 import { useUserStore } from "../Store/useUserStore";
 import { SUBJECT_COMBO_MAP } from "../Store/useSubjectStore";
+import { computeBestWorstSubjects } from "../lib/subjectInsights";
 import { RefreshCw, AlertCircle } from "lucide-react";
 
 type SortKey = "name" | "accuracy" | "progress";
-
-// Type definitions for our structured best/worst subject objects (same as in Performance.tsx)
-type BestSubjectResult =
-  | { type: "subject"; subject: string; best_score: number }
-  | { type: "no_data" }
-  | { type: "no_subjects" };
-
-type WorstSubjectResult =
-  | {
-      type: "weak_topic" | "low_accuracy" | "subject";
-      subject: string;
-      worst_score: number;
-    }
-  | { type: "all_good" }
-  | { type: "no_data" }
-  | { type: "no_subjects" };
 
 const Subjects: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -67,124 +50,25 @@ const Subjects: React.FC = () => {
   // Check if we have any existing subject data
   const hasData = hasFetched && subjects.length > 0;
 
-  // Filter stats based on user subject combo (same as in Performance.tsx)
+  // Filter stats based on user subject combo
   const userSubjects = Array.isArray(subjectCombo)
     ? subjectCombo
     : subjectCombo
       ? SUBJECT_COMBO_MAP[subjectCombo] || []
       : [];
 
-  // Best and Worst Subject logic with proper prioritization! (same as Performance.tsx)
-  const bestSubject = ((): BestSubjectResult => {
-    if (userSubjects.length === 0) {
-      return { type: "no_subjects" };
-    }
-
-    // First priority: subjects with accuracy > 0
-    const eligibleSubjects = subjects.filter((s) => s.accuracy > 0);
-    if (eligibleSubjects.length > 0) {
-      const sorted = [...eligibleSubjects].sort(
-        (a, b) => b.accuracy - a.accuracy,
-      );
-      const sub = sorted[0];
-      if (sub) {
-        return { type: "subject", subject: sub.name, best_score: sub.accuracy };
-      }
-    }
-
-    // If no performance data yet
-    return { type: "no_data" };
-  })();
-
-  const worstSubject = ((): WorstSubjectResult => {
-    if (userSubjects.length === 0) {
-      return { type: "no_subjects" };
-    }
-
-    // 1. First priority: Any subject with a weak topic
-    const subjectsWithWeakTopics = subjects.filter(
-      (s) => s.weakTopics && s.weakTopics.length > 0,
-    );
-    if (subjectsWithWeakTopics.length > 0) {
-      // Among these, pick the one with lowest accuracy
-      const sorted = [...subjectsWithWeakTopics].sort(
-        (a, b) => a.accuracy - b.accuracy,
-      );
-      const sub = sorted[0];
-      if (sub) {
-        return {
-          type: "weak_topic",
-          subject: sub.name,
-          worst_score: sub.accuracy,
-        };
-      }
-    }
-
-    // 2. Second priority: Subjects with accuracy < 50% (and attempted)
-    const lowAccuracySubjects = subjects.filter(
-      (s) => s.accuracy > 0 && s.accuracy < 50,
-    );
-    if (lowAccuracySubjects.length > 0) {
-      const sorted = [...lowAccuracySubjects].sort(
-        (a, b) => a.accuracy - b.accuracy,
-      );
-      const sub = sorted[0];
-      if (sub) {
-        return {
-          type: "low_accuracy",
-          subject: sub.name,
-          worst_score: sub.accuracy,
-        };
-      }
-    }
-
-    // 3. Third priority: Any attempted subject (accuracy > 0)
-    const attemptedSubjects = subjects.filter((s) => s.accuracy > 0);
-    if (attemptedSubjects.length > 0) {
-      const sorted = [...attemptedSubjects].sort(
-        (a, b) => a.accuracy - b.accuracy,
-      );
-      const sub = sorted[0];
-      if (sub) {
-        // Check if it's same as best subject
-        if (
-          bestSubject.type === "subject" &&
-          sub.name === bestSubject.subject
-        ) {
-          // If only one subject, show "You're doing great!" instead
-          if (attemptedSubjects.length === 1) {
-            return { type: "all_good" };
-          }
-          // Otherwise pick next one
-          const nextSub = sorted[1];
-          if (nextSub) {
-            return {
-              type: "subject",
-              subject: nextSub.name,
-              worst_score: nextSub.accuracy,
-            };
-          }
-        }
-
-        return {
-          type: "subject",
-          subject: sub.name,
-          worst_score: sub.accuracy,
-        };
-      }
-    }
-
-    // 4. If no attempted subjects yet
-    return { type: "no_data" };
-  })();
+  // Use shared subject insights utility logic
+  const { best: bestSubject, worst: worstSubject } = computeBestWorstSubjects(
+    subjects,
+    userSubjects,
+  );
 
   // Determine best and worst subject names for badges
   const bestSubjectName =
     bestSubject.type === "subject" ? bestSubject.subject : null;
+
   const worstSubjectName =
-    worstSubject.type === "weak_topic" ||
-    worstSubject.type === "low_accuracy" ||
-    worstSubject.type === "subject"
+    worstSubject.type === "weak_topic" || worstSubject.type === "low_accuracy"
       ? worstSubject.subject
       : null;
 
@@ -316,25 +200,30 @@ const Subjects: React.FC = () => {
           <div className="flex flex-col gap-3">
             {/* Row 1: Refresh button + Sync status */}
             <div className="flex items-center gap-3">
-                        {/* FIXED BUTTON STATE MECHANISM */}
-                        <button
-                          onClick={handleManualRefresh}
-                          disabled={isManualRefreshing}
-                          className="text-textDim hover:text-brand bg-bgCard border-borderMuted hover:border-brand/30 group flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-bold transition-all disabled:opacity-75 active:scale-95"
-                        >
-                          <RefreshCw
-                            size={16}
-                            className={`transition-transform ${isManualRefreshing ? "animate-spin" : "group-hover:rotate-45"}`}
-                          />
-                          {isManualRefreshing ? "Refreshing..." : "Refresh Data"}
-                        </button>
-                        <div className="text-textDim bg-bgCard border-borderMuted flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold shadow-sm">
-                          <span className={`h-2 w-2 rounded-full ${error ? "bg-warning" : "bg-success animate-pulse"}`} />
-                          {error ? "Showing cached data" : isLoading ? "SYNCING..." : "LIVE DATA SYNCED"}
-                        </div>
-                      </div>
+              <button
+                onClick={handleManualRefresh}
+                disabled={isManualRefreshing}
+                className="text-textDim hover:text-brand bg-bgCard border-borderMuted hover:border-brand/30 group flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-bold transition-all disabled:opacity-75 active:scale-95"
+              >
+                <RefreshCw
+                  size={16}
+                  className={`transition-transform ${isManualRefreshing ? "animate-spin" : "group-hover:rotate-45"}`}
+                />
+                {isManualRefreshing ? "Refreshing..." : "Refresh Data"}
+              </button>
+              <div className="text-textDim bg-bgCard border-borderMuted flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold shadow-sm">
+                <span
+                  className={`h-2 w-2 rounded-full ${error ? "bg-warning" : "bg-success animate-pulse"}`}
+                />
+                {error
+                  ? "Showing cached data"
+                  : isLoading
+                    ? "SYNCING..."
+                    : "LIVE DATA SYNCED"}
+              </div>
+            </div>
 
-            {/* Row 2: Sort controls, own line so they never compete for space */}
+            {/* Row 2: Sort controls */}
             <div className="flex flex-wrap items-center gap-1.5 lg:justify-end">
               <span className="text-textDim text-[11px] whitespace-nowrap">
                 Sort:
@@ -393,7 +282,7 @@ const Subjects: React.FC = () => {
           </div>
         </div>
 
-        {/* Subject Grid — capped at 2 columns, no lg/xl overrides */}
+        {/* Subject Grid — 2 columns */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {sorted.map((subject) => (
             <SubjectCard
