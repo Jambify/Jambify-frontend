@@ -1,7 +1,8 @@
 /**
  * src/components/landing/Navbar.tsx
  * ───────────────────────────────────
- * Sticky nav with scroll-aware blur background and mobile menu.
+ * Sticky nav with scroll-aware blur background, route/hash active-state highlighting,
+ * and mobile menu.
  */
 
 import React, { useEffect, useState } from "react";
@@ -25,34 +26,38 @@ const Navbar: React.FC = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // These links point at sections that only exist on the landing page
-  // (Hero, Pricing, FAQ, etc.). A plain <a href="#pricing"> works fine
-  // while already on "/", since the browser just jumps to the element —
-  // but from any other route (like /about) that same anchor just tacks
-  // "#pricing" onto the current URL with nothing there to scroll to. So:
-  // on the home page, keep the plain anchor (native same-page jump);
-  // anywhere else, route back to "/" with the hash so LandingPage's
-  // hash-scroll effect can pick it up after it mounts.
+  // Helper active-state checkers
+  const isAboutActive = location.pathname === "/about";
+  const isGuestActive = location.pathname === "/guest";
+
   const renderNavLink = (item: string, onClick?: () => void) => {
     const slug = item.toLowerCase().replace(" ", "-");
+    const isActive = isHome && location.hash === `#${slug}`;
+
+    const baseClasses = "text-sm transition-colors";
+    const activeClasses = isActive
+      ? "text-brand font-bold"
+      : "text-textMuted hover:text-textMain font-medium";
+
     if (isHome) {
       return (
         <a
           key={item}
           href={`#${slug}`}
           onClick={onClick}
-          className="text-textMuted hover:text-textMain text-sm font-medium transition-colors"
+          className={`${baseClasses} ${activeClasses}`}
         >
           {item}
         </a>
       );
     }
+
     return (
       <Link
         key={item}
         to={`/#${slug}`}
         onClick={onClick}
-        className="text-textMuted hover:text-textMain text-sm font-medium transition-colors"
+        className={`${baseClasses} ${activeClasses}`}
       >
         {item}
       </Link>
@@ -78,20 +83,30 @@ const Navbar: React.FC = () => {
           </span>
         </div>
 
+        {/* Desktop Links */}
         <div className="hidden items-center gap-8 md:flex">
           <Link
             to="/about"
-            className="text-textMuted hover:text-textMain text-sm font-medium transition-colors"
+            className={`text-sm transition-colors ${
+              isAboutActive
+                ? "text-brand font-bold"
+                : "text-textMuted hover:text-textMain font-medium"
+            }`}
           >
             About
           </Link>
           {NAV_LINKS.map((item) => renderNavLink(item))}
         </div>
 
+        {/* Desktop CTAs */}
         <div className="flex items-center gap-4">
           <Link
             to="/guest"
-            className="text-textMuted hover:text-textMain hidden text-sm font-bold transition-colors md:block"
+            className={`hidden text-sm transition-colors md:block ${
+              isGuestActive
+                ? "text-brand font-bold"
+                : "text-textMuted hover:text-textMain font-bold"
+            }`}
           >
             Practice Mode
           </Link>
@@ -102,7 +117,7 @@ const Navbar: React.FC = () => {
             Get Started
           </Link>
           <button
-            className="md:hidden"
+            className="md:hidden text-textMain"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             aria-label="Toggle menu"
           >
@@ -111,18 +126,19 @@ const Navbar: React.FC = () => {
         </div>
       </div>
 
+      {/* Mobile Drawer */}
       {isMobileMenuOpen && (
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           className="border-borderMuted bg-bgMain flex flex-col gap-4 border-t px-6 py-4 md:hidden"
         >
-          {/* About sits first here too, right under the brand, for the same
-              reason it sits next to the logo on desktop. */}
           <Link
             to="/about"
             onClick={() => setIsMobileMenuOpen(false)}
-            className="text-textMain text-sm font-bold"
+            className={`text-sm ${
+              isAboutActive ? "text-brand font-bold" : "text-textMain font-bold"
+            }`}
           >
             About
           </Link>
@@ -132,7 +148,9 @@ const Navbar: React.FC = () => {
           <Link
             to="/guest"
             onClick={() => setIsMobileMenuOpen(false)}
-            className="text-textMain text-sm font-bold"
+            className={`text-sm ${
+              isGuestActive ? "text-brand font-bold" : "text-textMain font-bold"
+            }`}
           >
             Practice Mode
           </Link>
