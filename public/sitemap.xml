@@ -13,6 +13,14 @@
     </image:image>
   </url>
 
+  <!-- About / Story Page -->
+  <url>
+    <loc>https://www.schooldra.com/about</loc>
+    <lastmod>2026-07-31</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
   <!-- Authentication Pages -->
   <url>
     <loc>https://www.schooldra.com/signin</loc>
@@ -53,7 +61,7 @@
     <priority>0.8</priority>
   </url>
 
-  <!-- Legal Pages (public guest versions, not the authenticated ones) -->
+  <!-- Legal Pages (public guest versions) -->
   <url>
     <loc>https://www.schooldra.com/guest/privacy-policy</loc>
     <lastmod>2026-07-14</lastmod>

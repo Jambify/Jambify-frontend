@@ -17,6 +17,9 @@ const Footer: React.FC = () => {
             <span className="font-display text-sm font-bold">Schooldra</span>
           </div>
           <div className="flex flex-wrap items-center justify-center gap-6 text-sm">
+            <Link to="/about" className="text-textMuted hover:text-brand transition-colors">
+              About
+            </Link>
             <Link to="/guest/privacy-policy" className="text-textMuted hover:text-brand transition-colors">
               Privacy Policy
             </Link>

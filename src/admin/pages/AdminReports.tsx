@@ -9,6 +9,25 @@
  * "Could not find a relationship between 'question_reports' and 'reported_by'"
  * error. Instead of adding a new FK via SQL, we fetch profiles in a second
  * query (by the list of reporter ids) and merge them in JS below.
+ *
+ * WORKFLOW:
+ *   open       -> the moment an admin clicks "View Question" to go look at
+ *                 the flagged content, the report auto-transitions to
+ *                 reviewed. There's no separate manual "mark reviewed" step —
+ *                 viewing IS reviewing.
+ *   reviewed   -> admin decides: either the question genuinely needed a fix
+ *                 (they go correct it in Adminquestions, then come back and
+ *                 click "Mark Corrected" here), or it was a false alarm
+ *                 (click "Dismiss" — this only updates the report's own
+ *                 status; it doesn't touch the question itself or notify
+ *                 the reporter, it just removes the report from the "open"
+ *                 queue so it stops needing attention).
+ *
+ * ASSUMPTION TO VERIFY: "View Question" links to
+ * `/admin/Adminquestions?id=<question_id>` in a new tab. I don't have
+ * Adminquestions.tsx, so I can't confirm it actually reads that `id` query
+ * param to scroll to / open that specific question for editing — if it
+ * doesn't yet, share that file and the receiving end can be wired in too.
  */
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
@@ -23,6 +42,7 @@ import {
   X,
   Check,
   Ban,
+  ExternalLink,
 } from "lucide-react";
 
 interface QuestionReport {
@@ -71,6 +91,13 @@ const STATUS_COLORS: Record<string, string> = {
   reviewed: "bg-blue-500/10 text-blue-400 border-blue-500/30",
   fixed: "bg-success/10 text-success border-success/30",
   dismissed: "bg-bgSurface text-textDim border-borderMuted",
+};
+
+const STATUS_LABELS: Record<string, string> = {
+  open: "open",
+  reviewed: "reviewed",
+  fixed: "corrected",
+  dismissed: "dismissed",
 };
 
 const AdminReports: React.FC = () => {
@@ -173,6 +200,7 @@ const AdminReports: React.FC = () => {
   const updateStatus = async (
     id: string,
     newStatus: QuestionReport["status"],
+    options?: { silent?: boolean },
   ) => {
     setUpdatingId(id);
     try {
@@ -185,12 +213,23 @@ const AdminReports: React.FC = () => {
       setReports((prev) =>
         prev.map((r) => (r.id === id ? { ...r, status: newStatus } : r)),
       );
-      toast("success", `Report marked as ${newStatus}`);
+      if (!options?.silent) {
+        toast("success", `Report marked as ${STATUS_LABELS[newStatus]}`);
+      }
     } catch (err: unknown) {
       const error = err as PostgrestError;
       toast("error", error.message ?? "Failed to update report status");
     } finally {
       setUpdatingId(null);
+    }
+  };
+
+  // Clicking through to look at the flagged question IS the review step —
+  // if the report is still "open", viewing it silently promotes it to
+  // "reviewed" so it drops out of the open queue without a separate button.
+  const handleViewQuestion = (report: QuestionReport) => {
+    if (report.status === "open") {
+      updateStatus(report.id, "reviewed", { silent: true });
     }
   };
 
@@ -242,7 +281,7 @@ const AdminReports: React.FC = () => {
             <option value="all">All statuses</option>
             <option value="open">Open</option>
             <option value="reviewed">Reviewed</option>
-            <option value="fixed">Fixed</option>
+            <option value="fixed">Corrected</option>
             <option value="dismissed">Dismissed</option>
           </select>
         </div>
@@ -272,7 +311,7 @@ const AdminReports: React.FC = () => {
                           "bg-bgSurface text-textMain",
                       )}
                     >
-                      {report.status}
+                      {STATUS_LABELS[report.status] ?? report.status}
                     </span>
                     <span className="bg-brand/10 text-brand-light rounded-full px-2 py-0.5 text-[10px] font-bold uppercase">
                       {report.reason.replace("_", " ")}
@@ -289,7 +328,7 @@ const AdminReports: React.FC = () => {
                 {/* Question Info Box */}
                 {report.questions ? (
                   <div className="bg-bgSurface border-borderMuted space-y-2 rounded-lg border p-4">
-                    <div className="text-textDim flex items-center justify-between text-xs">
+                    <div className="text-textDim flex flex-wrap items-center justify-between gap-2 text-xs">
                       <span className="text-textMain font-semibold">
                         {report.questions.subject}{" "}
                         {report.questions.year
@@ -299,10 +338,26 @@ const AdminReports: React.FC = () => {
                           ? ` · ${report.questions.topic}`
                           : ""}
                       </span>
-                      <span className="text-success font-medium">
-                        Correct Option:{" "}
-                        {String.fromCharCode(65 + report.questions.answer)}
-                      </span>
+                      <div className="flex items-center gap-3">
+                        <span className="text-success font-medium">
+                          Correct Option:{" "}
+                          {String.fromCharCode(65 + report.questions.answer)}
+                        </span>
+                        {/* Jump straight to this question to fix it —
+                            opens in a new tab so the reports list stays put.
+                            Also silently promotes an "open" report to
+                            "reviewed" the moment it's clicked. */}
+                        <a
+                          href={`/admin/Adminquestions?id=${report.question_id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={() => handleViewQuestion(report)}
+                          className="bg-brand/10 text-brand-light hover:bg-brand/20 flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase"
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                          View Question
+                        </a>
+                      </div>
                     </div>
                     <p className="text-textMain text-sm font-medium">
                       {report.questions.text}
@@ -348,26 +403,21 @@ const AdminReports: React.FC = () => {
                     </p>
                   </div>
 
-                  {/* Action Buttons */}
+                  {/* Action Buttons — only the two real decisions remain:
+                      the question was worth fixing (Corrected), or it
+                      wasn't (Dismiss). "Reviewed" is no longer a manual
+                      button since clicking "View Question" already does that. */}
                   <div className="flex shrink-0 flex-wrap items-center gap-1.5">
                     {updatingId === report.id ? (
                       <Loader2 className="text-brand h-4 w-4 animate-spin" />
                     ) : (
                       <>
-                        {report.status !== "reviewed" && (
-                          <button
-                            onClick={() => updateStatus(report.id, "reviewed")}
-                            className="bg-bgSurface border-borderMuted text-textMuted hover:text-textMain rounded-lg border px-2.5 py-1.5 font-semibold"
-                          >
-                            Mark Reviewed
-                          </button>
-                        )}
                         {report.status !== "fixed" && (
                           <button
                             onClick={() => updateStatus(report.id, "fixed")}
                             className="bg-success/10 text-success border-success/30 hover:bg-success/20 flex items-center gap-1 rounded-lg border px-2.5 py-1.5 font-semibold"
                           >
-                            <Check className="h-3 w-3" /> Mark Fixed
+                            <Check className="h-3 w-3" /> Mark Corrected
                           </button>
                         )}
                         {report.status !== "dismissed" && (

@@ -5,7 +5,7 @@
  */
 
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link, useLocation, useNavigate } from "react-router";
 import { motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import schooldraLogo from "../../assets/schooldraLogo.webp";
@@ -14,6 +14,8 @@ const NAV_LINKS = ["Mock Exams", "Past Questions", "Performance", "Pricing", "FA
 
 const Navbar: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isHome = location.pathname === "/";
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
@@ -23,11 +25,45 @@ const Navbar: React.FC = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // These links point at sections that only exist on the landing page
+  // (Hero, Pricing, FAQ, etc.). A plain <a href="#pricing"> works fine
+  // while already on "/", since the browser just jumps to the element —
+  // but from any other route (like /about) that same anchor just tacks
+  // "#pricing" onto the current URL with nothing there to scroll to. So:
+  // on the home page, keep the plain anchor (native same-page jump);
+  // anywhere else, route back to "/" with the hash so LandingPage's
+  // hash-scroll effect can pick it up after it mounts.
+  const renderNavLink = (item: string, onClick?: () => void) => {
+    const slug = item.toLowerCase().replace(" ", "-");
+    if (isHome) {
+      return (
+        <a
+          key={item}
+          href={`#${slug}`}
+          onClick={onClick}
+          className="text-textMuted hover:text-textMain text-sm font-medium transition-colors"
+        >
+          {item}
+        </a>
+      );
+    }
+    return (
+      <Link
+        key={item}
+        to={`/#${slug}`}
+        onClick={onClick}
+        className="text-textMuted hover:text-textMain text-sm font-medium transition-colors"
+      >
+        {item}
+      </Link>
+    );
+  };
+
   return (
     <nav
       className={`sticky top-0 z-50 border-b transition-all duration-300 ${
         isScrolled
-          ? "bg-bgMain/80 border-borderMuted shadow-sm backdrop-blur-md"
+          ? "bg-bgSurface/95 border-borderMuted shadow-nav backdrop-blur-md"
           : "border-transparent bg-transparent"
       }`}
     >
@@ -43,15 +79,13 @@ const Navbar: React.FC = () => {
         </div>
 
         <div className="hidden items-center gap-8 md:flex">
-          {NAV_LINKS.map((item) => (
-            <a
-              key={item}
-              href={`#${item.toLowerCase().replace(" ", "-")}`}
-              className="text-textMuted hover:text-textMain text-sm font-medium transition-colors"
-            >
-              {item}
-            </a>
-          ))}
+          <Link
+            to="/about"
+            className="text-textMuted hover:text-textMain text-sm font-medium transition-colors"
+          >
+            About
+          </Link>
+          {NAV_LINKS.map((item) => renderNavLink(item))}
         </div>
 
         <div className="flex items-center gap-4">
@@ -83,16 +117,18 @@ const Navbar: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           className="border-borderMuted bg-bgMain flex flex-col gap-4 border-t px-6 py-4 md:hidden"
         >
-          {NAV_LINKS.map((item) => (
-            <a
-              key={item}
-              href={`#${item.toLowerCase().replace(" ", "-")}`}
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="text-textMain text-sm font-bold"
-            >
-              {item}
-            </a>
-          ))}
+          {/* About sits first here too, right under the brand, for the same
+              reason it sits next to the logo on desktop. */}
+          <Link
+            to="/about"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="text-textMain text-sm font-bold"
+          >
+            About
+          </Link>
+          {NAV_LINKS.map((item) =>
+            renderNavLink(item, () => setIsMobileMenuOpen(false)),
+          )}
           <Link
             to="/guest"
             onClick={() => setIsMobileMenuOpen(false)}

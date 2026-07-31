@@ -1,11 +1,13 @@
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    src/App.tsx — added dynamic /guest/past-questions/:subject and
    /guest/past-questions/:subject/:year routes for SEO (see comment below).
+   Also added the public /about route.
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 import React from "react";
 import { Routes, Route, Navigate } from "react-router";
 import Dashboard from "./Pages/Dashboard";
 import Landing from "./Pages/LandingPage";
+import AboutPage from "./Pages/Aboutpage";
 import Quiz from "./Pages/Quiz";
 import Performance from "./Pages/Performance";
 import Subjects from "./Pages/Subjects";
@@ -69,6 +71,7 @@ const App: React.FC = () => {
 
         <Routes>
           <Route path="/" element={<Landing />} />
+          <Route path="/about" element={<AboutPage />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/signin" element={<SignIn />} />
           <Route path="/auth/callback" element={<AuthCallback />} />

@@ -1,0 +1,294 @@
+/**
+ * src/Pages/AboutPage.tsx
+ * ───────────────────────────
+ * Standalone /about route. Reuses the landing page's Navbar/Footer so
+ * the shell feels consistent, but the content here is self-contained —
+ * this isn't meant to be split into reorderable Landing/ components like
+ * Hero or Pricing, since it's a single fixed narrative, not a section
+ * that gets A/B tested.
+ *
+ * TODO (Shreda): still says "someone close to me" on purpose — swap in
+ * the real relationship (cousin / sibling / friend) if you're comfortable
+ * naming it.
+ */
+
+import React from "react";
+import { Link } from "react-router";
+import { motion } from "framer-motion";
+import PageHelmet from "../components/SEO/PageHelmet";
+import Navbar from "../components/Landing/NavBar";
+import Footer from "../components/Landing/Footer";
+import {
+  Sparkles,
+  Target,
+  BookOpen,
+  Sparkle,
+  ShieldCheck,
+  ArrowRight,
+  Mail,
+  Hand,
+} from "lucide-react";
+
+const TIMELINE = [
+  {
+    period: "Where it started",
+    title: "Someone close to me was overwhelmed by JAMB prep",
+    body: "Random PDFs nobody organized. YouTube videos padded with ads. Past-question apps that just dump ten years of questions on you with no structure — nothing that actually helped them get better at what they were struggling with.",
+  },
+  {
+    period: "What I built",
+    title: "A smarter way to practice, made just for them",
+    body: "A quiz engine that never repeats a question you've already seen today, gets a little harder or easier based on how you're really doing, and quietly tracks your weak topics — so you always know exactly what to study next.",
+  },
+  {
+    period: "Today",
+    title: "Now it's here for you too",
+    body: "What started as a tool for one person has grown into a full platform — mock exams, thousands of real past questions, and an AI study mentor who's always ready to explain. Welcome to Schooldra 💙",
+  },
+];
+
+const FEATURES = [
+  {
+    icon: Target,
+    title: "Quizzes that grow with you",
+    body: "Getting a little easier or harder based on how you're really doing — subject by subject, topic by topic.",
+  },
+  {
+    icon: BookOpen,
+    title: "Real past questions",
+    body: "Thousands of genuine JAMB past questions from 2015–2025. Filter by subject, year, topic, or difficulty and start in seconds.",
+  },
+  {
+    icon: Sparkle,
+    title: "An AI mentor that explains",
+    body: "Stuck on a question? It won't just mark it wrong — it walks you through why, so it actually sticks.",
+  },
+];
+
+// Shared scroll-reveal variants — fade + rise, once per element, so the
+// page feels alive on first visit without replaying every time someone
+// scrolls back up past a section.
+const fadeUp = {
+  hidden: { opacity: 0, y: 18 },
+  visible: { opacity: 1, y: 0 },
+};
+
+const AboutPage: React.FC = () => {
+  return (
+    <>
+      <PageHelmet
+        title="About Schooldra — why we built this"
+        description="Schooldra started as a tool built for one person prepping for JAMB. Here's the friendly story behind it, and what it actually does."
+        canonical="https://www.schooldra.com/about"
+      />
+
+      <div className="bg-bgMain text-textMain min-h-screen">
+        <Navbar />
+
+        {/* ── Hero: the story is the visual anchor, no photo needed ── */}
+        <section className="relative overflow-hidden px-4 pt-20 pb-16 sm:pt-28 sm:pb-20">
+          <div
+            className="ambient-glow pointer-events-none absolute inset-0"
+            aria-hidden="true"
+          />
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="relative mx-auto max-w-3xl text-center"
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="border-brand/20 bg-brand/10 text-brand-light mb-6 inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-[11px] font-black tracking-widest uppercase"
+            >
+              <Sparkles size={13} />
+              The story behind Schooldra
+            </motion.div>
+            <h1 className="font-display text-textMain text-center text-3xl leading-[1.15] font-black tracking-tight sm:text-5xl">
+              I built this for someone I care about, prepping for the biggest
+              exam of their life.{" "}
+              <Hand className="text-brand inline-block h-[0.85em] w-[0.85em] origin-bottom-right align-baseline transition-transform hover:rotate-12" />
+            </h1>
+
+            <p className="text-textMuted mx-auto mt-6 max-w-xl text-base leading-relaxed sm:text-lg">
+              A month later, it grew into something much bigger. Here's the real
+              story — and everything it can do for you today.
+            </p>
+          </motion.div>
+        </section>
+
+        {/* ── Timeline: a real sequence, not a decorative one ── */}
+        <section className="px-4 pb-20">
+          <div className="mx-auto max-w-3xl">
+            <div className="space-y-8">
+              {TIMELINE.map((item, i) => (
+                <motion.div
+                  key={item.title}
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true, amount: 0.4 }}
+                  variants={fadeUp}
+                  transition={{ duration: 0.5, delay: i * 0.08 }}
+                  className="flex gap-5 sm:gap-6"
+                >
+                  <div className="flex flex-col items-center">
+                    <div className="bg-brand shadow-brand/30 flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-black text-white shadow-lg">
+                      {i + 1}
+                    </div>
+                    {i < TIMELINE.length - 1 && (
+                      <div className="bg-borderMuted my-2 w-px flex-1" />
+                    )}
+                  </div>
+                  <div className="pb-2">
+                    <p className="text-brand-light mb-1 text-[11px] font-black tracking-widest uppercase">
+                      {item.period}
+                    </p>
+                    <h3 className="font-display text-textMain mb-2 text-lg font-bold sm:text-xl">
+                      {item.title}
+                    </h3>
+                    <p className="text-textMuted text-sm leading-relaxed sm:text-base">
+                      {item.body}
+                    </p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── What it actually does ── */}
+        <section className="bg-bgSurface/40 border-borderMuted border-y px-4 py-16 sm:py-20">
+          <div className="mx-auto max-w-4xl">
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.5 }}
+              variants={fadeUp}
+              transition={{ duration: 0.5 }}
+              className="mb-10 text-center"
+            >
+              <h2 className="font-display text-textMain text-2xl font-bold sm:text-3xl">
+                What Schooldra actually does
+              </h2>
+              <p className="text-textDim mt-2 text-sm sm:text-base">
+                No fluff — this is the whole point of the app.
+              </p>
+            </motion.div>
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
+              {FEATURES.map((f, i) => (
+                <motion.div
+                  key={f.title}
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true, amount: 0.4 }}
+                  variants={fadeUp}
+                  transition={{ duration: 0.5, delay: i * 0.1 }}
+                  className="bg-bgCard border-borderMuted rounded-brand-xl border p-6"
+                >
+                  <div className="bg-brand/10 text-brand-light mb-4 flex h-11 w-11 items-center justify-center rounded-xl">
+                    <f.icon size={20} />
+                  </div>
+                  <h3 className="font-display text-textMain mb-1.5 text-base font-bold">
+                    {f.title}
+                  </h3>
+                  <p className="text-textMuted text-sm leading-relaxed">
+                    {f.body}
+                  </p>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── Trust note ── */}
+        <motion.section
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.5 }}
+          variants={fadeUp}
+          transition={{ duration: 0.5 }}
+          className="px-4 py-16 sm:py-20"
+        >
+          <div className="border-borderMuted bg-bgCard rounded-brand-2xl mx-auto flex max-w-3xl flex-col items-start gap-4 border p-7 sm:flex-row sm:items-center sm:p-8">
+            <div className="bg-success/10 text-success flex h-11 w-11 shrink-0 items-center justify-center rounded-xl">
+              <ShieldCheck size={20} />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-display text-textMain mb-1 text-base font-bold">
+                Your data stays yours
+              </h3>
+              <p className="text-textMuted text-sm leading-relaxed">
+                Schooldra is built and run by one person, not a faceless company
+                — so you're never just a username to us. Your account, quiz
+                history, and payment details are handled in line with Nigeria's
+                Data Protection Act (NDPA).
+              </p>
+            </div>
+            <Link
+              to="/guest/privacy-policy"
+              className="text-brand-light hover:text-brand shrink-0 text-sm font-bold whitespace-nowrap"
+            >
+              Read our Privacy Policy →
+            </Link>
+          </div>
+        </motion.section>
+
+        {/* ── Founder signature ── */}
+        <motion.section
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.6 }}
+          variants={fadeUp}
+          transition={{ duration: 0.5 }}
+          className="px-4 pb-4 text-center"
+        >
+          <div className="mx-auto max-w-md">
+            <div className="bg-brand/10 text-brand-light mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl text-lg font-black">
+              SH
+            </div>
+            <p className="font-display text-textMain text-base font-bold">
+              Shadrach
+            </p>
+            <p className="text-textDim text-xs font-semibold tracking-wide uppercase">
+              aka Shreda — builder of Schooldra
+            </p>
+          </div>
+        </motion.section>
+
+        {/* ── Contact + close ── */}
+        <section className="px-4 pb-20 text-center">
+          <p className="text-textMuted mx-auto max-w-lg text-sm leading-relaxed sm:text-base">
+            This started as something small, built for one person I care about.
+            If it helps you the way it helped them, that's already a win for
+            both of us — and if something feels off or missing, I'd genuinely
+            love to hear about it.
+          </p>
+
+          <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <a
+              href="mailto:support@schooldra.com"
+              className="text-textDim hover:text-textMain inline-flex items-center gap-2 text-sm font-semibold"
+            >
+              <Mail size={15} />
+              support@schooldra.com
+            </a>
+          </div>
+
+          <Link
+            to="/signup"
+            className="bg-brand hover:bg-brand-light shadow-brand/20 mt-8 inline-flex items-center gap-2 rounded-full px-7 py-3.5 text-sm font-bold text-white shadow-lg transition-all active:scale-95"
+          >
+            Start practicing free
+            <ArrowRight size={16} />
+          </Link>
+        </section>
+
+        <Footer />
+      </div>
+    </>
+  );
+};
+
+export default AboutPage;
