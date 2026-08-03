@@ -3,6 +3,15 @@
    /guest/past-questions/:subject/:year routes for SEO (see comment below).
    Also added the public /about route.
 
+   AUTH FIX: "/", "/signin", and "/signup" used to render OUTSIDE
+   <RouteGuard>, which meant the supabase.auth.getSession() check inside
+   RouteGuard never ran on those routes. Landing would render blind to
+   auth state, and only "became aware" once RouteGuard mounted for the
+   first time on some other route. Now all three are wrapped in
+   RouteGuard, which resolves the session first (showing a loading
+   spinner), then redirects an already-authenticated + fully-onboarded
+   user straight to /dashboard instead of showing Landing/SignIn/SignUp.
+
    PERF FIX: every page used to be a static top-level import, which means
    visiting "/" downloaded the JS for the entire app — quiz engine, mock
    exams, the whole admin panel — in one bundle, whether or not any of it
@@ -98,10 +107,31 @@ const App: React.FC = () => {
 
         <Suspense fallback={<RouteFallback />}>
           <Routes>
-            <Route path="/" element={<Landing />} />
+            <Route
+              path="/"
+              element={
+                <RouteGuard>
+                  <Landing />
+                </RouteGuard>
+              }
+            />
             <Route path="/about" element={<AboutPage />} />
-            <Route path="/signup" element={<SignUp />} />
-            <Route path="/signin" element={<SignIn />} />
+            <Route
+              path="/signup"
+              element={
+                <RouteGuard>
+                  <SignUp />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/signin"
+              element={
+                <RouteGuard>
+                  <SignIn />
+                </RouteGuard>
+              }
+            />
             <Route path="/auth/callback" element={<AuthCallback />} />
 
             <Route path="/guest" element={<GuestLanding />} />

@@ -4,6 +4,10 @@ import { Navigate, useLocation } from "react-router";
 import { useUserStore } from "../../Store/useUserStore";
 import { supabase } from "../../lib/supabase";
 
+// NOTE: "/" is handled separately below with an EXACT match, because
+// `pathname.startsWith("/")` is true for every route in the app — using
+// startsWith here would have swallowed every other route into the
+// "public route" branch.
 const PUBLIC_ROUTES = ["/signin", "/signup", "/verify", "/guest"];
 
 // ✅ Module-level flag — survives RouteGuard remounts
@@ -72,13 +76,19 @@ const RouteGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       </div>
     );
   }
+
   // 1. Public routes — redirect away if fully authenticated
-  if (PUBLIC_ROUTES.some((r) => pathname.startsWith(r))) {
+  //    "/" is matched EXACTLY (not startsWith) so it doesn't swallow
+  //    every other route in the app.
+  const isPublicRoute =
+    pathname === "/" || PUBLIC_ROUTES.some((r) => pathname.startsWith(r));
+
+  if (isPublicRoute) {
     if (
       isAuthenticated &&
       onboardingComplete &&
       hasSeenWelcome &&
-      (pathname === "/signin" || pathname === "/signup")
+      (pathname === "/signin" || pathname === "/signup" || pathname === "/")
     ) {
       return <Navigate to="/dashboard" replace />;
     }
