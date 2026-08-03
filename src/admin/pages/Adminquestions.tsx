@@ -339,7 +339,7 @@ const DeleteConfirm: React.FC<{
   onCancel: () => void;
   loading: boolean;
 }> = ({ question, onConfirm, onCancel, loading }) => (
-  <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+  <div className="fixed inset-0 z-60 flex items-center justify-center p-4">
     <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onCancel} />
     <div className="bg-bgCard border-danger/30 relative z-10 w-full max-w-sm rounded-2xl border p-6 shadow-2xl">
       <div className="bg-danger/10 mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full">
