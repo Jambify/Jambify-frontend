@@ -68,6 +68,13 @@ const ALL_SUBJECTS = [
   "Physics",
 ].sort();
 
+// FIX: this page used to default to "All Subjects", which meant every
+// visit with no subject picked yet fetched every subject's entire
+// question set at once — exactly the expensive unbounded-fetch pattern
+// we already fixed elsewhere. Now a subject is always required; this is
+// the fallback used when the URL doesn't specify one.
+const DEFAULT_SUBJECT = ALL_SUBJECTS[0];
+
 const SUBJECT_COLORS: Record<string, string> = {
   English: "#7B5FFF",
   Mathematics: "#00C896",
@@ -94,7 +101,9 @@ const PastQuestions = () => {
 
   
 
-  // Read filters from the URL
+  // Read filters from the URL. Subject now always resolves to a real
+  // subject — never "All" — falling back to DEFAULT_SUBJECT if the URL
+  // doesn't specify one or specifies something invalid.
   const filters: Filters = useMemo(() => {
     const subjectParam = searchParams.get("subject");
     const yearParam = searchParams.get("year");
@@ -106,7 +115,7 @@ const PastQuestions = () => {
       subject:
         subjectParam && ALL_SUBJECTS.includes(subjectParam)
           ? subjectParam
-          : "All",
+          : DEFAULT_SUBJECT,
       year:
         yearParam && (VALID_YEARS as readonly string[]).includes(yearParam)
           ? yearParam
@@ -149,12 +158,11 @@ const PastQuestions = () => {
     setLoadingError(null);
 
     try {
-      // --- FIX: When subject is "All", pass undefined or null to fetch all subjects ---
-      const subjectParam = filters.subject === "All" ? undefined : filters.subject;
-      
+      // Subject is always a real value now (never "All"), so this always
+      // scopes the fetch to exactly one subject — never the whole bank.
       const qs = await Promise.race([
         fetchAllQuestionsForBrowse(
-          subjectParam,
+          filters.subject,
           filters.year,
           filters.topic,
           filters.difficulty,
@@ -189,12 +197,9 @@ const PastQuestions = () => {
       setIsLoading(true);
       setLoadingError(null);
       try {
-        // --- FIX: When subject is "All", pass undefined to fetch all subjects ---
-        const subjectParam = filters.subject === "All" ? undefined : filters.subject;
-        
         const qs = await Promise.race([
           fetchAllQuestionsForBrowse(
-            subjectParam,
+            filters.subject,
             filters.year,
             filters.topic,
             filters.difficulty,
@@ -224,12 +229,8 @@ const PastQuestions = () => {
   useEffect(() => {
     let isMounted = true;
     const loadTopics = async () => {
-      if (filters.subject && filters.subject !== "All") {
-        const topics = await fetchTopicsBySubject(filters.subject);
-        if (isMounted) setAvailableTopics(topics);
-      } else {
-        setAvailableTopics([]);
-      }
+      const topics = await fetchTopicsBySubject(filters.subject);
+      if (isMounted) setAvailableTopics(topics);
     };
     loadTopics();
     return () => {
@@ -268,7 +269,10 @@ const PastQuestions = () => {
       };
 
       const params = new URLSearchParams();
-      if (merged.subject !== "All") params.set("subject", merged.subject);
+      // Subject is always set now — always written to the URL so the
+      // fetch scope is explicit and shareable, never implicitly "every
+      // subject."
+      params.set("subject", merged.subject);
       if (merged.year !== "All") params.set("year", merged.year);
       if (merged.topic !== "All") params.set("topic", merged.topic);
       if (merged.difficulty !== "All")
@@ -366,7 +370,8 @@ const PastQuestions = () => {
                 }
                 className="bg-bgSurface border-borderMuted text-textMain focus:ring-brand/50 w-full rounded-xl border px-4 py-2.5 focus:ring-2 focus:outline-none"
               >
-                <option value="All">All Subjects</option>
+                {/* "All Subjects" removed on purpose — selecting it used to
+                    fetch every subject's entire question set in one go. */}
                 {ALL_SUBJECTS.map((s: string) => (
                   <option key={s} value={s}>
                     {s}
@@ -399,8 +404,7 @@ const PastQuestions = () => {
               <select
                 value={filters.topic}
                 onChange={(e) => handleFilterChange({ topic: e.target.value })}
-                disabled={filters.subject === "All"}
-                className="bg-bgSurface border-borderMuted text-textMain focus:ring-brand/50 w-full rounded-xl border px-4 py-2.5 focus:ring-2 focus:outline-none disabled:opacity-50"
+                className="bg-bgSurface border-borderMuted text-textMain focus:ring-brand/50 w-full rounded-xl border px-4 py-2.5 focus:ring-2 focus:outline-none"
               >
                 <option value="All">All Topics</option>
                 {availableTopics.map((t) => (
@@ -525,7 +529,7 @@ const PastQuestions = () => {
               variant="secondary"
               onClick={() =>
                 handleFilterChange({
-                  subject: "All",
+                  subject: DEFAULT_SUBJECT,
                   year: "All",
                   topic: "All",
                   difficulty: "All",

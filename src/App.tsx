@@ -2,54 +2,71 @@
    src/App.tsx — added dynamic /guest/past-questions/:subject and
    /guest/past-questions/:subject/:year routes for SEO (see comment below).
    Also added the public /about route.
+
+   PERF FIX: every page used to be a static top-level import, which means
+   visiting "/" downloaded the JS for the entire app — quiz engine, mock
+   exams, the whole admin panel — in one bundle, whether or not any of it
+   ran on that page. That's the likely source of PageSpeed's "5,998 KiB
+   total payload" and "253 KiB unused JavaScript" flags. Converted every
+   route component to React.lazy() so each route only loads its own chunk.
+   Kept eager: layout/guard wrappers that run on every route regardless
+   (RouteGuard, AdminGuard, AdminLayout, ScrollToTop, StudyTimeTracker,
+   AuthErrorBoundary, FrozenAccountGuard, ProRevokedModal) since they're
+   small and always needed immediately, not page-specific.
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-import React from "react";
+import React, { lazy, Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router";
-import Dashboard from "./Pages/Dashboard";
-import Landing from "./Pages/LandingPage";
-import AboutPage from "./Pages/Aboutpage";
-import Quiz from "./Pages/Quiz";
-import Performance from "./Pages/Performance";
-import Subjects from "./Pages/Subjects";
-import MockExam from "./Pages/MockExam/MockExam";
-import Onboarding from "./Pages/OnBoarding";
-import SignUp from "./Pages/Authentication/SignUp";
-import SignIn from "./Pages/Authentication/SignIn";
-import Welcome from "./Pages/Welcome";
-import Settings from "./Pages/Settings";
 import RouteGuard from "./components/Layout/RouteGuard";
-import StudyGroups from "./Pages/StudyGroups";
-import MentorChat from "./Pages/MentorChat";
-import PastQuestions from "./Pages/PastQuestions";
-import ReviewScreen from "./Pages/MockExam/ReviewExam";
-import ProPage from "./Pages/Pro";
-import AuthCallback from "./components/auth/AuthCallback";
-import GuestLanding from "./Pages/GuestUser/GuestLanding";
-import GuestQuiz from "./Pages/GuestUser/GuestQuiz";
-import GuestMock from "./Pages/GuestUser/GuestExam";
 import StudyTimeTracker from "./components/StudyTimeTracker";
 import AuthErrorBoundary from "./components/ui/AuthErrorBoundary";
-import PrivacyPolicy from "./Pages/PrivacyPolicy";
-import GuestPrivacyPolicy from "./Pages/GuestUser/GuestPrivacy";
-import GuestTermsOfService from "./Pages/GuestUser/GuestLegal";
-import GuestPastQuestions from "./Pages/GuestUser/GuestPastQuestions";
-import TermsOfService from "./Pages/TermsOfService";
 import { supabase } from "./lib/supabase";
 import ScrollToTop from "./components/Scrolltotop";
 import FrozenAccountGuard from "./components/auth/FrozenAccountGuard";
 import ProRevokedModal from "./components/auth/ProRevokedModal";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-// ── Admin imports ─────────────────────────────────────────────────────────────
+// ── Admin layout/guard — kept eager, small, needed on every /admin/* route ──
 import AdminGuard from "./admin/AdminGuard";
 import AdminLayout from "./admin/AdminLayout";
-import AdminOverview from "./admin/pages/AdminOverview";
-import AdminUsers from "./admin/pages/AdminUsers";
-import AdminAuditLog from "./admin/pages/AdminAuditLog";
-import AdminBroadcast from "./admin/pages/AdminBroadcast";
-import Adminquestions from "./admin/pages/Adminquestions";
-import AdminReports from "./admin/pages/AdminReports";
-import AdminRoles from "./admin/pages/Adminroles";
+
+// ── Lazy-loaded pages — each becomes its own chunk, only fetched when
+//    that route is actually visited ──────────────────────────────────────
+const Dashboard = lazy(() => import("./Pages/Dashboard"));
+const Landing = lazy(() => import("./Pages/LandingPage"));
+const AboutPage = lazy(() => import("./Pages/Aboutpage"));
+const Quiz = lazy(() => import("./Pages/Quiz"));
+const Performance = lazy(() => import("./Pages/Performance"));
+const Subjects = lazy(() => import("./Pages/Subjects"));
+const MockExam = lazy(() => import("./Pages/MockExam/MockExam"));
+const Onboarding = lazy(() => import("./Pages/OnBoarding"));
+const SignUp = lazy(() => import("./Pages/Authentication/SignUp"));
+const SignIn = lazy(() => import("./Pages/Authentication/SignIn"));
+const Welcome = lazy(() => import("./Pages/Welcome"));
+const Settings = lazy(() => import("./Pages/Settings"));
+const StudyGroups = lazy(() => import("./Pages/StudyGroups"));
+const MentorChat = lazy(() => import("./Pages/MentorChat"));
+const PastQuestions = lazy(() => import("./Pages/PastQuestions"));
+const ReviewScreen = lazy(() => import("./Pages/MockExam/ReviewExam"));
+const ProPage = lazy(() => import("./Pages/Pro"));
+const AuthCallback = lazy(() => import("./components/auth/AuthCallback"));
+const GuestLanding = lazy(() => import("./Pages/GuestUser/GuestLanding"));
+const GuestQuiz = lazy(() => import("./Pages/GuestUser/GuestQuiz"));
+const GuestMock = lazy(() => import("./Pages/GuestUser/GuestExam"));
+const PrivacyPolicy = lazy(() => import("./Pages/PrivacyPolicy"));
+const GuestPrivacyPolicy = lazy(() => import("./Pages/GuestUser/GuestPrivacy"));
+const GuestTermsOfService = lazy(() => import("./Pages/GuestUser/GuestLegal"));
+const GuestPastQuestions = lazy(() => import("./Pages/GuestUser/GuestPastQuestions"));
+const TermsOfService = lazy(() => import("./Pages/TermsOfService"));
+
+// ── Admin pages — lazy too, so the admin panel's JS never ships to
+//    regular students at all, only to admins who actually visit /admin ──
+const AdminOverview = lazy(() => import("./admin/pages/AdminOverview"));
+const AdminUsers = lazy(() => import("./admin/pages/AdminUsers"));
+const AdminAuditLog = lazy(() => import("./admin/pages/AdminAuditLog"));
+const AdminBroadcast = lazy(() => import("./admin/pages/AdminBroadcast"));
+const Adminquestions = lazy(() => import("./admin/pages/Adminquestions"));
+const AdminReports = lazy(() => import("./admin/pages/AdminReports"));
+const AdminRoles = lazy(() => import("./admin/pages/Adminroles"));
 
 declare global {
   interface Window {
@@ -61,6 +78,16 @@ if (typeof window !== "undefined") {
   window.supabase = supabase;
 }
 
+// Minimal, dependency-free loading fallback shown while a route chunk
+// downloads — deliberately not importing any existing PageLoader-style
+// component here, so this file doesn't accidentally pull in more weight
+// than the lazy-loading is trying to save.
+const RouteFallback: React.FC = () => (
+  <div className="bg-bgMain flex min-h-screen items-center justify-center">
+    <div className="border-brand h-8 w-8 animate-spin rounded-full border-2 border-t-transparent" />
+  </div>
+);
+
 const App: React.FC = () => {
   return (
     <AuthErrorBoundary>
@@ -69,256 +96,258 @@ const App: React.FC = () => {
         <ScrollToTop />
         <StudyTimeTracker />
 
-        <Routes>
-          <Route path="/" element={<Landing />} />
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="/signup" element={<SignUp />} />
-          <Route path="/signin" element={<SignIn />} />
-          <Route path="/auth/callback" element={<AuthCallback />} />
+        <Suspense fallback={<RouteFallback />}>
+          <Routes>
+            <Route path="/" element={<Landing />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/signup" element={<SignUp />} />
+            <Route path="/signin" element={<SignIn />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
 
-          <Route path="/guest" element={<GuestLanding />} />
-          <Route path="/guest/quiz" element={<GuestQuiz />} />
-          <Route path="/guest/mock" element={<GuestMock />} />
+            <Route path="/guest" element={<GuestLanding />} />
+            <Route path="/guest/quiz" element={<GuestQuiz />} />
+            <Route path="/guest/mock" element={<GuestMock />} />
 
-          {/* SEO routes — one component (GuestPastQuestions) reads subject/year
-              from the URL via useParams instead of local filter state, so each
-              subject/year combination is its own crawlable, prerenderable URL.
-              Order matters: react-router matches top-down, but since these are
-              nested static -> dynamic -> dynamic, no ambiguity here. */}
-          <Route
-            path="/guest/past-questions"
-            element={<GuestPastQuestions />}
-          />
-          <Route
-            path="/guest/past-questions/:subject"
-            element={<GuestPastQuestions />}
-          />
-          <Route
-            path="/guest/past-questions/:subject/:year"
-            element={<GuestPastQuestions />}
-          />
+            {/* SEO routes — one component (GuestPastQuestions) reads subject/year
+                from the URL via useParams instead of local filter state, so each
+                subject/year combination is its own crawlable, prerenderable URL.
+                Order matters: react-router matches top-down, but since these are
+                nested static -> dynamic -> dynamic, no ambiguity here. */}
+            <Route
+              path="/guest/past-questions"
+              element={<GuestPastQuestions />}
+            />
+            <Route
+              path="/guest/past-questions/:subject"
+              element={<GuestPastQuestions />}
+            />
+            <Route
+              path="/guest/past-questions/:subject/:year"
+              element={<GuestPastQuestions />}
+            />
 
-          {/* Public, unauthenticated legal pages — used by Landing/Guest footers */}
-          <Route
-            path="/guest/privacy-policy"
-            element={
-              <GuestPrivacyPolicy
-              // // title="Privacy Policy"
-              // effectiveDate="July 14, 2026"
-              // blocks={[]}
-              />
-            }
-          />
-          <Route
-            path="/guest/terms-of-service"
-            element={
-              <GuestTermsOfService
-              // title="Terms of Service"
-              // effectiveDate="July 14, 2026"
-              // blocks={[]}
-              />
-            }
-          />
+            {/* Public, unauthenticated legal pages — used by Landing/Guest footers */}
+            <Route
+              path="/guest/privacy-policy"
+              element={
+                <GuestPrivacyPolicy
+                // // title="Privacy Policy"
+                // effectiveDate="July 14, 2026"
+                // blocks={[]}
+                />
+              }
+            />
+            <Route
+              path="/guest/terms-of-service"
+              element={
+                <GuestTermsOfService
+                // title="Terms of Service"
+                // effectiveDate="July 14, 2026"
+                // blocks={[]}
+                />
+              }
+            />
 
-          <Route
-            path="/onboarding"
-            element={
-              <RouteGuard>
-                <Onboarding />
-              </RouteGuard>
-            }
-          />
-          <Route
-            path="/welcome"
-            element={
-              <RouteGuard>
-                <Welcome />
-              </RouteGuard>
-            }
-          />
-          <Route
-            path="/dashboard"
-            element={
-              <RouteGuard>
-                <Dashboard />
-              </RouteGuard>
-            }
-          />
-          <Route
-            path="/quiz"
-            element={
-              <RouteGuard>
-                <Quiz />
-              </RouteGuard>
-            }
-          />
-          <Route
-            path="/performance"
-            element={
-              <RouteGuard>
-                <Performance />
-              </RouteGuard>
-            }
-          />
-          <Route
-            path="/subjects"
-            element={
-              <RouteGuard>
-                <Subjects />
-              </RouteGuard>
-            }
-          />
-          <Route
-            path="/mock-exams"
-            element={
-              <RouteGuard>
-                <MockExam />
-              </RouteGuard>
-            }
-          />
-          <Route
-            path="/settings"
-            element={
-              <RouteGuard>
-                <Settings />
-              </RouteGuard>
-            }
-          />
-          <Route
-            path="/study-groups"
-            element={
-              <RouteGuard>
-                <StudyGroups />
-              </RouteGuard>
-            }
-          />
-          {/* chat with our mentor */}
-          <Route
-            path="/mentor"
-            element={
-              <RouteGuard>
-                <MentorChat />
-              </RouteGuard>
-            }
-          />
-          <Route
-            path="/past-questions"
-            element={
-              <RouteGuard>
-                <PastQuestions />
-              </RouteGuard>
-            }
-          />
+            <Route
+              path="/onboarding"
+              element={
+                <RouteGuard>
+                  <Onboarding />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/welcome"
+              element={
+                <RouteGuard>
+                  <Welcome />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/dashboard"
+              element={
+                <RouteGuard>
+                  <Dashboard />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/quiz"
+              element={
+                <RouteGuard>
+                  <Quiz />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/performance"
+              element={
+                <RouteGuard>
+                  <Performance />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/subjects"
+              element={
+                <RouteGuard>
+                  <Subjects />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/mock-exams"
+              element={
+                <RouteGuard>
+                  <MockExam />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <RouteGuard>
+                  <Settings />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/study-groups"
+              element={
+                <RouteGuard>
+                  <StudyGroups />
+                </RouteGuard>
+              }
+            />
+            {/* chat with our mentor */}
+            <Route
+              path="/mentor"
+              element={
+                <RouteGuard>
+                  <MentorChat />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/past-questions"
+              element={
+                <RouteGuard>
+                  <PastQuestions />
+                </RouteGuard>
+              }
+            />
 
-          {/* Authenticated-only legal pages (logged-in account area) */}
-          <Route
-            path="/privacy-policy"
-            element={
-              <RouteGuard>
-                <PrivacyPolicy />
-              </RouteGuard>
-            }
-          />
-          <Route
-            path="/terms-of-service"
-            element={
-              <RouteGuard>
-                <TermsOfService />
-              </RouteGuard>
-            }
-          />
+            {/* Authenticated-only legal pages (logged-in account area) */}
+            <Route
+              path="/privacy-policy"
+              element={
+                <RouteGuard>
+                  <PrivacyPolicy />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/terms-of-service"
+              element={
+                <RouteGuard>
+                  <TermsOfService />
+                </RouteGuard>
+              }
+            />
 
-          <Route
-            path="/pro"
-            element={
-              <RouteGuard>
-                <ProPage />
-              </RouteGuard>
-            }
-          />
-          <Route
-            path="/review"
-            element={
-              <RouteGuard>
-                <ReviewScreen onBack={() => window.history.back()} />
-              </RouteGuard>
-            }
-          />
+            <Route
+              path="/pro"
+              element={
+                <RouteGuard>
+                  <ProPage />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/review"
+              element={
+                <RouteGuard>
+                  <ReviewScreen onBack={() => window.history.back()} />
+                </RouteGuard>
+              }
+            />
 
-          {/* ── Admin routes ── guarded by email allowlist ── */}
-          <Route
-            path="/admin"
-            element={
-              <AdminGuard>
-                <AdminLayout title="Overview">
-                  <AdminOverview />
-                </AdminLayout>
-              </AdminGuard>
-            }
-          />
-          <Route
-            path="/admin/users"
-            element={
-              <AdminGuard>
-                <AdminLayout title="Users">
-                  <AdminUsers />
-                </AdminLayout>
-              </AdminGuard>
-            }
-          />
-          <Route
-            path="/admin/audit-log"
-            element={
-              <AdminGuard>
-                <AdminLayout title="Audit Log">
-                  <AdminAuditLog />
-                </AdminLayout>
-              </AdminGuard>
-            }
-          />
-          <Route
-            path="/admin/AdminBroadcast"
-            element={
-              <AdminGuard>
-                <AdminLayout title="AdminBroadcast">
-                  <AdminBroadcast />
-                </AdminLayout>
-              </AdminGuard>
-            }
-          />
-          <Route
-            path="/admin/Adminquestions"
-            element={
-              <AdminGuard>
-                <AdminLayout title="Adminquestions">
-                  <Adminquestions />
-                </AdminLayout>
-              </AdminGuard>
-            }
-          />
-          <Route
-            path="/admin/reports"
-            element={
-              <AdminGuard>
-                <AdminLayout title="AdminReports">
-                  <AdminReports />
-                </AdminLayout>
-              </AdminGuard>
-            }
-          />
-          <Route
-            path="/admin/roles"
-            element={
-              <AdminGuard>
-                <AdminLayout title="AdminRoles">
-                  <AdminRoles />
-                </AdminLayout>
-              </AdminGuard>
-            }
-          />
+            {/* ── Admin routes ── guarded by email allowlist ── */}
+            <Route
+              path="/admin"
+              element={
+                <AdminGuard>
+                  <AdminLayout title="Overview">
+                    <AdminOverview />
+                  </AdminLayout>
+                </AdminGuard>
+              }
+            />
+            <Route
+              path="/admin/users"
+              element={
+                <AdminGuard>
+                  <AdminLayout title="Users">
+                    <AdminUsers />
+                  </AdminLayout>
+                </AdminGuard>
+              }
+            />
+            <Route
+              path="/admin/audit-log"
+              element={
+                <AdminGuard>
+                  <AdminLayout title="Audit Log">
+                    <AdminAuditLog />
+                  </AdminLayout>
+                </AdminGuard>
+              }
+            />
+            <Route
+              path="/admin/AdminBroadcast"
+              element={
+                <AdminGuard>
+                  <AdminLayout title="AdminBroadcast">
+                    <AdminBroadcast />
+                  </AdminLayout>
+                </AdminGuard>
+              }
+            />
+            <Route
+              path="/admin/Adminquestions"
+              element={
+                <AdminGuard>
+                  <AdminLayout title="Adminquestions">
+                    <Adminquestions />
+                  </AdminLayout>
+                </AdminGuard>
+              }
+            />
+            <Route
+              path="/admin/reports"
+              element={
+                <AdminGuard>
+                  <AdminLayout title="AdminReports">
+                    <AdminReports />
+                  </AdminLayout>
+                </AdminGuard>
+              }
+            />
+            <Route
+              path="/admin/roles"
+              element={
+                <AdminGuard>
+                  <AdminLayout title="AdminRoles">
+                    <AdminRoles />
+                  </AdminLayout>
+                </AdminGuard>
+              }
+            />
 
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Suspense>
       </FrozenAccountGuard>
     </AuthErrorBoundary>
   );

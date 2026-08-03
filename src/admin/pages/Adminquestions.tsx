@@ -8,9 +8,18 @@
  * results in chunks of 1000 (Supabase/PostgREST's hard per-request row cap), so
  * subjects whose rows fell outside the first 1000 (by created_at) are no longer
  * silently dropped.
+ *
+ * FIX: AdminReports links here as `/admin/Adminquestions?id=<question_id>` to
+ * jump straight to a flagged question, but this page previously never read
+ * that param — it always rendered the full unfiltered list regardless of the
+ * URL. Now, on mount, if `?id=` is present we fetch that exact question
+ * directly (independent of whatever page/filter/search state is active) and
+ * open it straight in the edit modal, then strip the param from the URL so
+ * refreshing the page doesn't keep reopening it.
  */
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "react-router";
 import { supabase } from "../../lib/supabase";
 import { cn } from "../../lib/utils/utils";
 import { logAdminAction } from "../../lib/utils/Auditlog";
@@ -80,6 +89,9 @@ const EMPTY_FORM = {
 
 // Supabase/PostgREST hard cap per request — page through in chunks this size
 const FETCH_CHUNK = 1000;
+
+const QUESTION_COLUMNS =
+  "id, subject, topic, year, text, options, answer, difficulty, explanation, created_at";
 
 // ── Toast bar ─────────────────────────────────────────────────────────
 
@@ -360,6 +372,7 @@ const DeleteConfirm: React.FC<{
 const PER_PAGE = 20;
 
 const AdminQuestions: React.FC = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [questions, setQuestions] = useState<Question[]>([]);
   const [totalCount, setTotalCount] = useState<number>(0);
   const [loading, setLoading] = useState(true);
@@ -373,6 +386,7 @@ const AdminQuestions: React.FC = () => {
   const [deleting, setDeleting] = useState(false);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const toastId = useRef(0);
+  const handledDeepLinkRef = useRef(false);
 
   const toast = useCallback((type: ToastType, message: string) => {
     const id = ++toastId.current;
@@ -399,10 +413,7 @@ const AdminQuestions: React.FC = () => {
       while (true) {
         let query = supabase
           .from("questions")
-          .select(
-            "id, subject, topic, year, text, options, answer, difficulty, explanation, created_at",
-            { count: "exact" },
-          )
+          .select(QUESTION_COLUMNS, { count: "exact" })
           .order("created_at", { ascending: false });
 
         if (subjectFilter !== "all") {
@@ -441,6 +452,44 @@ const AdminQuestions: React.FC = () => {
   useEffect(() => {
     setPage(1);
   }, [debouncedSearch, subjectFilter]);
+
+  // Deep-link handling: AdminReports sends admins here as
+  // `?id=<question_id>` to jump straight to a flagged question. This is
+  // independent of the normal list/pagination/search flow above — it
+  // fetches that one question directly regardless of what filters are
+  // active, so it always finds it even if it's on some other page or
+  // doesn't match the current subject filter. Runs once per mount.
+  useEffect(() => {
+    const idParam = searchParams.get("id");
+    if (!idParam || handledDeepLinkRef.current) return;
+    handledDeepLinkRef.current = true;
+
+    (async () => {
+      const { data, error } = await supabase
+        .from("questions")
+        .select(QUESTION_COLUMNS)
+        .eq("id", idParam)
+        .maybeSingle();
+
+      if (error || !data) {
+        toast("error", "Couldn't find that question — it may have been deleted.");
+      } else {
+        setEditing(data as Question);
+        setModalOpen(true);
+      }
+
+      // Strip ?id= from the URL so refreshing the page (or navigating away
+      // and back) doesn't keep reopening this same question's modal.
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          next.delete("id");
+          return next;
+        },
+        { replace: true },
+      );
+    })();
+  }, [searchParams, setSearchParams, toast]);
 
   // Filtering is now done server-side in fetchQuestions, so `questions`
   // already reflects the current search + subject filter.

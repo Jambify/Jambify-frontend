@@ -1,10 +1,14 @@
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    Tailwind v4 — single @import replaces all @tailwind
    directives. No tailwind.config.ts needed.
+
+   FIX: the Google Fonts @import previously here was render-blocking —
+   the browser can't paint until it finishes fetching that external CSS
+   file, since @import is resolved before the rest of this stylesheet.
+   Moved to <link rel="preconnect"> + <link rel="stylesheet"> tags in
+   index.html instead, which the browser can discover and fetch in
+   parallel with everything else. See index.html for the replacement.
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-
-@import url("https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap");
-
 
 @import "tailwindcss";
 

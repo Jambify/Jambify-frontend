@@ -41,11 +41,17 @@
     <meta name="theme-color" content="#473BF0" />
     <meta name="background_color" content="#0a0a0f" />
 
-    <!-- Google Fonts: load here so they are available before first paint -->
+    <!-- Google Fonts: load here so they are available before first paint.
+         Must match exactly what index.css's theme tokens reference
+         (--font-display / --font-body / --font-mono) — Manrope + DM Mono.
+         Previously this loaded Syne + DM Sans + DM Mono instead, which
+         downloaded two unused font families and never loaded Manrope at
+         all (Manrope was only being pulled in via a separate @import in
+         index.css, which has since been removed to fix render-blocking). -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800;900&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=DM+Mono:wght@400;500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
     <script src="https://checkout.flutterwave.com/v3.js"></script>
