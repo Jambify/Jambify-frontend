@@ -28,6 +28,7 @@ import { Routes, Route, Navigate } from "react-router";
 import RouteGuard from "./components/Layout/RouteGuard";
 import StudyTimeTracker from "./components/StudyTimeTracker";
 import AuthErrorBoundary from "./components/ui/AuthErrorBoundary";
+import ChunkErrorBoundary from "./components/ChunkErrorBoundary";
 import { supabase } from "./lib/supabase";
 import ScrollToTop from "./components/Scrolltotop";
 import FrozenAccountGuard from "./components/auth/FrozenAccountGuard";
@@ -105,6 +106,7 @@ const App: React.FC = () => {
         <ScrollToTop />
         <StudyTimeTracker />
 
+        <ChunkErrorBoundary>
         <Suspense fallback={<RouteFallback />}>
           <Routes>
             <Route
@@ -378,6 +380,7 @@ const App: React.FC = () => {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Suspense>
+        </ChunkErrorBoundary>
       </FrozenAccountGuard>
     </AuthErrorBoundary>
   );
