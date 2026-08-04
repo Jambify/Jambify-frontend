@@ -1,14 +1,25 @@
-// MockExam.tsx:150
-//  GET https://questions.aloc.com.ng/api/v2/q/40?subject=physics&year=2025 406 (Not Acceptable)
-// MockExam.tsx:180 ALOC Fetch Error for Physics: Error: API responded with status: 406
-//     at fetchFromALOC (MockExam.tsx:160:19)
-//     at async MockExam.tsx:192:25
-//     at async Promise.all (index 3)
-//     at async handleStart (MockExam.tsx:186:30)
-// 2
-// supabase.ts:17 🔵 Auth state changed: SIGNED_IN 652cfffd-f6f3-424d-a88d-cf2ce6fccc57
-//
 // src/Pages/MockExam/MockExam.tsx
+//
+// FIX (this pass): "law" and "art" combo students were silently losing
+// their Literature paper. SUBJECT_COMBO_MAP in useSubjectStore.ts stores
+// "Literature in English" (it must — that's the exact name used in the
+// subject_accuracy DB table and getSubjectFromName's lookup, so renaming
+// it there would break Subjects/Dashboard progress tracking instead).
+// But AVAILABLE_SUBJECTS below uses the short id "Literature" to match
+// ALOC/question-fetching and Quiz.tsx/PastQuestions.tsx conventions.
+// Those two names never matched, so `AVAILABLE_SUBJECTS.find(...)` always
+// returned undefined for Literature, and the old code silently `continue`d
+// past it — the student's exam just quietly started with 3 subjects
+// instead of 4, no error, no warning, nothing in the console.
+//
+// Fixed here with two changes:
+//   1. normalizeSubjectId() maps "Literature in English" -> "Literature"
+//      ONLY when building the exam's subject list, so useSubjectStore's
+//      DB-facing naming is left completely alone.
+//   2. The silent `continue` is replaced with a visible, actionable error
+//      — if a subject ever fails to resolve again (new subject added,
+//      naming drifts again, etc.) the student sees it immediately instead
+//      of getting a shorter exam with no explanation.
 
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router";
@@ -66,6 +77,17 @@ const AVAILABLE_SUBJECTS = [
   { id: "Commerce", name: "Commerce", required: 40 },
 ];
 
+// Single point of truth for reconciling naming differences between
+// SUBJECT_COMBO_MAP (which must match the DB / subject_accuracy naming)
+// and AVAILABLE_SUBJECTS (which matches question-fetching/ALOC naming).
+// Add future mismatches here rather than editing either source list.
+const SUBJECT_ID_ALIASES: Record<string, string> = {
+  "Literature in English": "Literature",
+};
+
+const normalizeSubjectId = (id: string): string =>
+  SUBJECT_ID_ALIASES[id] ?? id;
+
 const AVAILABLE_YEARS = [
   "Random",
   "2025",
@@ -111,15 +133,18 @@ const MockExam: React.FC = () => {
     clearResponse,
   } = useMockStore();
 
-  // Get user's subjects from combo
-  const userSubjects = Array.isArray(subjectCombo)
-    ? subjectCombo
-    : SUBJECT_COMBO_MAP[subjectCombo] || [
-        "English",
-        "Mathematics",
-        "Physics",
-        "Chemistry",
-      ];
+  // Get user's subjects from combo — normalized so DB-naming quirks
+  // ("Literature in English") never leak into exam subject matching.
+  const userSubjects = (
+    Array.isArray(subjectCombo)
+      ? subjectCombo
+      : SUBJECT_COMBO_MAP[subjectCombo] || [
+          "English",
+          "Mathematics",
+          "Physics",
+          "Chemistry",
+        ]
+  ).map(normalizeSubjectId);
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showConfirmExit, setShowConfirmExit] = useState(false);
@@ -214,10 +239,28 @@ const MockExam: React.FC = () => {
       const offlineStore = useOfflineStore.getState();
 
       const finalQuestionsList: Question[] = [];
+      // NEW — tracks any subject the user picked that we could NOT match
+      // to a real config, so we can surface it instead of silently
+      // starting a shorter exam.
+      const unresolvedSubjects: string[] = [];
 
-      for (const subjectId of selectedCombination) {
+      for (const rawSubjectId of selectedCombination) {
+        if (!rawSubjectId) continue; // empty slot — user hasn't picked yet, not an error
+
+        const subjectId = normalizeSubjectId(rawSubjectId);
         const config = AVAILABLE_SUBJECTS.find((s) => s.id === subjectId);
-        if (!config) continue;
+
+        if (!config) {
+          // FIX: this used to be a silent `continue`, which meant a
+          // naming mismatch (like Literature's) quietly shrank the exam
+          // with zero feedback to the student. Now we collect it and
+          // fail loudly below instead.
+          console.error(
+            `[MockExam] No AVAILABLE_SUBJECTS config found for "${rawSubjectId}" (normalized: "${subjectId}"). This subject will be reported to the user instead of silently dropped.`,
+          );
+          unresolvedSubjects.push(rawSubjectId);
+          continue;
+        }
 
         let fetched: Question[] = [];
 
@@ -306,6 +349,15 @@ const MockExam: React.FC = () => {
         });
 
         finalQuestionsList.push(...randomized);
+      }
+
+      // NEW — fail loudly instead of silently starting a shorter exam.
+      if (unresolvedSubjects.length > 0) {
+        throw new Error(
+          `SUBJECT_UNRESOLVED: We couldn't load ${unresolvedSubjects.join(
+            ", ",
+          )}. Please contact support — your exam was not started so you don't lose a subject unexpectedly.`,
+        );
       }
 
       if (finalQuestionsList.length === 0) {
@@ -680,7 +732,6 @@ const MockExam: React.FC = () => {
           <div className="border-borderMuted bg-bgSurface/50 border-b p-5">
             <div className="mb-6 flex items-center gap-2">
               <motion.div
-                // className="bg-brand shadow-brand/40 group relative mb-6 flex h-20 w-20 items-center justify-center overflow-hidden rounded-4xl shadow-2xl"
                 animate={{
                   y: [0, -8, 0],
                   rotate: [0, 2, -2, 0],
