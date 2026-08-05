@@ -20,6 +20,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import type { Question } from "../Types";
+import PageHelmet from "../components/SEO/PageHelmet";
 import {
   fetchAllQuestionsForBrowse,
   fetchTopicsBySubject,
@@ -293,6 +294,11 @@ const PastQuestions = () => {
         isSidebarOpen={isSidebarOpen}
         setIsSidebarOpen={setIsSidebarOpen}
       >
+        <PageHelmet
+          title="Past Questions | SCHOOLDRA"
+          description="Practice real JAMB past questions from 2015 to 2025. Create an account to unlock full access to every year and subject."
+          canonical="https://www.schooldra.com/past-questions"
+        />
         <ProGate />
       </AppLayout>
     );
@@ -304,6 +310,11 @@ const PastQuestions = () => {
       isSidebarOpen={isSidebarOpen}
       setIsSidebarOpen={setIsSidebarOpen}
     >
+      <PageHelmet
+        title="Past Questions | SCHOOLDRA"
+        description="Practice real JAMB past questions from 2015 to 2025. Create an account to unlock full access to every year and subject."
+        canonical="https://www.schooldra.com/past-questions"
+      />
       <div className="mx-auto max-w-5xl space-y-6 px-4 py-6">
         {showScrollTop && (
           <button

@@ -22,6 +22,7 @@
 //      of getting a shorter exam with no explanation.
 
 import React, { useState, useEffect, useCallback } from "react";
+import PageHelmet from "../../components/SEO/PageHelmet";
 import { useNavigate } from "react-router";
 import AppLayout from "../../components/Layout/AppLayout";
 import { useMockStore } from "../../Store/useMockStore";
@@ -208,15 +209,22 @@ const MockExam: React.FC = () => {
 
   if (isLoadingQuestions) {
     return (
-      <LoadingScreen
-        message="Preparing Mock Exam"
-        submessage="Gathering questions for all selected subjects..."
-        estimatedTime={4}
-        showSlowNetworkWarning={showSlowNetworkWarning}
-        onCancel={() => {
-          setIsLoadingQuestions(false);
-        }}
-      />
+      <>
+        <PageHelmet
+          title="Mock Exam | SCHOOLDRA"
+          description="Take a full JAMB mock exam under timed conditions with real scoring and detailed feedback."
+          canonical="https://www.schooldra.com/mock-exams"
+        />
+        <LoadingScreen
+          message="Preparing Mock Exam"
+          submessage="Gathering questions for all selected subjects..."
+          estimatedTime={4}
+          showSlowNetworkWarning={showSlowNetworkWarning}
+          onCancel={() => {
+            setIsLoadingQuestions(false);
+          }}
+        />
+      </>
     );
   }
 

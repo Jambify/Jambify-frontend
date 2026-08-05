@@ -11,24 +11,27 @@ const TopicList: React.FC<TopicListProps> = ({ topics, color, onTopicClick }) =>
   if (topics.length === 0) return null;
 
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className="flex flex-col gap-2">
       {topics.map((topic) => (
         <div
           key={topic}
           onClick={() => onTopicClick?.(topic)}
           className={cn(
-            "bg-bgSurface rounded-brand border-borderMuted flex items-center gap-2.5 border px-3 py-2 transition-all",
-            onTopicClick && "hover:border-brand/40 hover:bg-bgCard cursor-pointer active:scale-[0.98]"
+            "group flex cursor-pointer items-center gap-3 rounded-brand-lg border border-transparent bg-bgSurface/80 px-3 py-3 shadow-sm transition-all",
+            onTopicClick &&
+              "hover:border-brand/30 hover:bg-bgCard active:scale-98",
           )}
         >
-          {/* <Colour dot */}
           <span
-            className="h-1.5 w-1.5 shrink-0 rounded-full"
+            className="h-2.5 w-2.5 shrink-0 rounded-full"
             style={{ background: color }}
           />
-          <span className="text-textMuted flex-1 text-xs">{topic}</span>
-          {/* <Weak indicator */}
-          <span className="text-danger text-[10px] font-medium">Weak</span>
+          <span className="text-textMain flex-1 text-sm font-semibold tracking-tight">
+            {topic}
+          </span>
+          <span className="rounded-full bg-danger/10 px-2 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-danger">
+            Weak
+          </span>
         </div>
       ))}
     </div>

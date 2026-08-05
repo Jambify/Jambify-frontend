@@ -58,9 +58,9 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
 
       <div className="flex flex-1 items-center justify-end gap-2 sm:flex-none sm:gap-3">
         {/* Streak pill */}
-        <div className="bg-orange-500/10 border-orange-500/20 group flex shrink-0 items-center gap-1.5 rounded-2xl border px-2 py-1 transition-all hover:bg-orange-500/20 sm:px-3 sm:py-1.5">
-          <div className="bg-orange-500/20 flex h-7 w-7 items-center justify-center rounded-xl shadow-inner sm:h-8 sm:w-8">
-            <Flame className="h-4 w-4 text-orange-400 sm:h-4.5 sm:w-4.5" />
+        <div className="bg-teal/12 border-teal/20 group flex shrink-0 items-center gap-1.5 rounded-2xl border px-2 py-1 transition-all hover:bg-teal/20 sm:px-3 sm:py-1.5">
+          <div className="bg-teal/20 flex h-7 w-7 items-center justify-center rounded-xl shadow-inner sm:h-8 sm:w-8">
+            <Flame className="h-4 w-4 text-teal sm:h-4.5 sm:w-4.5" />
           </div>
           <div className="flex flex-col leading-tight">
             <span className="text-textMain text-[12px] font-black tracking-tight sm:text-[14px]">
@@ -73,7 +73,7 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
         </div>
 
         {/* Exam countdown pill */}
-        <div className="bg-brand/10 border-brand/20 group flex shrink-0 items-center gap-1.5 rounded-2xl border px-2 py-1 transition-all hover:bg-brand/20 sm:px-3 sm:py-1.5">
+        <div className="bg-brand/14 border-brand/20 group flex shrink-0 items-center gap-1.5 rounded-2xl border px-2 py-1 transition-all hover:bg-brand/20 sm:px-3 sm:py-1.5">
           <div className="bg-brand/20 flex h-7 w-7 items-center justify-center rounded-xl shadow-inner sm:h-8 sm:w-8">
             <Clock className="text-brand-light h-4 w-4 sm:h-4.5 sm:w-4.5" />
           </div>

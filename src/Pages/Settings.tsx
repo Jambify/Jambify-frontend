@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import PageHelmet from "../components/SEO/PageHelmet";
 import { useLocation, useNavigate } from "react-router";
 import AppLayout from "../components/Layout/AppLayout";
 import { useUserStore } from "../Store/useUserStore";
@@ -42,6 +43,11 @@ const Settings: React.FC = () => {
       isSidebarOpen={isSidebarOpen}
       setIsSidebarOpen={setIsSidebarOpen}
     >
+      <PageHelmet
+        title="Settings | SCHOOLDRA"
+        description="Manage your profile, exam targets, and account preferences for your JAMB UTME preparation."
+        canonical="https://www.schooldra.com/settings"
+      />
       <div className="mx-auto max-w-2xl">
         {/* <── Page header ── */}
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

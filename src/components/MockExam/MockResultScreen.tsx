@@ -93,50 +93,46 @@ const MockResultsScreen: React.FC<MockResultsScreenProps> = ({
   return (
     <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6">
       {/* Score Overview - Premium Card */}
-      <div className="bg-bgCard border-borderMuted rounded-brand-2xl relative mb-10 overflow-hidden border p-10 text-center shadow-2xl">
-        {/* Decorative Background Elements */}
-        <div className="bg-brand/5 absolute -top-24 -right-24 h-64 w-64 rounded-full blur-3xl"></div>
-        <div className="bg-success/5 absolute -bottom-24 -left-24 h-64 w-64 rounded-full blur-3xl"></div>
-
+      <div className="relative mb-10 overflow-hidden rounded-brand-2xl border border-borderMuted bg-bgCard p-10 shadow-2xl shadow-brand/15">
+        <div className="pointer-events-none absolute -top-24 -right-24 h-64 w-64 rounded-full bg-brand/10 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-24 -left-24 h-64 w-64 rounded-full bg-success/10 blur-3xl" />
         <div className="relative z-10">
-          <h2 className="text-textDim mb-6 text-sm font-black tracking-[0.3em] uppercase">
+          <h2 className="text-textDim mb-6 text-sm font-black tracking-[0.35em] uppercase">
             Unified Mock Result
           </h2>
-          <div className="inline-flex flex-col items-center">
-            <div className="font-display text-brand text-8xl leading-none font-black tracking-tighter sm:text-9xl">
+          <div className="inline-flex flex-col items-center gap-2">
+            <div className="font-display text-brand text-8xl leading-none font-black tracking-tighter sm:text-[6rem]">
               {jambScore}
             </div>
-            <div className="text-textDim mt-2 text-lg font-bold tracking-widest uppercase">
+            <div className="rounded-full bg-bgSurface/90 px-4 py-2 text-sm font-bold uppercase tracking-[0.24em] text-textDim shadow-sm">
               Out of 400
             </div>
           </div>
 
-          <div className="border-borderMuted/50 mt-12 flex flex-wrap justify-center gap-8 border-t pt-10">
-            <div className="flex flex-col">
-              <span className="text-textDim mb-1 text-[10px] font-black tracking-widest uppercase">
+          <div className="mt-12 grid gap-4 border-t border-borderMuted/60 pt-10 md:grid-cols-3">
+            <div className="rounded-[24px] bg-bgSurface/70 p-5 shadow-sm">
+              <span className="text-textDim block text-[10px] font-black uppercase tracking-[0.35em]">
                 Accuracy
               </span>
-              <span className="font-display text-textMain text-3xl font-black">
+              <span className="font-display text-textMain mt-3 block text-3xl font-black">
                 {percentageScore}%
               </span>
             </div>
-            <div className="bg-borderMuted hidden h-12 w-px sm:block"></div>
-            <div className="flex flex-col">
-              <span className="text-textDim mb-1 text-[10px] font-black tracking-widest uppercase">
+            <div className="rounded-[24px] bg-bgSurface/70 p-5 shadow-sm">
+              <span className="text-textDim block text-[10px] font-black uppercase tracking-[0.35em]">
                 Correct
               </span>
-              <span className="font-display text-textMain text-3xl font-black">
+              <span className="font-display text-textMain mt-3 block text-3xl font-black">
                 {totalCorrect} / {totalQuestions}
               </span>
             </div>
-            <div className="bg-borderMuted hidden h-12 w-px sm:block"></div>
-            <div className="flex flex-col">
-              <span className="text-textDim mb-1 text-[10px] font-black tracking-widest uppercase">
+            <div className="rounded-[24px] bg-bgSurface/70 p-5 shadow-sm">
+              <span className="text-textDim block text-[10px] font-black uppercase tracking-[0.35em]">
                 Status
               </span>
               <span
                 className={cn(
-                  "font-display text-3xl font-black",
+                  "font-display mt-3 block text-3xl font-black",
                   getPerformanceColor(
                     subjectBreakdown[0]?.performance || "Good",
                   ),
@@ -153,25 +149,24 @@ const MockResultsScreen: React.FC<MockResultsScreenProps> = ({
         </div>
       </div>
 
-      {/* Subject Breakdown - Grid */}
-      <h3 className="text-textDim mb-6 ml-1 flex items-center gap-2 text-xs font-black tracking-widest uppercase">
-        <div className="bg-brand h-1.5 w-1.5 rounded-full"></div>
+      <h3 className="text-textDim mb-6 ml-1 flex items-center gap-2 text-xs font-black uppercase tracking-[0.35em]">
+        <span className="h-2.5 w-2.5 rounded-full bg-brand inline-block" />
         Subject Performance
       </h3>
       <div className="mb-12 grid grid-cols-1 gap-4 md:grid-cols-2">
         {subjectBreakdown.map((sb) => (
           <div
             key={sb.subject}
-            className="group bg-bgCard border-borderMuted rounded-brand-xl hover:border-brand/30 flex flex-col gap-4 border p-6 shadow-sm transition-all"
+            className="group overflow-hidden rounded-brand-2xl border border-borderMuted bg-bgCard p-6 shadow-sm transition-all hover:border-brand/30 hover:shadow-brand/10"
           >
-            <div className="flex items-start justify-between">
+            <div className="mb-5 flex items-start justify-between gap-4">
               <div>
                 <h3 className="group-hover:text-brand text-lg font-black tracking-tight transition-colors">
                   {sb.subject}
                 </h3>
                 <div
                   className={cn(
-                    "mt-1 inline-flex rounded border px-2 py-0.5 text-[9px] font-black tracking-widest uppercase",
+                    "mt-3 inline-flex rounded-full border px-3 py-1 text-[9px] font-black uppercase tracking-[0.25em]",
                     getPerformanceBg(sb.performance),
                     getPerformanceColor(sb.performance),
                   )}
@@ -183,12 +178,12 @@ const MockResultsScreen: React.FC<MockResultsScreenProps> = ({
                 <div className="font-display text-textMain text-2xl font-black">
                   {sb.score}%
                 </div>
-                <div className="text-textDim text-[10px] font-black uppercase">
+                <div className="text-textDim mt-1 text-[10px] font-black uppercase">
                   {sb.correct} / {sb.total}
                 </div>
               </div>
             </div>
-            <div className="bg-bgSurface border-borderMuted/30 h-2 overflow-hidden rounded-full border p-0.5">
+            <div className="rounded-full bg-bgSurface h-3 overflow-hidden">
               <div
                 className={cn(
                   "h-full rounded-full transition-all duration-1000 ease-out",

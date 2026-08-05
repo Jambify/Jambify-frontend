@@ -55,27 +55,26 @@ const Hero: React.FC = () => {
         <div className="text-center lg:text-left">
           <motion.p
             {...fadeUp}
-            className="text-brand mb-4 text-xs font-bold tracking-widest uppercase"
+            className="text-brand mb-4 text-xs font-bold tracking-[0.3em] uppercase"
           >
-            Built for the 2027 UTME
+            Built for JAMB students who want clarity and confidence
           </motion.p>
           <motion.h1
             {...fadeUp}
             transition={{ ...fadeUp.transition, delay: 0.05 }}
             className="font-display text-4xl leading-[1.05] font-extrabold tracking-tight sm:text-5xl lg:text-6xl"
           >
-            Ace your JAMB.
+            Practice smarter.
             <br />
-            Know exactly where you stand.
+            Score higher.
           </motion.h1>
           <motion.p
             {...fadeUp}
             transition={{ ...fadeUp.transition, delay: 0.1 }}
             className="text-textMuted mx-auto mt-5 max-w-xl text-lg lg:mx-0"
           >
-            Real mock exams, {formattedCount}+ past questions with an AI Tutor that
-            explains every answer, and a dashboard that tells you which topics are
-            actually costing you marks.
+            Pick a subject, take a quick quiz or full mock, and get instant guidance
+            on the topics holding back your score. No fluff, just fast JAMB prep.
           </motion.p>
           <motion.div
             {...fadeUp}
@@ -84,27 +83,34 @@ const Hero: React.FC = () => {
           >
             <Link
               to="/signup"
-              className="bg-brand hover:bg-brand-light flex items-center gap-2 rounded-full px-7 py-3.5 text-sm font-bold text-white transition-colors"
+              className="bg-brand hover:bg-brand-light flex items-center gap-2 rounded-full px-7 py-3.5 text-sm font-bold text-white transition-all shadow-[0_16px_40px_rgba(124,60,255,0.18)]"
             >
-              Start Free <ArrowRight className="h-4 w-4" />
+              Start free today <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
               to="/guest"
-              className="border-borderMuted text-textMain hover:border-brand/40 inline-flex items-center gap-2 rounded-full border px-7 py-3.5 text-sm font-bold transition-colors"
+              className="border-borderMuted text-textMain hover:border-brand/40 inline-flex items-center gap-2 rounded-full border px-7 py-3.5 text-sm font-bold transition-all"
             >
-              <Play className="h-4 w-4" /> Try Practice Mode
+              <Play className="h-4 w-4" /> Try guest mode
             </Link>
           </motion.div>
 
           <motion.div
             {...fadeUp}
             transition={{ ...fadeUp.transition, delay: 0.2 }}
-            className="mt-10 grid max-w-lg grid-cols-3 gap-6 border-t border-borderMuted pt-6 lg:mx-0"
+            className="mt-10 grid max-w-xl grid-cols-1 gap-4 sm:grid-cols-3 border-t border-borderMuted pt-6 lg:mx-0"
           >
             {stats.map((s) => (
-              <div key={s.label} className="text-center lg:text-left">
-                <div className="font-display text-2xl font-extrabold">{s.value}</div>
-                <div className="text-textMuted mt-1 text-xs leading-snug">{s.label}</div>
+              <div
+                key={s.label}
+                className="rounded-3xl bg-bgSurface/60 p-4 text-center shadow-[0_18px_40px_rgba(0,0,0,0.12)]"
+              >
+                <div className="font-display text-2xl font-extrabold text-white">
+                  {s.value}
+                </div>
+                <div className="text-textMuted mt-2 text-xs leading-snug">
+                  {s.label}
+                </div>
               </div>
             ))}
           </motion.div>

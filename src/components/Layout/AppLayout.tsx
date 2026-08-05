@@ -58,7 +58,7 @@ const NavItem = ({ label, active, badge, icon, path }: any) => {
       to={path}
       className={`rounded-brand group mb-0.5 flex cursor-pointer items-center gap-3 p-2.5 text-[13.5px] transition-all ${
         active
-          ? "bg-brand-dim text-brand-light font-medium"
+          ? "bg-brand/15 text-brand-light font-semibold shadow-[0_8px_24px_rgba(124,60,255,0.12)]"
           : "text-textMuted hover:bg-bgCard hover:text-textMain"
       }`}
     >
@@ -68,7 +68,7 @@ const NavItem = ({ label, active, badge, icon, path }: any) => {
       />
       <span className="flex-1">{label}</span>
       {badge && (
-        <span className="bg-brand min-w-4.5 rounded-full px-1.5 py-0.5 text-center text-[10px] font-bold text-white">
+        <span className="bg-brand min-w-4.5 rounded-full px-1.5 py-0.5 text-center text-[10px] font-bold text-white shadow-[0_8px_24px_rgba(124,60,255,0.15)]">
           {badge}
         </span>
       )}
@@ -158,7 +158,7 @@ const AppLayout: React.FC<LayoutProps> = ({
               </div>
             </a>
             {isPro && (
-              <div className="bg-brand/10 text-brand border-brand/20 rounded border px-1.5 py-0.5 text-[9px] font-black tracking-widest uppercase">
+              <div className="bg-brand/12 text-brand border-brand/20 rounded-full border px-2 py-0.5 text-[9px] font-black tracking-widest uppercase">
                 Pro
               </div>
             )}

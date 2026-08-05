@@ -38,8 +38,8 @@
 
     <!-- PWA Manifest -->
     <link rel="manifest" href="/manifest.json" />
-    <meta name="theme-color" content="#473BF0" />
-    <meta name="background_color" content="#0a0a0f" />
+    <meta name="theme-color" content="#7c3cff" />
+    <meta name="background_color" content="#090a16" />
 
     <!-- Google Fonts: load here so they are available before first paint.
          Must match exactly what index.css's theme tokens reference
@@ -122,5 +122,13 @@
   <body style="background-color: #0a0a0f; margin: 0">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+
+    <script>
+  try {
+    const saved = localStorage.getItem("schooldra-theme");
+    const theme = saved || "dark";
+    document.documentElement.setAttribute("data-theme", theme);
+  } catch (e) {}
+</script>
   </body>
 </html>

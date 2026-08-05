@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
+import PageHelmet from "../components/SEO/PageHelmet";
 import { useNavigate, useLocation } from "react-router";
 import AppLayout from "../components/Layout/AppLayout";
 import { useQuizStore } from "../Store/useQuizStore";
@@ -174,15 +175,22 @@ const Quiz: React.FC = () => {
 
   if (isLoadingQuestions) {
     return (
-      <LoadingScreen
-        message="Preparing your quiz"
-        submessage={`Fetching ${selectedSubject} questions for your practice session...`}
-        estimatedTime={2}
-        showSlowNetworkWarning={showSlowNetworkWarning}
-        onCancel={() => {
-          setIsLoadingQuestions(false);
-        }}
-      />
+      <>
+        <PageHelmet
+          title="Quiz | SCHOOLDRA"
+          description="Take adaptive practice quizzes to sharpen your JAMB UTME readiness, with instant feedback and performance tracking."
+          canonical="https://www.schooldra.com/quiz"
+        />
+        <LoadingScreen
+          message="Preparing your quiz"
+          submessage={`Fetching ${selectedSubject} questions for your practice session...`}
+          estimatedTime={2}
+          showSlowNetworkWarning={showSlowNetworkWarning}
+          onCancel={() => {
+            setIsLoadingQuestions(false);
+          }}
+        />
+      </>
     );
   }
 
@@ -348,6 +356,11 @@ const Quiz: React.FC = () => {
         isSidebarOpen={isSidebarOpen}
         setIsSidebarOpen={setIsSidebarOpen}
       >
+        <PageHelmet
+          title="Quiz Results | SCHOOLDRA"
+          description="Review your recent quiz results, retry questions, and view detailed performance insights to improve for JAMB UTME."
+          canonical="https://www.schooldra.com/quiz"
+        />
         <ResultsScreen
           onRetry={() => {
            resetProgress();
@@ -374,6 +387,11 @@ const Quiz: React.FC = () => {
         isSidebarOpen={isSidebarOpen}
         setIsSidebarOpen={setIsSidebarOpen}
       >
+        <PageHelmet
+          title="Quiz (In Progress) | SCHOOLDRA"
+          description="Continue your active quiz session — answer questions under timed conditions and track your ongoing performance."
+          canonical="https://www.schooldra.com/quiz"
+        />
         <div className="mb-6 flex items-center gap-4">
           <button
             onClick={() => setShowExitModal(true)}
@@ -467,6 +485,11 @@ const Quiz: React.FC = () => {
       isSidebarOpen={isSidebarOpen}
       setIsSidebarOpen={setIsSidebarOpen}
     >
+      <PageHelmet
+        title="Quiz | SCHOOLDRA"
+        description="Take adaptive practice quizzes to sharpen your JAMB UTME readiness, with instant feedback and performance tracking."
+        canonical="https://www.schooldra.com/quiz"
+      />
       <div className="mx-auto max-w-2xl">
         {(loadError?.includes("CONNECTION_ERROR") ||
           loadError?.includes("OFFLINE")) && (

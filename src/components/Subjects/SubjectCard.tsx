@@ -66,25 +66,21 @@ const SubjectCard: React.FC<SubjectCardProps> = ({
   return (
     <div
       className={cn(
-        "bg-bgCard rounded-brand-lg overflow-hidden border transition-all duration-200",
-        isExpanded
-          ? "border-brand/20 dark:border-white/15"
-          : "border-borderMuted hover:border-brand/20 dark:hover:border-white/10",
+        "bg-bgCard rounded-brand-2xl overflow-hidden border border-borderMuted shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:border-brand/20 hover:shadow-brand/20",
       )}
     >
       {/* <── Card top — always visible ── */}
-      <div className="cursor-pointer p-5" onClick={onToggle}>
-        {/* <Header row */}
+      <div className="cursor-pointer p-5 sm:p-6" onClick={onToggle}>
         <div className="mb-4 flex items-start justify-between gap-3">
           <div
-            className="group/sub flex min-w-0 flex-1 cursor-pointer items-center gap-3"
+            className="group/sub flex min-w-0 flex-1 cursor-pointer items-center gap-4"
             onClick={(e) => {
               e.stopPropagation();
               navigate(`/quiz?subject=${encodeURIComponent(subject.name)}`);
             }}
           >
             <div
-              className="rounded-brand flex h-11 w-11 shrink-0 items-center justify-center text-xl transition-transform group-hover/sub:scale-110"
+              className="rounded-brand-lg flex h-12 w-12 shrink-0 items-center justify-center text-xl shadow-sm transition-transform group-hover/sub:scale-105"
               style={{
                 background: `color-mix(in srgb, ${subject.color} 18%, transparent)`,
               }}
@@ -92,16 +88,15 @@ const SubjectCard: React.FC<SubjectCardProps> = ({
               {getSubjectIconComponent(subject.name)}
             </div>
             <div className="min-w-0">
-              <h3 className="font-display group-hover/sub:text-brand truncate text-base font-semibold tracking-tight transition-colors">
+              <h3 className="font-display group-hover/sub:text-brand text-base font-bold tracking-tight transition-colors">
                 {subject.name}
               </h3>
-              <p className="text-textDim mt-0.5 text-[11px]">
+              <p className="text-textDim mt-1 text-[11px] uppercase tracking-[0.24em]">
                 Rank #{subject.rank} nationally
               </p>
             </div>
           </div>
 
-          {/* <Chevron only — badges moved below */}
           <svg
             width="14"
             height="14"
@@ -118,22 +113,21 @@ const SubjectCard: React.FC<SubjectCardProps> = ({
           </svg>
         </div>
 
-        {/* <Badges row — own line, wraps cleanly if needed */}
         {(isBest || isWorst || statusLabel) && (
-          <div className="mb-3 flex flex-wrap items-center gap-1.5">
+          <div className="mb-4 flex flex-wrap items-center gap-2">
             {isBest && (
-              <span className="bg-success/20 text-success border-success/30 flex items-center gap-1 rounded border px-2 py-0.5 text-[10px] font-bold tracking-tight whitespace-nowrap uppercase">
+              <span className="bg-success/15 text-success border-success/30 flex items-center gap-1 rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.24em]">
                 <Trophy size={10} /> Best
               </span>
             )}
             {isWorst && (
-              <span className="bg-danger/20 text-danger border-danger/30 flex items-center gap-1 rounded border px-2 py-0.5 text-[10px] font-bold tracking-tight whitespace-nowrap uppercase">
+              <span className="bg-danger/15 text-danger border-danger/30 flex items-center gap-1 rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.24em]">
                 <AlertTriangle size={10} /> Worst
               </span>
             )}
             <span
               className={cn(
-                "rounded border px-2 py-0.5 text-[10px] font-medium whitespace-nowrap",
+                "rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.24em]",
                 statusLabel.cls,
               )}
             >
@@ -142,21 +136,26 @@ const SubjectCard: React.FC<SubjectCardProps> = ({
           </div>
         )}
 
-        {/* <Big accuracy number */}
-        <div className="mb-3 flex items-end justify-between">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
           <div>
             <p
-              className="font-display text-4xl leading-none font-black tracking-tighter"
+              className="font-display text-4xl leading-none font-black tracking-tighter sm:text-5xl"
               style={{ color: subject.color }}
             >
               {subject.accuracy}%
             </p>
-            <p className="text-textDim mt-1 text-[11px]">accuracy</p>
+            <p className="text-textDim mt-2 text-xs uppercase tracking-[0.24em]">
+              accuracy
+            </p>
+          </div>
+          <div className="min-w-30 rounded-3xl bg-bgSurface px-3 py-2 text-center text-sm font-semibold text-textMain shadow-sm">
+            {subject.weakTopics.length > 0
+              ? `${subject.weakTopics.length} weak topic${subject.weakTopics.length > 1 ? "s" : ""}`
+              : "On track"}
           </div>
         </div>
 
-        {/* <Accuracy bar */}
-        <div className="bg-bgTrack h-1.5 overflow-hidden rounded-full">
+        <div className="bg-bgTrack h-2.5 overflow-hidden rounded-full">
           <div
             className="h-full rounded-full transition-all duration-700"
             style={{ width: `${subject.accuracy}%`, background: subject.color }}
@@ -164,14 +163,12 @@ const SubjectCard: React.FC<SubjectCardProps> = ({
         </div>
       </div>
 
-      {/* <── Expanded section — topics + action buttons ── */}
       {isExpanded && (
-        <div className="border-borderMuted animate-slideDown border-t">
-          {/* <Lowest topic */}
+        <div className="border-borderMuted/70 bg-bgSurface/80 animate-slideDown border-t px-5 py-5 sm:px-6">
           {subject.weakTopics.length > 0 && (
-            <div className="px-5 pt-4 pb-2">
-              <p className="text-danger mb-2 flex items-center gap-1.5 text-[10px] font-black tracking-widest uppercase">
-                <div className="bg-danger h-1 w-1 rounded-full"></div>
+            <div className="mb-4 rounded-3xl bg-bgCard/70 border border-borderMuted p-4 shadow-sm">
+              <p className="text-danger mb-3 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.28em]">
+                <span className="h-1.5 w-1.5 rounded-full bg-danger inline-block" />
                 Lowest Topic
               </p>
               <TopicList
@@ -185,16 +182,13 @@ const SubjectCard: React.FC<SubjectCardProps> = ({
               />
             </div>
           )}
-          {/* 
-          <Action buttons */}
-          <div className="flex gap-2 px-5 py-4">
+          <div className="grid gap-3 sm:grid-cols-2">
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 navigate(`/quiz?subject=${encodeURIComponent(subject.name)}`);
               }}
-              className="rounded-brand flex-1 py-2 text-xs font-medium text-white transition-all active:scale-[0.98]"
-              style={{ background: subject.color }}
+              className="rounded-brand-lg bg-linear-to-r from-brand to-brand-light text-white shadow-brand/20 px-4 py-3 text-sm font-semibold transition-all hover:brightness-105 active:scale-98"
             >
               Practise this subject
             </button>
@@ -203,7 +197,7 @@ const SubjectCard: React.FC<SubjectCardProps> = ({
                 e.stopPropagation();
                 navigate("/performance");
               }}
-              className="rounded-brand bg-bgSurface border-borderMuted text-textMuted hover:text-textMain hover:border-brand/20 border px-4 py-2 text-xs font-medium transition-all dark:hover:border-white/15"
+              className="rounded-brand-lg border border-borderMuted bg-bgSurface px-4 py-3 text-sm font-semibold text-textMain transition-all hover:border-brand/30 hover:bg-bgCard active:scale-98"
             >
               View stats
             </button>

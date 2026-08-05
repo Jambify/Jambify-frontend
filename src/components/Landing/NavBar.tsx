@@ -112,9 +112,9 @@ const Navbar: React.FC = () => {
           </Link>
           <Link
             to="/signup"
-            className="bg-brand hover:bg-brand-light rounded-full px-5 py-2.5 text-sm font-bold text-white transition-colors"
+            className="bg-brand hover:bg-brand-light rounded-full px-5 py-2.5 text-sm font-bold text-white transition-all shadow-[0_14px_30px_rgba(124,60,255,0.18)]"
           >
-            Get Started
+            Start now
           </Link>
           <button
             className="md:hidden text-textMain"

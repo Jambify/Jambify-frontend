@@ -1,6 +1,7 @@
 // src/Pages/Performance.tsx (FIXED)
 
 import React, { useState, useEffect } from "react";
+import PageHelmet from "../components/SEO/PageHelmet";
 import { useNavigate } from "react-router";
 import AppLayout from "../components/Layout/AppLayout";
 import { usePerformanceStore } from "../Store/usePerformanceStore";
@@ -181,6 +182,11 @@ const Performance: React.FC = () => {
       isSidebarOpen={isSidebarOpen}
       setIsSidebarOpen={setIsSidebarOpen}
     >
+      <PageHelmet
+        title="Performance | SCHOOLDRA"
+        description="Detailed breakdown of your academic progress with charts, mock history, and topic-level insights to guide JAMB UTME study."
+        canonical="https://www.schooldra.com/performance"
+      />
       {/* Sleek background sync progress loader indicator line */}
       {isLoading && (
         <div className="bg-bgCard fixed top-0 left-0 z-50 h-0.5 w-full overflow-hidden">

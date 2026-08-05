@@ -239,7 +239,7 @@ const Dashboard: React.FC = () => {
                 JAMB {examYear} Prep
               </span>
               {university && (
-                <span className="bg-bgSurface border-borderMuted text-textDim inline-flex max-w-[140px] min-w-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] sm:max-w-50">
+                <span className="bg-bgSurface border-borderMuted text-textDim inline-flex max-w-35 min-w-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] sm:max-w-50">
                   <GraduationCap size={12} className="shrink-0" />
                   <span className="truncate">{university}</span>
                 </span>

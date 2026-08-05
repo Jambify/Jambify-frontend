@@ -15,16 +15,17 @@ const FinalCTA: React.FC = () => {
     <section className="border-borderMuted border-t">
       <motion.div {...fadeUp} className="mx-auto max-w-5xl px-6 py-16 text-center lg:py-24">
         <h2 className="font-display text-3xl font-bold sm:text-4xl">
-          Ready to ace your JAMB exam?
+          Your best JAMB prep starts here.
         </h2>
         <p className="text-textMuted mx-auto mt-3 max-w-md">
-          Join thousands of students already preparing smarter for the 2027 UTME.
+          Switch from guessing to practicing with smart feedback, real past questions,
+          and a study plan designed for fast progress.
         </p>
         <Link
           to="/signup"
-          className="bg-brand hover:bg-brand-light mt-8 inline-flex items-center gap-2 rounded-full px-8 py-4 text-sm font-bold text-white transition-colors"
+          className="bg-brand hover:bg-brand-light mt-8 inline-flex items-center gap-2 rounded-full px-8 py-4 text-sm font-bold text-white transition-all shadow-[0_22px_50px_rgba(124,60,255,0.2)]"
         >
-          Get Started Free <ArrowRight className="h-4 w-4" />
+          Start practicing free <ArrowRight className="h-4 w-4" />
         </Link>
       </motion.div>
     </section>

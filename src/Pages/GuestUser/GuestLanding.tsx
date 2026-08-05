@@ -150,8 +150,8 @@ const GuestLanding: React.FC = () => {
                       </div>
                       <div>
                         <p className="text-lg font-bold">Quick Quiz</p>
-                        <p className="text-sm text-white/70">
-                          10 questions · any subject · 5 mins
+                        <p className="text-sm text-white/75">
+                          10-question bursts for fast topic checks
                         </p>
                       </div>
                     </div>
@@ -163,27 +163,21 @@ const GuestLanding: React.FC = () => {
                 <motion.button
                   whileTap={{ scale: 0.97 }}
                   onClick={() => navigate("/guest/mock")}
-                  className="bg-bgCard border-borderMuted hover:border-brand/40 rounded-brand-xl group w-full border p-5 text-left transition-all"
+                  className="bg-linear-to-r from-brand to-teal-400 rounded-brand-xl group w-full p-5 text-left text-white shadow-[0_20px_60px_rgba(124,60,255,0.18)] transition-all hover:opacity-95"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                      <div className="bg-brand/10 flex h-12 w-12 items-center justify-center rounded-xl">
-                        <Trophy className="text-brand h-6 w-6" />
+                      <div className="bg-white/10 flex h-12 w-12 items-center justify-center rounded-xl">
+                        <Trophy className="h-6 w-6" />
                       </div>
                       <div>
-                        <div className="align-items-center flex justify-items-center">
-                          <div className="mb-2 text-2xl">📝</div>
-
-                          <p className="text-textMain text-lg font-bold">
-                            Mock Exam
-                          </p>
-                        </div>
-                        <p className="text-textDim mt-1 text-xs">
-                          2 hours · 180 questions · JAMB scoring
+                        <p className="text-lg font-bold">Mock Exam</p>
+                        <p className="text-sm text-white/75">
+                          180 questions with real JAMB scoring
                         </p>
                       </div>
                     </div>
-                    <ArrowRight className="text-textDim group-hover:text-brand h-5 w-5 transition-all group-hover:translate-x-1" />
+                    <ArrowRight className="h-5 w-5 opacity-90 transition-all group-hover:translate-x-1" />
                   </div>
                 </motion.button>
 
@@ -195,15 +189,15 @@ const GuestLanding: React.FC = () => {
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                      <div className="bg-brand/10 flex h-12 w-12 items-center justify-center rounded-xl">
-                        <BookOpen className="text-brand h-6 w-6" />
+                      <div className="bg-teal/10 flex h-12 w-12 items-center justify-center rounded-xl">
+                        <BookOpen className="text-teal h-6 w-6" />
                       </div>
                       <div>
                         <p className="text-textMain text-lg font-bold">
                           Past Questions
                         </p>
                         <p className="text-textDim text-sm">
-                          Browse JAMB questions by year & subject
+                          Search real JAMB questions by year, subject, and difficulty
                         </p>
                       </div>
                     </div>
@@ -213,24 +207,23 @@ const GuestLanding: React.FC = () => {
               </div>
 
               {/* Save progress CTA */}
-              <div className="bg-brand/5 border-brand/20 rounded-brand-xl border p-5 text-center">
-                <p className="text-textDim mb-3 text-sm">
-                  Want to save your scores, track progress, and access all
-                  features?
+              <div className="bg-bgCard/80 border-borderMuted rounded-brand-xl border p-5 text-center shadow-[0_20px_50px_rgba(0,0,0,0.15)]">
+                <p className="text-textMuted mb-3 text-sm">
+                  Save your progress, sync your scores, and unlock personalized study plans.
                 </p>
-                <div className="flex gap-3">
+                <div className="grid gap-3 sm:grid-cols-2">
                   <button
                     onClick={() => navigate("/signup")}
-                    className="bg-brand rounded-brand hover:bg-brand-light flex-1 py-3 text-sm font-bold text-white transition-all active:scale-[0.98]"
+                    className="bg-brand rounded-brand text-sm font-bold text-white transition-all hover:bg-brand-light py-3"
                   >
-                    Create Free Account
+                    Create free account
                   </button>
                   <button
                     onClick={() => navigate("/signin")}
-                    className="border-borderMuted rounded-brand text-textDim hover:text-textMain hover:border-brand/40 flex items-center gap-2 border px-4 py-3 text-sm transition-all"
+                    className="border-borderMuted rounded-brand text-textDim hover:text-textMain hover:border-brand/40 flex items-center justify-center gap-2 border px-4 py-3 text-sm transition-all"
                   >
                     <LogIn className="h-4 w-4" />
-                    Sign In
+                    Sign in
                   </button>
                 </div>
               </div>

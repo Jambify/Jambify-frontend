@@ -6,6 +6,7 @@
  */
 
 import React, { useState, useMemo, useRef, useEffect } from "react";
+import PageHelmet from "../../components/SEO/PageHelmet";
 import { useNavigate } from "react-router";
 import { useMockStore } from "../../Store/useMockStore";
 import { useUserStore } from "../../Store/useUserStore";
@@ -346,6 +347,11 @@ const ReviewScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         isSidebarOpen={isSidebarOpen}
         setIsSidebarOpen={setIsSidebarOpen}
       >
+        <PageHelmet
+          title="Review Exam | SCHOOLDRA"
+          description="Review your mock exam answers with explanations and ask the AI Tutor follow-ups on tricky questions."
+          canonical="https://www.schooldra.com/review"
+        />
         <ExamPaywall onUpgrade={() => {}} onBack={onBack} />
       </AppLayout>
     );
@@ -357,6 +363,11 @@ const ReviewScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
       isSidebarOpen={isSidebarOpen}
       setIsSidebarOpen={setIsSidebarOpen}
     >
+      <PageHelmet
+        title="Review Exam | SCHOOLDRA"
+        description="Review your mock exam answers with explanations and ask the AI Tutor follow-ups on tricky questions."
+        canonical="https://www.schooldra.com/review"
+      />
       <div className="relative box-border w-full max-w-full overflow-x-hidden">
         <div className="mx-auto max-w-5xl overflow-hidden px-4 py-6 md:px-8">
           {/* Header */}

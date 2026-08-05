@@ -72,7 +72,7 @@ const TermsOfService = lazy(() => import("./Pages/TermsOfService"));
 //    regular students at all, only to admins who actually visit /admin ──
 const AdminOverview = lazy(() => import("./admin/pages/AdminOverview"));
 const AdminUsers = lazy(() => import("./admin/pages/AdminUsers"));
-const AdminAuditLog = lazy(() => import("./admin/pages/AdminAuditLog"));
+const AdminAuditLog = lazy(() => import("./admin/pages/AdminAuditLog") as Promise<{ default: React.ComponentType<any> }>);
 const AdminBroadcast = lazy(() => import("./admin/pages/AdminBroadcast"));
 const Adminquestions = lazy(() => import("./admin/pages/Adminquestions"));
 const AdminReports = lazy(() => import("./admin/pages/AdminReports"));

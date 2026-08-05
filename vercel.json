@@ -1,6 +1,39 @@
 {
   "rewrites": [
     {
+      "source": "/",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(Googlebot|Bingbot|Slurp|DuckDuckBot|Baiduspider|YandexBot|facebookexternalhit|Twitterbot|LinkedInBot|WhatsApp|Slackbot|TelegramBot|redditbot|Applebot|Discordbot|SkypeUriPreview).*"
+        }
+      ],
+      "destination": "/seo/home.html"
+    },
+    {
+      "source": "/signin",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(Googlebot|Bingbot|Slurp|DuckDuckBot|Baiduspider|YandexBot|facebookexternalhit|Twitterbot|LinkedInBot|WhatsApp|Slackbot|TelegramBot|redditbot|Applebot|Discordbot|SkypeUriPreview).*"
+        }
+      ],
+      "destination": "/seo/signin.html"
+    },
+    {
+      "source": "/signup",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(Googlebot|Bingbot|Slurp|DuckDuckBot|Baiduspider|YandexBot|facebookexternalhit|Twitterbot|LinkedInBot|WhatsApp|Slackbot|TelegramBot|redditbot|Applebot|Discordbot|SkypeUriPreview).*"
+        }
+      ],
+      "destination": "/seo/signup.html"
+    },
+    {
       "source": "/(.*)",
       "destination": "/app.html"
     }
@@ -25,6 +58,15 @@
     },
     {
       "source": "/app.html",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/seo/(.*)",
       "headers": [
         {
           "key": "Cache-Control",

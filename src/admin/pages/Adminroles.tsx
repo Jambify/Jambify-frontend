@@ -22,6 +22,7 @@
  */
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import PageHelmet from "../../components/SEO/PageHelmet";
 import { supabase } from "../../lib/supabase";
 import { cn } from "../../lib/utils/utils";
 import { logAdminAction } from "../../lib/utils/Auditlog";
@@ -221,6 +222,11 @@ const AdminRoles: React.FC = () => {
 
   return (
     <div className="space-y-5">
+      <PageHelmet
+        title="Admin Roles | SCHOOLDRA"
+        description="Manage admin roles and permissions, add or remove admin access, and view owner protection info."
+        canonical="https://www.schooldra.com/admin/roles"
+      />
       {/* Header */}
       <div>
         <h2 className="font-display text-lg font-semibold">Admin Roles</h2>

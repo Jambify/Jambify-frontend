@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import PageHelmet from "../components/SEO/PageHelmet";
 import AppLayout from "../components/Layout/AppLayout";
 import { useSubjectStore } from "../Store/useSubjectStore";
 import SubjectCard from "../components/Subjects/SubjectCard";
@@ -140,6 +141,11 @@ const Subjects: React.FC = () => {
       isSidebarOpen={isSidebarOpen}
       setIsSidebarOpen={setIsSidebarOpen}
     >
+      <PageHelmet
+        title="Subjects | SCHOOLDRA"
+        description="View and manage the subjects tailored to your JAMB prep, with accuracy stats and insights to guide your study."
+        canonical="https://www.schooldra.com/subjects"
+      />
       {/* Sleek background sync progress loader indicator line */}
       {isLoading && (
         <div className="bg-bgCard fixed top-0 left-0 z-50 h-0.5 w-full overflow-hidden">

@@ -1,5 +1,6 @@
 // src/admin/pages/AdminBroadcast.tsx
 import React, { useEffect, useState } from "react";
+import PageHelmet from "../../components/SEO/PageHelmet";
 import { supabase } from "../../lib/supabase";
 import { Megaphone, Loader2, Trash2, Send, Clock, CheckCircle2, XCircle, ChevronDown } from "lucide-react";
 import { cn } from "../../lib/utils/utils";
@@ -192,6 +193,11 @@ const AdminBroadcast: React.FC = () => {
 
   return (
     <div className="space-y-6 relative">
+      <PageHelmet
+        title="Admin Broadcasts | SCHOOLDRA"
+        description="Create and manage announcements targeted to Schooldra users, schedule expiries, and send reminders to Pro users."
+        canonical="https://www.schooldra.com/admin/broadcast"
+      />
       {/* Toast */}
       {toast && (
         <div

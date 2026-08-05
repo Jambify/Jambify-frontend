@@ -33,6 +33,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import { cn } from "../../lib/utils/utils";
+import PageHelmet from "../../components/SEO/PageHelmet";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -121,6 +122,7 @@ const AdminReports: React.FC = () => {
 
   const removeToast = (id: number) =>
     setToasts((prev) => prev.filter((t) => t.id !== id));
+
 
   const fetchReports = useCallback(async () => {
     setLoading(true);
@@ -248,6 +250,11 @@ const AdminReports: React.FC = () => {
 
   return (
     <div className="space-y-5">
+      <PageHelmet
+        title="Flagged Questions | SCHOOLDRA"
+        description="Review and manage student-reported question issues: mark reviewed, dismiss, or correct flagged content."
+        canonical="https://www.schooldra.com/admin/reports"
+      />
       {/* Header */}
       <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>

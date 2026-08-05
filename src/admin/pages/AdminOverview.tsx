@@ -14,6 +14,7 @@
  */
 
 import React, { useEffect, useState } from "react";
+import PageHelmet from "../../components/SEO/PageHelmet";
 import { Link } from "react-router";
 import { supabase } from "../../lib/supabase";
 import {
@@ -271,9 +272,16 @@ const AdminOverview: React.FC = () => {
 
   if (loading)
     return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="text-brand h-6 w-6 animate-spin" />
-      </div>
+      <>
+        <PageHelmet
+          title="Admin Overview | SCHOOLDRA"
+          description="Overview of Schooldra administration stats, recent signups, and quick links to manage users, reports, and the question bank."
+          canonical="https://www.schooldra.com/admin"
+        />
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="text-brand h-6 w-6 animate-spin" />
+        </div>
+      </>
     );
 
   if (!stats) return null;
@@ -282,6 +290,11 @@ const AdminOverview: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      <PageHelmet
+        title="Admin Overview | SCHOOLDRA"
+        description="Overview of Schooldra administration stats, recent signups, and quick links to manage users, reports, and the question bank."
+        canonical="https://www.schooldra.com/admin"
+      />
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <Card
           label="Total Users"

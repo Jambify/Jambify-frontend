@@ -10,6 +10,7 @@ import {
   Loader2, Crown, ShieldOff, ShieldCheck, Trash2, Clock,
   UserPlus, UserMinus, Flag, FilePlus, FileEdit, FileX,
 } from "lucide-react";
+import PageHelmet from "../../components/SEO/PageHelmet";
 import { cn } from "../../lib/utils/utils";
 
 interface AuditEntry {
@@ -55,23 +56,43 @@ const AdminAuditLog: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-6 h-6 text-brand animate-spin" />
-      </div>
+      <>
+        <PageHelmet
+          title="Admin Audit Log | SCHOOLDRA"
+          description="Read-only feed of administrative actions: grants, revocations, deletions, and question edits."
+          canonical="https://www.schooldra.com/admin/audit-log"
+        />
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="w-6 h-6 text-brand animate-spin" />
+        </div>
+      </>
     );
   }
 
   if (entries.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
-        <Clock className="text-textDim h-10 w-10" />
-        <p className="text-textDim text-sm">No admin actions logged yet</p>
-      </div>
+      <>
+        <PageHelmet
+          title="Admin Audit Log | SCHOOLDRA"
+          description="Read-only feed of administrative actions: grants, revocations, deletions, and question edits."
+          canonical="https://www.schooldra.com/admin/audit-log"
+        />
+        <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
+          <Clock className="text-textDim h-10 w-10" />
+          <p className="text-textDim text-sm">No admin actions logged yet</p>
+        </div>
+      </>
     );
   }
 
   return (
-    <div className="bg-bgCard border-borderMuted rounded-brand-lg divide-borderMuted divide-y border overflow-hidden">
+    <>
+      <PageHelmet
+        title="Admin Audit Log | SCHOOLDRA"
+        description="Read-only feed of administrative actions: grants, revocations, deletions, and question edits."
+        canonical="https://www.schooldra.com/admin/audit-log"
+      />
+      <div className="bg-bgCard border-borderMuted rounded-brand-lg divide-borderMuted divide-y border overflow-hidden">
       {entries.map((e) => {
         const meta = ACTION_META[e.action] ?? {
           label: e.action,
@@ -96,7 +117,8 @@ const AdminAuditLog: React.FC = () => {
           </div>
         );
       })}
-    </div>
+      </div>
+    </>
   );
 };
 

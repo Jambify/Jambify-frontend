@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import PageHelmet from "../components/SEO/PageHelmet";
 import AppLayout from "../components/Layout/AppLayout";
 import { useGroupStore } from "../Store/useGroupStore";
 import GroupCard from "../components/StudyGroups/GroupCard";
@@ -151,6 +152,11 @@ const StudyGroups: React.FC = () => {
       isSidebarOpen={isSidebarOpen}
       setIsSidebarOpen={setIsSidebarOpen}
     >
+      <PageHelmet
+        title="Study Groups | SCHOOLDRA"
+        description="Join or create study groups to collaborate with peers, share resources, and improve together for JAMB UTME."
+        canonical="https://www.schooldra.com/study-groups"
+      />
       <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
         <div>
           <h2 className="font-display text-2xl font-bold tracking-tight">

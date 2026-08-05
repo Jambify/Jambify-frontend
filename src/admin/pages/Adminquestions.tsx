@@ -34,6 +34,7 @@ import {
   AlertTriangle,
   BookOpen,
 } from "lucide-react";
+import PageHelmet from "../../components/SEO/PageHelmet";
 
 // ── Types ─────────────────────────────────────────────────────────────
 
@@ -532,6 +533,11 @@ const AdminQuestions: React.FC = () => {
 
   return (
     <div className="space-y-5">
+      <PageHelmet
+        title="Admin Questions | SCHOOLDRA"
+        description="Manage the Schooldra question bank: add, edit, delete and search questions used in practice and mock exams."
+        canonical="https://www.schooldra.com/admin/questions"
+      />
       {/* Header */}
       <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>

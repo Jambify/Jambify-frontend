@@ -41,26 +41,26 @@ h6,
   --font-mono: "DM Mono", monospace;
 
   /* Brand */
-  --color-brand: #473bf0;
-  --color-brand-light: #6b5dff;
-  --color-brand-dim: rgba(71, 59, 240, 0.12);
+  --color-brand: #7c3cff;
+  --color-brand-light: #a47dff;
+  --color-brand-dim: rgba(124, 60, 255, 0.14);
 
   /* Secondary Accent */
-  --color-teal: #61a0af;
-  --color-teal-light: #7fb3c4;
-  --color-teal-dim: rgba(97, 160, 175, 0.12);
+  --color-teal: #33d8ff;
+  --color-teal-light: #8ef0ff;
+  --color-teal-dim: rgba(51, 216, 255, 0.18);
 
   /* Highlight */
-  --color-lime: #f3ffb6;
-  --color-lime-dark: #d4e86f;
+  --color-lime: #ffde75;
+  --color-lime-dark: #ffb84a;
 
   /* Semantic */
-  --color-success: #00c896;
-  --color-success-dim: rgba(0, 200, 150, 0.12);
-  --color-danger: #df2935;
-  --color-danger-dim: rgba(223, 41, 53, 0.12);
-  --color-warn: #ffb020;
-  --color-warn-dim: rgba(255, 176, 32, 0.12);
+  --color-success: #4de1a6;
+  --color-success-dim: rgba(77, 225, 166, 0.18);
+  --color-danger: #ff5864;
+  --color-danger-dim: rgba(255, 88, 100, 0.18);
+  --color-warn: #ffb74d;
+  --color-warn-dim: rgba(255, 183, 77, 0.16);
 
   /* Backgrounds — resolved from CSS vars so they switch with theme */
   --color-bg: var(--bg);
@@ -101,25 +101,25 @@ h6,
    DARK THEME — default
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 :root {
-  --bg: #0a0a0f;
-  --bgDeep: #191716;
-  --bgMain: #0a0a0f;
-  --bgSurface: #111118;
-  --bgCard: #18181f;
+  --bg: #090a16;
+  --bgDeep: #12122a;
+  --bgMain: #090a16;
+  --bgSurface: #14142f;
+  --bgCard: #191a3e;
   --bgTrack: rgba(255, 255, 255, 0.06);
-  --borderMuted: rgba(255, 255, 255, 0.07);
-  --textMain: #f0eff8;
-  --textMuted: #9896b0;
-  --textDim: #5c5a72;
-  --shadow-card-val: 0 4px 32px rgba(0, 0, 0, 0.4);
-  --shadow-nav-val: 0 -10px 40px rgba(0, 0, 0, 0.5);
-  --shadow-brand-val: 0 4px 24px rgba(71, 59, 240, 0.35);
-  --shadow-teal-val: 0 4px 24px rgba(97, 160, 175, 0.25);
-  --shadow-success-val: 0 4px 16px rgba(0, 200, 150, 0.25);
-  --shadow-danger-val: 0 4px 16px rgba(223, 41, 53, 0.25);
+  --borderMuted: rgba(255, 255, 255, 0.09);
+  --textMain: #f6f4ff;
+  --textMuted: #b8b4d1;
+  --textDim: #8b89a7;
+  --shadow-card-val: 0 20px 70px rgba(0, 0, 0, 0.45);
+  --shadow-nav-val: 0 -10px 40px rgba(8, 10, 22, 0.55);
+  --shadow-brand-val: 0 18px 45px rgba(124, 60, 255, 0.18);
+  --shadow-teal-val: 0 16px 40px rgba(51, 216, 255, 0.16);
+  --shadow-success-val: 0 4px 16px rgba(77, 225, 166, 0.25);
+  --shadow-danger-val: 0 4px 16px rgba(255, 88, 100, 0.25);
   --cd-opacity: 0.08;
-  --scrollbar-thumb: rgba(255, 255, 255, 0.08);
-  --scrollbar-thumb-hover: rgba(255, 255, 255, 0.15);
+  --scrollbar-thumb: rgba(255, 255, 255, 0.12);
+  --scrollbar-thumb-hover: rgba(255, 255, 255, 0.18);
 }
 
 /* ── Custom Utilities ── */
@@ -152,27 +152,27 @@ h6,
    LIGHT THEME — applied via <html data-theme="light">
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 [data-theme="light"] {
-  --bg: #faf8ff;
-  --bgDeep: #ede5ff;
-  --bgMain: #faf8ff;
-  --bgSurface: #f3eeff;
+  --bg: #f9f8ff;
+  --bgDeep: #f0edff;
+  --bgMain: #f9f8ff;
+  --bgSurface: #f4f1ff;
   --bgCard: #ffffff;
-  --bgTrack: rgba(71, 59, 240, 0.08);
-  --borderMuted: rgba(71, 59, 240, 0.1);
-  --textMain: #1a1625;
-  --textMuted: #5b5470;
-  --textDim: #7d789a;
+  --bgTrack: rgba(124, 60, 255, 0.1);
+  --borderMuted: rgba(124, 60, 255, 0.12);
+  --textMain: #1d1730;
+  --textMuted: #665f82;
+  --textDim: #8e88a9;
   --shadow-card-val:
-    0 1px 3px rgba(71, 59, 240, 0.05), 0 6px 20px rgba(71, 59, 240, 0.07);
+    0 14px 32px rgba(124, 60, 255, 0.08), 0 6px 20px rgba(124, 60, 255, 0.05);
   --shadow-nav-val:
-    0 -4px 12px rgba(71, 59, 240, 0.03), 0 -8px 24px rgba(71, 59, 240, 0.05);
-  --shadow-brand-val: 0 4px 20px rgba(71, 59, 240, 0.2);
-  --shadow-teal-val: 0 4px 20px rgba(97, 160, 175, 0.15);
-  --shadow-success-val: 0 4px 16px rgba(0, 200, 150, 0.2);
-  --shadow-danger-val: 0 4px 16px rgba(223, 41, 53, 0.2);
+    0 -4px 18px rgba(124, 60, 255, 0.06), 0 -8px 24px rgba(124, 60, 255, 0.06);
+  --shadow-brand-val: 0 14px 34px rgba(124, 60, 255, 0.12);
+  --shadow-teal-val: 0 12px 28px rgba(51, 216, 255, 0.12);
+  --shadow-success-val: 0 4px 16px rgba(77, 225, 166, 0.18);
+  --shadow-danger-val: 0 4px 16px rgba(255, 88, 100, 0.15);
   --cd-opacity: 0.16;
-  --scrollbar-thumb: rgba(71, 59, 240, 0.15);
-  --scrollbar-thumb-hover: rgba(71, 59, 240, 0.28);
+  --scrollbar-thumb: rgba(124, 60, 255, 0.18);
+  --scrollbar-thumb-hover: rgba(124, 60, 255, 0.28);
 }
 
 /* ── Light mode component overrides ── */

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import PageHelmet from "../components/SEO/PageHelmet";
 import { useNavigate } from "react-router";
 import { useUserStore } from "../Store/useUserStore";
 import { motion } from "framer-motion";
@@ -85,6 +86,11 @@ const Welcome: React.FC = () => {
       className="bg-bgMain text-textMain flex min-h-screen flex-col items-center justify-center p-4"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
+      <PageHelmet
+        title="Welcome | SCHOOLDRA"
+        description="Welcome to Schooldra — your profile is set up and ready. Continue to your dashboard to start practicing for JAMB UTME."
+        canonical="https://www.schooldra.com/welcome"
+      />
       {showConfetti && (
         <div className="pointer-events-none fixed inset-0 overflow-hidden">
           {confettiParticles.map((p, i) => (

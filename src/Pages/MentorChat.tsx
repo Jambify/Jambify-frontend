@@ -12,6 +12,7 @@
  */
 
 import React, { useEffect, useRef, useState } from "react";
+import PageHelmet from "../components/SEO/PageHelmet";
 import AppLayout from "../components/Layout/AppLayout";
 import { useUserStore } from "../Store/useUserStore";
 import { useSubjectStore } from "../Store/useSubjectStore";
@@ -269,6 +270,11 @@ Student profile:
       isSidebarOpen={isSidebarOpen}
       setIsSidebarOpen={setIsSidebarOpen}
     >
+      <PageHelmet
+        title="Mentor Chat | SCHOOLDRA"
+        description="Chat with Schooldra's AI Mentor for personalized study advice, topic explanations, and exam strategies for JAMB UTME."
+        canonical="https://www.schooldra.com/mentor"
+      />
       <div
         className="-mx-4 -mt-4 flex gap-3 overflow-hidden px-4 pt-4 lg:-mx-7 lg:-mt-7 lg:px-7 lg:pt-7"
         style={{ height: "calc(100vh - 56px - 1.75rem)" }}

@@ -11,7 +11,6 @@ import {
   AlertTriangle,
   ArrowRight,
   CheckCircle,
-  Sparkles,
   RefreshCw,
   Calculator,
   Zap,
@@ -200,24 +199,24 @@ const SubjectProgress: React.FC = () => {
 
   // ── 5. Weakest topics list ─────────────────────────────────────────────────
   return (
-    <div className="bg-bgCard border-borderMuted rounded-brand-xl flex h-full flex-col border p-6">
-      <div className="mb-6 flex items-center justify-between">
-        <div className="flex flex-col gap-0.5">
-          <h3 className="font-display text-textMain font-bold">
+    <div className="bg-bgCard border-borderMuted rounded-brand-xl flex h-full flex-col border p-6 shadow-card shadow-brand/10">
+      <div className="mb-6 flex items-center justify-between gap-4">
+        <div className="flex flex-col gap-1">
+          <span className="text-brand text-[10px] font-black uppercase tracking-[0.35em]">
             Weakest Topics
-          </h3>
+          </span>
           <p className="text-textDim text-[11px] font-medium">
             One critical area from each of your subjects
           </p>
         </div>
         <button
           onClick={() => navigate("/performance")}
-          className="text-brand hover:text-brand-light group flex items-center gap-1 text-xs font-bold"
+          className="text-brand hover:text-brand-light group inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.18em]"
         >
-          View all{" "}
+          View all
           <ArrowRight
             size={14}
-            className="transition-transform group-hover:translate-x-0.5"
+            className="transition-transform duration-200 group-hover:translate-x-1"
           />
         </button>
       </div>
@@ -231,18 +230,18 @@ const SubjectProgress: React.FC = () => {
           return (
             <div
               key={`${item.subject}-${item.name}-${index}`}
-              className="group cursor-pointer transition-all hover:scale-[1.01]"
+              className="group cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-brand/10"
               onClick={() =>
                 navigate(
                   `/quiz?subject=${encodeURIComponent(item.subject)}&topic=${encodeURIComponent(item.name)}`,
                 )
               }
             >
-              <div className="bg-bgSurface border-borderMuted hover:border-brand/30 rounded-brand-lg flex items-center gap-3 border p-4 transition-all">
+              <div className="group-hover:border-brand/40 bg-bgCard/90 border-borderMuted rounded-[1.5rem] flex items-center gap-3 border p-4 shadow-sm transition-all">
                 <div
-                  className="flex h-10 w-10 items-center justify-center rounded-lg text-xl"
+                  className="flex h-11 w-11 items-center justify-center rounded-2xl text-xl"
                   style={{
-                    background: `color-mix(in srgb, ${subjectData?.color || "var(--color-brand)"} 20%, transparent)`,
+                    background: `color-mix(in srgb, ${subjectData?.color || "var(--color-brand)"} 24%, transparent)`,
                   }}
                 >
                   {getSubjectIcon(item.subject)}
@@ -255,24 +254,14 @@ const SubjectProgress: React.FC = () => {
                     {item.subject}
                   </p>
                 </div>
-                <div className="flex flex-col items-end gap-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-textMain text-xs font-bold">
-                      {Math.round(item.accuracy)}%
-                    </span>
-                    {item.accuracy < 30 ? (
-                      <AlertTriangle size={12} className="text-danger" />
-                    ) : (
-                      <Sparkles size={12} className="text-warn" />
-                    )}
+                <div className="flex flex-col items-end gap-2">
+                  <div className="rounded-full bg-bgSurface px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-textMain">
+                    {item.accuracy}%
                   </div>
-                  <div className="bg-bgTrack h-1.5 w-20 overflow-hidden rounded-full">
+                  <div className="h-2.5 w-24 overflow-hidden rounded-full bg-bgTrack">
                     <div
-                      className="h-full rounded-full transition-all duration-300"
-                      style={{
-                        width: `${item.accuracy}%`,
-                        background: progressColor,
-                      }}
+                      className="h-full rounded-full"
+                      style={{ background: progressColor, width: `${item.accuracy}%` }}
                     />
                   </div>
                 </div>

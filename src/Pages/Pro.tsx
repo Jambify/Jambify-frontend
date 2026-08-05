@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import PageHelmet from "../components/SEO/PageHelmet";
 import AppLayout from "../components/Layout/AppLayout";
 import ExamPaywall from "../components/MockExam/ExamPaywall";
 import { useNavigate } from "react-router";
@@ -16,6 +17,11 @@ const ProPage: React.FC = () => {
       isSidebarOpen={isSidebarOpen}
       setIsSidebarOpen={setIsSidebarOpen}
     >
+      <PageHelmet
+        title="Pro | SCHOOLDRA"
+        description="Explore Schooldra Pro membership benefits including AI Tutor, full mock reviews, offline study mode, and advanced analytics."
+        canonical="https://www.schooldra.com/pro"
+      />
       <div className="mx-auto max-w-4xl py-6">
         {isPro ? (
           <div className="bg-bgCard border-borderMuted rounded-brand-xl border p-8 text-center shadow-xl">

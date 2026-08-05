@@ -2,6 +2,7 @@ import { useNavigate } from "react-router";
 import AppLayout from "../components/Layout/AppLayout";
 import Button from "../components/ui/Button";
 import { useState } from "react";
+import PageHelmet from "../components/SEO/PageHelmet";
 
 const NotFound = () => {
   const navigate = useNavigate();
@@ -13,6 +14,11 @@ const NotFound = () => {
       isSidebarOpen={isSidebarOpen}
       setIsSidebarOpen={setIsSidebarOpen}
     >
+      <PageHelmet
+        title="404 Not Found | SCHOOLDRA"
+        description="The page you requested could not be found. Return to the Schooldra homepage to continue preparing for JAMB UTME."
+        canonical="https://www.schooldra.com"
+      />
       <div className="flex flex-col items-center justify-center px-4 py-20 text-center">
         {/* Icon / Illustration */}
         <div className="bg-brand/10 border-brand/20 mb-6 flex h-20 w-20 items-center justify-center rounded-2xl border text-4xl">

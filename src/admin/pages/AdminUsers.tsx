@@ -28,6 +28,7 @@ import {
   BookOpen,
   Calendar,
 } from "lucide-react";
+import PageHelmet from "../../components/SEO/PageHelmet";
 import { useUserStore } from "../../Store/useUserStore"; // Added this import!
 
 // ── Types ─────────────────────────────────────────────────────────────
@@ -639,6 +640,11 @@ const AdminUsers: React.FC = () => {
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <div className="space-y-5">
+      <PageHelmet
+        title="Admin Users | SCHOOLDRA"
+        description="Manage Schooldra users: view profiles, grant/revoke Pro, freeze accounts, and delete users."
+        canonical="https://www.schooldra.com/admin/users"
+      />
       {/* Stats row */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <StatMini label="Total Users" value={stats.total} />

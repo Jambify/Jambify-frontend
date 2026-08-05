@@ -21,7 +21,7 @@ const SubjectSidebar: React.FC<SubjectSidebarProps> = ({
   const subjects = Array.from(new Set(questions.map((q) => q.subject)));
 
   return (
-    <div className={cn("flex flex-col gap-2", className)}>
+    <div className={cn("flex flex-col gap-3", className)}>
       {subjects.map((subject) => {
         const isActive = activeSubject === subject;
         const subjectQuestions = questions.filter((q) => q.subject === subject);
@@ -37,39 +37,36 @@ const SubjectSidebar: React.FC<SubjectSidebarProps> = ({
             key={subject}
             onClick={() => onSubjectChange(subject)}
             className={cn(
-              "group relative flex flex-col items-start overflow-hidden rounded-xl border px-4 py-3 text-left transition-all active:scale-95",
+              "group relative flex flex-col items-start overflow-hidden rounded-[22px] border px-4 py-4 text-left transition-all",
               isActive
-                ? "bg-brand border-brand shadow-brand/20 font-bold text-white shadow-lg"
-                : "bg-bgCard text-textMain border-borderMuted hover:border-brand/40 hover:bg-bgSurface",
+                ? "bg-brand border-brand text-white shadow-brand/20 shadow-lg"
+                : "bg-bgCard text-textMain border-borderMuted hover:border-brand/30 hover:bg-bgSurface/80",
             )}
           >
-            {/* Progress Bar Background */}
             {!isActive && (
               <div
-                className="bg-brand/20 absolute bottom-0 left-0 h-0.5 transition-all duration-500"
+                className="absolute bottom-0 left-0 h-1.5 bg-brand/30 transition-all duration-500"
                 style={{ width: `${progress}%` }}
               />
             )}
 
-            <div className="mb-1 flex w-full items-center justify-between">
-              <span className="text-xs font-black tracking-tight uppercase">
+            <div className="mb-2 flex w-full items-center justify-between gap-3">
+              <span className="text-sm font-bold tracking-tight uppercase">
                 {subject}
               </span>
               {progress === 100 && !isActive && (
-                <CheckCircle size={12} className="text-success" />
+                <CheckCircle size={14} className="text-success" />
               )}
             </div>
 
-            <div className="flex items-center gap-2">
-              <span
-                className={cn(
-                  "text-[9px] font-bold tracking-widest uppercase",
-                  isActive ? "text-white/70" : "text-textDim",
-                )}
-              >
-                {answeredInSubject} / {subjectQuestions.length} Answered
-              </span>
-            </div>
+            <span
+              className={cn(
+                "rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-[0.25em]",
+                isActive ? "bg-white/10 text-white" : "bg-bgSurface text-textDim",
+              )}
+            >
+              {answeredInSubject} / {subjectQuestions.length} Answered
+            </span>
           </button>
         );
       })}

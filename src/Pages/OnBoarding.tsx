@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import PageHelmet from "../components/SEO/PageHelmet";
 import { useNavigate } from "react-router";
 import { useUserStore } from "../Store/useUserStore";
 import StepIndicator from "../components/OnBoarding/StepIndicator";
