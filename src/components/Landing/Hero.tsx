@@ -19,7 +19,9 @@ import heroDemoVideo from "../../assets/Hero-Demo.mp4";
 const FALLBACK_QUESTION_COUNT = 4180;
 
 const Hero: React.FC = () => {
-  const [questionCount, setQuestionCount] = useState<number>(FALLBACK_QUESTION_COUNT);
+  const [questionCount, setQuestionCount] = useState<number>(
+    FALLBACK_QUESTION_COUNT,
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -73,8 +75,9 @@ const Hero: React.FC = () => {
             transition={{ ...fadeUp.transition, delay: 0.1 }}
             className="text-textMuted mx-auto mt-5 max-w-xl text-lg lg:mx-0"
           >
-            Pick a subject, take a quick quiz or full mock, and get instant guidance
-            on the topics holding back your score. No fluff, just fast JAMB prep.
+            Pick a subject, take a quick quiz or full mock, and get instant
+            guidance on the topics holding back your score. No fluff, just fast
+            JAMB prep.
           </motion.p>
           <motion.div
             {...fadeUp}
@@ -83,7 +86,7 @@ const Hero: React.FC = () => {
           >
             <Link
               to="/signup"
-              className="bg-brand hover:bg-brand-light flex items-center gap-2 rounded-full px-7 py-3.5 text-sm font-bold text-white transition-all shadow-[0_16px_40px_rgba(124,60,255,0.18)]"
+              className="bg-brand hover:bg-brand-light flex items-center gap-2 rounded-full px-7 py-3.5 text-sm font-bold text-white shadow-[0_16px_40px_rgba(124,60,255,0.18)] transition-all"
             >
               Start free today <ArrowRight className="h-4 w-4" />
             </Link>
@@ -98,14 +101,14 @@ const Hero: React.FC = () => {
           <motion.div
             {...fadeUp}
             transition={{ ...fadeUp.transition, delay: 0.2 }}
-            className="mt-10 grid max-w-xl grid-cols-1 gap-4 sm:grid-cols-3 border-t border-borderMuted pt-6 lg:mx-0"
+            className="border-borderMuted mt-10 grid max-w-xl grid-cols-1 gap-4 border-t pt-6 sm:grid-cols-3 lg:mx-0"
           >
             {stats.map((s) => (
               <div
                 key={s.label}
-                className="rounded-3xl bg-bgSurface/60 p-4 text-center shadow-[0_18px_40px_rgba(0,0,0,0.12)]"
+                className="bg-bgSurface/60 rounded-3xl p-4 text-center shadow-[0_18px_40px_rgba(0,0,0,0.12)]"
               >
-                <div className="font-display text-2xl font-extrabold text-textMain dark:text-white">
+                <div className="font-display text-textMain text-2xl font-extrabold dark:text-white">
                   {s.value}
                 </div>
                 <div className="text-textMuted mt-2 text-xs leading-snug">
@@ -130,7 +133,13 @@ const Hero: React.FC = () => {
             <div className="bg-bgMain/50 ml-2 h-4 w-48 rounded" />
           </div>
           <div className="relative aspect-video">
-            <video className="h-full w-full object-contain" autoPlay muted loop playsInline>
+            <video
+              className="h-full w-full object-contain"
+              autoPlay
+              muted
+              loop
+              playsInline
+            >
               <source src={heroDemoVideo} type="video/mp4" />
             </video>
           </div>

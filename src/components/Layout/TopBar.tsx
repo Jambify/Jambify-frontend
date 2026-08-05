@@ -58,22 +58,22 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
 
       <div className="flex flex-1 items-center justify-end gap-2 sm:flex-none sm:gap-3">
         {/* Streak pill */}
-        <div className="bg-warn/12 border-warn/20 group flex shrink-0 items-center gap-1.5 rounded-2xl border px-2 py-1 transition-all hover:bg-warn/20 sm:px-3 sm:py-1.5">
+        <div className="bg-warn/12 border-warn/20 group hover:bg-warn/20 flex shrink-0 items-center gap-1.5 rounded-2xl border px-2 py-1 transition-all sm:px-3 sm:py-1.5">
           <div className="bg-warn/20 flex h-7 w-7 items-center justify-center rounded-xl shadow-inner sm:h-8 sm:w-8">
-            <Flame className="h-4 w-4 text-warn sm:h-4.5 sm:w-4.5" />
+            <Flame className="text-warn h-4 w-4 sm:h-4.5 sm:w-4.5" />
           </div>
           <div className="flex flex-col leading-tight">
             <span className="text-textMain text-[12px] font-black tracking-tight sm:text-[14px]">
               {streak}
             </span>
-            <span className="text-textDim text-[8px] font-bold uppercase tracking-wider">
+            <span className="text-textDim text-[8px] font-bold tracking-wider uppercase">
               Streak
             </span>
           </div>
         </div>
 
         {/* Exam countdown pill */}
-        <div className="bg-brand/14 border-brand/20 group flex shrink-0 items-center gap-1.5 rounded-2xl border px-2 py-1 transition-all hover:bg-brand/20 sm:px-3 sm:py-1.5">
+        <div className="bg-brand/14 border-brand/20 group hover:bg-brand/20 flex shrink-0 items-center gap-1.5 rounded-2xl border px-2 py-1 transition-all sm:px-3 sm:py-1.5">
           <div className="bg-brand/20 flex h-7 w-7 items-center justify-center rounded-xl shadow-inner sm:h-8 sm:w-8">
             <Clock className="text-brand-light h-4 w-4 sm:h-4.5 sm:w-4.5" />
           </div>
@@ -81,7 +81,7 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
             <span className="text-textMain text-[12px] font-black tracking-tight sm:text-[14px]">
               {daysLeft}
             </span>
-            <span className="text-textDim text-[8px] font-bold uppercase tracking-wider">
+            <span className="text-textDim text-[8px] font-bold tracking-wider uppercase">
               Days
             </span>
           </div>
