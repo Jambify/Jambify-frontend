@@ -436,7 +436,9 @@ const PastQuestions = () => {
                 />
                 <ValidatedInput
                   value={filters.search}
-                  onChange={(v) => handleFilterChange({ search: truncateInput(v, 200) })}
+                  onChange={(v) =>
+                    handleFilterChange({ search: truncateInput(v, 200) })
+                  }
                   placeholder="Search..."
                   className="bg-bgSurface border-borderMuted text-textMain focus:ring-brand/50 w-full rounded-xl border py-2.5 pr-4 pl-12 focus:ring-2 focus:outline-none"
                 />

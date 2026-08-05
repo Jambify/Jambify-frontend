@@ -16,7 +16,12 @@ import AuthLayout from "../../components/auth/AuthLayout";
 import PageHelmet from "../../components/SEO/PageHelmet";
 import { toTitleCase } from "../../lib/utils/utils";
 import ValidatedInput from "../../components/ui/ValidatedInput";
-import { truncateInput, MAX_NAME_LENGTH, MAX_EMAIL_LENGTH, validateName } from "../../lib/validation";
+import {
+  truncateInput,
+  MAX_NAME_LENGTH,
+  MAX_EMAIL_LENGTH,
+  validateName,
+} from "../../lib/validation";
 
 type Step = "form" | "otp";
 
@@ -271,7 +276,7 @@ const SignUp: React.FC = () => {
                 placeholder="000000"
                 style={{ fontSize: "16px" }}
                 className={`bg-bgSurface border-borderMuted rounded-brand-lg text-textMain focus:ring-brand/40 placeholder:text-textDim/30 w-full border py-4 text-center font-mono text-2xl tracking-[0.5em] transition-all outline-none focus:border-transparent focus:ring-2 ${
-                  loading ? "opacity-50 cursor-not-allowed" : ""
+                  loading ? "cursor-not-allowed opacity-50" : ""
                 }`}
               />
             </div>
@@ -373,7 +378,7 @@ const SignUp: React.FC = () => {
                 maxLength={MAX_NAME_LENGTH}
                 validate={validateName}
                 className={`bg-bgSurface border-borderMuted rounded-brand-lg text-textMain focus:ring-brand/40 placeholder:text-textDim/50 w-full border py-3.5 pr-4 pl-12 transition-all outline-none focus:border-transparent focus:ring-2 ${
-                  loading ? "opacity-50 cursor-not-allowed" : ""
+                  loading ? "cursor-not-allowed opacity-50" : ""
                 }`}
                 readOnly={loading}
               />
@@ -394,7 +399,7 @@ const SignUp: React.FC = () => {
                 maxLength={MAX_EMAIL_LENGTH}
                 type="email"
                 className={`bg-bgSurface border-borderMuted rounded-brand-lg text-textMain focus:ring-brand/40 placeholder:text-textDim/50 w-full border py-3.5 pr-4 pl-12 transition-all outline-none focus:border-transparent focus:ring-2 ${
-                  loading ? "opacity-50 cursor-not-allowed" : ""
+                  loading ? "cursor-not-allowed opacity-50" : ""
                 }`}
                 readOnly={loading}
               />

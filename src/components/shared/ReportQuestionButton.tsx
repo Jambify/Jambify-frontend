@@ -67,13 +67,15 @@ const ReportQuestionButton: React.FC<ReportQuestionButtonProps> = ({
       } = await supabase.auth.getUser();
       if (!user) throw new Error("Please sign in to report a question.");
 
-      const { error: insertError } = await supabase.from("question_reports").insert({
-        question_id: questionId,
-        reported_by: user.id,
-        reason,
-        details: details.trim() || null,
-        context,
-      });
+      const { error: insertError } = await supabase
+        .from("question_reports")
+        .insert({
+          question_id: questionId,
+          reported_by: user.id,
+          reason,
+          details: details.trim() || null,
+          context,
+        });
       if (insertError) throw insertError;
 
       setSubmitted(true);
@@ -109,7 +111,9 @@ const ReportQuestionButton: React.FC<ReportQuestionButtonProps> = ({
         ) : (
           <>
             <div className="mb-4 flex items-center justify-between">
-              <h3 className="font-display text-sm font-bold">Report this question</h3>
+              <h3 className="font-display text-sm font-bold">
+                Report this question
+              </h3>
               <button
                 onClick={() => setOpen(false)}
                 className="text-textDim hover:text-textMain"
@@ -149,7 +153,7 @@ const ReportQuestionButton: React.FC<ReportQuestionButtonProps> = ({
               multiline
               rows={2}
               maxLength={MAX_TEXT_LENGTH}
-              className="bg-bgSurface border-borderMuted text-textMain placeholder:text-textDim mb-3 w-full resize-none rounded-lg border px-3 py-2 text-xs outline-none focus:border-brand"
+              className="bg-bgSurface border-borderMuted text-textMain placeholder:text-textDim focus:border-brand mb-3 w-full resize-none rounded-lg border px-3 py-2 text-xs outline-none"
             />
 
             {error && <p className="text-danger mb-3 text-xs">{error}</p>}
@@ -167,7 +171,9 @@ const ReportQuestionButton: React.FC<ReportQuestionButtonProps> = ({
                 disabled={submitting}
                 className="bg-danger hover:bg-danger/90 flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-semibold text-white disabled:opacity-50"
               >
-                {submitting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+                {submitting ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : null}
                 Submit Report
               </button>
             </div>

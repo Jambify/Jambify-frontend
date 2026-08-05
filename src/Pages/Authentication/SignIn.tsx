@@ -270,7 +270,7 @@ const SignIn: React.FC = () => {
                 placeholder="000000"
                 style={{ fontSize: "16px" }}
                 className={`bg-bgSurface border-borderMuted rounded-brand-lg text-textMain focus:ring-brand/40 placeholder:text-textDim/30 w-full border py-4 text-center font-mono text-2xl tracking-[0.5em] transition-all outline-none focus:border-transparent focus:ring-2 ${
-                  loading ? "opacity-50 cursor-not-allowed" : ""
+                  loading ? "cursor-not-allowed opacity-50" : ""
                 }`}
               />
             </div>
@@ -381,7 +381,7 @@ const SignIn: React.FC = () => {
                 type="email"
                 readOnly={loading}
                 className={`bg-bgSurface border-borderMuted rounded-brand-lg text-textMain focus:ring-brand/40 placeholder:text-textDim/50 w-full border py-3.5 pr-4 pl-12 transition-all outline-none focus:border-transparent focus:ring-2 ${
-                  loading ? "opacity-50 cursor-not-allowed" : ""
+                  loading ? "cursor-not-allowed opacity-50" : ""
                 }`}
                 maxLength={MAX_EMAIL_LENGTH}
               />

@@ -13,7 +13,9 @@ interface Props {
   autoFocus?: boolean;
   multiline?: boolean;
   rows?: number;
-  onKeyDown?: React.KeyboardEventHandler<HTMLInputElement | HTMLTextAreaElement>;
+  onKeyDown?: React.KeyboardEventHandler<
+    HTMLInputElement | HTMLTextAreaElement
+  >;
 }
 
 const ValidatedInput: React.FC<Props> = ({
@@ -37,7 +39,9 @@ const ValidatedInput: React.FC<Props> = ({
     onChange(out);
   };
 
-  const inputClass = className || "bg-bgSurface border-borderMuted text-textMain w-full rounded-lg border px-3 py-2 text-sm focus:ring-2 focus:outline-none";
+  const inputClass =
+    className ||
+    "bg-bgSurface border-borderMuted text-textMain w-full rounded-lg border px-3 py-2 text-sm focus:ring-2 focus:outline-none";
 
   return (
     <div>
@@ -64,8 +68,10 @@ const ValidatedInput: React.FC<Props> = ({
           className={inputClass}
         />
       )}
-      {error ? <p className="text-red-400 mt-1 text-xs">{error}</p> : validate && !validate(value) && value.length > 0 ? (
-        <p className="text-red-400 mt-1 text-xs">Invalid input</p>
+      {error ? (
+        <p className="mt-1 text-xs text-red-400">{error}</p>
+      ) : validate && !validate(value) && value.length > 0 ? (
+        <p className="mt-1 text-xs text-red-400">Invalid input</p>
       ) : null}
     </div>
   );

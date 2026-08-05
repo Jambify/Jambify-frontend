@@ -633,7 +633,9 @@ const GuestMockExam: React.FC = () => {
                 <div className="flex items-center gap-4">
                   <ValidatedInput
                     value={jumpTo}
-                    onChange={(v) => setJumpTo(truncateInput(v.replace(/\D/g, ""), 4))}
+                    onChange={(v) =>
+                      setJumpTo(truncateInput(v.replace(/\D/g, ""), 4))
+                    }
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
                         const n = parseInt(jumpTo) - 1;

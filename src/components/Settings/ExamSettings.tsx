@@ -153,7 +153,10 @@ const ExamSettings: React.FC = () => {
             type="text"
             value={form.examDate}
             onChange={(e) =>
-              setForm((p) => ({ ...p, examDate: truncateInput(e.target.value, 20) }))
+              setForm((p) => ({
+                ...p,
+                examDate: truncateInput(e.target.value, 20),
+              }))
             }
             placeholder="e.g. Apr 27"
             className={inputCls(false)}

@@ -887,7 +887,9 @@ const MockExam: React.FC = () => {
                     <form onSubmit={handleJumpSubmit}>
                       <ValidatedInput
                         value={jumpTo}
-                        onChange={(v) => setJumpTo(truncateInput(v.replace(/\D/g, ""), 4))}
+                        onChange={(v) =>
+                          setJumpTo(truncateInput(v.replace(/\D/g, ""), 4))
+                        }
                         placeholder="#"
                         className="bg-bgSurface border-borderMuted focus:border-brand focus:ring-brand/20 h-8 w-12 rounded-lg border px-2 text-center text-xs font-bold transition-all focus:ring-2 focus:outline-none"
                         maxLength={4}

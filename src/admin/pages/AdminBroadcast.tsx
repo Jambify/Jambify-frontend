@@ -14,7 +14,11 @@ import {
 } from "lucide-react";
 import { cn } from "../../lib/utils/utils";
 import ValidatedInput from "../../components/ui/ValidatedInput";
-import { truncateInput, MAX_TITLE_LENGTH, MAX_TEXT_LENGTH } from "../../lib/validation";
+import {
+  truncateInput,
+  MAX_TITLE_LENGTH,
+  MAX_TEXT_LENGTH,
+} from "../../lib/validation";
 
 interface Announcement {
   id: string;

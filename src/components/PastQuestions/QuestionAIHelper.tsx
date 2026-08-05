@@ -109,7 +109,9 @@ Be concise, encouraging, and specific to this question. Under 150 words unless a
               value={input}
               onChange={(v) => setInput(truncateInput(v, 500))}
               onKeyDown={(e: any) => e.key === "Enter" && handleSend(input)}
-              placeholder={isAtLimit ? "Session limit reached" : "Ask a follow-up…"}
+              placeholder={
+                isAtLimit ? "Session limit reached" : "Ask a follow-up…"
+              }
               readOnly={isLoading || isAtLimit}
               className="bg-bgSurface border-borderMuted text-textMain focus:ring-brand/30 flex-1 rounded-lg border px-3 py-1.5 text-xs focus:ring-2 focus:outline-none disabled:opacity-50"
             />

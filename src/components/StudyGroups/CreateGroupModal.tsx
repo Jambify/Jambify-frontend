@@ -4,7 +4,12 @@ import Button from "../ui/Button";
 import { cn } from "../../lib/utils/utils";
 import { X, Users, Loader2 } from "lucide-react";
 import ValidatedInput from "../ui/ValidatedInput";
-import { truncateInput, MAX_NAME_LENGTH, MAX_TEXT_LENGTH, validateName } from "../../lib/validation";
+import {
+  truncateInput,
+  MAX_NAME_LENGTH,
+  MAX_TEXT_LENGTH,
+  validateName,
+} from "../../lib/validation";
 
 const SUBJECTS = [
   "Mixed",

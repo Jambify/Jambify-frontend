@@ -98,12 +98,8 @@ const GuestPastQuestions = () => {
   const subject = subjectSlug
     ? (SUBJECT_BY_SLUG[subjectSlug.toLowerCase()] ?? "All")
     : "All";
-   
-  const year =
-  yearParam && VALID_YEAR_SET.has(yearParam)
-    ? yearParam
-    : "All";
-      
+
+  const year = yearParam && VALID_YEAR_SET.has(yearParam) ? yearParam : "All";
 
   // Search stays local — it's a live filter, not something worth its own URL.
   const [search, setSearch] = useState("");

@@ -36,7 +36,11 @@ import {
 } from "lucide-react";
 import PageHelmet from "../../components/SEO/PageHelmet";
 import ValidatedInput from "../../components/ui/ValidatedInput";
-import { truncateInput, MAX_TEXT_LENGTH, MAX_TITLE_LENGTH } from "../../lib/validation";
+import {
+  truncateInput,
+  MAX_TEXT_LENGTH,
+  MAX_TITLE_LENGTH,
+} from "../../lib/validation";
 
 // ── Types ─────────────────────────────────────────────────────────────
 
@@ -272,7 +276,12 @@ const QuestionModal: React.FC<{
             </label>
             <ValidatedInput
               value={form.topic}
-              onChange={(v) => setForm((f) => ({ ...f, topic: truncateInput(v, MAX_TITLE_LENGTH) }))}
+              onChange={(v) =>
+                setForm((f) => ({
+                  ...f,
+                  topic: truncateInput(v, MAX_TITLE_LENGTH),
+                }))
+              }
               placeholder="e.g. Ecology, Grammar, Mechanics"
               maxLength={MAX_TITLE_LENGTH}
               className="bg-bgSurface border-borderMuted text-textMain placeholder:text-textDim focus:border-brand w-full rounded-lg border px-3 py-2 text-sm outline-none"
@@ -285,7 +294,12 @@ const QuestionModal: React.FC<{
             </label>
             <ValidatedInput
               value={form.text}
-              onChange={(v) => setForm((f) => ({ ...f, text: truncateInput(v, MAX_TEXT_LENGTH) }))}
+              onChange={(v) =>
+                setForm((f) => ({
+                  ...f,
+                  text: truncateInput(v, MAX_TEXT_LENGTH),
+                }))
+              }
               rows={3}
               multiline
               maxLength={MAX_TEXT_LENGTH}
@@ -350,7 +364,12 @@ const QuestionModal: React.FC<{
             </label>
             <ValidatedInput
               value={form.explanation}
-              onChange={(v) => setForm((f) => ({ ...f, explanation: truncateInput(v, MAX_TEXT_LENGTH) }))}
+              onChange={(v) =>
+                setForm((f) => ({
+                  ...f,
+                  explanation: truncateInput(v, MAX_TEXT_LENGTH),
+                }))
+              }
               rows={2}
               placeholder="Shown to students after they answer"
               multiline

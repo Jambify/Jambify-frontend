@@ -10,7 +10,12 @@ import LoadingScreen from "../components/ui/LoadingScreen";
 import CustomSubjectSelector from "../components/Settings/CustomSubjectSelector";
 import schooldraLogo from "../assets/schooldraLogo.webp"; // Import the new logo
 import ValidatedInput from "../components/ui/ValidatedInput";
-import { truncateInput, validateName, MAX_NAME_LENGTH, MAX_UNI_LENGTH } from "../lib/validation";
+import {
+  truncateInput,
+  validateName,
+  MAX_NAME_LENGTH,
+  MAX_UNI_LENGTH,
+} from "../lib/validation";
 
 /* ── Updated Data with Professional Combos ── */
 const SUBJECT_COMBOS = [
@@ -402,7 +407,9 @@ const Onboarding: React.FC = () => {
                   <div className="relative">
                     <ValidatedInput
                       value={form.name}
-                      onChange={(v) => set("name", truncateInput(v, MAX_NAME_LENGTH))}
+                      onChange={(v) =>
+                        set("name", truncateInput(v, MAX_NAME_LENGTH))
+                      }
                       placeholder="e.g. Adeola Okafor"
                       validate={validateName}
                       maxLength={MAX_NAME_LENGTH}
@@ -415,7 +422,9 @@ const Onboarding: React.FC = () => {
                   <div className="relative">
                     <ValidatedInput
                       value={uniSearch}
-                      onChange={(v) => setUniSearch(truncateInput(v, MAX_UNI_LENGTH))}
+                      onChange={(v) =>
+                        setUniSearch(truncateInput(v, MAX_UNI_LENGTH))
+                      }
                       placeholder="Search your school..."
                       className={inputCls(!!errors.university)}
                       autoFocus
@@ -574,7 +583,9 @@ const Onboarding: React.FC = () => {
                       >
                         <span className="text-2xl">{combo.icon}</span>
                         <div>
-                          <p className="text-textMain font-bold">{combo.label}</p>
+                          <p className="text-textMain font-bold">
+                            {combo.label}
+                          </p>
                           <p className="text-textDim text-xs">
                             {combo.subjects.join(" + ")}
                           </p>

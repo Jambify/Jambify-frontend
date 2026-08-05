@@ -7,25 +7,25 @@ export const MAX_TITLE_LENGTH = 120;
 
 // Truncate input to a maximum length and collapse excessive whitespace
 export function truncateInput(value: string, max = 100) {
-  if (!value) return "";
-  // collapse multiple spaces
-  const collapsed = value.replace(/\s+/g, " ").trimStart();
-  if (collapsed.length <= max) return collapsed;
-  return collapsed.slice(0, max);
+    if (!value) return "";
+    // collapse multiple spaces
+    const collapsed = value.replace(/\s+/g, " ").trimStart();
+    if (collapsed.length <= max) return collapsed;
+    return collapsed.slice(0, max);
 }
 
 // Basic name validation: allow letters, numbers, spaces, hyphens, and common punctuation
 export function validateName(value: string) {
-  if (!value) return false;
-  const v = value.trim();
-  if (v.length === 0) return false;
-  // allow letters, numbers, spaces, hyphens, apostrophes, and dots
-  return /^[\p{L}0-9 .'-]+$/u.test(v);
+    if (!value) return false;
+    const v = value.trim();
+    if (v.length === 0) return false;
+    // allow letters, numbers, spaces, hyphens, apostrophes, and dots
+    return /^[\p{L}0-9 .'-]+$/u.test(v);
 }
 
 // Basic university validation: allow most printable characters but keep length limits
 export function validateUniversity(value: string) {
-  if (!value) return false;
-  const v = value.trim();
-  return v.length > 1 && v.length <= MAX_UNI_LENGTH;
+    if (!value) return false;
+    const v = value.trim();
+    return v.length > 1 && v.length <= MAX_UNI_LENGTH;
 }
