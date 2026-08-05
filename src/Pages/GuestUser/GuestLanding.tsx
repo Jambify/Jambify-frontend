@@ -163,11 +163,11 @@ const GuestLanding: React.FC = () => {
                 <motion.button
                   whileTap={{ scale: 0.97 }}
                   onClick={() => navigate("/guest/mock")}
-                  className="bg-linear-to-r from-brand to-teal-400 rounded-brand-xl group w-full p-5 text-left text-white shadow-[0_20px_60px_rgba(124,60,255,0.18)] transition-all hover:opacity-95"
+                  className="from-brand rounded-brand-xl group w-full bg-linear-to-r to-teal-400 p-5 text-left text-white shadow-[0_20px_60px_rgba(124,60,255,0.18)] transition-all hover:opacity-95"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                      <div className="bg-white/10 flex h-12 w-12 items-center justify-center rounded-xl">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/10">
                         <Trophy className="h-6 w-6" />
                       </div>
                       <div>
@@ -197,7 +197,8 @@ const GuestLanding: React.FC = () => {
                           Past Questions
                         </p>
                         <p className="text-textDim text-sm">
-                          Search real JAMB questions by year, subject, and difficulty
+                          Search real JAMB questions by year, subject, and
+                          difficulty
                         </p>
                       </div>
                     </div>
@@ -209,12 +210,13 @@ const GuestLanding: React.FC = () => {
               {/* Save progress CTA */}
               <div className="bg-bgCard/80 border-borderMuted rounded-brand-xl border p-5 text-center shadow-[0_20px_50px_rgba(0,0,0,0.15)]">
                 <p className="text-textMuted mb-3 text-sm">
-                  Save your progress, sync your scores, and unlock personalized study plans.
+                  Save your progress, sync your scores, and unlock personalized
+                  study plans.
                 </p>
                 <div className="grid gap-3 sm:grid-cols-2">
                   <button
                     onClick={() => navigate("/signup")}
-                    className="bg-brand rounded-brand text-sm font-bold text-white transition-all hover:bg-brand-light py-3"
+                    className="bg-brand rounded-brand hover:bg-brand-light py-3 text-sm font-bold text-white transition-all"
                   >
                     Create free account
                   </button>

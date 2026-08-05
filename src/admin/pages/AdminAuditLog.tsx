@@ -7,8 +7,18 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import {
-  Loader2, Crown, ShieldOff, ShieldCheck, Trash2, Clock,
-  UserPlus, UserMinus, Flag, FilePlus, FileEdit, FileX,
+  Loader2,
+  Crown,
+  ShieldOff,
+  ShieldCheck,
+  Trash2,
+  Clock,
+  UserPlus,
+  UserMinus,
+  Flag,
+  FilePlus,
+  FileEdit,
+  FileX,
 } from "lucide-react";
 import PageHelmet from "../../components/SEO/PageHelmet";
 import { cn } from "../../lib/utils/utils";
@@ -22,18 +32,65 @@ interface AuditEntry {
   created_at: string;
 }
 
-const ACTION_META: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
-  grant_pro: { label: "Granted Pro", icon: <Crown className="h-3.5 w-3.5" />, color: "text-warn bg-warn/10 border-warn/20" },
-  revoke_pro: { label: "Revoked Pro", icon: <Crown className="h-3.5 w-3.5" />, color: "text-textDim bg-bgSurface border-borderMuted" },
-  freeze: { label: "Froze Account", icon: <ShieldOff className="h-3.5 w-3.5" />, color: "text-blue-400 bg-blue-500/10 border-blue-500/20" },
-  unfreeze: { label: "Unfroze Account", icon: <ShieldCheck className="h-3.5 w-3.5" />, color: "text-success bg-success/10 border-success/20" },
-  delete: { label: "Deleted Account", icon: <Trash2 className="h-3.5 w-3.5" />, color: "text-danger bg-danger/10 border-danger/20" },
-  admin_added: { label: "Added Admin", icon: <UserPlus className="h-3.5 w-3.5" />, color: "text-brand-light bg-brand/10 border-brand/20" },
-  admin_removed: { label: "Removed Admin", icon: <UserMinus className="h-3.5 w-3.5" />, color: "text-danger bg-danger/10 border-danger/20" },
-  report_status_change: { label: "Updated Report", icon: <Flag className="h-3.5 w-3.5" />, color: "text-blue-400 bg-blue-500/10 border-blue-500/20" },
-  question_added: { label: "Added Question", icon: <FilePlus className="h-3.5 w-3.5" />, color: "text-success bg-success/10 border-success/20" },
-  question_updated: { label: "Edited Question", icon: <FileEdit className="h-3.5 w-3.5" />, color: "text-warn bg-warn/10 border-warn/20" },
-  question_deleted: { label: "Deleted Question", icon: <FileX className="h-3.5 w-3.5" />, color: "text-danger bg-danger/10 border-danger/20" },
+const ACTION_META: Record<
+  string,
+  { label: string; icon: React.ReactNode; color: string }
+> = {
+  grant_pro: {
+    label: "Granted Pro",
+    icon: <Crown className="h-3.5 w-3.5" />,
+    color: "text-warn bg-warn/10 border-warn/20",
+  },
+  revoke_pro: {
+    label: "Revoked Pro",
+    icon: <Crown className="h-3.5 w-3.5" />,
+    color: "text-textDim bg-bgSurface border-borderMuted",
+  },
+  freeze: {
+    label: "Froze Account",
+    icon: <ShieldOff className="h-3.5 w-3.5" />,
+    color: "text-blue-400 bg-blue-500/10 border-blue-500/20",
+  },
+  unfreeze: {
+    label: "Unfroze Account",
+    icon: <ShieldCheck className="h-3.5 w-3.5" />,
+    color: "text-success bg-success/10 border-success/20",
+  },
+  delete: {
+    label: "Deleted Account",
+    icon: <Trash2 className="h-3.5 w-3.5" />,
+    color: "text-danger bg-danger/10 border-danger/20",
+  },
+  admin_added: {
+    label: "Added Admin",
+    icon: <UserPlus className="h-3.5 w-3.5" />,
+    color: "text-brand-light bg-brand/10 border-brand/20",
+  },
+  admin_removed: {
+    label: "Removed Admin",
+    icon: <UserMinus className="h-3.5 w-3.5" />,
+    color: "text-danger bg-danger/10 border-danger/20",
+  },
+  report_status_change: {
+    label: "Updated Report",
+    icon: <Flag className="h-3.5 w-3.5" />,
+    color: "text-blue-400 bg-blue-500/10 border-blue-500/20",
+  },
+  question_added: {
+    label: "Added Question",
+    icon: <FilePlus className="h-3.5 w-3.5" />,
+    color: "text-success bg-success/10 border-success/20",
+  },
+  question_updated: {
+    label: "Edited Question",
+    icon: <FileEdit className="h-3.5 w-3.5" />,
+    color: "text-warn bg-warn/10 border-warn/20",
+  },
+  question_deleted: {
+    label: "Deleted Question",
+    icon: <FileX className="h-3.5 w-3.5" />,
+    color: "text-danger bg-danger/10 border-danger/20",
+  },
 };
 
 const AdminAuditLog: React.FC = () => {
@@ -63,7 +120,7 @@ const AdminAuditLog: React.FC = () => {
           canonical="https://www.schooldra.com/admin/audit-log"
         />
         <div className="flex items-center justify-center py-20">
-          <Loader2 className="w-6 h-6 text-brand animate-spin" />
+          <Loader2 className="text-brand h-6 w-6 animate-spin" />
         </div>
       </>
     );
@@ -92,31 +149,40 @@ const AdminAuditLog: React.FC = () => {
         description="Read-only feed of administrative actions: grants, revocations, deletions, and question edits."
         canonical="https://www.schooldra.com/admin/audit-log"
       />
-      <div className="bg-bgCard border-borderMuted rounded-brand-lg divide-borderMuted divide-y border overflow-hidden">
-      {entries.map((e) => {
-        const meta = ACTION_META[e.action] ?? {
-          label: e.action,
-          icon: <Clock className="h-3.5 w-3.5" />,
-          color: "text-textDim bg-bgSurface border-borderMuted",
-        };
-        return (
-          <div key={e.id} className="flex items-center gap-3 px-4 py-3">
-            <span className={cn("inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold shrink-0", meta.color)}>
-              {meta.icon} {meta.label}
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="text-textMain text-sm truncate">
-                <span className="text-textDim">{e.admin_email}</span> → {e.target_email}
-              </p>
+      <div className="bg-bgCard border-borderMuted rounded-brand-lg divide-borderMuted divide-y overflow-hidden border">
+        {entries.map((e) => {
+          const meta = ACTION_META[e.action] ?? {
+            label: e.action,
+            icon: <Clock className="h-3.5 w-3.5" />,
+            color: "text-textDim bg-bgSurface border-borderMuted",
+          };
+          return (
+            <div key={e.id} className="flex items-center gap-3 px-4 py-3">
+              <span
+                className={cn(
+                  "inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold",
+                  meta.color,
+                )}
+              >
+                {meta.icon} {meta.label}
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-textMain truncate text-sm">
+                  <span className="text-textDim">{e.admin_email}</span> →{" "}
+                  {e.target_email}
+                </p>
+              </div>
+              <span className="text-textDim shrink-0 text-[11px]">
+                {new Date(e.created_at).toLocaleString("en-GB", {
+                  day: "numeric",
+                  month: "short",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </span>
             </div>
-            <span className="text-textDim text-[11px] shrink-0">
-              {new Date(e.created_at).toLocaleString("en-GB", {
-                day: "numeric", month: "short", hour: "2-digit", minute: "2-digit",
-              })}
-            </span>
-          </div>
-        );
-      })}
+          );
+        })}
       </div>
     </>
   );

@@ -73,14 +73,20 @@ const AdminRoles: React.FC = () => {
   const toast = useCallback((type: ToastType, message: string) => {
     const id = ++toastId.current;
     setToasts((prev) => [...prev, { id, type, message }]);
-    setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 4000);
+    setTimeout(
+      () => setToasts((prev) => prev.filter((t) => t.id !== id)),
+      4000,
+    );
   }, []);
-  const removeToast = (id: number) => setToasts((prev) => prev.filter((t) => t.id !== id));
+  const removeToast = (id: number) =>
+    setToasts((prev) => prev.filter((t) => t.id !== id));
 
   const fetchAdmins = useCallback(async () => {
     setLoading(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       setCurrentUserId(session?.user?.id ?? null);
 
       const { data: adminRows, error: adminError } = await supabase
@@ -93,7 +99,10 @@ const AdminRoles: React.FC = () => {
       const rows = (adminRows ?? []) as AdminUser[];
       const userIds = rows.map((r) => r.user_id);
 
-      let profileMap = new Map<string, { name: string | null; email: string | null; university: string | null }>();
+      let profileMap = new Map<
+        string,
+        { name: string | null; email: string | null; university: string | null }
+      >();
 
       if (userIds.length > 0) {
         const { data: profilesData, error: profilesError } = await supabase
@@ -149,7 +158,10 @@ const AdminRoles: React.FC = () => {
       if (profileError) throw profileError;
 
       if (!profile) {
-        toast("error", "No account found with that email — they need to sign up first");
+        toast(
+          "error",
+          "No account found with that email — they need to sign up first",
+        );
         return;
       }
 
@@ -255,12 +267,12 @@ const AdminRoles: React.FC = () => {
               onChange={(e) => setNewEmail(e.target.value)}
               placeholder="user@example.com"
               type="email"
-              className="bg-bgSurface border-borderMuted text-textMain placeholder:text-textDim flex-1 rounded-lg border px-3 py-2.5 text-sm outline-none focus:border-brand"
+              className="bg-bgSurface border-borderMuted text-textMain placeholder:text-textDim focus:border-brand flex-1 rounded-lg border px-3 py-2.5 text-sm outline-none"
             />
             <select
               value={newRole}
               onChange={(e) => setNewRole(e.target.value)}
-              className="bg-bgSurface border-borderMuted text-textMain rounded-lg border px-3 py-2.5 text-sm outline-none focus:border-brand"
+              className="bg-bgSurface border-borderMuted text-textMain focus:border-brand rounded-lg border px-3 py-2.5 text-sm outline-none"
             >
               <option value="admin">Admin</option>
               <option value="moderator">Moderator</option>
@@ -270,12 +282,17 @@ const AdminRoles: React.FC = () => {
               disabled={adding}
               className="bg-brand hover:bg-brand-light flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
             >
-              {adding ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldPlus className="h-4 w-4" />}
+              {adding ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <ShieldPlus className="h-4 w-4" />
+              )}
               Add
             </button>
           </div>
           <p className="text-textDim text-xs">
-            The person must already have a Schooldra account — you can't grant access to an email that hasn't signed up.
+            The person must already have a Schooldra account — you can't grant
+            access to an email that hasn't signed up.
           </p>
         </div>
       )}
@@ -296,7 +313,10 @@ const AdminRoles: React.FC = () => {
             {admins.map((admin) => {
               const isSelf = admin.user_id === currentUserId;
               return (
-                <div key={admin.user_id} className="flex items-center justify-between gap-3 px-4 py-3.5">
+                <div
+                  key={admin.user_id}
+                  className="flex items-center justify-between gap-3 px-4 py-3.5"
+                >
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       <p className="text-textMain truncate text-sm font-medium">
@@ -319,7 +339,9 @@ const AdminRoles: React.FC = () => {
                     </div>
                     <p className="text-textDim truncate text-xs">
                       {admin.profile?.email ?? admin.user_id}
-                      {admin.profile?.university ? ` · ${admin.profile.university}` : ""}
+                      {admin.profile?.university
+                        ? ` · ${admin.profile.university}`
+                        : ""}
                     </p>
                   </div>
                   {isFullAdmin && (
@@ -377,7 +399,10 @@ const AdminRoles: React.FC = () => {
               <AlertTriangle className="h-4 w-4 shrink-0" />
             )}
             <span>{t.message}</span>
-            <button onClick={() => removeToast(t.id)} className="ml-2 opacity-60 hover:opacity-100">
+            <button
+              onClick={() => removeToast(t.id)}
+              className="ml-2 opacity-60 hover:opacity-100"
+            >
               <X className="h-3.5 w-3.5" />
             </button>
           </div>

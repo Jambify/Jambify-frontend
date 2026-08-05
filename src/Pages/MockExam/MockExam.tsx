@@ -86,8 +86,7 @@ const SUBJECT_ID_ALIASES: Record<string, string> = {
   "Literature in English": "Literature",
 };
 
-const normalizeSubjectId = (id: string): string =>
-  SUBJECT_ID_ALIASES[id] ?? id;
+const normalizeSubjectId = (id: string): string => SUBJECT_ID_ALIASES[id] ?? id;
 
 const AVAILABLE_YEARS = [
   "Random",

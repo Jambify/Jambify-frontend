@@ -95,12 +95,9 @@ const SUBJECT_COLORS: Record<string, string> = {
 const PAGE_SIZE = 20;
 
 const PastQuestions = () => {
-  const {  isPro } = useUserStore();
-  
+  const { isPro } = useUserStore();
 
   const [searchParams, setSearchParams] = useSearchParams();
-
-  
 
   // Read filters from the URL. Subject now always resolves to a real
   // subject — never "All" — falling back to DEFAULT_SUBJECT if the URL
@@ -680,7 +677,10 @@ const PastQuestions = () => {
                         <QuestionAIHelper question={q} />
                       </div>
                     )}
-                    <ReportQuestionButton questionId={q.id} context="past-question" />
+                    <ReportQuestionButton
+                      questionId={q.id}
+                      context="past-question"
+                    />
                   </div>
                 );
               })}

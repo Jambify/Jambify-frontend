@@ -7,7 +7,11 @@ interface TopicListProps {
   onTopicClick?: (topic: string) => void;
 }
 
-const TopicList: React.FC<TopicListProps> = ({ topics, color, onTopicClick }) => {
+const TopicList: React.FC<TopicListProps> = ({
+  topics,
+  color,
+  onTopicClick,
+}) => {
   if (topics.length === 0) return null;
 
   return (
@@ -17,7 +21,7 @@ const TopicList: React.FC<TopicListProps> = ({ topics, color, onTopicClick }) =>
           key={topic}
           onClick={() => onTopicClick?.(topic)}
           className={cn(
-            "group flex cursor-pointer items-center gap-3 rounded-brand-lg border border-transparent bg-bgSurface/80 px-3 py-3 shadow-sm transition-all",
+            "group rounded-brand-lg bg-bgSurface/80 flex cursor-pointer items-center gap-3 border border-transparent px-3 py-3 shadow-sm transition-all",
             onTopicClick &&
               "hover:border-brand/30 hover:bg-bgCard active:scale-98",
           )}
@@ -29,7 +33,7 @@ const TopicList: React.FC<TopicListProps> = ({ topics, color, onTopicClick }) =>
           <span className="text-textMain flex-1 text-sm font-semibold tracking-tight">
             {topic}
           </span>
-          <span className="rounded-full bg-danger/10 px-2 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-danger">
+          <span className="bg-danger/10 text-danger rounded-full px-2 py-1 text-[10px] font-black tracking-[0.2em] uppercase">
             Weak
           </span>
         </div>

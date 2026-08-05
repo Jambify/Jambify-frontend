@@ -178,8 +178,8 @@ const MentorChat: React.FC = () => {
     examDate,
     examYear,
     questionsCompleted,
-    isAdmin,      // NEW
-    isModerator,  // NEW
+    isAdmin, // NEW
+    isModerator, // NEW
   } = useUserStore();
   const { subjects, loadSubjects, isInitialized } = useSubjectStore();
 
@@ -306,7 +306,7 @@ Student profile:
             </p>
             {/* NEW — staff badge */}
             {isStaff && (
-              <div className="bg-brand/10 border-brand/20 text-brand-light mt-3 flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide">
+              <div className="bg-brand/10 border-brand/20 text-brand-light mt-3 flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold tracking-wide uppercase">
                 <ShieldCheck className="h-3 w-3" />
                 {isAdmin ? "Admin mode" : "Moderator mode"}
               </div>
@@ -394,7 +394,7 @@ Student profile:
                 <p className="text-textMain text-sm font-semibold">
                   Schooldra AI Mentor
                   {isStaff && (
-                    <span className="text-brand-light ml-1.5 text-[10px] font-bold uppercase tracking-wide">
+                    <span className="text-brand-light ml-1.5 text-[10px] font-bold tracking-wide uppercase">
                       · Staff
                     </span>
                   )}
@@ -475,7 +475,9 @@ Student profile:
                 </div>
                 <div>
                   <h2 className="font-display text-textMain mb-1 text-xl font-bold">
-                    {isStaff ? `Hey ${name || "there"}` : `Hi ${name || "there"} 👋`}
+                    {isStaff
+                      ? `Hey ${name || "there"}`
+                      : `Hi ${name || "there"} 👋`}
                   </h2>
                   <p className="text-textDim max-w-xs text-sm leading-relaxed">
                     {isStaff
@@ -532,8 +534,18 @@ Student profile:
             messages[messages.length - 1]?.role === "ai" && (
               <div className="no-scrollbar flex shrink-0 gap-2 overflow-x-auto px-4 pb-2">
                 {(isStaff
-                  ? ["Give me an example", "Go deeper", "Any related edge cases?", "What else should I check?"]
-                  : ["Give me an example", "Simplify that", "Quiz me on this", "What else should I know?"]
+                  ? [
+                      "Give me an example",
+                      "Go deeper",
+                      "Any related edge cases?",
+                      "What else should I check?",
+                    ]
+                  : [
+                      "Give me an example",
+                      "Simplify that",
+                      "Quiz me on this",
+                      "What else should I know?",
+                    ]
                 ).map((s) => (
                   <button
                     key={s}
@@ -651,7 +663,8 @@ Student profile:
 
           <div className="bg-bgCard border-borderMuted rounded-brand-lg border p-4">
             <p className="text-textDim mb-2 flex items-center gap-1.5 text-[10px] font-bold tracking-widest uppercase">
-              <Target className="text-brand h-3 w-3" /> {isStaff ? "Note" : "Pro Tip"}
+              <Target className="text-brand h-3 w-3" />{" "}
+              {isStaff ? "Note" : "Pro Tip"}
             </p>
             <p className="text-textDim text-[11px] leading-relaxed">
               {isStaff

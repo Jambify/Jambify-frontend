@@ -209,7 +209,7 @@ const Subjects: React.FC = () => {
               <button
                 onClick={handleManualRefresh}
                 disabled={isManualRefreshing}
-                className="text-textDim hover:text-brand bg-bgCard border-borderMuted hover:border-brand/30 group flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-bold transition-all disabled:opacity-75 active:scale-95"
+                className="text-textDim hover:text-brand bg-bgCard border-borderMuted hover:border-brand/30 group flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-bold transition-all active:scale-95 disabled:opacity-75"
               >
                 <RefreshCw
                   size={16}

@@ -117,7 +117,10 @@ const ToastBar: React.FC<{ toasts: Toast[]; remove: (id: number) => void }> = ({
           <AlertTriangle className="h-4 w-4 shrink-0" />
         )}
         <span>{t.message}</span>
-        <button onClick={() => remove(t.id)} className="ml-2 opacity-60 hover:opacity-100">
+        <button
+          onClick={() => remove(t.id)}
+          className="ml-2 opacity-60 hover:opacity-100"
+        >
           <X className="h-3.5 w-3.5" />
         </button>
       </div>
@@ -166,14 +169,27 @@ const QuestionModal: React.FC<{
       const targetLabel = `${payload.subject} — ${payload.text.slice(0, 60)}${payload.text.length > 60 ? "…" : ""}`;
 
       if (editingId) {
-        const { error } = await supabase.from("questions").update(payload).eq("id", editingId);
+        const { error } = await supabase
+          .from("questions")
+          .update(payload)
+          .eq("id", editingId);
         if (error) throw error;
-        logAdminAction("question_updated", targetLabel, { question_id: editingId, subject: payload.subject });
+        logAdminAction("question_updated", targetLabel, {
+          question_id: editingId,
+          subject: payload.subject,
+        });
         toast("success", "Question updated");
       } else {
-        const { data: inserted, error } = await supabase.from("questions").insert(payload).select("id").single();
+        const { data: inserted, error } = await supabase
+          .from("questions")
+          .insert(payload)
+          .select("id")
+          .single();
         if (error) throw error;
-        logAdminAction("question_added", targetLabel, { question_id: inserted?.id, subject: payload.subject });
+        logAdminAction("question_added", targetLabel, {
+          question_id: inserted?.id,
+          subject: payload.subject,
+        });
         toast("success", "Question added");
       }
       onSaved();
@@ -187,13 +203,19 @@ const QuestionModal: React.FC<{
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        onClick={onClose}
+      />
       <div className="bg-bgCard border-borderMuted relative z-10 flex max-h-[90vh] w-full max-w-lg flex-col rounded-2xl border shadow-2xl">
         <div className="border-borderMuted flex shrink-0 items-center justify-between border-b px-5 py-4">
           <h2 className="font-display text-base font-semibold">
             {editingId ? "Edit Question" : "Add Question"}
           </h2>
-          <button onClick={onClose} className="text-textDim hover:text-textMain">
+          <button
+            onClick={onClose}
+            className="text-textDim hover:text-textMain"
+          >
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -206,11 +228,15 @@ const QuestionModal: React.FC<{
               </label>
               <select
                 value={form.subject}
-                onChange={(e) => setForm((f) => ({ ...f, subject: e.target.value }))}
-                className="bg-bgSurface border-borderMuted text-textMain w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-brand"
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, subject: e.target.value }))
+                }
+                className="bg-bgSurface border-borderMuted text-textMain focus:border-brand w-full rounded-lg border px-3 py-2 text-sm outline-none"
               >
                 {SUBJECTS.map((s) => (
-                  <option key={s} value={s}>{s}</option>
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
                 ))}
               </select>
             </div>
@@ -221,8 +247,10 @@ const QuestionModal: React.FC<{
               <input
                 type="number"
                 value={form.year}
-                onChange={(e) => setForm((f) => ({ ...f, year: Number(e.target.value) }))}
-                className="bg-bgSurface border-borderMuted text-textMain w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-brand"
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, year: Number(e.target.value) }))
+                }
+                className="bg-bgSurface border-borderMuted text-textMain focus:border-brand w-full rounded-lg border px-3 py-2 text-sm outline-none"
               />
             </div>
           </div>
@@ -233,9 +261,11 @@ const QuestionModal: React.FC<{
             </label>
             <input
               value={form.topic}
-              onChange={(e) => setForm((f) => ({ ...f, topic: e.target.value }))}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, topic: e.target.value }))
+              }
               placeholder="e.g. Ecology, Grammar, Mechanics"
-              className="bg-bgSurface border-borderMuted text-textMain placeholder:text-textDim w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-brand"
+              className="bg-bgSurface border-borderMuted text-textMain placeholder:text-textDim focus:border-brand w-full rounded-lg border px-3 py-2 text-sm outline-none"
             />
           </div>
 
@@ -247,7 +277,7 @@ const QuestionModal: React.FC<{
               value={form.text}
               onChange={(e) => setForm((f) => ({ ...f, text: e.target.value }))}
               rows={3}
-              className="bg-bgSurface border-borderMuted text-textMain w-full resize-none rounded-lg border px-3 py-2 text-sm outline-none focus:border-brand"
+              className="bg-bgSurface border-borderMuted text-textMain focus:border-brand w-full resize-none rounded-lg border px-3 py-2 text-sm outline-none"
             />
           </div>
 
@@ -257,11 +287,15 @@ const QuestionModal: React.FC<{
             </label>
             <select
               value={form.difficulty}
-              onChange={(e) => setForm((f) => ({ ...f, difficulty: e.target.value }))}
-              className="bg-bgSurface border-borderMuted text-textMain w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-brand"
+              onChange={(e) =>
+                setForm((f) => ({ ...f, difficulty: e.target.value }))
+              }
+              className="bg-bgSurface border-borderMuted text-textMain focus:border-brand w-full rounded-lg border px-3 py-2 text-sm outline-none"
             >
               {DIFFICULTIES.map((d) => (
-                <option key={d} value={d}>{d}</option>
+                <option key={d} value={d}>
+                  {d}
+                </option>
               ))}
             </select>
           </div>
@@ -290,7 +324,7 @@ const QuestionModal: React.FC<{
                     value={opt}
                     onChange={(e) => setOption(idx, e.target.value)}
                     placeholder={`Option ${String.fromCharCode(65 + idx)}`}
-                    className="bg-bgSurface border-borderMuted text-textMain placeholder:text-textDim w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-brand"
+                    className="bg-bgSurface border-borderMuted text-textMain placeholder:text-textDim focus:border-brand w-full rounded-lg border px-3 py-2 text-sm outline-none"
                   />
                 </div>
               ))}
@@ -303,10 +337,12 @@ const QuestionModal: React.FC<{
             </label>
             <textarea
               value={form.explanation}
-              onChange={(e) => setForm((f) => ({ ...f, explanation: e.target.value }))}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, explanation: e.target.value }))
+              }
               rows={2}
               placeholder="Shown to students after they answer"
-              className="bg-bgSurface border-borderMuted text-textMain placeholder:text-textDim w-full resize-none rounded-lg border px-3 py-2 text-sm outline-none focus:border-brand"
+              className="bg-bgSurface border-borderMuted text-textMain placeholder:text-textDim focus:border-brand w-full resize-none rounded-lg border px-3 py-2 text-sm outline-none"
             />
           </div>
         </div>
@@ -341,13 +377,20 @@ const DeleteConfirm: React.FC<{
   loading: boolean;
 }> = ({ question, onConfirm, onCancel, loading }) => (
   <div className="fixed inset-0 z-60 flex items-center justify-center p-4">
-    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onCancel} />
+    <div
+      className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+      onClick={onCancel}
+    />
     <div className="bg-bgCard border-danger/30 relative z-10 w-full max-w-sm rounded-2xl border p-6 shadow-2xl">
       <div className="bg-danger/10 mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full">
         <Trash2 className="text-danger h-5 w-5" />
       </div>
-      <h3 className="font-display mb-1 text-center text-lg font-bold">Delete Question?</h3>
-      <p className="text-textDim mb-5 line-clamp-2 text-center text-sm">{question.text}</p>
+      <h3 className="font-display mb-1 text-center text-lg font-bold">
+        Delete Question?
+      </h3>
+      <p className="text-textDim mb-5 line-clamp-2 text-center text-sm">
+        {question.text}
+      </p>
       <div className="flex gap-3">
         <button
           onClick={onCancel}
@@ -392,9 +435,13 @@ const AdminQuestions: React.FC = () => {
   const toast = useCallback((type: ToastType, message: string) => {
     const id = ++toastId.current;
     setToasts((prev) => [...prev, { id, type, message }]);
-    setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 4000);
+    setTimeout(
+      () => setToasts((prev) => prev.filter((t) => t.id !== id)),
+      4000,
+    );
   }, []);
-  const removeToast = (id: number) => setToasts((prev) => prev.filter((t) => t.id !== id));
+  const removeToast = (id: number) =>
+    setToasts((prev) => prev.filter((t) => t.id !== id));
 
   // Debounce the search box so we don't hit the DB on every keystroke
   useEffect(() => {
@@ -425,13 +472,20 @@ const AdminQuestions: React.FC = () => {
           query = query.or(`text.ilike.%${term}%,topic.ilike.%${term}%`);
         }
 
-        const { data, error, count } = await query.range(from, from + FETCH_CHUNK - 1);
+        const { data, error, count } = await query.range(
+          from,
+          from + FETCH_CHUNK - 1,
+        );
         if (error) throw error;
 
         allRows = allRows.concat((data ?? []) as Question[]);
         grandTotal = count ?? allRows.length;
 
-        if (!data || data.length < FETCH_CHUNK || allRows.length >= grandTotal) {
+        if (
+          !data ||
+          data.length < FETCH_CHUNK ||
+          allRows.length >= grandTotal
+        ) {
           break;
         }
         from += FETCH_CHUNK;
@@ -473,7 +527,10 @@ const AdminQuestions: React.FC = () => {
         .maybeSingle();
 
       if (error || !data) {
-        toast("error", "Couldn't find that question — it may have been deleted.");
+        toast(
+          "error",
+          "Couldn't find that question — it may have been deleted.",
+        );
       } else {
         setEditing(data as Question);
         setModalOpen(true);
@@ -501,7 +558,10 @@ const AdminQuestions: React.FC = () => {
     if (!deleteTarget) return;
     setDeleting(true);
     try {
-      const { error } = await supabase.from("questions").delete().eq("id", deleteTarget.id);
+      const { error } = await supabase
+        .from("questions")
+        .delete()
+        .eq("id", deleteTarget.id);
       if (error) throw error;
 
       const targetLabel = `${deleteTarget.subject} — ${deleteTarget.text.slice(0, 60)}${deleteTarget.text.length > 60 ? "…" : ""}`;
@@ -560,17 +620,19 @@ const AdminQuestions: React.FC = () => {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search question text or topic…"
-            className="bg-bgSurface border-borderMuted text-textMain placeholder:text-textDim w-full rounded-lg border py-2.5 pr-4 pl-9 text-sm outline-none focus:border-brand"
+            className="bg-bgSurface border-borderMuted text-textMain placeholder:text-textDim focus:border-brand w-full rounded-lg border py-2.5 pr-4 pl-9 text-sm outline-none"
           />
         </div>
         <select
           value={subjectFilter}
           onChange={(e) => setSubjectFilter(e.target.value)}
-          className="bg-bgSurface border-borderMuted text-textMain rounded-lg border px-3 py-2.5 text-sm outline-none focus:border-brand"
+          className="bg-bgSurface border-borderMuted text-textMain focus:border-brand rounded-lg border px-3 py-2.5 text-sm outline-none"
         >
           <option value="all">All subjects</option>
           {SUBJECTS.map((s) => (
-            <option key={s} value={s}>{s}</option>
+            <option key={s} value={s}>
+              {s}
+            </option>
           ))}
         </select>
       </div>
@@ -584,7 +646,9 @@ const AdminQuestions: React.FC = () => {
         ) : questions.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
             <BookOpen className="text-textDim h-10 w-10" />
-            <p className="text-textDim text-sm">No questions match your search</p>
+            <p className="text-textDim text-sm">
+              No questions match your search
+            </p>
           </div>
         ) : (
           <div className="divide-borderMuted divide-y">
@@ -632,7 +696,8 @@ const AdminQuestions: React.FC = () => {
       {totalPages > 1 && (
         <div className="flex items-center justify-between text-sm">
           <span className="text-textDim text-xs">
-            {questions.length} question{questions.length !== 1 ? "s" : ""} · Page {page} of {totalPages}
+            {questions.length} question{questions.length !== 1 ? "s" : ""} ·
+            Page {page} of {totalPages}
           </span>
           <div className="flex gap-2">
             <button

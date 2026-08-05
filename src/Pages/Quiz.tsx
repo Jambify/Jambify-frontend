@@ -13,7 +13,7 @@ import {
   fetchQuestionsWithFallback,
   LIKELY_TOPICS,
   getRecentlySeenQuestionIds, // NEW
-  recordSeenQuestions,        // NEW
+  recordSeenQuestions, // NEW
 } from "../Services/questionService";
 import LoadingScreen from "../components/ui/LoadingScreen";
 import NetworkErrorAlert from "../components/ui/NetworkErrorAlert";
@@ -52,7 +52,9 @@ const Quiz: React.FC = () => {
   const [showAllSubjects, setShowAllSubjects] = useState(false);
   const [showExitModal, setShowExitModal] = useState(false);
   const [showResults, setShowResults] = useState(false);
-  const [selectedMode, setSelectedMode] = useState<"quick" | "standard" | "marathon">("standard");
+  const [selectedMode, setSelectedMode] = useState<
+    "quick" | "standard" | "marathon"
+  >("standard");
 
   const topicsRef = React.useRef<HTMLDivElement>(null);
 
@@ -247,8 +249,8 @@ const Quiz: React.FC = () => {
         // Skipped for marathon: it draws from the whole subject anyway,
         // and excluding IDs there would only slow down a 100-question pull.
         const recentIds = !isMarathon
-  ? await getRecentlySeenQuestionIds(selectedSubject, adjustedTopic) // NEW: pass topic
-  : [];
+          ? await getRecentlySeenQuestionIds(selectedSubject, adjustedTopic) // NEW: pass topic
+          : [];
 
         try {
           if (adjustedTopic === "All") {
@@ -328,7 +330,11 @@ const Quiz: React.FC = () => {
 
       // NEW — fire-and-forget: don't await, so logging what was seen
       // never delays the quiz from starting.
-      recordSeenQuestions(selectedSubject, qs.map((q) => q.id), adjustedTopic).catch(() => {}); // NEW: pass topic
+      recordSeenQuestions(
+        selectedSubject,
+        qs.map((q) => q.id),
+        adjustedTopic,
+      ).catch(() => {}); // NEW: pass topic
 
       const duration = isMarathon
         ? 15 * 60
@@ -363,7 +369,7 @@ const Quiz: React.FC = () => {
         />
         <ResultsScreen
           onRetry={() => {
-           resetProgress();
+            resetProgress();
             handleStart();
           }}
           onHome={() => {
@@ -560,7 +566,7 @@ const Quiz: React.FC = () => {
             </button>
           </div>
 
-          <div className="scrollbar-none flex gap-2 overflow-x-auto pb-2 sm:hidden">
+          <div className="flex scrollbar-none gap-2 overflow-x-auto pb-2 sm:hidden">
             {sortedQuizSubjects.map((s) => (
               <button
                 key={s.name}

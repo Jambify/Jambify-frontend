@@ -199,10 +199,10 @@ const SubjectProgress: React.FC = () => {
 
   // ── 5. Weakest topics list ─────────────────────────────────────────────────
   return (
-    <div className="bg-bgCard border-borderMuted rounded-brand-xl flex h-full flex-col border p-6 shadow-card shadow-brand/10">
+    <div className="bg-bgCard border-borderMuted rounded-brand-xl shadow-card shadow-brand/10 flex h-full flex-col border p-6">
       <div className="mb-6 flex items-center justify-between gap-4">
         <div className="flex flex-col gap-1">
-          <span className="text-brand text-[10px] font-black uppercase tracking-[0.35em]">
+          <span className="text-brand text-[10px] font-black tracking-[0.35em] uppercase">
             Weakest Topics
           </span>
           <p className="text-textDim text-[11px] font-medium">
@@ -211,7 +211,7 @@ const SubjectProgress: React.FC = () => {
         </div>
         <button
           onClick={() => navigate("/performance")}
-          className="text-brand hover:text-brand-light group inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.18em]"
+          className="text-brand hover:text-brand-light group inline-flex items-center gap-1.5 text-xs font-bold tracking-[0.18em] uppercase"
         >
           View all
           <ArrowRight
@@ -230,14 +230,14 @@ const SubjectProgress: React.FC = () => {
           return (
             <div
               key={`${item.subject}-${item.name}-${index}`}
-              className="group cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-brand/10"
+              className="group hover:shadow-brand/10 cursor-pointer transition-all duration-200 hover:-translate-y-0.5"
               onClick={() =>
                 navigate(
                   `/quiz?subject=${encodeURIComponent(item.subject)}&topic=${encodeURIComponent(item.name)}`,
                 )
               }
             >
-              <div className="group-hover:border-brand/40 bg-bgCard/90 border-borderMuted rounded-[1.5rem] flex items-center gap-3 border p-4 shadow-sm transition-all">
+              <div className="group-hover:border-brand/40 bg-bgCard/90 border-borderMuted flex items-center gap-3 rounded-[1.5rem] border p-4 shadow-sm transition-all">
                 <div
                   className="flex h-11 w-11 items-center justify-center rounded-2xl text-xl"
                   style={{
@@ -255,13 +255,16 @@ const SubjectProgress: React.FC = () => {
                   </p>
                 </div>
                 <div className="flex flex-col items-end gap-2">
-                  <div className="rounded-full bg-bgSurface px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-textMain">
+                  <div className="bg-bgSurface text-textMain rounded-full px-3 py-1 text-[10px] font-semibold tracking-[0.18em] uppercase">
                     {item.accuracy}%
                   </div>
-                  <div className="h-2.5 w-24 overflow-hidden rounded-full bg-bgTrack">
+                  <div className="bg-bgTrack h-2.5 w-24 overflow-hidden rounded-full">
                     <div
                       className="h-full rounded-full"
-                      style={{ background: progressColor, width: `${item.accuracy}%` }}
+                      style={{
+                        background: progressColor,
+                        width: `${item.accuracy}%`,
+                      }}
                     />
                   </div>
                 </div>
