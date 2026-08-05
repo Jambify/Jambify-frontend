@@ -67,7 +67,7 @@ async function main() {
     const text = msg.text();
     // Ignore known font MIME errors during headless build
     if (text.includes("fonts.googleapis.com") && text.includes("MIME type")) return;
-    
+
     if (msg.type() === "error") {
       console.log(`  [browser console error] ${text}`);
     } else {
@@ -121,20 +121,45 @@ async function main() {
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;");
-      
+
     if (titleMatches.length > 0 && !cleanedHtml.includes(`<title>${escapedLiveTitle}</title>`)) {
       console.log(
         `  ⚠ MISMATCH on ${route}: kept title doesn't match live page.title() ("${liveTitle}").`
       );
     }
 
-    const outDir =
-      route === "/" ? "dist" : path.join("dist", route.replace(/^\//, ""));
+    // ────────────────────────────────────────────────────────────────
+    // FLASH FIX: routes "/", "/signin", and "/signup" used to write to
+    // dist/index.html, dist/signin/index.html, dist/signup/index.html —
+    // real static files sitting exactly at the paths vercel.json's
+    // catch-all rewrite ("/(.*)" → "/app.html") is supposed to intercept.
+    // Vercel serves an existing static file BEFORE consulting rewrites,
+    // so those prerendered files were silently winning over app.html for
+    // every visitor (including already-authenticated users), causing a
+    // flash of signed-out content before RouteGuard could redirect them
+    // (e.g. to /dashboard).
+    //
+    // Fix: write these three routes' prerenders into dist/seo/ instead —
+    // paths nothing else resolves to — so they can no longer shadow the
+    // app.html rewrite. vercel.json now serves each file only to known
+    // crawler User-Agents; everyone else gets app.html as before.
+    // ────────────────────────────────────────────────────────────────
+    const SEO_ONLY_ROUTES = {
+      "/": "home.html",
+      "/signin": "signin.html",
+      "/signup": "signup.html",
+    };
+
+    const outDir = SEO_ONLY_ROUTES[route]
+      ? path.join("dist", "seo")
+      : path.join("dist", route.replace(/^\//, ""));
+
+    const outFile = SEO_ONLY_ROUTES[route] ?? "index.html";
 
     fs.mkdirSync(outDir, { recursive: true });
-    fs.writeFileSync(path.join(outDir, "index.html"), cleanedHtml);
+    fs.writeFileSync(path.join(outDir, outFile), cleanedHtml);
 
-    console.log(`  → saved to ${path.join(outDir, "index.html")}`);
+    console.log(`  → saved to ${path.join(outDir, outFile)}`);
   }
 
   await context.close();

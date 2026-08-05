@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router";
 import AppLayout from "../components/Layout/AppLayout";
+import PageHelmet from "../components/SEO/PageHelmet";
 import { useUserStore } from "../Store/useUserStore";
 import { useExamCountdown } from "../hooks/useExamCountdown";
 import SubjectProgress from "../components/Dashboard/SubjectProgress";
@@ -160,6 +161,16 @@ const Dashboard: React.FC = () => {
       isSidebarOpen={isSidebarOpen}
       setIsSidebarOpen={setIsSidebarOpen}
     >
+      {/* Sets the tab title/meta for this route. Dashboard previously had no
+          PageHelmet at all, so react-helmet-async had nothing to overwrite
+          the last route's title with — landing on /dashboard after /signup
+          (or any other page) left the tab reading "Create Free Account". */}
+      <PageHelmet
+        title="Dashboard | SCHOOLDRA"
+        description="Track your JAMB UTME prep progress, streaks, accuracy, and exam countdown on your SCHOOLDRA dashboard."
+        canonical="https://www.schooldra.com/dashboard"
+      />
+
       {/* Subtle background sync progress indicator */}
       {isLoading && hasFetched && (
         <div className="bg-bgCard top-0 left-0 h-0.5 w-full overflow-hidden">
