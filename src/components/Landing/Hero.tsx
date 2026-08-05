@@ -105,7 +105,7 @@ const Hero: React.FC = () => {
                 key={s.label}
                 className="rounded-3xl bg-bgSurface/60 p-4 text-center shadow-[0_18px_40px_rgba(0,0,0,0.12)]"
               >
-                <div className="font-display text-2xl font-extrabold text-white">
+                <div className="font-display text-2xl font-extrabold text-textMain dark:text-white">
                   {s.value}
                 </div>
                 <div className="text-textMuted mt-2 text-xs leading-snug">

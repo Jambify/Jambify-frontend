@@ -151,7 +151,7 @@ const GuestLanding: React.FC = () => {
                       <div>
                         <p className="text-lg font-bold">Quick Quiz</p>
                         <p className="text-sm text-white/75">
-                          10-question bursts for fast topic checks
+                          10-question bursts — ~5 mins for a focused topic check
                         </p>
                       </div>
                     </div>
@@ -173,7 +173,7 @@ const GuestLanding: React.FC = () => {
                       <div>
                         <p className="text-lg font-bold">Mock Exam</p>
                         <p className="text-sm text-white/75">
-                          180 questions with real JAMB scoring
+                          180 questions with real JAMB scoring — ~2 hours full exam
                         </p>
                       </div>
                     </div>
