@@ -151,6 +151,9 @@ const AppLayout: React.FC<LayoutProps> = ({
                   src={schooldraLogo}
                   alt="Schooldra Logo"
                   className="h-8 w-8"
+                  width={32}
+                  height={32}
+                  loading="eager"
                 />
                 <span className="text-brand-light text-lg font-black tracking-wider">
                   Schooldra

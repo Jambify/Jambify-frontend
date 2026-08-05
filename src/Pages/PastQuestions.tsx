@@ -6,6 +6,8 @@ import { useUserStore } from "../Store/useUserStore";
 import QuestionAIHelper from "../components/PastQuestions/QuestionAIHelper";
 import ReportQuestionButton from "../components/shared/ReportQuestionButton";
 import Button from "../components/ui/Button";
+import ValidatedInput from "../components/ui/ValidatedInput";
+import { truncateInput } from "../lib/validation";
 import {
   Loader2,
   Search,
@@ -432,11 +434,9 @@ const PastQuestions = () => {
                   size={18}
                   className="text-textDim absolute top-1/2 left-4 -translate-y-1/2"
                 />
-                <input
+                <ValidatedInput
                   value={filters.search}
-                  onChange={(e) =>
-                    handleFilterChange({ search: e.target.value })
-                  }
+                  onChange={(v) => handleFilterChange({ search: truncateInput(v, 200) })}
                   placeholder="Search..."
                   className="bg-bgSurface border-borderMuted text-textMain focus:ring-brand/50 w-full rounded-xl border py-2.5 pr-4 pl-12 focus:ring-2 focus:outline-none"
                 />

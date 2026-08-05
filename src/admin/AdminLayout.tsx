@@ -71,6 +71,9 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title }) => {
                   src={schooldraLogo}
                   alt="Schooldra Logo"
                   className="h-8 w-8"
+                  width={32}
+                  height={32}
+                  loading="eager"
                 />
                 </div>
             <div className="font-display font-bold text-sm tracking-tight">

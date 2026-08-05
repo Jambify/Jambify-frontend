@@ -34,6 +34,8 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import { cn } from "../../lib/utils/utils";
 import PageHelmet from "../../components/SEO/PageHelmet";
+import ValidatedInput from "../../components/ui/ValidatedInput";
+import { truncateInput } from "../../lib/validation";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -270,9 +272,9 @@ const AdminReports: React.FC = () => {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <div className="relative w-full min-w-0 flex-1 sm:max-w-sm">
           <Search className="text-textDim pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-          <input
+          <ValidatedInput
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(v) => setSearch(truncateInput(v, 200))}
             placeholder="Search report details or question text…"
             className="bg-bgSurface border-borderMuted text-textMain placeholder:text-textDim focus:border-brand w-full rounded-lg border py-2.5 pr-4 pl-9 text-sm outline-none"
           />

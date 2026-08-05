@@ -13,6 +13,7 @@ import { ArrowRight, Play } from "lucide-react";
 import { fadeUp } from "./animation";
 import { supabase } from "../../lib/supabase";
 import heroDemoVideo from "../../assets/Hero-Demo.mp4";
+import heroPoster from "../../assets/hero.png";
 
 // Shown instantly while the real count loads, and as a fallback if the
 // fetch fails — keeps the layout stable instead of flashing "0+" or blank.
@@ -135,8 +136,10 @@ const Hero: React.FC = () => {
           <div className="relative aspect-video">
             <video
               className="h-full w-full object-contain"
-              autoPlay
+              preload="metadata"
+              poster={heroPoster}
               muted
+              autoPlay
               loop
               playsInline
             >

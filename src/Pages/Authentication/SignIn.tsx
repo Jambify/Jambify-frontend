@@ -13,6 +13,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "../../lib/supabase";
 import AuthLayout from "../../components/auth/AuthLayout";
 import PageHelmet from "../../components/SEO/PageHelmet";
+import ValidatedInput from "../../components/ui/ValidatedInput";
+import { MAX_EMAIL_LENGTH, truncateInput } from "../../lib/validation";
 
 type Step = "form" | "otp";
 
@@ -372,20 +374,16 @@ const SignIn: React.FC = () => {
                 <Mail className="text-textDim group-focus-within:text-brand-light h-5 w-5 transition-colors" />
               </div>
               {/* --- EMAIL INPUT WITH DISABLED STATE --- */}
-              <input
-                type="email"
-                required
+              <ValidatedInput
                 value={email}
-                disabled={loading} // ← DISABLED WHEN LOADING
-                onChange={(e) => {
-                  setError("");
-                  setEmail(e.target.value);
-                }}
-                style={{ fontSize: "16px" }}
+                onChange={(v) => setEmail(truncateInput(v, MAX_EMAIL_LENGTH))}
+                placeholder="Enter your email"
+                type="email"
+                readOnly={loading}
                 className={`bg-bgSurface border-borderMuted rounded-brand-lg text-textMain focus:ring-brand/40 placeholder:text-textDim/50 w-full border py-3.5 pr-4 pl-12 transition-all outline-none focus:border-transparent focus:ring-2 ${
                   loading ? "opacity-50 cursor-not-allowed" : ""
                 }`}
-                placeholder="Enter your email"
+                maxLength={MAX_EMAIL_LENGTH}
               />
             </div>
           </div>

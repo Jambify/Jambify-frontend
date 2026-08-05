@@ -25,6 +25,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import PageHelmet from "../../components/SEO/PageHelmet";
 import { supabase } from "../../lib/supabase";
 import { cn } from "../../lib/utils/utils";
+import ValidatedInput from "../../components/ui/ValidatedInput";
 import { logAdminAction } from "../../lib/utils/Auditlog";
 import {
   ShieldPlus,
@@ -262,9 +263,9 @@ const AdminRoles: React.FC = () => {
             Add Admin
           </p>
           <div className="flex flex-col gap-3 sm:flex-row">
-            <input
+            <ValidatedInput
               value={newEmail}
-              onChange={(e) => setNewEmail(e.target.value)}
+              onChange={(v) => setNewEmail(v.slice(0, 254))}
               placeholder="user@example.com"
               type="email"
               className="bg-bgSurface border-borderMuted text-textMain placeholder:text-textDim focus:border-brand flex-1 rounded-lg border px-3 py-2.5 text-sm outline-none"

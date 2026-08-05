@@ -45,6 +45,10 @@ const HelpSupport: React.FC = () => {
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
   const [bugReport, setBugReport] = useState("");
   const [bugEmail, setBugEmail] = useState("");
+  
+  // keep inputs within sane limits
+  const EMAIL_MAX = 254;
+  const BUG_REPORT_MAX = 2000;
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<
     "idle" | "success" | "error"
@@ -190,7 +194,7 @@ const HelpSupport: React.FC = () => {
             <input
               type="email"
               value={bugEmail}
-              onChange={(e) => setBugEmail(e.target.value)}
+              onChange={(e) => setBugEmail(e.target.value.slice(0, EMAIL_MAX))}
               placeholder="you@example.com"
               className="bg-bgSurface border-borderMuted text-textMain focus:ring-brand/30 w-full rounded-lg border px-3 py-2 text-sm focus:ring-2 focus:outline-none"
             />
@@ -201,11 +205,12 @@ const HelpSupport: React.FC = () => {
             </label>
             <textarea
               value={bugReport}
-              onChange={(e) => setBugReport(e.target.value)}
+              onChange={(e) => setBugReport(e.target.value.slice(0, BUG_REPORT_MAX))}
               placeholder="Describe the bug in detail..."
               rows={4}
               className="bg-bgSurface border-borderMuted text-textMain focus:ring-brand/30 w-full resize-none rounded-lg border px-3 py-2 text-sm focus:ring-2 focus:outline-none"
             />
+            <p className="text-textDim mt-1 text-xs">Max {BUG_REPORT_MAX} characters</p>
           </div>
           {submitStatus === "success" && (
             <div className="rounded-lg border-green-500/30 bg-green-500/10 p-3 text-sm text-green-400">

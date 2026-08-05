@@ -57,6 +57,8 @@ import {
   X,
 } from "lucide-react";
 import { motion } from "framer-motion";
+import ValidatedInput from "../../components/ui/ValidatedInput";
+import { truncateInput } from "../../lib/validation";
 
 import { useOfflineStore } from "../../Store/useOfflineStore";
 
@@ -883,12 +885,12 @@ const MockExam: React.FC = () => {
                       Jump to:
                     </span>
                     <form onSubmit={handleJumpSubmit}>
-                      <input
-                        type="number"
+                      <ValidatedInput
                         value={jumpTo}
-                        onChange={(e) => setJumpTo(e.target.value)}
+                        onChange={(v) => setJumpTo(truncateInput(v.replace(/\D/g, ""), 4))}
                         placeholder="#"
                         className="bg-bgSurface border-borderMuted focus:border-brand focus:ring-brand/20 h-8 w-12 rounded-lg border px-2 text-center text-xs font-bold transition-all focus:ring-2 focus:outline-none"
+                        maxLength={4}
                       />
                     </form>
                   </div>

@@ -18,6 +18,8 @@ import {
 } from "lucide-react";
 import type { Question } from "../../Types";
 import { fetchAllQuestionsForBrowse } from "../../Services/questionService";
+import ValidatedInput from "../../components/ui/ValidatedInput";
+import { truncateInput } from "../../lib/validation";
 
 const VALID_YEARS = [
   "All",
@@ -330,10 +332,10 @@ const GuestPastQuestions = () => {
                   size={18}
                   className="text-textDim absolute top-1/2 left-4 -translate-y-1/2"
                 />
-                <input
+                <ValidatedInput
                   value={search}
-                  onChange={(e) => {
-                    setSearch(e.target.value);
+                  onChange={(v) => {
+                    setSearch(truncateInput(v, 200));
                     resetExpanded();
                   }}
                   placeholder="Search..."

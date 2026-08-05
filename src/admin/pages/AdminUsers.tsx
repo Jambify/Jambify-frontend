@@ -29,6 +29,8 @@ import {
   Calendar,
 } from "lucide-react";
 import PageHelmet from "../../components/SEO/PageHelmet";
+import ValidatedInput from "../../components/ui/ValidatedInput";
+import { truncateInput } from "../../lib/validation";
 import { useUserStore } from "../../Store/useUserStore"; // Added this import!
 
 // ── Types ─────────────────────────────────────────────────────────────
@@ -662,10 +664,10 @@ const AdminUsers: React.FC = () => {
         {/* Search */}
         <div className="relative w-full min-w-0 flex-1 sm:max-w-sm">
           <Search className="text-textDim pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-          <input
+          <ValidatedInput
             type="text"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(v) => setSearch(truncateInput(v, 200))}
             placeholder="Search name, email, university…"
             className="bg-bgSurface border-borderMuted rounded-brand text-textMain placeholder:text-textDim focus:border-brand w-full border py-2.5 pr-4 pl-9 text-sm transition-colors focus:outline-none"
           />

@@ -3,6 +3,8 @@ import { useGroupStore } from "../../Store/useGroupStore";
 import Button from "../ui/Button";
 import { cn } from "../../lib/utils/utils";
 import { X, Users, Loader2 } from "lucide-react";
+import ValidatedInput from "../ui/ValidatedInput";
+import { truncateInput, MAX_NAME_LENGTH, MAX_TEXT_LENGTH, validateName } from "../../lib/validation";
 
 const SUBJECTS = [
   "Mixed",
@@ -104,16 +106,16 @@ const CreateGroupModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
           <label className="text-textDim mb-2 block text-[11px] font-medium tracking-widest uppercase">
             Group name
           </label>
-          <input
+          <ValidatedInput
             autoFocus
-            type="text"
             value={form.name}
-            onChange={(e) => {
-              update("name", e.target.value);
+            onChange={(v) => {
+              update("name", truncateInput(v, MAX_NAME_LENGTH));
               setError("");
             }}
             placeholder="e.g. UNILAG Chemistry Squad"
-            style={{ fontSize: "16px" }}
+            maxLength={MAX_NAME_LENGTH}
+            validate={validateName}
             className="bg-bgSurface border-borderMuted rounded-brand text-textMain placeholder:text-textDim focus:border-brand/40 w-full border px-4 py-2.5 text-sm transition-colors focus:outline-none"
           />
         </div>
@@ -122,15 +124,16 @@ const CreateGroupModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
           <label className="text-textDim mb-2 block text-[11px] font-medium tracking-widest uppercase">
             Description
           </label>
-          <textarea
+          <ValidatedInput
             value={form.description}
-            onChange={(e) => {
-              update("description", e.target.value);
+            onChange={(v) => {
+              update("description", truncateInput(v, MAX_TEXT_LENGTH));
               setError("");
             }}
             placeholder="What's this group about?"
             rows={3}
-            style={{ fontSize: "16px" }}
+            multiline
+            maxLength={MAX_TEXT_LENGTH}
             className="bg-bgSurface border-borderMuted rounded-brand text-textMain placeholder:text-textDim focus:border-brand/40 w-full resize-none border px-4 py-2.5 text-sm transition-colors focus:outline-none"
           />
         </div>

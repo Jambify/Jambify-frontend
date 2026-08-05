@@ -7,6 +7,13 @@ import { Section, Field } from "./Shared";
 import { inputCls } from "./SharedUtils";
 import { Search, Loader2 } from "lucide-react";
 import CustomSubjectSelector from "./CustomSubjectSelector";
+import {
+  truncateInput,
+  validateName,
+  MAX_NAME_LENGTH,
+  MAX_UNI_LENGTH,
+} from "../../lib/validation";
+import ValidatedInput from "../ui/ValidatedInput";
 
 interface UniversityResult {
   name: string;
@@ -306,15 +313,22 @@ const ProfileForm: React.FC = () => {
           </p>
         </Field>
         <Field label="Full name" error={errors.name}>
-          <input
-            type="text"
+          <ValidatedInput
             value={form.name}
-            onChange={(e) => {
-              setForm((p) => ({ ...p, name: e.target.value }));
-              setErrors({});
+            onChange={(v) => {
+              const val = truncateInput(v, MAX_NAME_LENGTH);
+              setForm((p) => ({ ...p, name: val }));
+              if (!validateName(val)) {
+                setErrors({ name: "Name contains invalid characters" });
+              } else {
+                setErrors({});
+              }
             }}
-            className={inputCls(!!errors.name)}
+            maxLength={MAX_NAME_LENGTH}
+            validate={validateName}
+            error={errors.name}
             placeholder="Your full name"
+            className={inputCls(!!errors.name)}
           />
         </Field>
       </Section>
@@ -328,8 +342,9 @@ const ProfileForm: React.FC = () => {
                 type="text"
                 value={searchTerm}
                 onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  setForm((p) => ({ ...p, university: e.target.value }));
+                  const val = truncateInput(e.target.value, MAX_UNI_LENGTH);
+                  setSearchTerm(val);
+                  setForm((p) => ({ ...p, university: val }));
                   setShowDropdown(true);
                 }}
                 onFocus={() => setShowDropdown(true)}
@@ -381,7 +396,8 @@ const ProfileForm: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => {
-                          setForm((p) => ({ ...p, university: searchTerm }));
+                          const val = truncateInput(searchTerm, MAX_UNI_LENGTH);
+                          setForm((p) => ({ ...p, university: val }));
                           setShowDropdown(false);
                         }}
                         className="border-brand/50 text-brand-light hover:bg-brand/10 w-full rounded-xl border border-dashed px-4 py-3 text-left text-sm transition-all"

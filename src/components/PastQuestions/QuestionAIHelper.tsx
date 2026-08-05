@@ -4,6 +4,8 @@ import React, { useState } from "react";
 import { Sparkles, ChevronDown, Loader2 } from "lucide-react";
 import { useAIChat } from "../../hooks/useAIChat";
 import type { Question } from "../../Types";
+import ValidatedInput from "../ui/ValidatedInput";
+import { truncateInput } from "../../lib/validation";
 
 interface QuestionAIHelperProps {
   question: Question;
@@ -103,14 +105,12 @@ Be concise, encouraging, and specific to this question. Under 150 words unless a
           )}
 
           <div className="flex items-center gap-2">
-            <input
+            <ValidatedInput
               value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSend(input)}
-              placeholder={
-                isAtLimit ? "Session limit reached" : "Ask a follow-up…"
-              }
-              disabled={isLoading || isAtLimit}
+              onChange={(v) => setInput(truncateInput(v, 500))}
+              onKeyDown={(e: any) => e.key === "Enter" && handleSend(input)}
+              placeholder={isAtLimit ? "Session limit reached" : "Ask a follow-up…"}
+              readOnly={isLoading || isAtLimit}
               className="bg-bgSurface border-borderMuted text-textMain focus:ring-brand/30 flex-1 rounded-lg border px-3 py-1.5 text-xs focus:ring-2 focus:outline-none disabled:opacity-50"
             />
             <button

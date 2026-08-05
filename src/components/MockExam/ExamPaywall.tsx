@@ -3,6 +3,7 @@ import { useUserStore, APP_CONFIG } from "../../Store/useUserStore";
 import { supabase } from "../../lib/supabase";
 import Button from "../ui/Button";
 import { Crown, Lock, CheckCircle, Loader2, ExternalLink } from "lucide-react";
+import ValidatedInput from "../ui/ValidatedInput";
 import schooldralogo from "../../assets/schooldraLogo.webp"; // Import the new logo
 
 declare global {
@@ -285,14 +286,14 @@ const ExamPaywall: React.FC<ExamPaywallProps> = ({ onUpgrade, onBack }) => {
 
           {/* Transaction ref input */}
           <div className="mb-4">
-            <input
-              type="text"
+            <ValidatedInput
               value={txRef}
-              onChange={(e) => {
-                setTxRef(e.target.value);
+              onChange={(v) => {
+                setTxRef(v.slice(0, 120));
                 setVerifyError(null);
               }}
               placeholder="Enter transaction reference (e.g. FLW-XXXX)"
+              maxLength={120}
               className="bg-bgSurface border-borderMuted text-textMain placeholder:text-textDim/50 focus:border-brand/50 w-full rounded-2xl border px-4 py-3 text-sm focus:outline-none"
             />
             {verifyError && (

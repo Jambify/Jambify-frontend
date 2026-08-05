@@ -13,6 +13,8 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { cn } from "../../lib/utils/utils";
+import ValidatedInput from "../../components/ui/ValidatedInput";
+import { truncateInput, MAX_TITLE_LENGTH, MAX_TEXT_LENGTH } from "../../lib/validation";
 
 interface Announcement {
   id: string;
@@ -264,17 +266,20 @@ const AdminBroadcast: React.FC = () => {
         <p className="text-textDim flex items-center gap-1.5 text-[10px] font-bold tracking-widest uppercase">
           <Megaphone className="h-3.5 w-3.5" /> New Announcement
         </p>
-        <input
+        <ValidatedInput
           value={title}
-          onChange={(e) => setTitle(e.target.value)}
+          onChange={(v) => setTitle(truncateInput(v, MAX_TITLE_LENGTH))}
           placeholder="Title (e.g. Scheduled maintenance)"
+          maxLength={MAX_TITLE_LENGTH}
           className="bg-bgSurface border-borderMuted rounded-brand text-textMain placeholder:text-textDim focus:border-brand w-full border px-3 py-2.5 text-sm outline-none"
         />
-        <textarea
+        <ValidatedInput
           value={message}
-          onChange={(e) => setMessage(e.target.value)}
+          onChange={(v) => setMessage(truncateInput(v, MAX_TEXT_LENGTH))}
           placeholder="Message shown to students…"
+          multiline
           rows={3}
+          maxLength={MAX_TEXT_LENGTH}
           className="bg-bgSurface border-borderMuted rounded-brand text-textMain placeholder:text-textDim focus:border-brand w-full resize-none border px-3 py-2.5 text-sm outline-none"
         />
 
@@ -341,10 +346,10 @@ const AdminBroadcast: React.FC = () => {
           {/* Custom date/time picker — only shown when "Pick date/time" is selected */}
           {duration === "custom" && (
             <div className="flex items-center gap-2">
-              <input
+              <ValidatedInput
                 type="datetime-local"
                 value={customValue}
-                onChange={(e) => setCustomValue(e.target.value)}
+                onChange={(v) => setCustomValue(v)}
                 className="bg-bgSurface border-borderMuted rounded-brand text-textMain focus:border-brand w-full max-w-xs border px-3 py-2 text-sm outline-none"
               />
               <span className="text-textDim text-[10px]">

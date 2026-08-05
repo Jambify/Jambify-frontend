@@ -25,6 +25,8 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import GuestLayout from "../../components/Layout/GuestLayout";
 import { useExamTimer } from "../../hooks/useExamTimer";
+import ValidatedInput from "../../components/ui/ValidatedInput";
+import { truncateInput } from "../../lib/validation";
 
 const MOCK_DURATION = 7200; // 2 hours in seconds
 
@@ -629,10 +631,9 @@ const GuestMockExam: React.FC = () => {
                   Question Grid
                 </h4>
                 <div className="flex items-center gap-4">
-                  <input
-                    type="number"
+                  <ValidatedInput
                     value={jumpTo}
-                    onChange={(e) => setJumpTo(e.target.value)}
+                    onChange={(v) => setJumpTo(truncateInput(v.replace(/\D/g, ""), 4))}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
                         const n = parseInt(jumpTo) - 1;
@@ -642,6 +643,7 @@ const GuestMockExam: React.FC = () => {
                     }}
                     placeholder="#"
                     className="bg-bgSurface border-borderMuted focus:border-brand w-12 rounded-xl border px-2 py-1 text-center text-xs font-bold transition-all outline-none"
+                    maxLength={4}
                   />
                 </div>
               </div>

@@ -66,13 +66,13 @@ const GuestLanding: React.FC = () => {
           />
 
           <div className="relative z-10 flex w-full flex-col justify-between p-10 xl:p-12">
-            <motion.div
+              <motion.div
               initial={{ opacity: 0, y: -12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
               className="flex items-center gap-3"
             >
-              <img src={schooldraLogo} alt="Schooldra" className="h-8 w-8" />
+              <img src={schooldraLogo} alt="Schooldra" className="h-8 w-8" width={32} height={32} loading="eager" />
               <span className="font-display text-lg font-bold tracking-tight">
                 Schooldra
               </span>
@@ -129,7 +129,7 @@ const GuestLanding: React.FC = () => {
             <div className="lg:max-w-110ad mx-auto w-full max-w-md lg:mx-0">
               {/* Mobile Logo */}
               <div className="mb-10 flex items-center justify-center gap-3 lg:hidden">
-                <img src={schooldraLogo} alt="Schooldra" className="h-8 w-8" />
+                <img src={schooldraLogo} alt="Schooldra" className="h-8 w-8" width={32} height={32} loading="eager" />
                 <span className="font-display text-lg font-bold tracking-tight">
                   Schooldra
                 </span>

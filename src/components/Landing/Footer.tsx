@@ -13,7 +13,7 @@ const Footer: React.FC = () => {
       <div className="mx-auto max-w-6xl px-6 py-10">
         <div className="flex flex-col items-center justify-between gap-6 sm:flex-row">
           <div className="flex items-center gap-2">
-            <img src={schooldraLogo} alt="Schooldra" className="h-6 w-6" />
+            <img src={schooldraLogo} alt="Schooldra" className="h-6 w-6" width={24} height={24} loading="eager" />
             <span className="font-display text-sm font-bold">Schooldra</span>
           </div>
           <div className="flex flex-wrap items-center justify-center gap-6 text-sm">

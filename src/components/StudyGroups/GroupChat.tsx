@@ -7,6 +7,7 @@ import type { StudyGroup } from "../../Store/useGroupStore";
 import { useNetworkStatus } from "../../hooks/useNetworkStatus";
 import MessageStatusIndicator from "./MessageStatusIndicator";
 import { cn, sanitizeXss } from "../../lib/utils/utils";
+import { truncateInput } from "../../lib/validation";
 import { motion, useAnimation } from "framer-motion";
 import type { PanInfo } from "framer-motion";
 import {
@@ -607,7 +608,8 @@ const GroupChat: React.FC<Props> = ({ group, onBack }) => {
                   rows={1}
                   value={text}
                   onChange={(e) => {
-                    setText(e.target.value);
+                    const v = truncateInput(e.target.value, 1000);
+                    setText(v);
                     e.target.style.height = "auto";
                     e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`;
                   }}

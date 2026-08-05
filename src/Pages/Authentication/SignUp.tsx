@@ -15,6 +15,8 @@ import { supabase } from "../../lib/supabase";
 import AuthLayout from "../../components/auth/AuthLayout";
 import PageHelmet from "../../components/SEO/PageHelmet";
 import { toTitleCase } from "../../lib/utils/utils";
+import ValidatedInput from "../../components/ui/ValidatedInput";
+import { truncateInput, MAX_NAME_LENGTH, MAX_EMAIL_LENGTH, validateName } from "../../lib/validation";
 
 type Step = "form" | "otp";
 
@@ -364,18 +366,16 @@ const SignUp: React.FC = () => {
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
                 <User className="text-textDim group-focus-within:text-brand-light h-5 w-5 transition-colors" />
               </div>
-              {/* --- NAME INPUT WITH DISABLED STATE --- */}
-              <input
-                type="text"
-                required
+              <ValidatedInput
                 value={fullName}
-                disabled={loading}
-                onChange={(e) => setFullName(e.target.value)}
-                style={{ fontSize: "16px" }}
+                onChange={(v) => setFullName(truncateInput(v, MAX_NAME_LENGTH))}
+                placeholder="e.g. Adeola Okafor"
+                maxLength={MAX_NAME_LENGTH}
+                validate={validateName}
                 className={`bg-bgSurface border-borderMuted rounded-brand-lg text-textMain focus:ring-brand/40 placeholder:text-textDim/50 w-full border py-3.5 pr-4 pl-12 transition-all outline-none focus:border-transparent focus:ring-2 ${
                   loading ? "opacity-50 cursor-not-allowed" : ""
                 }`}
-                placeholder="e.g. Adeola Okafor"
+                readOnly={loading}
               />
             </div>
           </div>
@@ -387,18 +387,16 @@ const SignUp: React.FC = () => {
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
                 <Mail className="text-textDim group-focus-within:text-brand-light h-5 w-5 transition-colors" />
               </div>
-              {/* --- EMAIL INPUT WITH DISABLED STATE --- */}
-              <input
-                type="email"
-                required
+              <ValidatedInput
                 value={email}
-                disabled={loading}
-                onChange={(e) => setEmail(e.target.value)}
-                style={{ fontSize: "16px" }}
+                onChange={(v) => setEmail(truncateInput(v, MAX_EMAIL_LENGTH))}
+                placeholder="e.g. adeola@example.com"
+                maxLength={MAX_EMAIL_LENGTH}
+                type="email"
                 className={`bg-bgSurface border-borderMuted rounded-brand-lg text-textMain focus:ring-brand/40 placeholder:text-textDim/50 w-full border py-3.5 pr-4 pl-12 transition-all outline-none focus:border-transparent focus:ring-2 ${
                   loading ? "opacity-50 cursor-not-allowed" : ""
                 }`}
-                placeholder="e.g. adeola@example.com"
+                readOnly={loading}
               />
             </div>
           </div>

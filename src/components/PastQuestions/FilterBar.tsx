@@ -1,6 +1,8 @@
 import React from "react";
 import { cn } from "../../lib/utils/utils";
 import type { Filters } from "../../Pages/PastQuestions";
+import ValidatedInput from "../ui/ValidatedInput";
+import { truncateInput } from "../../lib/validation";
 
 interface FilterBarProps {
   filters: Filters;
@@ -71,10 +73,9 @@ const FilterBar: React.FC<FilterBarProps> = ({
           <circle cx="11" cy="11" r="8" />
           <line x1="21" y1="21" x2="16.65" y2="16.65" />
         </svg>
-        <input
-          type="text"
+        <ValidatedInput
           value={filters.search}
-          onChange={(e) => onChange({ search: e.target.value })}
+          onChange={(v) => onChange({ search: truncateInput(v, 200) })}
           placeholder="Search questions or topics..."
           className="bg-bgSurface border-borderMuted rounded-brand text-textMain placeholder:text-textDim focus:border-brand/40 w-full border py-2.5 pr-4 pl-9 text-sm transition-colors focus:outline-none"
         />

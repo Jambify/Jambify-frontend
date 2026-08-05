@@ -35,6 +35,8 @@ import {
   BookOpen,
 } from "lucide-react";
 import PageHelmet from "../../components/SEO/PageHelmet";
+import ValidatedInput from "../../components/ui/ValidatedInput";
+import { truncateInput, MAX_TEXT_LENGTH, MAX_TITLE_LENGTH } from "../../lib/validation";
 
 // ── Types ─────────────────────────────────────────────────────────────
 
@@ -77,7 +79,16 @@ const SUBJECTS = [
 // Must match resolveDifficulty() in questionService.ts exactly (capitalized)
 const DIFFICULTIES = ["Easy", "Medium", "Hard"];
 
-const EMPTY_FORM = {
+const EMPTY_FORM: {
+  subject: string;
+  topic: string;
+  year: number | null;
+  text: string;
+  options: string[];
+  answer: number;
+  difficulty: string;
+  explanation: string;
+} = {
   subject: SUBJECTS[0],
   topic: "",
   year: new Date().getFullYear(),
@@ -244,11 +255,11 @@ const QuestionModal: React.FC<{
               <label className="text-textDim mb-1.5 block text-xs font-bold tracking-widest uppercase">
                 Year
               </label>
-              <input
+              <ValidatedInput
                 type="number"
-                value={form.year}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, year: Number(e.target.value) }))
+                value={String(form.year ?? "")}
+                onChange={(v) =>
+                  setForm((f) => ({ ...f, year: v === "" ? null : Number(v) }))
                 }
                 className="bg-bgSurface border-borderMuted text-textMain focus:border-brand w-full rounded-lg border px-3 py-2 text-sm outline-none"
               />
@@ -259,12 +270,11 @@ const QuestionModal: React.FC<{
             <label className="text-textDim mb-1.5 block text-xs font-bold tracking-widest uppercase">
               Topic
             </label>
-            <input
+            <ValidatedInput
               value={form.topic}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, topic: e.target.value }))
-              }
+              onChange={(v) => setForm((f) => ({ ...f, topic: truncateInput(v, MAX_TITLE_LENGTH) }))}
               placeholder="e.g. Ecology, Grammar, Mechanics"
+              maxLength={MAX_TITLE_LENGTH}
               className="bg-bgSurface border-borderMuted text-textMain placeholder:text-textDim focus:border-brand w-full rounded-lg border px-3 py-2 text-sm outline-none"
             />
           </div>
@@ -273,10 +283,12 @@ const QuestionModal: React.FC<{
             <label className="text-textDim mb-1.5 block text-xs font-bold tracking-widest uppercase">
               Question
             </label>
-            <textarea
+            <ValidatedInput
               value={form.text}
-              onChange={(e) => setForm((f) => ({ ...f, text: e.target.value }))}
+              onChange={(v) => setForm((f) => ({ ...f, text: truncateInput(v, MAX_TEXT_LENGTH) }))}
               rows={3}
+              multiline
+              maxLength={MAX_TEXT_LENGTH}
               className="bg-bgSurface border-borderMuted text-textMain focus:border-brand w-full resize-none rounded-lg border px-3 py-2 text-sm outline-none"
             />
           </div>
@@ -320,10 +332,11 @@ const QuestionModal: React.FC<{
                   >
                     {String.fromCharCode(65 + idx)}
                   </button>
-                  <input
+                  <ValidatedInput
                     value={opt}
-                    onChange={(e) => setOption(idx, e.target.value)}
+                    onChange={(v) => setOption(idx, truncateInput(v, 500))}
                     placeholder={`Option ${String.fromCharCode(65 + idx)}`}
+                    maxLength={500}
                     className="bg-bgSurface border-borderMuted text-textMain placeholder:text-textDim focus:border-brand w-full rounded-lg border px-3 py-2 text-sm outline-none"
                   />
                 </div>
@@ -335,13 +348,13 @@ const QuestionModal: React.FC<{
             <label className="text-textDim mb-1.5 block text-xs font-bold tracking-widest uppercase">
               Explanation (optional)
             </label>
-            <textarea
+            <ValidatedInput
               value={form.explanation}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, explanation: e.target.value }))
-              }
+              onChange={(v) => setForm((f) => ({ ...f, explanation: truncateInput(v, MAX_TEXT_LENGTH) }))}
               rows={2}
               placeholder="Shown to students after they answer"
+              multiline
+              maxLength={MAX_TEXT_LENGTH}
               className="bg-bgSurface border-borderMuted text-textMain placeholder:text-textDim focus:border-brand w-full resize-none rounded-lg border px-3 py-2 text-sm outline-none"
             />
           </div>
@@ -616,9 +629,9 @@ const AdminQuestions: React.FC = () => {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <div className="relative w-full min-w-0 flex-1 sm:max-w-sm">
           <Search className="text-textDim pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-          <input
+          <ValidatedInput
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(v) => setSearch(truncateInput(v, 200))}
             placeholder="Search question text or topic…"
             className="bg-bgSurface border-borderMuted text-textMain placeholder:text-textDim focus:border-brand w-full rounded-lg border py-2.5 pr-4 pl-9 text-sm outline-none"
           />

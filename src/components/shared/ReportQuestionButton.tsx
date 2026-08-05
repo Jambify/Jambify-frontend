@@ -26,6 +26,8 @@ import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabase";
 import { Flag, X, Loader2, CheckCircle2 } from "lucide-react";
 import { cn } from "../../lib/utils/utils";
+import ValidatedInput from "../ui/ValidatedInput";
+import { MAX_TEXT_LENGTH } from "../../lib/validation";
 
 const REASONS = [
   { value: "wrong_answer", label: "The marked answer is wrong" },
@@ -140,11 +142,13 @@ const ReportQuestionButton: React.FC<ReportQuestionButtonProps> = ({
               ))}
             </div>
 
-            <textarea
+            <ValidatedInput
               value={details}
-              onChange={(e) => setDetails(e.target.value)}
+              onChange={(v) => setDetails(v)}
               placeholder="Anything else we should know? (optional)"
+              multiline
               rows={2}
+              maxLength={MAX_TEXT_LENGTH}
               className="bg-bgSurface border-borderMuted text-textMain placeholder:text-textDim mb-3 w-full resize-none rounded-lg border px-3 py-2 text-xs outline-none focus:border-brand"
             />
 

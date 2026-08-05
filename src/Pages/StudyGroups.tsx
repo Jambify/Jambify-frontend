@@ -20,6 +20,8 @@ import {
   Loader2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import ValidatedInput from "../components/ui/ValidatedInput";
+import { truncateInput } from "../lib/validation";
 
 const CATEGORIES = [
   { id: "all", name: "All", icon: Filter },
@@ -186,16 +188,15 @@ const StudyGroups: React.FC = () => {
           <div className="flex gap-2">
             <div className="relative flex-1">
               <Hash className="text-textDim absolute top-1/2 left-3 h-3.5 w-3.5 -translate-y-1/2" />
-              <input
+              <ValidatedInput
                 value={joinCode}
-                onChange={(e) => {
-                  setJoinCode(e.target.value.toUpperCase());
+                onChange={(v) => {
+                  setJoinCode(truncateInput(v.toUpperCase(), 8));
                   setJoinError("");
                 }}
                 onKeyDown={(e) => e.key === "Enter" && handleJoinByCode()}
                 placeholder="Enter 8-character code"
                 maxLength={8}
-                style={{ fontSize: "16px" }}
                 className="bg-bgSurface border-borderMuted rounded-brand text-textMain placeholder:text-textDim focus:border-brand/40 w-full border py-2 pr-3 pl-8 font-mono text-sm transition-colors focus:outline-none"
               />
             </div>
@@ -222,10 +223,10 @@ const StudyGroups: React.FC = () => {
           </p>
           <div className="relative">
             <Search className="text-textDim absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-            <input
+            <ValidatedInput
               type="text"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(v) => setSearchQuery(truncateInput(v, 200))}
               placeholder="Search by squad name or subject..."
               className="bg-bgSurface border-borderMuted rounded-brand text-textMain placeholder:text-textDim focus:border-brand/40 w-full border py-2 pr-3 pl-9 text-sm transition-colors focus:outline-none"
             />

@@ -18,6 +18,7 @@ import { useUserStore } from "../Store/useUserStore";
 import { useSubjectStore } from "../Store/useSubjectStore";
 import { useAIChat, type ChatMessage } from "../hooks/useAIChat";
 import { cn } from "../lib/utils/utils";
+import { truncateInput } from "../lib/validation";
 import {
   Send,
   Sparkles,
@@ -604,7 +605,8 @@ Student profile:
                 rows={1}
                 value={input}
                 onChange={(e) => {
-                  setInput(e.target.value);
+                  const v = truncateInput(e.target.value, 1000);
+                  setInput(v);
                   // Auto-grow
                   e.target.style.height = "auto";
                   e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`;

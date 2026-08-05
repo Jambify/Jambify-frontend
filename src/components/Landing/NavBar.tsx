@@ -77,7 +77,7 @@ const Navbar: React.FC = () => {
           className="flex cursor-pointer items-center gap-2.5"
           onClick={() => navigate("/")}
         >
-          <img src={schooldraLogo} alt="Schooldra" className="h-8 w-8" />
+          <img src={schooldraLogo} alt="Schooldra" className="h-8 w-8" width={32} height={32} loading="eager" />
           <span className="font-display text-lg font-bold tracking-tight">
             Schooldra
           </span>

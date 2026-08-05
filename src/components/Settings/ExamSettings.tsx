@@ -6,6 +6,7 @@ import { cn } from "../../lib/utils/utils";
 import { Section, Field } from "./Shared";
 import { inputCls } from "./SharedUtils";
 import { Calendar, Clock } from "lucide-react";
+import { truncateInput } from "../../lib/validation";
 
 const TARGET_SCORES = [
   { range: "320+", label: "Elite", sub: "Top 1% nationwide", color: "#7B5FFF" },
@@ -152,7 +153,7 @@ const ExamSettings: React.FC = () => {
             type="text"
             value={form.examDate}
             onChange={(e) =>
-              setForm((p) => ({ ...p, examDate: e.target.value }))
+              setForm((p) => ({ ...p, examDate: truncateInput(e.target.value, 20) }))
             }
             placeholder="e.g. Apr 27"
             className={inputCls(false)}
