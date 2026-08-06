@@ -10,6 +10,7 @@ import { Link, useLocation, useNavigate } from "react-router";
 import { motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import schooldraLogo from "../../assets/schooldraLogo.webp";
+import ThemeToggle from "../ui/ThemeToggle";
 
 const NAV_LINKS = ["Mock Exams", "Past Questions", "Performance", "Pricing", "FAQ"];
 
@@ -110,6 +111,12 @@ const Navbar: React.FC = () => {
           >
             Practice Mode
           </Link>
+          {/* Theme toggle — utility control, sits with CTAs (not among NAV_LINKS
+              since it's not a nav destination), placed before "Start now" so the
+              primary CTA stays the rightmost, highest-contrast element in the row. */}
+          <div className="hidden md:block">
+            <ThemeToggle />
+          </div>
           <Link
             to="/signup"
             className="bg-brand hover:bg-brand-light rounded-full px-5 py-2.5 text-sm font-bold text-white transition-all shadow-[0_14px_30px_rgba(124,60,255,0.18)]"
@@ -161,6 +168,11 @@ const Navbar: React.FC = () => {
           >
             Sign In
           </Link>
+          {/* Theme toggle — last item, utility control not a nav destination */}
+          <div className="border-borderMuted flex items-center justify-between border-t pt-4">
+            <span className="text-textMuted text-sm font-bold">Theme</span>
+            <ThemeToggle />
+          </div>
         </motion.div>
       )}
     </nav>

@@ -12,6 +12,8 @@
 
 @import "tailwindcss";
 
+@custom-variant dark (&:where(:not([data-theme="light"]), :not([data-theme="light"]) *));
+
 :root {
   --font-display: "Manrope", ui-sans-serif, system-ui, sans-serif;
   --font-body: "Manrope", ui-sans-serif, system-ui, sans-serif;
