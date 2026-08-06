@@ -4,6 +4,14 @@
  * Users management panel.
  * Actions: search, filter by status, view profile,
  *          grant/revoke Pro, freeze/unfreeze, delete.
+ *
+ * Owner protection: is_owner is fetched from admin_users and merged onto
+ * each row. Any user who is the owner has Grant/Freeze/Delete disabled in
+ * the UI — this mirrors the DB-level triggers (prevent_owner_profile_tamper,
+ * prevent_owner_pro_tamper) so the buttons never even reach the server if
+ * they'd fail anyway. The DB triggers are what actually enforce this;
+ * this UI check is just so a non-owner admin isn't met with a confusing
+ * Postgres error after clicking.
  */
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
@@ -27,6 +35,10 @@ import {
   Target,
   BookOpen,
   Calendar,
+  History,
+  ClipboardList,
+  Timer,
+  ChevronRight,
 } from "lucide-react";
 import PageHelmet from "../../components/SEO/PageHelmet";
 import ValidatedInput from "../../components/ui/ValidatedInput";
@@ -51,6 +63,38 @@ interface AdminUser {
   is_frozen: boolean;
   onboarding_complete: boolean;
   created_at: string;
+  is_owner?: boolean; // merged in client-side from admin_users, not a profiles column
+}
+
+interface MockExamRow {
+  id: string;
+  taken_at: string;
+  jamb_score: number;
+  total_correct: number;
+  total_questions: number;
+  accuracy: number;
+  time_taken_secs: number;
+  subjects: string[];
+  subject_scores: Record<string, number> | null;
+}
+
+interface QuizSessionRow {
+  id: string;
+  mode: string;
+  subject: string;
+  total_questions: number;
+  correct: number;
+  accuracy: number;
+  time_taken_secs: number;
+  completed_at: string;
+  topic_performance: Record<string, { correct: number; total: number }> | null;
+}
+
+interface StudySessionRow {
+  id: string;
+  start_time: string;
+  end_time: string | null;
+  duration_minutes: number | null;
 }
 
 type FilterStatus = "all" | "pro" | "free" | "frozen";
@@ -123,6 +167,309 @@ const StatMini: React.FC<{
   </div>
 );
 
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+const fmtDate = (iso: string | null) =>
+  iso
+    ? new Date(iso).toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      })
+    : "—";
+
+const fmtDuration = (secs: number | null | undefined) => {
+  if (!secs && secs !== 0) return "—";
+  const m = Math.floor(secs / 60);
+  const s = secs % 60;
+  return m > 0 ? `${m}m ${s}s` : `${s}s`;
+};
+
+// ── User history panel (mock exams / quizzes / study sessions) ────────────────
+
+const UserHistoryPanel: React.FC<{ userId: string }> = ({ userId }) => {
+  const [tab, setTab] = useState<"mock" | "quiz" | "study">("mock");
+  const [loading, setLoading] = useState(true);
+  const [mockExams, setMockExams] = useState<MockExamRow[]>([]);
+  const [quizzes, setQuizzes] = useState<QuizSessionRow[]>([]);
+  const [studySessions, setStudySessions] = useState<StudySessionRow[]>([]);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const fetchHistory = async () => {
+      setLoading(true);
+      setErr(null);
+      try {
+        const [mockRes, quizRes, studyRes] = await Promise.all([
+          supabase
+            .from("mock_exam_history")
+            .select(
+              "id, taken_at, jamb_score, total_correct, total_questions, accuracy, time_taken_secs, subjects, subject_scores",
+            )
+            .eq("user_id", userId)
+            .order("taken_at", { ascending: false })
+            .limit(50),
+          supabase
+            .from("quiz_sessions")
+            .select(
+              "id, mode, subject, total_questions, correct, accuracy, time_taken_secs, completed_at, topic_performance",
+            )
+            .eq("user_id", userId)
+            .order("completed_at", { ascending: false })
+            .limit(50),
+          supabase
+            .from("study_sessions")
+            .select("id, start_time, end_time, duration_minutes")
+            .eq("user_id", userId)
+            .order("start_time", { ascending: false })
+            .limit(50),
+        ]);
+
+        if (mockRes.error) throw mockRes.error;
+        if (quizRes.error) throw quizRes.error;
+        if (studyRes.error) throw studyRes.error;
+
+        if (!cancelled) {
+          setMockExams((mockRes.data ?? []) as MockExamRow[]);
+          setQuizzes((quizRes.data ?? []) as QuizSessionRow[]);
+          setStudySessions((studyRes.data ?? []) as StudySessionRow[]);
+        }
+      } catch (e: unknown) {
+        const error = e as PostgrestError;
+        if (!cancelled) setErr(error.message ?? "Failed to load history");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    fetchHistory();
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
+
+  const totalStudyMins = studySessions.reduce(
+    (sum, s) => sum + (s.duration_minutes ?? 0),
+    0,
+  );
+
+  return (
+    <div className="space-y-3">
+      {/* Summary strip */}
+      <div className="grid grid-cols-3 gap-2">
+        <StatMini
+          label="Mock Exams"
+          value={mockExams.length}
+          color="text-brand-light"
+        />
+        <StatMini label="Quizzes" value={quizzes.length} color="text-success" />
+        <StatMini
+          label="Study Time"
+          value={`${Math.round(totalStudyMins / 60)}h`}
+          color="text-orange-400"
+        />
+      </div>
+
+      {/* Tabs */}
+      <div className="bg-bgSurface border-borderMuted rounded-brand flex gap-1 border p-1">
+        {(
+          [
+            { key: "mock", label: "Mock Exams", icon: ClipboardList },
+            { key: "quiz", label: "Quizzes", icon: History },
+            { key: "study", label: "Study", icon: Timer },
+          ] as const
+        ).map(({ key, label, icon: Icon }) => (
+          <button
+            key={key}
+            onClick={() => setTab(key)}
+            className={cn(
+              "flex flex-1 items-center justify-center gap-1.5 rounded-lg py-1.5 text-xs font-semibold transition-all",
+              tab === key
+                ? "bg-bgCard text-textMain shadow-sm"
+                : "text-textDim hover:text-textMain",
+            )}
+          >
+            <Icon className="h-3 w-3" />
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {loading ? (
+        <div className="flex items-center justify-center py-10">
+          <Loader2 className="text-brand h-5 w-5 animate-spin" />
+        </div>
+      ) : err ? (
+        <p className="text-danger px-2 py-4 text-center text-xs">{err}</p>
+      ) : (
+        <div className="max-h-80 space-y-2 overflow-y-auto pr-1">
+          {/* Mock exams */}
+          {tab === "mock" &&
+            (mockExams.length === 0 ? (
+              <EmptyRow label="No mock exams taken yet" />
+            ) : (
+              mockExams.map((m) => (
+                <div
+                  key={m.id}
+                  className="bg-bgSurface border-borderMuted rounded-brand border"
+                >
+                  <button
+                    onClick={() =>
+                      setExpandedId(expandedId === m.id ? null : m.id)
+                    }
+                    className="flex w-full items-center justify-between gap-2 p-3 text-left"
+                  >
+                    <div className="min-w-0">
+                      <p className="text-textMain text-sm font-semibold">
+                        {m.jamb_score}
+                        <span className="text-textDim font-normal"> / 400</span>
+                      </p>
+                      <p className="text-textDim truncate text-[11px]">
+                        {fmtDate(m.taken_at)} · {m.subjects?.join(", ") || "—"}
+                      </p>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-2">
+                      <span className="text-success text-xs font-semibold">
+                        {m.accuracy}%
+                      </span>
+                      <ChevronRight
+                        className={cn(
+                          "text-textDim h-3.5 w-3.5 transition-transform",
+                          expandedId === m.id && "rotate-90",
+                        )}
+                      />
+                    </div>
+                  </button>
+                  {expandedId === m.id && (
+                    <div className="border-borderMuted space-y-1.5 border-t px-3 py-2.5">
+                      <Row label="Correct" value={`${m.total_correct} / ${m.total_questions}`} />
+                      <Row label="Time taken" value={fmtDuration(m.time_taken_secs)} />
+                      <Row label="Subjects" value={m.subjects?.join(", ") || "—"} />
+                      {m.subject_scores && (
+                        <div className="pt-1">
+                          <p className="text-textDim mb-1 text-[10px] font-bold tracking-widest uppercase">
+                            Per-subject scores
+                          </p>
+                          {Object.entries(m.subject_scores).map(([subj, score]) => (
+                            <Row key={subj} label={subj} value={String(score)} />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))
+            ))}
+
+          {/* Quizzes */}
+          {tab === "quiz" &&
+            (quizzes.length === 0 ? (
+              <EmptyRow label="No quizzes taken yet" />
+            ) : (
+              quizzes.map((q) => (
+                <div
+                  key={q.id}
+                  className="bg-bgSurface border-borderMuted rounded-brand border"
+                >
+                  <button
+                    onClick={() =>
+                      setExpandedId(expandedId === q.id ? null : q.id)
+                    }
+                    className="flex w-full items-center justify-between gap-2 p-3 text-left"
+                  >
+                    <div className="min-w-0">
+                      <p className="text-textMain text-sm font-semibold">
+                        {q.subject}
+                        <span className="text-textDim ml-1.5 text-[10px] font-normal uppercase">
+                          {q.mode}
+                        </span>
+                      </p>
+                      <p className="text-textDim truncate text-[11px]">
+                        {fmtDate(q.completed_at)} · {q.correct}/{q.total_questions} correct
+                      </p>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-2">
+                      <span className="text-success text-xs font-semibold">
+                        {q.accuracy}%
+                      </span>
+                      <ChevronRight
+                        className={cn(
+                          "text-textDim h-3.5 w-3.5 transition-transform",
+                          expandedId === q.id && "rotate-90",
+                        )}
+                      />
+                    </div>
+                  </button>
+                  {expandedId === q.id && (
+                    <div className="border-borderMuted space-y-1.5 border-t px-3 py-2.5">
+                      <Row label="Mode" value={q.mode} />
+                      <Row label="Time taken" value={fmtDuration(q.time_taken_secs)} />
+                      {q.topic_performance && (
+                        <div className="pt-1">
+                          <p className="text-textDim mb-1 text-[10px] font-bold tracking-widest uppercase">
+                            Topic performance
+                          </p>
+                          {Object.entries(q.topic_performance).map(
+                            ([topic, perf]) => (
+                              <Row
+                                key={topic}
+                                label={topic}
+                                value={`${perf.correct}/${perf.total}`}
+                              />
+                            ),
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))
+            ))}
+
+          {/* Study sessions */}
+          {tab === "study" &&
+            (studySessions.length === 0 ? (
+              <EmptyRow label="No study sessions logged yet" />
+            ) : (
+              studySessions.map((s) => (
+                <div
+                  key={s.id}
+                  className="bg-bgSurface border-borderMuted rounded-brand flex items-center justify-between border p-3"
+                >
+                  <p className="text-textMain text-sm font-medium">
+                    {fmtDate(s.start_time)}
+                  </p>
+                  <p className="text-textDim text-xs">
+                    {s.duration_minutes != null
+                      ? `${s.duration_minutes} min`
+                      : "In progress"}
+                  </p>
+                </div>
+              ))
+            ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const EmptyRow: React.FC<{ label: string }> = ({ label }) => (
+  <div className="flex flex-col items-center justify-center gap-2 py-8 text-center">
+    <ClipboardList className="text-textDim h-6 w-6" />
+    <p className="text-textDim text-xs">{label}</p>
+  </div>
+);
+
+const Row: React.FC<{ label: string; value: string }> = ({ label, value }) => (
+  <div className="flex items-center justify-between text-xs">
+    <span className="text-textDim">{label}</span>
+    <span className="text-textMain font-medium">{value}</span>
+  </div>
+);
+
 // ── User detail drawer ────────────────────────────────────────────────────────
 
 const UserDrawer: React.FC<{
@@ -134,6 +481,8 @@ const UserDrawer: React.FC<{
   const loading = (a: string) => actionLoading === `${a}-${user.id}`;
   const { id: currentUserId } = useUserStore(); // Get current user's ID
   const isOwnAccount = currentUserId === user.id; // Check if it's the admin's own account
+  const isTargetOwner = !!user.is_owner; // The account being viewed IS the owner
+  const actionsLocked = isOwnAccount || isTargetOwner;
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
@@ -166,6 +515,12 @@ const UserDrawer: React.FC<{
               </p>
               <p className="text-textDim truncate text-xs">{user.email}</p>
               <div className="mt-1 flex items-center gap-1.5">
+                {user.is_owner && (
+                  <span className="bg-warn/10 text-warn flex items-center gap-1 rounded-full border border-warn/20 px-2 py-0.5 text-[10px] font-bold uppercase">
+                    <Crown className="h-2.5 w-2.5" />
+                    Owner
+                  </span>
+                )}
                 {user.is_pro && (
                   <span className="bg-warn/10 text-warn border-warn/20 rounded-full border px-2 py-0.5 text-[10px] font-bold">
                     PRO
@@ -232,11 +587,7 @@ const UserDrawer: React.FC<{
               {
                 icon: User,
                 label: "Joined",
-                value: new Date(user.created_at).toLocaleDateString("en-GB", {
-                  day: "numeric",
-                  month: "short",
-                  year: "numeric",
-                }),
+                value: fmtDate(user.created_at),
               },
             ].map(({ icon: Icon, label, value }) => (
               <div key={label} className="flex items-start gap-2.5 text-sm">
@@ -246,17 +597,34 @@ const UserDrawer: React.FC<{
               </div>
             ))}
           </div>
+
+          {/* Exam / quiz / study history */}
+          <div className="border-borderMuted border-t pt-4">
+            <p className="text-textDim mb-2.5 flex items-center gap-1.5 text-xs font-bold tracking-widest uppercase">
+              <History className="h-3 w-3" />
+              Activity History
+            </p>
+            <UserHistoryPanel userId={user.id} />
+          </div>
         </div>
 
         {/* Action buttons */}
         <div className="border-borderMuted shrink-0 space-y-2 border-t p-4">
+          {isTargetOwner && (
+            <p className="bg-warn/10 text-warn border-warn/20 rounded-brand flex items-center gap-2 border px-3 py-2 text-xs">
+              <Crown className="h-3.5 w-3.5 shrink-0" />
+              This is the owner account — its Pro, freeze, and delete status
+              can't be changed from the admin panel.
+            </p>
+          )}
+
           {/* Grant / Revoke Pro */}
           <button
             onClick={() => onAction("pro", user)}
-            disabled={!!actionLoading || isOwnAccount}
+            disabled={!!actionLoading || actionsLocked}
             className={cn(
               "rounded-brand flex w-full items-center justify-center gap-2 py-2.5 text-sm font-semibold transition-all",
-              isOwnAccount
+              actionsLocked
                 ? "bg-bgSurface text-textMuted border-borderMuted cursor-not-allowed opacity-50"
                 : user.is_pro
                   ? "bg-warn/10 text-warn border-warn/20 hover:bg-warn/20 border"
@@ -270,18 +638,20 @@ const UserDrawer: React.FC<{
             )}
             {isOwnAccount
               ? "Can't modify your own Pro access"
-              : user.is_pro
-                ? "Revoke Pro Access"
-                : "Grant Pro Access"}
+              : isTargetOwner
+                ? "Owner account is protected"
+                : user.is_pro
+                  ? "Revoke Pro Access"
+                  : "Grant Pro Access"}
           </button>
 
           {/* Freeze / Unfreeze */}
           <button
             onClick={() => onAction("freeze", user)}
-            disabled={!!actionLoading || isOwnAccount}
+            disabled={!!actionLoading || actionsLocked}
             className={cn(
               "rounded-brand flex w-full items-center justify-center gap-2 border py-2.5 text-sm font-semibold transition-all",
-              isOwnAccount
+              actionsLocked
                 ? "bg-bgSurface text-textMuted border-borderMuted cursor-not-allowed opacity-50"
                 : user.is_frozen
                   ? "bg-success/10 text-success border-success/20 hover:bg-success/20"
@@ -297,18 +667,20 @@ const UserDrawer: React.FC<{
             )}
             {isOwnAccount
               ? "Can't modify your own account status"
-              : user.is_frozen
-                ? "Unfreeze Account"
-                : "Freeze Account"}
+              : isTargetOwner
+                ? "Owner account is protected"
+                : user.is_frozen
+                  ? "Unfreeze Account"
+                  : "Freeze Account"}
           </button>
 
           {/* Delete */}
           <button
             onClick={() => onAction("delete", user)}
-            disabled={!!actionLoading || isOwnAccount}
+            disabled={!!actionLoading || actionsLocked}
             className={cn(
               "rounded-brand text-danger border-danger/20 bg-danger/10 hover:bg-danger/20 flex w-full items-center justify-center gap-2 border py-2.5 text-sm font-semibold transition-all",
-              isOwnAccount && "cursor-not-allowed opacity-50",
+              actionsLocked && "cursor-not-allowed opacity-50",
             )}
           >
             {loading("delete") ? (
@@ -316,7 +688,11 @@ const UserDrawer: React.FC<{
             ) : (
               <Trash2 className="h-4 w-4" />
             )}
-            {isOwnAccount ? "Can't delete your own account" : "Delete Account"}
+            {isOwnAccount
+              ? "Can't delete your own account"
+              : isTargetOwner
+                ? "Owner account is protected"
+                : "Delete Account"}
           </button>
         </div>
       </div>
@@ -407,24 +783,42 @@ const AdminUsers: React.FC = () => {
   const removeToast = (id: number) =>
     setToasts((prev) => prev.filter((t) => t.id !== id));
 
-  // ── Fetch users ────────────────────────────────────────────────────────────
+  // ── Fetch users (+ merge is_owner from admin_users) ─────────────────────────
   const fetchUsers = useCallback(async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select(
-          `
-          id, name, email, university, subject_combo,
-          target_score, exam_year, streak, overall_score,
-          accuracy, questions_completed, is_pro, is_frozen,
-          onboarding_complete, created_at
-        `,
-        )
-        .order("created_at", { ascending: false });
+      const [profilesRes, adminsRes] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select(
+            `
+            id, name, email, university, subject_combo,
+            target_score, exam_year, streak, overall_score,
+            accuracy, questions_completed, is_pro, is_frozen,
+            onboarding_complete, created_at
+          `,
+          )
+          .order("created_at", { ascending: false }),
+        // admin_users.user_id has no FK to profiles, so this stays a
+        // separate fetch + client-side merge (same pattern as AdminRoles.tsx).
+        supabase.from("admin_users").select("user_id, is_owner"),
+      ]);
 
-      if (error) throw error;
-      setUsers((data ?? []) as AdminUser[]);
+      if (profilesRes.error) throw profilesRes.error;
+      if (adminsRes.error) throw adminsRes.error;
+
+      const ownerIds = new Set(
+        (adminsRes.data ?? [])
+          .filter((a: { user_id: string; is_owner: boolean }) => a.is_owner)
+          .map((a: { user_id: string }) => a.user_id),
+      );
+
+      const merged = ((profilesRes.data ?? []) as AdminUser[]).map((u) => ({
+        ...u,
+        is_owner: ownerIds.has(u.id),
+      }));
+
+      setUsers(merged);
     } catch (err: unknown) {
       const error = err as PostgrestError;
       toast("error", error.message ?? "Failed to load users");
@@ -494,6 +888,14 @@ const AdminUsers: React.FC = () => {
   ) => {
     if (user.id === currentUserId) {
       toast("error", "You can't modify your own account!");
+      return;
+    }
+
+    // Client-side guard mirroring the DB triggers (prevent_owner_profile_tamper,
+    // prevent_owner_pro_tamper) — those are what actually enforce this even if
+    // this check is somehow bypassed.
+    if (user.is_owner) {
+      toast("error", "The owner account is protected and can't be modified.");
       return;
     }
 
@@ -606,6 +1008,11 @@ const AdminUsers: React.FC = () => {
       setDeleteTarget(null);
       return;
     }
+    if (deleteTarget.is_owner) {
+      toast("error", "The owner account is protected and can't be deleted.");
+      setDeleteTarget(null);
+      return;
+    }
 
     const key = `delete-${deleteTarget.id}`;
     setActionLoading(key);
@@ -644,7 +1051,7 @@ const AdminUsers: React.FC = () => {
     <div className="space-y-5">
       <PageHelmet
         title="Admin Users | SCHOOLDRA"
-        description="Manage Schooldra users: view profiles, grant/revoke Pro, freeze accounts, and delete users."
+        description="Manage Schooldra users: view profiles, exam and quiz history, grant/revoke Pro, freeze accounts, and delete users."
         canonical="https://www.schooldra.com/admin/users"
       />
       {/* Stats row */}
@@ -753,9 +1160,14 @@ const AdminUsers: React.FC = () => {
                             {u.name?.slice(0, 2).toUpperCase() ?? "??"}
                           </div>
                           <div className="min-w-0">
-                            <p className="text-textMain hover:text-brand-light max-w-40 truncate font-medium transition-colors">
-                              {u.name || "—"}
-                            </p>
+                            <div className="flex items-center gap-1">
+                              <p className="text-textMain hover:text-brand-light max-w-40 truncate font-medium transition-colors">
+                                {u.name || "—"}
+                              </p>
+                              {u.is_owner && (
+                                <Crown className="text-warn h-3 w-3 shrink-0" />
+                              )}
+                            </div>
                             <p className="text-textDim max-w-40 truncate text-[11px]">
                               {u.email}
                             </p>
@@ -806,15 +1218,29 @@ const AdminUsers: React.FC = () => {
                         <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
                           <button
                             onClick={() => handleAction("pro", u)}
-                            title={u.is_pro ? "Revoke Pro" : "Grant Pro"}
-                            className="rounded-brand hover:bg-warn/10 text-textDim hover:text-warn p-1.5 transition-all"
+                            disabled={u.is_owner}
+                            title={
+                              u.is_owner
+                                ? "Owner account is protected"
+                                : u.is_pro
+                                  ? "Revoke Pro"
+                                  : "Grant Pro"
+                            }
+                            className="rounded-brand hover:bg-warn/10 text-textDim hover:text-warn p-1.5 transition-all disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-textDim"
                           >
                             <Crown className="h-3.5 w-3.5" />
                           </button>
                           <button
                             onClick={() => handleAction("freeze", u)}
-                            title={u.is_frozen ? "Unfreeze" : "Freeze"}
-                            className="rounded-brand text-textDim p-1.5 transition-all hover:bg-blue-500/10 hover:text-blue-400"
+                            disabled={u.is_owner}
+                            title={
+                              u.is_owner
+                                ? "Owner account is protected"
+                                : u.is_frozen
+                                  ? "Unfreeze"
+                                  : "Freeze"
+                            }
+                            className="rounded-brand text-textDim p-1.5 transition-all hover:bg-blue-500/10 hover:text-blue-400 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-textDim"
                           >
                             {u.is_frozen ? (
                               <ShieldCheck className="h-3.5 w-3.5" />
@@ -824,8 +1250,13 @@ const AdminUsers: React.FC = () => {
                           </button>
                           <button
                             onClick={() => handleAction("delete", u)}
-                            title="Delete"
-                            className="rounded-brand hover:bg-danger/10 text-textDim hover:text-danger p-1.5 transition-all"
+                            disabled={u.is_owner}
+                            title={
+                              u.is_owner
+                                ? "Owner account is protected"
+                                : "Delete"
+                            }
+                            className="rounded-brand hover:bg-danger/10 text-textDim hover:text-danger p-1.5 transition-all disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-textDim"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
                           </button>
@@ -852,9 +1283,14 @@ const AdminUsers: React.FC = () => {
                       {u.name?.slice(0, 2).toUpperCase() ?? "??"}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-textMain truncate text-sm font-medium">
-                        {u.name || "—"}
-                      </p>
+                      <div className="flex items-center gap-1">
+                        <p className="text-textMain truncate text-sm font-medium">
+                          {u.name || "—"}
+                        </p>
+                        {u.is_owner && (
+                          <Crown className="text-warn h-3 w-3 shrink-0" />
+                        )}
+                      </div>
                       <p className="text-textDim truncate text-xs">{u.email}</p>
                       <div className="mt-0.5 flex gap-1">
                         {u.is_pro && (

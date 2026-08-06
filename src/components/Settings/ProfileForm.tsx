@@ -131,19 +131,19 @@ const ProfileForm: React.FC = () => {
 
   /* ── University API Search Logic with Fallback & Debounce ── */
   useEffect(() => {
-    if (searchTerm.length < 2) {
-      setUniResults([]);
-      setUniError(null);
-      return;
-    }
-
-    if (useFallback) {
-      const filtered = getFilteredFallbackUniversities(searchTerm);
-      setUniResults(filtered);
-      return;
-    }
-
     const fetchUnis = async () => {
+      if (searchTerm.length < 2) {
+        setUniResults([]);
+        setUniError(null);
+        return;
+      }
+
+      if (useFallback) {
+        const filtered = getFilteredFallbackUniversities(searchTerm);
+        setUniResults(filtered);
+        return;
+      }
+
       setIsLoadingUnis(true);
       setUniError(null);
 
@@ -181,7 +181,7 @@ const ProfileForm: React.FC = () => {
               data = nigeriaUnis.slice(0, 20);
               if (data.length > 0) success = true;
             }
-          } catch (err) {
+          } catch {
             console.log("Backup API also failed");
           }
         }
@@ -203,8 +203,7 @@ const ProfileForm: React.FC = () => {
             setUniError("No universities found. Try a different search term.");
           }
         }
-      } catch (err) {
-        console.error("Failed to fetch universities:", err);
+      } catch {
         const fallbackResults = getFilteredFallbackUniversities(searchTerm);
         if (fallbackResults.length > 0) {
           setUniResults(fallbackResults);

@@ -53,6 +53,7 @@ const ValidatedInput: React.FC<Props> = ({
           rows={rows}
           readOnly={readOnly}
           autoFocus={autoFocus}
+          maxLength={maxLength}
           onKeyDown={onKeyDown}
           className={inputClass}
         />
@@ -64,6 +65,7 @@ const ValidatedInput: React.FC<Props> = ({
           type={type}
           readOnly={readOnly}
           autoFocus={autoFocus}
+          maxLength={maxLength}
           onKeyDown={onKeyDown}
           className={inputClass}
         />
