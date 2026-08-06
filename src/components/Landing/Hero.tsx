@@ -173,7 +173,7 @@ const Hero: React.FC = () => {
                   height={720}
                   loading="lazy"
                 />
-                <span className="bg-black/30 absolute inset-0 flex items-center justify-center transition-colors group-hover:bg-black/40">
+                <span className="absolute inset-0 flex items-center justify-center bg-black/30 transition-colors group-hover:bg-black/40">
                   <span className="bg-brand shadow-brand/40 flex h-16 w-16 items-center justify-center rounded-full shadow-xl transition-transform group-hover:scale-105">
                     <Play className="ml-1 h-6 w-6 fill-white text-white" />
                   </span>
