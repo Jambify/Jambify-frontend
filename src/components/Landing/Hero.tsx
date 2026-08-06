@@ -4,6 +4,13 @@
  * Split hero: headline + stats on the left, product demo video on the right.
  * The question-count stat is fetched live from Supabase so it never goes
  * stale as questions are added/removed via the admin panel.
+ *
+ * Video loading strategy: the demo video is NOT downloaded on page load.
+ * It previously had autoPlay + preload="metadata" together, which is a
+ * contradiction — autoPlay forces an eager fetch regardless of the preload
+ * hint, so the full file was downloading on every landing-page visit before
+ * anyone had even seen the poster. Now: poster only, until the user clicks
+ * play. Nothing video-related touches the network until then.
  */
 
 import React, { useEffect, useState } from "react";
@@ -11,7 +18,6 @@ import { Link } from "react-router";
 import { motion } from "framer-motion";
 import { ArrowRight, Play } from "lucide-react";
 import { fadeUp } from "./animation";
-import { supabase } from "../../lib/supabase";
 import heroDemoVideo from "../../assets/Hero-Demo.mp4";
 import heroPoster from "../../assets/hero.png";
 
@@ -23,11 +29,17 @@ const Hero: React.FC = () => {
   const [questionCount, setQuestionCount] = useState<number>(
     FALLBACK_QUESTION_COUNT,
   );
+  const [showVideo, setShowVideo] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
 
     async function fetchCount() {
+      // Dynamically imported so the Supabase client (and its ~50KB of JS)
+      // isn't part of the critical landing-page bundle just to fetch one
+      // number — it loads in parallel, after the initial render is unblocked.
+      const { supabase } = await import("../../lib/supabase");
+
       const { count, error } = await supabase
         .from("questions")
         .select("id", { count: "exact", head: true });
@@ -134,17 +146,40 @@ const Hero: React.FC = () => {
             <div className="bg-bgMain/50 ml-2 h-4 w-48 rounded" />
           </div>
           <div className="relative aspect-video">
-            <video
-              className="h-full w-full object-contain"
-              preload="metadata"
-              poster={heroPoster}
-              muted
-              autoPlay
-              loop
-              playsInline
-            >
-              <source src={heroDemoVideo} type="video/mp4" />
-            </video>
+            {showVideo ? (
+              // Only mounted — and only then does the browser fetch anything —
+              // once the user has actually asked to see it.
+              <video
+                className="h-full w-full object-contain"
+                poster={heroPoster}
+                controls
+                autoPlay
+                playsInline
+              >
+                <source src={heroDemoVideo} type="video/mp4" />
+              </video>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setShowVideo(true)}
+                aria-label="Play product demo video"
+                className="group relative h-full w-full"
+              >
+                <img
+                  src={heroPoster}
+                  alt="SCHOOLDRA product demo preview"
+                  className="h-full w-full object-contain"
+                  width={1280}
+                  height={720}
+                  loading="lazy"
+                />
+                <span className="bg-black/30 absolute inset-0 flex items-center justify-center transition-colors group-hover:bg-black/40">
+                  <span className="bg-brand shadow-brand/40 flex h-16 w-16 items-center justify-center rounded-full shadow-xl transition-transform group-hover:scale-105">
+                    <Play className="ml-1 h-6 w-6 fill-white text-white" />
+                  </span>
+                </span>
+              </button>
+            )}
           </div>
         </motion.div>
       </div>
