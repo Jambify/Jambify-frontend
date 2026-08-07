@@ -118,9 +118,6 @@ const GuestLanding: React.FC = () => {
 
         {/* Right Content Panel */}
         <div className="relative flex min-h-screen flex-1 flex-col transition-colors duration-150 ease-in-out">
-          <div className="bg-brand/10 pointer-events-none absolute top-0 right-1/4 h-125 w-125 rounded-full opacity-40 blur-[120px] dark:opacity-60" />
-          <div className="bg-brand/5 pointer-events-none absolute bottom-0 left-1/4 h-125 w-125 rounded-full opacity-40 blur-[120px] dark:opacity-60" />
-
           <div className="absolute top-4 right-4 z-20 lg:top-8 lg:right-8">
             <ThemeToggle />
           </div>
@@ -151,7 +148,8 @@ const GuestLanding: React.FC = () => {
                       <div>
                         <p className="text-lg font-bold">Quick Quiz</p>
                         <p className="text-sm text-white/75">
-                          10-question bursts — ~5 mins for a focused topic check
+                          10-question bursts — ~5 mins for a focused topic
+                          check
                         </p>
                       </div>
                     </div>
@@ -163,7 +161,7 @@ const GuestLanding: React.FC = () => {
                 <motion.button
                   whileTap={{ scale: 0.97 }}
                   onClick={() => navigate("/guest/mock")}
-                  className="from-brand rounded-brand-xl group w-full bg-linear-to-r to-teal-400 p-5 text-left text-white shadow-[0_20px_60px_rgba(124,60,255,0.18)] transition-all hover:opacity-95"
+                  className="from-brand rounded-brand-xl group w-full bg-linear-to-r to-teal p-5 text-left text-white shadow-brand transition-all hover:opacity-95"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
@@ -209,7 +207,7 @@ const GuestLanding: React.FC = () => {
               </div>
 
               {/* Save progress CTA */}
-              <div className="bg-bgCard/80 border-borderMuted rounded-brand-xl border p-5 text-center shadow-[0_20px_50px_rgba(0,0,0,0.15)]">
+              <div className="bg-bgCard/80 border-borderMuted rounded-brand-xl border p-5 text-center shadow-card">
                 <p className="text-textMuted mb-3 text-sm">
                   Save your progress, sync your scores, and unlock personalized
                   study plans.

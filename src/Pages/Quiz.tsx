@@ -7,6 +7,7 @@ import QuestionCard from "../components/Quiz/QuestionCard";
 import TimerBar from "../components/Quiz/TimeBar";
 import ResultsScreen from "../components/Quiz/ResultScreen";
 import Button from "../components/ui/Button";
+import { getSubjectIcon, getSubjectColor } from "..//lib/subjectMeta";
 
 import {
   fetchQuestionsByTopic,
@@ -15,8 +16,6 @@ import {
   getRecentlySeenQuestionIds, // NEW
   recordSeenQuestions, // NEW
 } from "../Services/questionService";
-import LoadingScreen from "../components/ui/LoadingScreen";
-import NetworkErrorAlert from "../components/ui/NetworkErrorAlert";
 import {
   Loader2,
   BookOpen,
@@ -25,25 +24,37 @@ import {
   CheckCircle2,
   AlertTriangle,
 } from "lucide-react";
+import LoadingScreen from "../components/ui/LoadingScreen";
+import NetworkErrorAlert from "../components/ui/NetworkErrorAlert";
+import {
+  
+} from "lucide-react";
 import { useOfflineStore } from "../Store/useOfflineStore";
 import type { Question } from "../Types";
 
 /** Subject filter options shown on the quiz start screen with icons and colors */
-const QUIZ_SUBJECTS = [
-  { name: "English", icon: "📖", color: "from-blue-500 to-indigo-600" },
-  { name: "Mathematics", icon: "🔢", color: "from-emerald-500 to-teal-600" },
-  { name: "Physics", icon: "⚡", color: "from-amber-400 to-orange-600" },
-  { name: "Chemistry", icon: "⚗️", color: "from-rose-500 to-pink-600" },
-  { name: "Biology", icon: "🧬", color: "from-green-500 to-emerald-700" },
-  { name: "Economics", icon: "📊", color: "from-orange-400 to-amber-600" },
-  { name: "Government", icon: "🏛️", color: "from-purple-500 to-indigo-700" },
-  { name: "Literature", icon: "📚", color: "from-pink-500 to-rose-700" },
-  { name: "History", icon: "📜", color: "from-amber-700 to-orange-900" },
-  { name: "Geography", icon: "🌍", color: "from-blue-400 to-cyan-600" },
-  { name: "CRS", icon: "✝️", color: "from-indigo-400 to-blue-600" },
-  { name: "IRS", icon: "🌙", color: "from-emerald-600 to-green-700" },
-  { name: "Commerce", icon: "💼", color: "from-amber-500 to-orange-600" },
-];
+export const QUIZ_SUBJECTS = [
+  "English",
+  "Mathematics",
+  "Physics",
+  "Chemistry",
+  "Biology",
+  "Economics",
+  "Government",
+  "Literature",
+  "History",
+  "Geography",
+  "CRS",
+  "IRS",
+  "Commerce",
+].map((name) => {
+  const Icon = getSubjectIcon(name);
+  return {
+    name,
+    icon: <Icon className="h-6 w-6" />,
+    color: getSubjectColor(name),
+  };
+});
 
 const Quiz: React.FC = () => {
   const navigate = useNavigate();

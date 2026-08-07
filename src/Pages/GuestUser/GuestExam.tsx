@@ -1,29 +1,32 @@
 // src/Pages/Guest/GuestMockExam.tsx
 
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { fetchQuestionsWithFallback } from "../../Services/questionService";
 import LoadingScreen from "../../components/ui/LoadingScreen";
 import type { Question } from "../../Types";
 import { cn } from "../../lib/utils/utils";
 import PageHelmet from "../../components/SEO/PageHelmet";
+import ThemeToggle from "../../components/ui/ThemeToggle";
+import schooldraLogo from "../../assets/schooldraLogo.webp";
+import { SUBJECT_COLORS, getSubjectIcon } from "../../lib/subjectMeta";
 import {
-  ArrowLeft,
+  ChevronLeft,
   ArrowRight,
   CheckCircle,
   Timer,
   BookOpen,
   Sparkles,
   Info,
-  ChevronLeft,
   ChevronRight,
   LogOut,
   Target,
   Zap,
   Layers,
+  Trophy,
+  ThumbsUp,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import GuestLayout from "../../components/Layout/GuestLayout";
 import { useExamTimer } from "../../hooks/useExamTimer";
 import ValidatedInput from "../../components/ui/ValidatedInput";
 import { truncateInput } from "../../lib/validation";
@@ -31,17 +34,17 @@ import { truncateInput } from "../../lib/validation";
 const MOCK_DURATION = 7200; // 2 hours in seconds
 
 const AVAILABLE_SUBJECTS = [
-  { id: "English", name: "English", questions: 60, icon: "📖" },
-  { id: "Mathematics", name: "Mathematics", questions: 40, icon: "🔢" },
-  { id: "Physics", name: "Physics", questions: 40, icon: "⚡" },
-  { id: "Chemistry", name: "Chemistry", questions: 40, icon: "⚗️" },
-  { id: "Biology", name: "Biology", questions: 40, icon: "🧬" },
-  { id: "Economics", name: "Economics", questions: 40, icon: "📊" },
-  { id: "Government", name: "Government", questions: 40, icon: "🏛️" },
-  { id: "Literature", name: "Literature", questions: 40, icon: "📚" },
-  { id: "History", name: "History", questions: 40, icon: "📜" },
-  { id: "Geography", name: "Geography", questions: 40, icon: "🌍" },
-  { id: "CRS", name: "CRS", questions: 40, icon: "✝️" },
+  { id: "English", name: "English", questions: 60 },
+  { id: "Mathematics", name: "Mathematics", questions: 40 },
+  { id: "Physics", name: "Physics", questions: 40 },
+  { id: "Chemistry", name: "Chemistry", questions: 40 },
+  { id: "Biology", name: "Biology", questions: 40 },
+  { id: "Economics", name: "Economics", questions: 40 },
+  { id: "Government", name: "Government", questions: 40 },
+  { id: "Literature", name: "Literature", questions: 40 },
+  { id: "History", name: "History", questions: 40 },
+  { id: "Geography", name: "Geography", questions: 40 },
+  { id: "CRS", name: "CRS", questions: 40 },
 ];
 
 const AVAILABLE_YEARS = [
@@ -66,6 +69,46 @@ const shuffleArray = <T,>(array: T[]): T[] => {
   }
   return shuffled;
 };
+
+// Shared header — matches GuestPastQuestions.tsx / GuestQuiz.tsx exactly.
+const GuestHeader: React.FC<{ onBack: () => void; backLabel?: string }> = ({
+  onBack,
+  backLabel = "Back to Practice Menu",
+}) => (
+  <header className="border-borderMuted border-b">
+    <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4 sm:px-6">
+      <Link to="/guest" className="flex items-center gap-2.5">
+        <img src={schooldraLogo} alt="Schooldra" className="h-8 w-8" />
+        <span className="font-display text-lg font-bold tracking-tight">
+          Schooldra
+        </span>
+      </Link>
+      <div className="flex items-center gap-4">
+        <button
+          onClick={onBack}
+          className="text-textDim hover:text-textMain hidden items-center gap-1.5 text-sm font-medium transition-colors sm:flex"
+        >
+          <ChevronLeft className="h-4 w-4" /> {backLabel}
+        </button>
+        <Link
+          to="/signin"
+          className="text-textDim hover:text-textMain hidden text-sm font-medium transition-colors sm:block"
+        >
+          Sign In
+        </Link>
+        <ThemeToggle />
+      </div>
+    </div>
+    <div className="border-borderMuted border-t px-4 py-2 sm:hidden">
+      <button
+        onClick={onBack}
+        className="text-textDim hover:text-textMain flex items-center gap-1.5 text-sm font-medium transition-colors"
+      >
+        <ChevronLeft className="h-4 w-4" /> {backLabel}
+      </button>
+    </div>
+  </header>
+);
 
 const GuestMockExam: React.FC = () => {
   const navigate = useNavigate();
@@ -214,6 +257,13 @@ const GuestMockExam: React.FC = () => {
   // ── Results Screen ─────────────────────────────────────────────────────────
   if (isFinished) {
     const pct = Math.round((score / questions.length) * 100);
+    const ResultIcon = pct >= 70 ? Trophy : pct >= 50 ? ThumbsUp : BookOpen;
+    const resultColor =
+      pct >= 70
+        ? "var(--color-warn)"
+        : pct >= 50
+          ? "var(--color-success)"
+          : "var(--color-brand)";
 
     // Group scores by subject
     const subjectScores: Record<string, { correct: number; total: number }> =
@@ -229,27 +279,39 @@ const GuestMockExam: React.FC = () => {
     });
 
     return (
-      <>
+      <div className="bg-bgMain text-textMain min-h-screen">
         <PageHelmet
           title="Free JAMB Mock Exam | SCHOOLDRA"
           description="Take a full 180-question JAMB mock exam, free, with real scoring and timing — no account required."
           canonical="https://www.schooldra.com/guest/mock"
         />
-        <GuestLayout className="flex flex-col items-center justify-center p-4">
+        <GuestHeader onBack={() => navigate("/guest")} />
+
+        <div className="flex flex-col items-center justify-center p-4 py-10">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="relative z-10 w-full max-w-2xl text-center"
+            className="w-full max-w-2xl text-center"
           >
-            {/* Score Animation */}
+            {/* Score */}
             <div className="mb-10">
               <motion.div
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.2 }}
-                className="mb-6 text-7xl drop-shadow-2xl"
+                className="mb-6 flex justify-center"
               >
-                {pct >= 70 ? "🏆" : pct >= 50 ? "👍" : "📚"}
+                <div
+                  className="flex h-20 w-20 items-center justify-center rounded-full"
+                  style={{
+                    backgroundColor: `color-mix(in srgb, ${resultColor} 15%, transparent)`,
+                  }}
+                >
+                  <ResultIcon
+                    className="h-10 w-10"
+                    style={{ color: resultColor }}
+                  />
+                </div>
               </motion.div>
 
               <h2 className="font-display text-textMain mb-2 text-6xl font-black tracking-tighter">
@@ -286,17 +348,17 @@ const GuestMockExam: React.FC = () => {
                     const subjectPct = Math.round(
                       (data.correct / data.total) * 100,
                     );
-                    const subjectInfo = AVAILABLE_SUBJECTS.find(
-                      (s) => s.name === subject,
-                    );
+                    const Icon = getSubjectIcon(subject);
+                    const color = SUBJECT_COLORS[subject];
 
                     return (
                       <div key={subject} className="group/item">
                         <div className="mb-2 flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <span className="text-lg opacity-80">
-                              {subjectInfo?.icon || "📖"}
-                            </span>
+                            <Icon
+                              className="h-4 w-4"
+                              style={{ color }}
+                            />
                             <span className="text-textMain text-sm font-bold">
                               {subject}
                             </span>
@@ -408,8 +470,8 @@ const GuestMockExam: React.FC = () => {
               </button>
             </div>
           </motion.div>
-        </GuestLayout>
-      </>
+        </div>
+      </div>
     );
   }
 
@@ -425,15 +487,17 @@ const GuestMockExam: React.FC = () => {
     );
 
     return (
-      <>
+      <div className="bg-bgMain text-textMain min-h-screen">
         <PageHelmet
           title="Free JAMB Mock Exam | SCHOOLDRA"
           description="Take a full 180-question JAMB mock exam, free, with real scoring and timing — no account required."
           canonical="https://www.schooldra.com/guest/mock"
         />
-        <GuestLayout className="flex flex-col p-4 sm:p-6">
-          {/* Top bar */}
-          <div className="bg-bgCard/50 border-borderMuted relative z-10 mx-auto mb-8 flex w-full max-w-7xl items-center justify-between gap-4 rounded-3xl border p-3 shadow-xl shadow-black/10 backdrop-blur-md sm:p-4">
+        <GuestHeader onBack={() => setShowConfirmExit(true)} backLabel="Exit Exam" />
+
+        <div className="flex flex-col p-4 sm:p-6">
+          {/* Status bar — timer + progress + finish */}
+          <div className="bg-bgCard/50 border-borderMuted relative z-10 mx-auto mb-8 mt-2 flex w-full max-w-7xl items-center justify-between gap-4 rounded-3xl border p-3 shadow-xl shadow-black/10 backdrop-blur-md sm:p-4">
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setShowConfirmExit(true)}
@@ -499,9 +563,7 @@ const GuestMockExam: React.FC = () => {
               {/* Subject Tabs */}
               <div className="no-scrollbar mb-6 flex gap-2 overflow-x-auto pb-2">
                 {examSubjects.map((sub) => {
-                  const subInfo = AVAILABLE_SUBJECTS.find(
-                    (s) => s.name === sub,
-                  );
+                  const SubIcon = getSubjectIcon(sub);
                   return (
                     <button
                       key={sub}
@@ -519,7 +581,7 @@ const GuestMockExam: React.FC = () => {
                           : "bg-bgCard text-textDim border-borderMuted hover:border-brand/40",
                       )}
                     >
-                      <span>{subInfo?.icon}</span>
+                      <SubIcon className="h-3.5 w-3.5" />
                       {sub}
                     </button>
                   );
@@ -755,47 +817,47 @@ const GuestMockExam: React.FC = () => {
               </div>
             )}
           </AnimatePresence>
-        </GuestLayout>
-      </>
+        </div>
+      </div>
     );
   }
 
   // ── Setup Screen ─────────────────────────────────────────────────────────
+  const FirstSubjectIcon = getSubjectIcon("English");
+
   return (
-    <>
+    <div className="bg-bgMain text-textMain min-h-screen">
       <PageHelmet
         title="Free JAMB Mock Exam | SCHOOLDRA"
         description="Take a full 180-question JAMB mock exam, free, with real scoring and timing — no account required."
         canonical="https://www.schooldra.com/guest/mock"
       />
-      <GuestLayout className="flex flex-col items-center justify-center p-4">
+      <GuestHeader onBack={() => navigate("/guest")} />
+
+      <div className="flex flex-col items-center justify-center p-4 py-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative z-10 grid w-full max-w-5xl grid-cols-1 items-stretch gap-8 md:grid-cols-2"
+          className="grid w-full max-w-5xl grid-cols-1 items-stretch gap-8 md:grid-cols-2"
         >
           {/* Setup Card */}
           <div className="bg-bgCard border-borderMuted flex flex-col rounded-3xl border p-6 shadow-2xl shadow-black/20 backdrop-blur-sm sm:p-10">
             <div className="mb-8 flex items-center justify-between">
-              <button
-                onClick={() => navigate("/guest")}
-                className="text-textDim hover:text-brand group flex items-center gap-2 text-xs font-bold tracking-widest uppercase transition-colors"
-              >
-                <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
-                Back
-              </button>
-              <div className="bg-brand/10 border-brand/20 flex items-center gap-2 rounded-full border px-3 py-1">
-                <div className="bg-brand h-1.5 w-1.5 animate-pulse rounded-full" />
-                <span className="text-brand text-[10px] font-bold tracking-tighter uppercase">
-                  Guest Mock
-                </span>
-              </div>
+              <span className="border-teal/25 bg-teal/10 text-teal rounded-full border px-2.5 py-1 text-[10px] font-bold">
+                GUEST MOCK
+              </span>
             </div>
 
             <div className="mb-10 text-left">
               <div className="mb-4 flex items-center gap-4">
-                <div className="bg-brand/10 border-brand/20 shadow-brand/5 flex h-14 w-14 items-center justify-center rounded-2xl border text-3xl shadow-xl">
-                  🎓
+                <div
+                  className="flex h-14 w-14 items-center justify-center rounded-2xl"
+                  style={{
+                    backgroundColor:
+                      "color-mix(in srgb, var(--color-brand) 12%, transparent)",
+                  }}
+                >
+                  <Target className="text-brand h-7 w-7" />
                 </div>
                 <div>
                   <h2 className="font-display text-textMain text-3xl font-black tracking-tight">
@@ -835,7 +897,7 @@ const GuestMockExam: React.FC = () => {
                           "font-bold tracking-tight",
                           error.includes("CONNECTION_ERROR") ||
                             error.includes("OFFLINE")
-                            ? "text-amber-900 dark:text-amber-400"
+                            ? "text-warn"
                             : "text-danger",
                         )}
                       >
@@ -883,7 +945,7 @@ const GuestMockExam: React.FC = () => {
                     Subject 1 (Fixed)
                   </label>
                   <div className="bg-brand/5 border-brand/20 text-brand flex items-center gap-3 rounded-2xl border p-4 text-sm font-bold">
-                    <span className="text-lg">📖</span>
+                    <FirstSubjectIcon className="h-5 w-5" />
                     English Language
                   </div>
                 </div>
@@ -908,7 +970,7 @@ const GuestMockExam: React.FC = () => {
                             value={sub.id}
                             disabled={selectedCombination.includes(sub.id)}
                           >
-                            {sub.icon} {sub.name}
+                            {sub.name}
                           </option>
                         ))}
                       </select>
@@ -1021,8 +1083,8 @@ const GuestMockExam: React.FC = () => {
             </div>
           </div>
         </motion.div>
-      </GuestLayout>
-    </>
+      </div>
+    </div>
   );
 };
 

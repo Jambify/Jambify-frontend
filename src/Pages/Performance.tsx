@@ -10,6 +10,7 @@ import { useSubjectStore, SUBJECT_COMBO_MAP } from "../Store/useSubjectStore";
 import { computeBestWorstSubjects } from "../lib/subjectInsights";
 import WeeklyChart from "../components/Performance/WeeklyChart";
 import PageLoader from "../components/ui/PageLoader";
+import { getSubjectIcon as getMetaSubjectIcon, getSubjectColor } from "../lib/subjectMeta";
 import {
   ArrowRight,
   Clock,
@@ -21,23 +22,13 @@ import {
   AlertCircle,
 } from "lucide-react";
 
-const getSubjectIcon = (subject: string) => {
-  const icons: Record<string, string> = {
-    English: "📖",
-    Mathematics: "🔢",
-    Physics: "⚡",
-    Chemistry: "⚗️",
-    Biology: "🧬",
-    Economics: "📊",
-    Government: "🏛️",
-    "Literature in English": "📚",
-    CRS: "✝️",
-    IRS: "🌙",
-    Commerce: "💼",
-  };
-  return icons[subject] || "📖";
-};
+export const getSubjectIcon = (subject: string) => {
+  const normalizedSubject = subject === "Literature in English" ? "Literature" : subject;
+  const Icon = getMetaSubjectIcon(normalizedSubject);
+  const color = getSubjectColor(normalizedSubject);
 
+  return <Icon className="h-5 w-5" style={{ color }} />;
+};
 const Performance: React.FC = () => {
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);

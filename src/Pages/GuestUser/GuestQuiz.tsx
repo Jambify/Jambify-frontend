@@ -1,39 +1,86 @@
+// src/Pages/Guest/GuestQuiz.tsx
+
 import React, { useState } from "react";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { fetchQuestionsWithFallback } from "../../Services/questionService";
 import LoadingScreen from "../../components/ui/LoadingScreen";
 import type { Question } from "../../Types";
 import { cn } from "../../lib/utils/utils";
 import {
-  ArrowLeft,
+  ChevronLeft,
   ArrowRight,
   CheckCircle,
   XCircle,
-  LogIn,
   BookOpen,
   Sparkles,
+  Shuffle,
+  Trophy,
+  ThumbsUp,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import GuestLayout from "../../components/Layout/GuestLayout";
 import PageHelmet from "../../components/SEO/PageHelmet";
+import ThemeToggle from "../../components/ui/ThemeToggle";
+import schooldraLogo from "../../assets/schooldraLogo.webp";
+import { SUBJECT_COLORS, getSubjectIcon } from "../../lib/subjectMeta";
 
 import { useOfflineStore } from "../../Store/useOfflineStore";
 
 type Screen = "subject" | "quiz" | "results";
 
 const QUIZ_SUBJECTS = [
-  { name: "English", icon: "📖", color: "from-blue-500 to-indigo-600" },
-  { name: "Mathematics", icon: "🔢", color: "from-emerald-500 to-teal-600" },
-  { name: "Physics", icon: "⚡", color: "from-amber-400 to-orange-600" },
-  { name: "Chemistry", icon: "⚗️", color: "from-rose-500 to-pink-600" },
-  { name: "Biology", icon: "🧬", color: "from-green-500 to-emerald-700" },
-  { name: "Economics", icon: "📊", color: "from-orange-400 to-amber-600" },
-  { name: "Government", icon: "🏛️", color: "from-purple-500 to-indigo-700" },
-  { name: "Literature", icon: "📚", color: "from-pink-500 to-rose-700" },
-  { name: "History", icon: "📜", color: "from-amber-700 to-orange-900" },
-  { name: "Geography", icon: "🌍", color: "from-blue-400 to-cyan-600" },
-  { name: "CRS", icon: "✝️", color: "from-indigo-400 to-blue-600" },
+  "English",
+  "Mathematics",
+  "Physics",
+  "Chemistry",
+  "Biology",
+  "Economics",
+  "Government",
+  "Literature",
+  "History",
+  "Geography",
+  "CRS",
 ];
+
+// Shared header — matches GuestPastQuestions.tsx exactly, so every guest
+// page now has the same logo / back-link / sign-in / theme-toggle chrome.
+const GuestHeader: React.FC<{ onBack: () => void; backLabel?: string }> = ({
+  onBack,
+  backLabel = "Back to Practice Menu",
+}) => (
+  <header className="border-borderMuted border-b">
+    <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-4 sm:px-6">
+      <Link to="/guest" className="flex items-center gap-2.5">
+        <img src={schooldraLogo} alt="Schooldra" className="h-8 w-8" />
+        <span className="font-display text-lg font-bold tracking-tight">
+          Schooldra
+        </span>
+      </Link>
+      <div className="flex items-center gap-4">
+        <button
+          onClick={onBack}
+          className="text-textDim hover:text-textMain hidden items-center gap-1.5 text-sm font-medium transition-colors sm:flex"
+        >
+          <ChevronLeft className="h-4 w-4" /> {backLabel}
+        </button>
+        <Link
+          to="/signin"
+          className="text-textDim hover:text-textMain hidden text-sm font-medium transition-colors sm:block"
+        >
+          Sign In
+        </Link>
+        <ThemeToggle />
+      </div>
+    </div>
+    <div className="border-borderMuted border-t px-4 py-2 sm:hidden">
+      <button
+        onClick={onBack}
+        className="text-textDim hover:text-textMain flex items-center gap-1.5 text-sm font-medium transition-colors"
+      >
+        <ChevronLeft className="h-4 w-4" /> {backLabel}
+      </button>
+    </div>
+  </header>
+);
 
 const GuestQuiz: React.FC = () => {
   const navigate = useNavigate();
@@ -137,127 +184,143 @@ const GuestQuiz: React.FC = () => {
   // ── Subject picker ─────────────────────────────────────────────────────
   if (screen === "subject") {
     return (
-      <>
+      <div className="bg-bgMain text-textMain min-h-screen">
         <PageHelmet
           title="Free JAMB Practice Quiz | SCHOOLDRA"
           description="Take a free 10-question JAMB practice quiz — no sign-up needed."
           canonical="https://www.schooldra.com/guest/quiz"
         />
-        <GuestLayout className="flex flex-col items-center justify-center p-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="relative z-10 w-full max-w-2xl"
-          >
-            <div className="mb-8 flex items-center justify-between">
+        <GuestHeader onBack={() => navigate("/guest")} />
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6"
+        >
+          <div className="mb-10 text-center">
+            <div className="mb-2 flex items-center justify-center gap-2">
+              <span className="border-teal/25 bg-teal/10 text-teal rounded-full border px-2.5 py-1 text-[10px] font-bold">
+                GUEST MODE
+              </span>
+            </div>
+            <h2 className="font-display text-textMain mb-2 text-3xl font-black tracking-tight">
+              Quick Practice
+            </h2>
+            <p className="text-textDim mx-auto max-w-xs text-sm leading-relaxed">
+              Sharpen your skills with 10 random questions. No pressure, just
+              learning.
+            </p>
+          </div>
+
+          <div className="bg-bgCard border-borderMuted rounded-2xl border p-6 shadow-sm">
+            <div className="text-textDim mb-6 flex items-center gap-2 text-[10px] font-black tracking-widest uppercase">
+              <BookOpen size={14} className="text-brand" />
+              Select a Subject
+            </div>
+
+            <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
               <button
-                onClick={() => navigate("/guest")}
-                className="text-textDim hover:text-brand group flex items-center gap-2 text-xs font-bold tracking-widest uppercase transition-colors"
+                onClick={() => handleStartQuiz("")}
+                className="group bg-brand shadow-brand/20 relative overflow-hidden rounded-2xl p-5 font-bold text-white shadow-lg transition-all hover:scale-[1.01] active:scale-[0.98] sm:col-span-2"
               >
-                <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
-                Back to Home
-              </button>
-              <div className="bg-brand/10 border-brand/20 flex items-center gap-2 rounded-full border px-3 py-1">
-                <div className="bg-brand h-1.5 w-1.5 animate-pulse rounded-full" />
-                <span className="text-brand text-[10px] font-bold tracking-tighter uppercase">
-                  Guest Mode
-                </span>
-              </div>
-            </div>
-
-            <div className="mb-10 text-center">
-              <div className="bg-brand/10 border-brand/20 shadow-brand/10 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border text-3xl shadow-xl">
-                ⚡
-              </div>
-              <h2 className="font-display text-textMain mb-2 text-3xl font-black tracking-tight">
-                Quick Practice
-              </h2>
-              <p className="text-textDim mx-auto max-w-xs text-sm leading-relaxed">
-                Sharpen your skills with 10 random questions. No pressure, just
-                learning.
-              </p>
-            </div>
-
-            <div className="bg-bgCard border-borderMuted rounded-3xl border p-6 shadow-2xl shadow-black/20 backdrop-blur-sm">
-              <div className="text-textDim mb-6 flex items-center gap-2 text-[10px] font-black tracking-widest uppercase">
-                <BookOpen size={14} className="text-brand" />
-                Select a Subject
-              </div>
-
-              <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <button
-                  onClick={() => handleStartQuiz("")}
-                  className="group bg-brand shadow-brand/20 relative overflow-hidden rounded-2xl p-5 font-bold text-white shadow-lg transition-all hover:scale-[1.01] active:scale-[0.98] sm:col-span-2"
-                >
-                  <div className="absolute inset-0 translate-y-full bg-white/10 transition-transform duration-300 group-hover:translate-y-0" />
-                  <div className="relative z-10 flex items-center justify-center gap-3">
-                    <span className="text-2xl">🎲</span>
-                    <div className="text-left">
-                      <p className="mb-1 text-sm leading-none font-black">
-                        Random Mix
-                      </p>
-                      <p className="text-[10px] font-medium tracking-tight opacity-80">
-                        Questions from across all subjects
-                      </p>
-                    </div>
+                <div className="absolute inset-0 translate-y-full bg-white/10 transition-transform duration-300 group-hover:translate-y-0" />
+                <div className="relative z-10 flex items-center justify-center gap-3">
+                  <Shuffle className="h-6 w-6" />
+                  <div className="text-left">
+                    <p className="mb-1 text-sm leading-none font-black">
+                      Random Mix
+                    </p>
+                    <p className="text-[10px] font-medium tracking-tight opacity-80">
+                      Questions from across all subjects
+                    </p>
                   </div>
-                </button>
+                </div>
+              </button>
 
-                {QUIZ_SUBJECTS.map((s, idx) => (
+              {QUIZ_SUBJECTS.map((name, idx) => {
+                const Icon = getSubjectIcon(name);
+                const color = SUBJECT_COLORS[name];
+                return (
                   <motion.button
-                    key={s.name}
+                    key={name}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: idx * 0.05 }}
-                    onClick={() => handleStartQuiz(s.name)}
+                    onClick={() => handleStartQuiz(name)}
                     className="bg-bgSurface/50 border-borderMuted hover:border-brand/40 hover:bg-bgCard group flex items-center gap-4 rounded-2xl border p-4 text-sm font-bold transition-all active:scale-[0.98]"
                   >
-                    <div className="bg-bgDeep flex h-10 w-10 items-center justify-center rounded-xl text-xl shadow-inner transition-transform group-hover:scale-110">
-                      {s.icon}
+                    <div
+                      className="flex h-10 w-10 items-center justify-center rounded-xl transition-transform group-hover:scale-110"
+                      style={{
+                        backgroundColor: `color-mix(in srgb, ${color} 15%, transparent)`,
+                        color,
+                      }}
+                    >
+                      <Icon className="h-5 w-5" />
                     </div>
                     <span className="text-textMain group-hover:text-brand transition-colors">
-                      {s.name}
+                      {name}
                     </span>
                   </motion.button>
-                ))}
-              </div>
-
-              <div className="bg-brand/5 border-brand/20 rounded-2xl border border-dashed p-4 text-center">
-                <p className="text-textMuted text-[10px] font-medium italic">
-                  Questions are pulled from our live JAMB database
-                </p>
-              </div>
+                );
+              })}
             </div>
-          </motion.div>
-        </GuestLayout>
-      </>
+
+            <div className="bg-brand/5 border-brand/20 rounded-2xl border border-dashed p-4 text-center">
+              <p className="text-textMuted text-[10px] font-medium italic">
+                Questions are pulled from our live JAMB database
+              </p>
+            </div>
+          </div>
+        </motion.div>
+      </div>
     );
   }
 
   // ── Results ──────────────────────────────────────────────────────────────
   if (screen === "results") {
     const pct = Math.round((score / questions.length) * 100);
+    const ResultIcon = pct >= 70 ? Trophy : pct >= 50 ? ThumbsUp : BookOpen;
+    const resultColor =
+      pct >= 70
+        ? "var(--color-warn)"
+        : pct >= 50
+          ? "var(--color-success)"
+          : "var(--color-brand)";
+
     return (
-      <>
+      <div className="bg-bgMain text-textMain min-h-screen">
         <PageHelmet
           title="Free JAMB Practice Quiz | SCHOOLDRA"
           description="Take a free 10-question JAMB practice quiz — no sign-up needed."
           canonical="https://www.schooldra.com/guest/quiz"
         />
-        <GuestLayout className="flex flex-col items-center justify-center p-4">
+        <GuestHeader onBack={() => navigate("/guest")} />
+
+        <div className="flex flex-col items-center justify-center p-4 py-10">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="relative z-10 w-full max-w-md text-center"
+            className="w-full max-w-md text-center"
           >
             <div className="mb-8">
               <motion.div
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.2 }}
-                className="mb-6 text-7xl drop-shadow-2xl"
+                className="mb-6 flex justify-center"
               >
-                {pct >= 70 ? "🏆" : pct >= 50 ? "👍" : "📚"}
+                <div
+                  className="flex h-20 w-20 items-center justify-center rounded-full"
+                  style={{
+                    backgroundColor: `color-mix(in srgb, ${resultColor} 15%, transparent)`,
+                  }}
+                >
+                  <ResultIcon
+                    className="h-10 w-10"
+                    style={{ color: resultColor }}
+                  />
+                </div>
               </motion.div>
 
               <h2 className="font-display mb-2 text-4xl font-black tracking-tight">
@@ -337,21 +400,22 @@ const GuestQuiz: React.FC = () => {
               </button>
             </div>
           </motion.div>
-        </GuestLayout>
-      </>
+        </div>
+      </div>
     );
   }
 
   // ── Quiz ─────────────────────────────────────────────────────────────────
   if (!q && screen === "quiz") {
     return (
-      <>
+      <div className="bg-bgMain text-textMain min-h-screen">
         <PageHelmet
           title="Free JAMB Practice Quiz | SCHOOLDRA"
           description="Take a free 10-question JAMB practice quiz — no sign-up needed."
           canonical="https://www.schooldra.com/guest/quiz"
         />
-        <GuestLayout className="flex flex-col items-center justify-center p-6 text-center">
+        <GuestHeader onBack={() => navigate("/guest")} />
+        <div className="flex flex-col items-center justify-center p-6 py-16 text-center">
           <div className="bg-brand/10 mb-6 flex h-16 w-16 items-center justify-center rounded-2xl">
             <Sparkles className="text-brand h-8 w-8" />
           </div>
@@ -367,52 +431,33 @@ const GuestQuiz: React.FC = () => {
           >
             Start New Session
           </button>
-        </GuestLayout>
-      </>
+        </div>
+      </div>
     );
   }
 
   if (!q) return null; // Fallback for safety
 
   return (
-    <>
+    <div className="bg-bgMain text-textMain min-h-screen">
       <PageHelmet
         title="Free JAMB Practice Quiz | SCHOOLDRA"
         description="Take a free 10-question JAMB practice quiz — no sign-up needed."
         canonical="https://www.schooldra.com/guest/quiz"
       />
-      <GuestLayout className="flex flex-col p-4">
-        {/* <Top bar */}
-        <div className="relative z-10 mx-auto mb-6 flex w-full max-w-2xl items-center justify-between pt-2">
-          <button
-            onClick={() => setScreen("subject")}
-            className="text-textDim hover:text-textMain group flex items-center gap-2 text-xs font-bold tracking-widest uppercase transition-colors"
-          >
-            <ArrowLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-1" />{" "}
-            Quit
-          </button>
+      <GuestHeader onBack={() => setScreen("subject")} backLabel="Quit Quiz" />
 
-          <div className="flex flex-col items-center">
-            <div className="text-brand mb-1 text-[10px] font-black tracking-[0.2em] uppercase">
-              Schooldra
-            </div>
-            <div className="text-textMain bg-bgCard border-borderMuted rounded-full border px-3 py-1 font-mono text-xs font-bold shadow-sm">
-              {current + 1} <span className="text-textDim mx-1">/</span>{" "}
-              {questions.length}
-            </div>
+      <div className="flex flex-col p-4">
+        {/* Question counter pill */}
+        <div className="mx-auto mb-6 flex w-full max-w-3xl items-center justify-center pt-4">
+          <div className="text-textMain bg-bgCard border-borderMuted rounded-full border px-3 py-1 font-mono text-xs font-bold shadow-sm">
+            {current + 1} <span className="text-textDim mx-1">/</span>{" "}
+            {questions.length}
           </div>
-
-          <button
-            onClick={() => navigate("/signin")}
-            className="text-brand-light hover:text-brand flex items-center gap-1.5 text-xs font-bold tracking-widest uppercase transition-colors"
-          >
-            <LogIn className="h-3.5 w-3.5" />{" "}
-            <span className="hidden sm:inline">Sign In</span>
-          </button>
         </div>
 
-        {/* <Progress bar */}
-        <div className="relative z-10 mx-auto mb-8 w-full max-w-2xl">
+        {/* Progress bar */}
+        <div className="mx-auto mb-8 w-full max-w-3xl">
           <div className="bg-bgSurface border-borderMuted/30 h-1.5 overflow-hidden rounded-full border shadow-inner">
             <motion.div
               initial={{ width: 0 }}
@@ -425,8 +470,8 @@ const GuestQuiz: React.FC = () => {
           </div>
         </div>
 
-        {/* <Question */}
-        <div className="relative z-10 mx-auto w-full max-w-2xl flex-1">
+        {/* Question */}
+        <div className="mx-auto w-full max-w-3xl flex-1">
           <AnimatePresence mode="wait">
             <motion.div
               key={current}
@@ -505,7 +550,7 @@ const GuestQuiz: React.FC = () => {
                 })}
               </div>
 
-              {/* <Explanation */}
+              {/* Explanation */}
               <AnimatePresence>
                 {showExplain && (
                   <motion.div
@@ -561,8 +606,8 @@ const GuestQuiz: React.FC = () => {
             </motion.div>
           </AnimatePresence>
         </div>
-      </GuestLayout>
-    </>
+      </div>
+    </div>
   );
 };
 
