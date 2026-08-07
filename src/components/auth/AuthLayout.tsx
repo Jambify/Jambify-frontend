@@ -3,8 +3,8 @@ import React, { type ReactNode } from "react";
 import { motion } from "framer-motion";
 import { ShieldCheck } from "lucide-react";
 import ThemeToggle from "../ui/ThemeToggle";
-import schooldralogo from "../../assets/schooldraLogo.webp"; // Import the new logo
-
+import schooldralogo from "../../assets/schooldraLogo.webp"; 
+import { Zap, Trophy, TrendingUp } from "lucide-react";
 type AuthVariant = "signin" | "signup" | "otp";
 
 interface AuthLayoutProps {
@@ -34,23 +34,23 @@ const PANEL_CONTENT: Record<
   },
 };
 
-const FEATURES = [
+export const FEATURES = [
   {
-    icon: "⚡",
+    icon: Zap,
     label: "Quick quizzes",
     desc: "10-question bursts on any subject",
   },
   {
-    icon: "🏆",
+    icon: Trophy,
     label: "Full mock exams",
     desc: "180 questions · real JAMB scoring",
   },
   {
-    icon: "📊",
+    icon: TrendingUp,
     label: "Track progress",
     desc: "Daily goals and performance insights",
   },
-];
+]
 
 const AuthLayout: React.FC<AuthLayoutProps> = ({
   children,
@@ -131,23 +131,24 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
 
             {/* Features */}
             <div className="mt-6 flex flex-col gap-2.5">
-              {FEATURES.map(({ icon, label, desc }) => (
-                <div
-                  key={label}
-                  className="bg-bgCard border-borderMuted flex items-center gap-3 rounded-xl border p-3"
-                >
-                  <div className="bg-brand/8 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-sm">
-                    {icon}
-                  </div>
-                  <div>
-                    <p className="text-textMain text-xs font-semibold">
-                      {label}
-                    </p>
-                    <p className="text-textDim text-[11px]">{desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+  {FEATURES.map(({ icon: Icon, label, desc }) => (
+    <div
+      key={label}
+      className="bg-bgCard border-borderMuted flex items-center gap-3 rounded-xl border p-3"
+    >
+      <div className="bg-brand/10 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg">
+        <Icon className="text-brand h-4 w-4" />
+      </div>
+      <div>
+        <p className="text-textMain text-xs font-semibold">
+          {label}
+        </p>
+        <p className="text-textDim text-[11px]">{desc}</p>
+      </div>
+    </div>
+  ))}
+</div>
+
           </motion.div>
 
           {/* Bottom badge */}

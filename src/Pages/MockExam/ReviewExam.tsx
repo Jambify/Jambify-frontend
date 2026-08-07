@@ -15,7 +15,7 @@ import ExamPaywall from "../../components/MockExam/ExamPaywall";
 import ReportQuestionButton from "../../components/shared/ReportQuestionButton";
 import { cn } from "../../lib/utils/utils";
 import { useAIChat, type ChatMessage } from "../../hooks/useAIChat";
-import { buildQuestionContext } from "../../lib/ai";
+// import { buildQuestionContext } from "../../lib/ai";
 import {
   CheckCircle,
   XCircle,
@@ -56,24 +56,46 @@ const TypingDots: React.FC = () => (
 // ── AI Drawer ─────────────────────────────────────────────────────────────────
 interface AIDrawerProps {
   question: Question;
+  userAnswer: number | -1;
   onClose: () => void;
 }
 
-const AIDrawer: React.FC<AIDrawerProps> = ({ question, onClose }) => {
+const AIDrawer: React.FC<AIDrawerProps> = ({
+  question,
+  userAnswer,
+  onClose,
+}) => {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const [input, setInput] = useState("");
   const [showTruthScore, setShowTruthScore] = useState(false);
 
+  const skipped = userAnswer === -1;
+  const isCorrectAns = userAnswer === question.answer;
+  const userAnswerText =
+    !skipped && question.options[userAnswer]
+      ? question.options[userAnswer]
+      : "(not answered / skipped)";
+  const correctAnswerText = question.options[question.answer];
+
   // Each question gets its own isolated chat session (no persistence needed)
   const { messages, isLoading, sendMessage } = useAIChat({
     systemPrompt: `You are Schooldra AI Tutor (Expert Edition). 
-Your goal is to provide deep, professional insights into JAMB questions.
-1. Briefly verify if the provided answer is correct.
-2. Provide a 'Truth Score' (0-100%).
-3. Explain why the answer is correct and others are wrong in under 150 words.
-4. Use professional, clear tone.
-5. CRITICAL: Never use markdown formatting — no **bold**, *italics*, backticks, or asterisk/dash bullets. This chat displays plain text only, so markdown symbols show up as literal characters on screen. Present the Truth Score and structure using plain text and line breaks only, e.g. "Truth Score: 92%" on its own line.`,
+Your goal is to provide deep, professional, and TARGETED insights into JAMB questions — focusing specifically on the user's chosen answer and their mistakes.
+
+Structure your response exactly in this order with clear section headers on their own lines:
+1. TRUTH SCORE: (0-100%) — confidence that the provided correct answer is accurate.
+2. USER'S ANSWER ANALYSIS: 
+   - If they answered correctly: confirm and reinforce why their choice was right in 2 sentences.
+   - If they answered WRONG: pinpoint the specific misconception or error in their chosen answer. Why exactly is their option wrong? What trap did they fall for? Be specific in 2-3 sentences.
+   - If they SKIPPED: explain what they should look for and how to approach similar questions.
+3. WHY THE CORRECT ANSWER IS RIGHT: Explain in 2-3 clear, simple sentences why option ${String.fromCharCode(
+      65 + question.answer,
+    )} is the correct choice.
+4. WHY OTHER OPTIONS ARE WRONG: For each of the other wrong options, give 1 sentence on why it is incorrect.
+
+Tone: Professional but encouraging. Keep under 200 words total.
+CRITICAL: Never use markdown formatting — no **bold**, *italics*, backticks, or asterisk/dash bullets. This chat displays plain text only. Use plain numbered sections (1., 2., 3., 4.) and line breaks only.`,
   });
 
   // On open: auto-send the initial explanation request
@@ -81,11 +103,36 @@ Your goal is to provide deep, professional insights into JAMB questions.
   useEffect(() => {
     if (initialSentRef.current) return;
     initialSentRef.current = true;
-    const context = buildQuestionContext(question);
-    // Send only the context to keep the prompt length under control
-    sendMessage(context);
 
-    // Simulate showing truth score after a delay
+    // Send a DETAILED prompt including the user's specific answer
+    const userChoiceLine = skipped
+      ? `USER'S CHOICE: Skipped (no answer selected)`
+      : `USER'S CHOICE: ${String.fromCharCode(
+          65 + userAnswer,
+        )}. ${userAnswerText} — ${isCorrectAns ? "CORRECT" : "INCORRECT"}`;
+
+    const customContext = `You are Schooldra AI Tutor. Analyze this JAMB question with specific focus on the user's chosen answer.
+
+SUBJECT: ${question.subject || "Unknown"}
+TOPIC: ${question.topic || "General"}
+
+QUESTION:
+"${question.text.length > 600 ? question.text.substring(0, 600) + "..." : question.text}"
+
+OPTIONS:
+${question.options
+  .map((opt, i) => `${String.fromCharCode(65 + i)}. ${opt}`)
+  .join("\n")}
+
+${userChoiceLine}
+CORRECT ANSWER: ${String.fromCharCode(
+      65 + question.answer,
+    )}. ${correctAnswerText}
+
+Please respond with your structured analysis as instructed in your system prompt.`;
+
+    sendMessage(customContext);
+
     setTimeout(() => setShowTruthScore(true), 2000);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -96,8 +143,12 @@ Your goal is to provide deep, professional insights into JAMB questions.
 
   const handleSend = () => {
     if (!input.trim() || isLoading) return;
-    // Pass the question as context for follow-up questions
-    const ctx = `(Context: This is about the question "${question.text}" — correct answer is option ${String.fromCharCode(65 + question.answer)}: "${question.options[question.answer]}")`;
+    const userChoice = skipped
+      ? "user skipped this question"
+      : `user chose option ${String.fromCharCode(65 + userAnswer)}: "${userAnswerText}"`;
+    const ctx = `(Context: This is about the JAMB question "${question.text}". Correct answer is option ${String.fromCharCode(
+      65 + question.answer,
+    )}: "${correctAnswerText}"; ${userChoice}.)`;
     sendMessage(input.trim(), ctx);
     setInput("");
     inputRef.current?.focus();
@@ -159,11 +210,30 @@ Your goal is to provide deep, professional insights into JAMB questions.
           <p className="text-textMain line-clamp-3 text-xs leading-relaxed">
             {question.text}
           </p>
-          <div className="mt-1.5 flex items-center gap-2">
+          <div className="mt-1.5 flex flex-wrap items-center gap-2">
             <span className="bg-success/10 text-success border-success/20 rounded-full border px-2 py-0.5 text-[10px] font-medium">
-              ✓ {String.fromCharCode(65 + question.answer)}.{" "}
-              {question.options[question.answer]}
+              ✓ Correct: {String.fromCharCode(65 + question.answer)}.{" "}
+              {correctAnswerText}
             </span>
+            {!skipped && (
+              <span
+                className={cn(
+                  "rounded-full border px-2 py-0.5 text-[10px] font-medium",
+                  isCorrectAns
+                    ? "bg-success/10 text-success border-success/20"
+                    : "bg-danger/10 text-danger border-danger/20",
+                )}
+              >
+                {isCorrectAns
+                  ? "✓ Your answer was correct"
+                  : `✗ You chose: ${userAnswerText}`}
+              </span>
+            )}
+            {skipped && (
+              <span className="bg-bgSurface text-textDim border-borderMuted rounded-full border px-2 py-0.5 text-[10px] font-medium">
+                ⏭ You skipped this question
+              </span>
+            )}
             {question.topic && (
               <span className="text-textDim text-[10px]">{question.topic}</span>
             )}
@@ -566,13 +636,24 @@ const ReviewScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
       )}
 
       {/* AI Drawer — mounts fresh per question so each gets its own chat */}
-      {selectedAIQuestion && (
-        <AIDrawer
-          key={selectedAIQuestion.id}
-          question={selectedAIQuestion}
-          onClose={() => setSelectedAIQuestion(null)}
-        />
-      )}
+      {selectedAIQuestion &&
+        (() => {
+          const qIdx = questions.findIndex(
+            (q) => q.id === selectedAIQuestion.id,
+          );
+          const userAns =
+            qIdx !== -1 && answers[qIdx] !== undefined && answers[qIdx] !== -1
+              ? (answers[qIdx] as number)
+              : -1;
+          return (
+            <AIDrawer
+              key={selectedAIQuestion.id}
+              question={selectedAIQuestion}
+              userAnswer={userAns}
+              onClose={() => setSelectedAIQuestion(null)}
+            />
+          );
+        })()}
     </AppLayout>
   );
 };

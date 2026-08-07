@@ -19,7 +19,10 @@ import {
   Sparkles,
   Info,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
   LogOut,
+  ArrowLeft,
   Target,
   Zap,
   Layers,
@@ -30,6 +33,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useExamTimer } from "../../hooks/useExamTimer";
 import ValidatedInput from "../../components/ui/ValidatedInput";
 import { truncateInput } from "../../lib/validation";
+import QuestionAIExplanation from "../../components/Quiz/QuestionAIExplanation";
 
 const MOCK_DURATION = 7200; // 2 hours in seconds
 
@@ -110,12 +114,121 @@ const GuestHeader: React.FC<{ onBack: () => void; backLabel?: string }> = ({
   </header>
 );
 
+interface GuestReviewItemProps {
+  question: Question;
+  index: number;
+  userAnswer: number | -1;
+}
+
+const GuestReviewItem: React.FC<GuestReviewItemProps> = ({
+  question: q,
+  userAnswer: userAns,
+}) => {
+  const wasCorrect = userAns === q.answer;
+  const skipped = userAns === -1;
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <div className="border-borderMuted border-b last:border-b-0">
+      <button
+        onClick={() => setExpanded((e) => !e)}
+        className="hover:bg-bgSurface/30 active:bg-bgSurface/50 flex w-full items-start gap-3 px-4 py-4 text-left transition-colors sm:px-6"
+      >
+        <span
+          className={cn(
+            "mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold sm:h-8 sm:w-8 sm:text-sm",
+            wasCorrect
+              ? "bg-success/15 text-success"
+              : skipped
+                ? "bg-bgSurface text-textDim"
+                : "bg-danger/15 text-danger",
+          )}
+        >
+          {wasCorrect ? "✓" : skipped ? "–" : "✕"}
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-textMain line-clamp-2 text-xs font-medium sm:text-sm md:text-base">
+            {q.text}
+          </p>
+          <div className="mt-1.5 flex flex-wrap items-center gap-2">
+            {!wasCorrect && !skipped && (
+              <span className="text-success text-[11px] font-medium">
+                ✓ Correct: {q.options[q.answer]}
+              </span>
+            )}
+            {skipped && (
+              <span className="text-textDim text-[11px] italic">Skipped</span>
+            )}
+          </div>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <span className="text-textDim text-[10px]">{q.subject}</span>
+          {expanded ? (
+            <ChevronUp size={14} className="text-textDim" />
+          ) : (
+            <ChevronDown size={14} className="text-textDim" />
+          )}
+        </div>
+      </button>
+
+      {expanded && (
+        <div className="border-borderMuted bg-bgSurface/20 space-y-3 border-t px-4 py-4 sm:px-8 sm:py-5">
+          <div className="space-y-2">
+            {q.options.map((opt, optIdx) => {
+              const isCorrectOpt = optIdx === q.answer;
+              const isUserOpt = !skipped && optIdx === userAns;
+              return (
+                <div
+                  key={optIdx}
+                  className={cn(
+                    "flex items-center gap-3 rounded-xl border px-3 py-2.5 text-[11px] sm:px-4 sm:py-3 sm:text-xs md:text-sm",
+                    isCorrectOpt
+                      ? "border-success/30 bg-success/5 text-success font-bold"
+                      : isUserOpt
+                        ? "border-danger/30 bg-danger/5 text-danger font-bold"
+                        : "border-borderMuted bg-bgCard text-textDim opacity-80",
+                  )}
+                >
+                  <span className="font-mono opacity-60">
+                    {String.fromCharCode(65 + optIdx)}.
+                  </span>
+                  <span className="flex-1 wrap-break-word">{opt}</span>
+                  {isCorrectOpt && <span>✓</span>}
+                  {isUserOpt && !isCorrectOpt && <span>← Your pick</span>}
+                </div>
+              );
+            })}
+          </div>
+
+          {q.explanation && (
+            <div className="border-brand/20 bg-brand/5 border-l-brand rounded-r-xl border border-l-[3px] px-3 py-3 sm:px-5 sm:py-4">
+              <p className="text-brand mb-1 text-[10px] font-black tracking-widest uppercase">
+                Built-in Explanation
+              </p>
+              <p className="text-textMuted text-[11px] leading-relaxed sm:text-xs md:text-sm">
+                {q.explanation}
+              </p>
+            </div>
+          )}
+
+          <QuestionAIExplanation
+            question={q}
+            userAnswer={userAns}
+            autoExpandOnWrong
+          />
+        </div>
+      )}
+    </div>
+  );
+};
+
 const GuestMockExam: React.FC = () => {
   const navigate = useNavigate();
 
   // Exam state
   const [isStarted, setIsStarted] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
+  const [showReview, setShowReview] = useState(false);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<number, number>>({});
@@ -133,6 +246,12 @@ const GuestMockExam: React.FC = () => {
   const [showConfirmExit, setShowConfirmExit] = useState(false);
   const [activeSubject, setActiveSubject] = useState("English");
   const [jumpTo, setJumpTo] = useState("");
+
+  // Review screen filters
+  const [activeSubjectFilter, setActiveSubjectFilter] = useState<string>("");
+  const [reviewStatusFilter, setReviewStatusFilter] = useState<
+    "all" | "correct" | "incorrect"
+  >("all");
 
   // Timer logic using the persistent hook
   const { formattedTime, status } = useExamTimer({
@@ -355,10 +474,7 @@ const GuestMockExam: React.FC = () => {
                       <div key={subject} className="group/item">
                         <div className="mb-2 flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <Icon
-                              className="h-4 w-4"
-                              style={{ color }}
-                            />
+                            <Icon className="h-4 w-4" style={{ color }} />
                             <span className="text-textMain text-sm font-bold">
                               {subject}
                             </span>
@@ -443,11 +559,30 @@ const GuestMockExam: React.FC = () => {
             </div>
 
             {/* Action Buttons */}
-            <div className="mx-auto flex max-w-md flex-col gap-3 sm:flex-row">
+            <div className="mx-auto flex max-w-2xl flex-col gap-3 sm:flex-row">
+              <button
+                onClick={() => {
+                  const subjects = Array.from(
+                    new Set(questions.map((q) => q.subject)),
+                  );
+                  setActiveSubjectFilter(subjects[0] || "");
+                  setReviewStatusFilter("all");
+                  setShowReview(true);
+                }}
+                className="bg-brand hover:bg-brand-light shadow-brand/20 flex-1 rounded-2xl py-4 text-xs font-black tracking-widest text-white uppercase shadow-xl transition-all active:scale-[0.98]"
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <BookOpen size={16} />
+                  Review Answers with AI
+                </div>
+              </button>
               <button
                 onClick={() => {
                   setIsStarted(false);
                   setIsFinished(false);
+                  setShowReview(false);
+                  setActiveSubjectFilter("");
+                  setReviewStatusFilter("all");
                   setQuestions([]);
                   setAnswers({});
                   setCurrentIndex(0);
@@ -475,6 +610,163 @@ const GuestMockExam: React.FC = () => {
     );
   }
 
+  // ── Review Screen ─────────────────────────────────────────────────
+  if (showReview) {
+    const examSubjects = Array.from(
+      new Set(questions.map((quest) => quest.subject)),
+    );
+
+    const filteredQuestions = questions.filter((q) => {
+      const globalIdx = questions.indexOf(q);
+      const userAns = answers[globalIdx] ?? -1;
+      const matchesSubject =
+        !activeSubjectFilter || q.subject === activeSubjectFilter;
+      const isCorrect = userAns === q.answer;
+      const skipped = userAns === -1;
+
+      let matchesStatus = true;
+      if (reviewStatusFilter === "correct") matchesStatus = isCorrect;
+      if (reviewStatusFilter === "incorrect")
+        matchesStatus = !isCorrect && !skipped;
+
+      return matchesSubject && matchesStatus;
+    });
+
+    return (
+      <div className="bg-bgMain text-textMain min-h-screen">
+        <PageHelmet
+          title="Mock Exam Review | SCHOOLDRA"
+          description="Review your mock exam answers with detailed AI explanations for each question."
+          canonical="https://www.schooldra.com/guest/mock"
+        />
+        <GuestHeader
+          onBack={() => setShowReview(false)}
+          backLabel="Back to Results"
+        />
+
+        <div className="flex flex-col p-4 sm:p-6">
+          {/* Header */}
+          <div className="mx-auto mb-6 flex w-full max-w-6xl flex-col justify-between gap-4 sm:flex-row sm:items-center">
+            <button
+              onClick={() => setShowReview(false)}
+              className="bg-bgCard border-borderMuted hover:border-brand/30 text-brand flex shrink-0 items-center gap-2 self-start rounded-xl border px-4 py-2.5 text-xs font-bold transition-all active:scale-95"
+            >
+              <ArrowLeft size={16} />
+              Back to Results
+            </button>
+            <div className="bg-brand/5 border-brand/20 flex shrink-0 items-center gap-2 self-start rounded-xl border p-2.5 sm:self-auto">
+              <Trophy className="text-brand h-4 w-4" />
+              <span className="font-mono text-xs font-bold">
+                Total: {score}/{questions.length} Correct · {jambScore}/400
+              </span>
+            </div>
+          </div>
+
+          {/* Sticky filters */}
+          <div className="mx-auto mb-6 w-full max-w-6xl">
+            <div className="bg-bgPage sticky top-0 z-20 space-y-3 py-2">
+              <div className="no-scrollbar flex max-w-full gap-2 overflow-x-auto pb-1">
+                <button
+                  onClick={() => setActiveSubjectFilter("")}
+                  className={cn(
+                    "flex shrink-0 items-center gap-1 rounded-xl border px-3 py-2 text-xs font-bold whitespace-nowrap transition-all",
+                    activeSubjectFilter === ""
+                      ? "bg-brand border-brand text-white shadow-md"
+                      : "bg-bgCard border-borderMuted text-textDim hover:border-brand/40",
+                  )}
+                >
+                  All Subjects
+                  <span className="text-[10px] opacity-70">
+                    {questions.length}
+                  </span>
+                </button>
+                {examSubjects.map((sub) => {
+                  const subQs = questions.filter((q) => q.subject === sub);
+                  const subScore = subQs.filter(
+                    (q) => answers[questions.indexOf(q)] === q.answer,
+                  ).length;
+                  return (
+                    <button
+                      key={sub}
+                      onClick={() => setActiveSubjectFilter(sub)}
+                      className={cn(
+                        "flex shrink-0 items-center gap-1 rounded-xl border px-3 py-2 text-xs font-bold whitespace-nowrap transition-all",
+                        activeSubjectFilter === sub
+                          ? "bg-brand border-brand text-white shadow-md"
+                          : "bg-bgCard border-borderMuted text-textDim hover:border-brand/40",
+                      )}
+                    >
+                      {sub}
+                      <span className="text-[10px] opacity-70">
+                        {subScore}/{subQs.length}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="no-scrollbar flex max-w-full items-center gap-2 overflow-x-auto pb-1">
+                <Info size={12} className="text-textDim shrink-0" />
+                {(["all", "correct", "incorrect"] as const).map((f) => (
+                  <button
+                    key={f}
+                    onClick={() => setReviewStatusFilter(f)}
+                    className={cn(
+                      "shrink-0 rounded-lg border px-3 py-1 text-[10px] font-bold tracking-wider uppercase transition-all",
+                      reviewStatusFilter === f
+                        ? "bg-textMain border-textMain text-bgCard"
+                        : "border-borderMuted text-textDim bg-transparent",
+                    )}
+                  >
+                    {f}
+                  </button>
+                ))}
+                <span className="text-textDim ml-auto text-[10px] tracking-widest uppercase">
+                  Showing {filteredQuestions.length} questions
+                </span>
+              </div>
+              <div className="bg-borderMuted h-px w-full" />
+            </div>
+          </div>
+
+          {/* Review list */}
+          <div className="mx-auto w-full max-w-6xl">
+            <div className="bg-bgCard border-borderMuted mb-10 overflow-hidden rounded-3xl border shadow-xl shadow-black/10 backdrop-blur-sm">
+              {filteredQuestions.length === 0 ? (
+                <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
+                  <div className="bg-bgSurface text-textDim mb-4 flex h-16 w-16 items-center justify-center rounded-2xl">
+                    <BookOpen size={28} />
+                  </div>
+                  <h3 className="text-textMain mb-1 text-lg font-bold">
+                    No questions match your filters
+                  </h3>
+                  <p className="text-textDim text-xs">
+                    Try changing the subject or status filter above.
+                  </p>
+                </div>
+              ) : (
+                filteredQuestions.map((q) => {
+                  const globalIdx = questions.indexOf(q);
+                  const skipped =
+                    answers[globalIdx] === undefined ||
+                    answers[globalIdx] === -1;
+                  const userAns = skipped ? -1 : (answers[globalIdx] as number);
+                  return (
+                    <GuestReviewItem
+                      key={q.id}
+                      question={q}
+                      index={globalIdx}
+                      userAnswer={userAns}
+                    />
+                  );
+                })
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // ── Exam Active Screen (No instant feedback!) ───────────────────
   if (isStarted && questions[currentIndex]) {
     const q = questions[currentIndex];
@@ -493,11 +785,14 @@ const GuestMockExam: React.FC = () => {
           description="Take a full 180-question JAMB mock exam, free, with real scoring and timing — no account required."
           canonical="https://www.schooldra.com/guest/mock"
         />
-        <GuestHeader onBack={() => setShowConfirmExit(true)} backLabel="Exit Exam" />
+        <GuestHeader
+          onBack={() => setShowConfirmExit(true)}
+          backLabel="Exit Exam"
+        />
 
         <div className="flex flex-col p-4 sm:p-6">
           {/* Status bar — timer + progress + finish */}
-          <div className="bg-bgCard/50 border-borderMuted relative z-10 mx-auto mb-8 mt-2 flex w-full max-w-7xl items-center justify-between gap-4 rounded-3xl border p-3 shadow-xl shadow-black/10 backdrop-blur-md sm:p-4">
+          <div className="bg-bgCard/50 border-borderMuted relative z-10 mx-auto mt-2 mb-8 flex w-full max-w-7xl items-center justify-between gap-4 rounded-3xl border p-3 shadow-xl shadow-black/10 backdrop-blur-md sm:p-4">
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setShowConfirmExit(true)}

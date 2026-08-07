@@ -144,7 +144,7 @@ function resolveDifficulty(d: string | undefined): Difficulty | undefined {
 
 // ── Random-slice fetcher ───────────────────────────────────────────────────────
 async function fetchRandomSlice(
-   
+
   // PostgrestFilterBuilder generic signature is version-fragile (it changed
   // shape between supabase-js versions and now requires 4-8 type args).
   // Typing this precisely would break on the next supabase-js upgrade, so
@@ -435,20 +435,27 @@ export const LIKELY_TOPICS: Record<string, string[]> = {
     "Thermal Expansion", "Thermal Physics", "Units and Measurements", "Waves",
   ],
   Chemistry: [
-    "Acid-Base Titrations", "Acids and Bases", "Acids/Bases", "Allotropy", "Alloys",
-    "Analytical Chemistry", "Anorganic Chemistry", "Atomic Structure", "Biochemistry",
-    "Carbon and Compounds", "Chemical Bonding", "Chemical Changes", "Chemical Equilibrium",
-    "Chemical Formulas", "Chemical Kinetics", "Colloids", "Coordination Chemistry", "Corrosion",
-    "Earth Chemistry", "Electrochemistry", "Electrolysis", "Environmental Chemistry",
-    "Equilibrium", "Gas Laws", "Gases", "Hygroscopic Substances", "Industrial Chemistry",
-    "Inorganic Chem", "Inorganic Chemistry", "Kinetic Theory", "Laboratory Safety",
-    "Material Science", "Matter and Changes", "Matter and Mixtures", "Matter and Properties",
-    "Metallurgy", "Metals and Compounds", "Nuclear Chemistry", "Organic Chemistry",
-    "Periodic Table", "Periodic Trends", "Physical Chemistry", "Physical Properties",
-    "Polymer Chemistry", "Polymers", "Qualitative Analysis", "Rates of Radicals",
-    "Rates of Reactions", "Reaction Rates", "Redox", "Redox Reactions", "Separation Techniques",
-    "Solubility", "Solutions", "States of Matter", "Stoichiometry", "Thermodynamics", "Titration",
-    "Water", "Water Chemistry",
+    "Organic Chemistry",
+    "Inorganic Chemistry",
+    "Atomic Structure",
+    "Industrial Chemistry",
+    "Stoichiometry",
+    "Gas Laws",
+    "Electrochemistry",
+    "Acids and Bases",
+    "Chemical Bonding",
+    "Redox Reactions",
+    "Periodic Table",
+    "Analytical Chemistry",
+    "Thermodynamics",
+    "Environmental Chemistry",
+    "Solutions",
+    "Physical Chemistry",
+    "States of Matter",
+    "Water Chemistry",
+    "Chemical Equilibrium",
+    "Chemical Kinetics",
+    "Polymers",
   ],
   Biology: [
     "Ecology", "Genetics", "Cell Biology", "Adaptation", "Reproduction", "Zoology",

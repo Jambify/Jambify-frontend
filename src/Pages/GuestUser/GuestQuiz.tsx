@@ -22,6 +22,7 @@ import PageHelmet from "../../components/SEO/PageHelmet";
 import ThemeToggle from "../../components/ui/ThemeToggle";
 import schooldraLogo from "../../assets/schooldraLogo.webp";
 import { SUBJECT_COLORS, getSubjectIcon } from "../../lib/subjectMeta";
+import QuestionAIExplanation from "../../components/Quiz/QuestionAIExplanation";
 
 import { useOfflineStore } from "../../Store/useOfflineStore";
 
@@ -557,7 +558,7 @@ const GuestQuiz: React.FC = () => {
                     initial={{ opacity: 0, height: 0, marginTop: 0 }}
                     animate={{ opacity: 1, height: "auto", marginTop: 24 }}
                     exit={{ opacity: 0, height: 0, marginTop: 0 }}
-                    className="overflow-hidden"
+                    className="space-y-3 overflow-hidden"
                   >
                     <div
                       className={cn(
@@ -581,8 +582,17 @@ const GuestQuiz: React.FC = () => {
                       </div>
                       <div className="mb-4 h-px w-full bg-current opacity-10" />
                       <p className="text-textMain text-sm leading-relaxed font-medium">
-                        {q.explanation}
+                        {q.explanation || "No built-in explanation available."}
                       </p>
+                    </div>
+
+                    {/* AI Tutor targeted explanation */}
+                    <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
+                      <QuestionAIExplanation
+                        question={q}
+                        userAnswer={chosen}
+                        autoExpandOnWrong
+                      />
                     </div>
                   </motion.div>
                 )}

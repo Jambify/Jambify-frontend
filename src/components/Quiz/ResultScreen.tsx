@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useQuizStore } from "../../Store/useQuizStore";
 import { useQuizSession } from "../../hooks/useQuizSession";
 import Button from "../ui/Button";
@@ -12,13 +12,124 @@ import {
   ArrowLeft,
   BarChart3,
   RefreshCw,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
+import QuestionAIExplanation from "./QuestionAIExplanation";
 
 interface ResultsScreenProps {
   onRetry: () => void;
   onHome: () => void;
   onPerformance: () => void;
 }
+
+interface ReviewItemProps {
+  question: import("../../Types").Question;
+  index: number;
+  userAnswer: number | -1;
+}
+
+const ReviewItem: React.FC<ReviewItemProps> = ({
+  question: q,
+  userAnswer: userAns,
+}) => {
+  const wasCorrect = userAns === q.answer;
+  const skipped = userAns === -1;
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <div className="border-borderMuted border-b last:border-b-0">
+      <button
+        onClick={() => setExpanded((e) => !e)}
+        className="hover:bg-bgSurface/30 active:bg-bgSurface/50 flex w-full items-start gap-3 px-4 py-3 text-left transition-colors"
+      >
+        <span
+          className={cn(
+            "mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold",
+            wasCorrect
+              ? "bg-success/15 text-success"
+              : skipped
+                ? "bg-bgSurface text-textDim"
+                : "bg-danger/15 text-danger",
+          )}
+        >
+          {wasCorrect ? "✓" : skipped ? "–" : "✕"}
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-textMain line-clamp-2 text-xs font-medium md:text-sm">
+            {q.text}
+          </p>
+          <div className="mt-1 flex flex-wrap items-center gap-2">
+            {!wasCorrect && !skipped && (
+              <span className="text-success text-[11px] font-medium">
+                ✓ Correct: {q.options[q.answer]}
+              </span>
+            )}
+            {skipped && (
+              <span className="text-textDim text-[11px] italic">Skipped</span>
+            )}
+          </div>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <span className="text-textDim text-[10px]">{q.subject}</span>
+          {expanded ? (
+            <ChevronUp size={14} className="text-textDim" />
+          ) : (
+            <ChevronDown size={14} className="text-textDim" />
+          )}
+        </div>
+      </button>
+
+      {expanded && (
+        <div className="border-borderMuted bg-bgSurface/20 space-y-3 border-t px-4 py-4 md:px-6">
+          <div className="space-y-2">
+            {q.options.map((opt, optIdx) => {
+              const isCorrectOpt = optIdx === q.answer;
+              const isUserOpt = !skipped && optIdx === userAns;
+              return (
+                <div
+                  key={optIdx}
+                  className={cn(
+                    "flex items-center gap-3 rounded-lg border px-3 py-2 text-[11px] md:text-xs",
+                    isCorrectOpt
+                      ? "border-success/30 bg-success/5 text-success font-bold"
+                      : isUserOpt
+                        ? "border-danger/30 bg-danger/5 text-danger font-bold"
+                        : "border-borderMuted bg-bgCard text-textDim opacity-80",
+                  )}
+                >
+                  <span className="font-mono opacity-60">
+                    {String.fromCharCode(65 + optIdx)}.
+                  </span>
+                  <span className="flex-1 wrap-break-word">{opt}</span>
+                  {isCorrectOpt && <span>✓</span>}
+                  {isUserOpt && !isCorrectOpt && <span>← Your pick</span>}
+                </div>
+              );
+            })}
+          </div>
+
+          {q.explanation && (
+            <div className="border-brand/20 bg-brand/5 border-l-brand rounded-r-lg border border-l-[3px] px-3 py-2 md:px-4 md:py-3">
+              <p className="text-brand mb-1 text-[10px] font-black tracking-widest uppercase">
+                Built-in Explanation
+              </p>
+              <p className="text-textMuted text-[11px] leading-relaxed md:text-xs">
+                {q.explanation}
+              </p>
+            </div>
+          )}
+
+          <QuestionAIExplanation
+            question={q}
+            userAnswer={userAns}
+            autoExpandOnWrong
+          />
+        </div>
+      )}
+    </div>
+  );
+};
 
 const ResultsScreen: React.FC<ResultsScreenProps> = ({
   onRetry,
@@ -126,41 +237,22 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({
 
       {/* <Per-question review */}
       <div className="bg-bgCard border-borderMuted rounded-brand-lg mb-5 overflow-hidden border">
-        <div className="border-borderMuted border-b px-4 py-3">
+        <div className="border-borderMuted flex items-center justify-between border-b px-4 py-3">
           <p className="text-sm font-semibold">Question review</p>
+          <span className="text-textDim text-[10px] tracking-widest uppercase">
+            Tap a question to expand
+          </span>
         </div>
         {questions.map((q, i) => {
-          const wasCorrect = answers[i] === q.answer;
           const skipped = answers[i] === -1 || answers[i] === undefined;
+          const userAns = skipped ? -1 : (answers[i] as number);
           return (
-            <div
+            <ReviewItem
               key={q.id}
-              className="border-borderMuted flex items-start gap-3 border-b px-4 py-3 last:border-b-0"
-            >
-              <span
-                className={cn(
-                  "mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold",
-                  wasCorrect
-                    ? "bg-success/15 text-success"
-                    : skipped
-                      ? "bg-bgSurface text-textDim"
-                      : "bg-danger/15 text-danger",
-                )}
-              >
-                {wasCorrect ? "✓" : skipped ? "–" : "✕"}
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="text-textMain line-clamp-2 text-xs">{q.text}</p>
-                {!wasCorrect && !skipped && (
-                  <p className="text-success mt-0.5 text-[11px]">
-                    Correct: {q.options[q.answer]}
-                  </p>
-                )}
-              </div>
-              <span className="text-textDim shrink-0 text-[10px]">
-                {q.subject}
-              </span>
-            </div>
+              question={q}
+              index={i}
+              userAnswer={userAns}
+            />
           );
         })}
       </div>

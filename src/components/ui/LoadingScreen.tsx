@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Button from "./Button";
 import schooldraLogo from "../../assets/schooldraLogo.webp";
+import { Target, BookOpen, Zap, Trophy, Brain, BarChart3, AlertTriangle } from "lucide-react";
 
 interface LoadingScreenProps {
   message?: string;
@@ -12,13 +13,13 @@ interface LoadingScreenProps {
   showSlowNetworkWarning?: boolean;
 }
 
-const LOADING_TIPS = [
-  { icon: "🎯", text: "AI is personalizing your questions" },
-  { icon: "📚", text: "Loading the latest JAMB syllabus" },
-  { icon: "⚡", text: "Preparing your study plan" },
-  { icon: "🏆", text: "Setting up your leaderboard" },
-  { icon: "🧠", text: "Calibrating difficulty levels" },
-  { icon: "📊", text: "Analyzing past performance data" },
+export const LOADING_TIPS = [
+  { icon: Target, text: "AI is personalizing your questions" },
+  { icon: BookOpen, text: "Loading the latest JAMB syllabus" },
+  { icon: Zap, text: "Preparing your study plan" },
+  { icon: Trophy, text: "Setting up your leaderboard" },
+  { icon: Brain, text: "Calibrating difficulty levels" },
+  { icon: BarChart3, text: "Analyzing past performance data" },
 ];
 
 const LoadingScreen: React.FC<LoadingScreenProps> = ({
@@ -30,6 +31,10 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
 }) => {
   const [tipIndex, setTipIndex] = useState(0);
   const [progress, setProgress] = useState(0);
+
+  // Extract current tip and icon component
+  const currentTip = LOADING_TIPS[tipIndex];
+  const TipIcon = currentTip.icon;
 
   // Rotate tips every 3 seconds for better readability
   useEffect(() => {
@@ -77,7 +82,6 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
         {/* Logo Section */}
         <div className="mb-10 flex flex-col items-center">
           <motion.div
-            // className="bg-brand shadow-brand/40 group relative mb-6 flex h-20 w-20 items-center justify-center overflow-hidden rounded-4xl shadow-2xl"
             animate={{
               y: [0, -8, 0],
               rotate: [0, 2, -2, 0],
@@ -127,7 +131,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
                 className="bg-warning/10 border-warning/30 flex items-start gap-3 rounded-xl border p-4"
               >
                 <div className="bg-warning/20 text-warning flex h-8 w-8 shrink-0 items-center justify-center rounded-lg">
-                  ⚠️
+                  <AlertTriangle className="h-4 w-4" />
                 </div>
                 <div className="flex-1">
                   <p className="text-warning text-xs font-bold tracking-tight">
@@ -171,11 +175,11 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
                 exit={{ opacity: 0, y: -10 }}
                 className="bg-bgSurface/40 border-borderMuted flex items-center gap-4 rounded-3xl border p-5 transition-colors"
               >
-                <div className="bg-bgCard flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-2xl shadow-sm">
-                  {LOADING_TIPS[tipIndex].icon}
+                <div className="bg-bgCard flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl shadow-sm">
+                  <TipIcon className="text-brand h-6 w-6" />
                 </div>
                 <p className="text-textMuted text-xs leading-relaxed font-bold">
-                  {LOADING_TIPS[tipIndex].text}
+                  {currentTip.text}
                 </p>
               </motion.div>
             </AnimatePresence>
