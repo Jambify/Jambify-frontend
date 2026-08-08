@@ -20,7 +20,7 @@ interface PageHelmetProps {
 const DEFAULT_OG_IMAGE = "https://www.schooldra.com/SCHOOLDRA.LOGO.webp";
 const SITE_NAME = "SCHOOLDRA";
 const LOCALE = "en_NG";
-const TWITTER_HANDLE = "@schooldra";
+const TWITTER_HANDLE = "@sha_dra_ch";
 
 /**
  * PageHelmet Component
@@ -49,6 +49,7 @@ const PageHelmet: React.FC<PageHelmetProps> = ({
   children,
 }) => {
   const resolvedImage = ogImage || DEFAULT_OG_IMAGE;
+  
 
   return (
     <Helmet>
