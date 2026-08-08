@@ -162,6 +162,15 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({
   const total = questions.length;
   const pct = total > 0 ? Math.round((correct / total) * 100) : 0;
 
+  // How many the user actually reached/answered before time ran out.
+  // Relevant mainly for marathon mode, where `total` can be up to 100
+  // but the timer often cuts the session short. This does NOT affect
+  // `pct`, which stays correct/total as before.
+ const attempted = questions.filter(
+  (_, i) => answers[i] !== undefined && answers[i] !== -1,
+).length;
+  const unattempted = total - attempted;
+
   const { icon, label, color } =
     pct >= 80
       ? {
@@ -207,6 +216,11 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({
           {label}
         </div>
         <div className="text-textDim mt-1 text-sm">{pct}% accuracy</div>
+        {unattempted > 0 && (
+          <div className="text-textDim mt-1 text-xs">
+            Answered: {attempted}/{total}
+          </div>
+        )}
       </div>
 
       {/* <Stats row */}

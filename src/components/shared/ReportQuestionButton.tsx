@@ -39,7 +39,7 @@ const REASONS = [
 
 interface ReportQuestionButtonProps {
   questionId: string;
-  context?: "quiz" | "mock_review" | "past-question";
+  context?: "quiz" | "mock_review" | "past-questions" | "mock_exam";
   className?: string;
   /** Icon-only rendering with no visible label — for tight spaces like a meta/badge row. Defaults to false. */
   compact?: boolean;

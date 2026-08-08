@@ -681,7 +681,7 @@ const PastQuestions = () => {
                     )}
                     <ReportQuestionButton
                       questionId={q.id}
-                      context="past-question"
+                      context="past-questions"
                     />
                   </div>
                 );

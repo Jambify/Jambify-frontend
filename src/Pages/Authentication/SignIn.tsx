@@ -18,6 +18,24 @@ import { MAX_EMAIL_LENGTH, truncateInput } from "../../lib/validation";
 
 type Step = "form" | "otp";
 
+// Distinguishes "you're offline / the request never reached us" from a
+// real application-level error (wrong OTP, no account, etc.), so we never
+// show a misleading message like "No account found" when the actual
+// problem is connectivity.
+const isNetworkError = (err: unknown): boolean => {
+  if (typeof navigator !== "undefined" && !navigator.onLine) return true;
+  const msg =
+    err instanceof Error ? err.message.toLowerCase() : String(err).toLowerCase();
+  return (
+    msg.includes("failed to fetch") ||
+    msg.includes("network") ||
+    msg.includes("fetch")
+  );
+};
+
+const NETWORK_ERROR_MESSAGE =
+  "You appear to be offline. Please check your internet connection and try again.";
+
 const SignIn: React.FC = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState<Step>("form");
@@ -63,9 +81,15 @@ const SignIn: React.FC = () => {
     try {
       storeEmail(email);
 
-      const { data: status } = await supabase.rpc("check_email_status", {
-        p_email: email.trim().toLowerCase(),
-      });
+      const { data: status, error: statusErr } = await supabase.rpc(
+        "check_email_status",
+        { p_email: email.trim().toLowerCase() },
+      );
+
+      // FIX: this error was never checked before, so a failed/offline
+      // request fell through to "!status?.exists" and showed
+      // "No account found with this email" — wrong and misleading.
+      if (statusErr) throw statusErr;
 
       if (!status?.exists) {
         setError(
@@ -99,12 +123,16 @@ const SignIn: React.FC = () => {
       setStep("otp");
       setCooldown(30);
     } catch (err) {
+       console.log("DEBUG:", err, (err as Error)?.message);
       setError(
-        (err as Error).message || "Failed to send code. Please try again.",
+        isNetworkError(err)
+          ? NETWORK_ERROR_MESSAGE
+          : (err as Error).message || "Failed to send code. Please try again.",
       );
     } finally {
       setLoading(false);
     }
+    
   };
 
   // ── Verify OTP ────────────────────────────────────────
@@ -121,7 +149,9 @@ const SignIn: React.FC = () => {
       });
 
       if (verifyErr) {
-        if (verifyErr.message.toLowerCase().includes("expired")) {
+        if (isNetworkError(verifyErr)) {
+          setError(NETWORK_ERROR_MESSAGE);
+        } else if (verifyErr.message.toLowerCase().includes("expired")) {
           setError('Code expired. Click "Resend" to get a new one.');
         } else if (verifyErr.message.toLowerCase().includes("invalid")) {
           setError("Invalid code. Please check and try again.");
@@ -153,7 +183,9 @@ const SignIn: React.FC = () => {
       }
     } catch (err) {
       setError(
-        (err as Error).message || "Verification failed. Please try again.",
+        isNetworkError(err)
+          ? NETWORK_ERROR_MESSAGE
+          : (err as Error).message || "Verification failed. Please try again.",
       );
     } finally {
       setLoading(false);
@@ -173,7 +205,11 @@ const SignIn: React.FC = () => {
       if (resendErr) throw resendErr;
       setCooldown(30);
     } catch (err) {
-      setError((err as Error).message || "Failed to resend. Please try again.");
+      setError(
+        isNetworkError(err)
+          ? NETWORK_ERROR_MESSAGE
+          : (err as Error).message || "Failed to resend. Please try again.",
+      );
     } finally {
       setLoading(false);
     }
@@ -254,7 +290,6 @@ const SignIn: React.FC = () => {
               <label className="text-textMuted mb-2 block px-1 text-xs font-bold tracking-widest uppercase">
                 Verification Code
               </label>
-              {/* --- INPUT WITH DISABLED STATE --- */}
               <input
                 type="text"
                 inputMode="numeric"
@@ -262,7 +297,7 @@ const SignIn: React.FC = () => {
                 autoFocus
                 maxLength={6}
                 value={otp}
-                disabled={loading} // ← DISABLED WHEN LOADING
+                disabled={loading}
                 onChange={(e) => {
                   setError("");
                   setOtp(e.target.value.replace(/\D/g, ""));
@@ -274,7 +309,6 @@ const SignIn: React.FC = () => {
                 }`}
               />
             </div>
-            {/* --- BUTTON WITH DISABLED STATE --- */}
             <button
               type="submit"
               disabled={otp.length !== 6 || loading}
@@ -373,7 +407,6 @@ const SignIn: React.FC = () => {
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
                 <Mail className="text-textDim group-focus-within:text-brand-light h-5 w-5 transition-colors" />
               </div>
-              {/* --- EMAIL INPUT WITH DISABLED STATE --- */}
               <ValidatedInput
                 value={email}
                 onChange={(v) => setEmail(truncateInput(v, MAX_EMAIL_LENGTH))}
@@ -387,7 +420,6 @@ const SignIn: React.FC = () => {
               />
             </div>
           </div>
-          {/* --- SUBMIT BUTTON WITH DISABLED STATE --- */}
           <button
             type="submit"
             disabled={!email || loading || cooldown > 0}

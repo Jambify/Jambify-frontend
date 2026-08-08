@@ -25,6 +25,24 @@ import {
 
 type Step = "form" | "otp";
 
+// Same helper as SignIn.tsx — distinguishes "offline / request never
+// reached us" from a real application error, so we never show a raw
+// fetch error or a misleading "already exists" message when the real
+// problem is connectivity.
+const isNetworkError = (err: unknown): boolean => {
+  if (typeof navigator !== "undefined" && !navigator.onLine) return true;
+  const msg =
+    err instanceof Error ? err.message.toLowerCase() : String(err).toLowerCase();
+  return (
+    msg.includes("failed to fetch") ||
+    msg.includes("network") ||
+    msg.includes("fetch")
+  );
+};
+
+const NETWORK_ERROR_MESSAGE =
+  "You appear to be offline. Please check your internet connection and try again.";
+
 const SignUp: React.FC = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState<Step>("form");
@@ -37,7 +55,6 @@ const SignUp: React.FC = () => {
 
   const { setEmail: storeEmail, setName, syncProfile } = useUserStore();
 
-  // Cooldown countdown
   React.useEffect(() => {
     if (cooldown <= 0) return;
     const t = setTimeout(() => setCooldown((c) => c - 1), 1000);
@@ -67,10 +84,15 @@ const SignUp: React.FC = () => {
       }
 
       if (statusData?.exists === true && statusData?.confirmed === false) {
-        const { data: cleanupData } = await supabase.rpc(
+        const { data: cleanupData, error: cleanupErr } = await supabase.rpc(
           "cleanup_unverified_user",
           { p_email: email.trim().toLowerCase() },
         );
+
+        // NEW — this call's error was silently ignored before; on a
+        // network failure cleanupData would be undefined and we'd fall
+        // through to signInWithOtp below with a half-broken state.
+        if (cleanupErr) throw cleanupErr;
 
         if (cleanupData?.status === "pending") {
           const formattedName = toTitleCase(fullName.trim());
@@ -107,7 +129,9 @@ const SignUp: React.FC = () => {
       setCooldown(30);
     } catch (err) {
       setError(
-        (err as Error).message || "Failed to send code. Please try again.",
+        isNetworkError(err)
+          ? NETWORK_ERROR_MESSAGE
+          : (err as Error).message || "Failed to send code. Please try again.",
       );
     } finally {
       setLoading(false);
@@ -128,7 +152,9 @@ const SignUp: React.FC = () => {
       });
 
       if (verifyErr) {
-        if (verifyErr.message.toLowerCase().includes("expired")) {
+        if (isNetworkError(verifyErr)) {
+          setError(NETWORK_ERROR_MESSAGE);
+        } else if (verifyErr.message.toLowerCase().includes("expired")) {
           setError('Code expired. Click "Resend" to get a new one.');
         } else if (verifyErr.message.toLowerCase().includes("invalid")) {
           setError("Invalid code. Please check and try again.");
@@ -155,7 +181,9 @@ const SignUp: React.FC = () => {
       }
     } catch (err) {
       setError(
-        (err as Error).message || "Verification failed. Please try again.",
+        isNetworkError(err)
+          ? NETWORK_ERROR_MESSAGE
+          : (err as Error).message || "Verification failed. Please try again.",
       );
     } finally {
       setLoading(false);
@@ -179,7 +207,11 @@ const SignUp: React.FC = () => {
       if (resendErr) throw resendErr;
       setCooldown(30);
     } catch (err) {
-      setError((err as Error).message || "Failed to resend. Please try again.");
+      setError(
+        isNetworkError(err)
+          ? NETWORK_ERROR_MESSAGE
+          : (err as Error).message || "Failed to resend. Please try again.",
+      );
     } finally {
       setLoading(false);
     }
@@ -260,7 +292,6 @@ const SignUp: React.FC = () => {
               <label className="text-textMuted mb-2 block px-1 text-xs font-bold tracking-widest uppercase">
                 Verification Code
               </label>
-              {/* --- OTP INPUT WITH DISABLED STATE --- */}
               <input
                 type="text"
                 inputMode="numeric"
@@ -280,7 +311,6 @@ const SignUp: React.FC = () => {
                 }`}
               />
             </div>
-            {/* --- SUBMIT BUTTON WITH DISABLED STATE --- */}
             <button
               type="submit"
               disabled={otp.length !== 6 || loading}
@@ -405,7 +435,6 @@ const SignUp: React.FC = () => {
               />
             </div>
           </div>
-          {/* --- SUBMIT BUTTON WITH DISABLED STATE --- */}
           <button
             type="submit"
             disabled={!email || !fullName || loading || cooldown > 0}

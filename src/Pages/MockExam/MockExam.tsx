@@ -36,8 +36,7 @@ import SubjectSidebar from "../../components/MockExam/SubjectSidebar";
 import Button from "../../components/ui/Button";
 import { useExamTimer } from "../../hooks/useExamTimer";
 import { cn } from "../../lib/utils/utils";
-
-
+import ReportQuestionButton from "../../components/shared/ReportQuestionButton";
 import { fetchQuestionsWithFallback } from "../../Services/questionService";
 import type { Question } from "../../Types";
 import LoadingScreen from "../../components/ui/LoadingScreen";
@@ -880,6 +879,11 @@ const MockExam: React.FC = () => {
                     <span className="bg-bgSurface text-textDim border-borderMuted rounded-full border px-3 py-1 text-[10px] font-black tracking-widest uppercase">
                       {q.year}
                     </span>
+                    <ReportQuestionButton
+                      questionId={q.id}
+                      context="mock_exam"
+                      compact
+                    />
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="text-textDim text-[10px] font-bold uppercase">
