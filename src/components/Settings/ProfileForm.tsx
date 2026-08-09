@@ -5,8 +5,9 @@ import ConfirmModal from "../ui/ConfirmModal";
 import { cn, toTitleCase, sanitizeXss } from "../../lib/utils/utils";
 import { Section, Field } from "./Shared";
 import { inputCls } from "./SharedUtils";
-import { Search, Loader2 } from "lucide-react";
+import { Search, Loader2, Check } from "lucide-react";
 import CustomSubjectSelector from "./CustomSubjectSelector";
+import { SUBJECT_COMBOS } from "../../lib/subjectMeta";
 import {
   truncateInput,
   validateName,
@@ -23,39 +24,6 @@ interface UniversityResult {
   web_pages?: string[];
   "state-province"?: string | null;
 }
-
-const SUBJECT_COMBOS = [
-  {
-    id: "medicine",
-    label: "Medicine & Pharmacy",
-    subjects: ["English", "Biology", "Chemistry", "Physics"],
-    icon: "🩺",
-  },
-  {
-    id: "engineering",
-    label: "Engineering & Tech",
-    subjects: ["English", "Mathematics", "Physics", "Chemistry"],
-    icon: "⚙️",
-  },
-  {
-    id: "social-sci",
-    label: "Social Sciences",
-    subjects: ["English", "Mathematics", "Economics", "Government"],
-    icon: "📈",
-  },
-  {
-    id: "law",
-    label: "Law & Arts",
-    subjects: ["English", "Literature", "Government", "CRS/IRS"],
-    icon: "⚖️",
-  },
-  {
-    id: "Commerce",
-    label: "Commerce & Business",
-    subjects: ["English", "Commerce", "Economics", "CRS/IRS"],
-    icon: "💼",
-  },
-];
 
 // FALLBACK UNIVERSITY LIST (Nigerian Universities)
 const FALLBACK_UNIVERSITIES = [
@@ -456,6 +424,7 @@ const ProfileForm: React.FC = () => {
           <div className="grid grid-cols-1 gap-2">
             {SUBJECT_COMBOS.map((combo) => {
               const isSelected = form.subjectCombo === combo.id;
+              const Icon = combo.icon;
               return (
                 <button
                   key={combo.id}
@@ -470,7 +439,12 @@ const ProfileForm: React.FC = () => {
                       : "bg-bgSurface border-borderMuted hover:border-white/20",
                   )}
                 >
-                  <span className="text-xl grayscale-0">{combo.icon}</span>
+                  <Icon
+                    className={cn(
+                      "h-5 w-5 shrink-0",
+                      isSelected ? "text-brand-light" : "text-textMuted",
+                    )}
+                  />
                   <div className="flex-1">
                     <p
                       className={cn(
@@ -517,7 +491,13 @@ const ProfileForm: React.FC = () => {
           disabled={!isDirty && !saved}
           onClick={handleSave}
         >
-          {saved ? "✓ Changes Saved" : "Save Profile"}
+          {saved ? (
+            <span className="flex items-center gap-1.5">
+              <Check className="h-4 w-4" /> Changes Saved
+            </span>
+          ) : (
+            "Save Profile"
+          )}
         </Button>
         {isDirty && (
           <button

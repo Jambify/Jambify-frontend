@@ -7,7 +7,7 @@ import QuestionCard from "../components/Quiz/QuestionCard";
 import TimerBar from "../components/Quiz/TimeBar";
 import ResultsScreen from "../components/Quiz/ResultScreen";
 import Button from "../components/ui/Button";
-import { getSubjectIcon, getSubjectColor } from "..//lib/subjectMeta";
+import { getSubjectIcon, getSubjectColor } from "../lib/subjectMeta";
 
 import {
   fetchQuestionsByTopic,
@@ -23,12 +23,13 @@ import {
   Sparkles,
   CheckCircle2,
   AlertTriangle,
+  NotebookPen,
+  Zap,
+  Target,
+  Infinity as InfinityIcon,
 } from "lucide-react";
 import LoadingScreen from "../components/ui/LoadingScreen";
 import NetworkErrorAlert from "../components/ui/NetworkErrorAlert";
-import {
-  
-} from "lucide-react";
 import { useOfflineStore } from "../Store/useOfflineStore";
 import type { Question } from "../Types";
 
@@ -547,8 +548,8 @@ const Quiz: React.FC = () => {
           )}
 
         <div className="mb-10 pt-4 text-center">
-          <div className="bg-brand/10 border-brand/20 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border text-3xl">
-            📝
+          <div className="bg-brand/10 border-brand/20 text-brand mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border">
+            <NotebookPen size={28} />
           </div>
           <h2 className="font-display mb-2 text-2xl font-bold tracking-tight sm:text-3xl">
             Practice Quiz
@@ -571,7 +572,7 @@ const Quiz: React.FC = () => {
             </p>
             <button
               onClick={() => setShowAllSubjects(!showAllSubjects)}
-              className="text-brand hover:text-brand-light text-[10px] font-black tracking-widest uppercase transition-colors"
+              className="text-brand hover:text-brand-light hidden text-[10px] font-black tracking-widest uppercase transition-colors sm:block"
             >
               {showAllSubjects ? "Show Less" : "Show All"}
             </button>
@@ -658,9 +659,9 @@ const Quiz: React.FC = () => {
               >
                 <div className="flex items-center gap-3">
                   <div
-                    className={`flex h-8 w-8 items-center justify-center rounded-lg text-lg ${selectedTopic === "All" ? "bg-brand text-white" : "bg-bgDeep text-textDim"}`}
+                    className={`flex h-8 w-8 items-center justify-center rounded-lg ${selectedTopic === "All" ? "bg-brand text-white" : "bg-bgDeep text-textDim"}`}
                   >
-                    🎯
+                    <Target size={16} />
                   </div>
                   <div>
                     <p
@@ -754,19 +755,19 @@ const Quiz: React.FC = () => {
           {[
             {
               id: "quick",
-              icon: "⚡",
+              Icon: Zap,
               label: "Quick Fire",
               desc: "10 Qs · 60s each",
             },
             {
               id: "standard",
-              icon: "🎯",
+              Icon: Target,
               label: "Standard",
               desc: "20 Qs · 90s each",
             },
             {
               id: "marathon",
-              icon: "🏃",
+              Icon: InfinityIcon,
               label: "Marathon Quiz",
               desc: "15 mins · Unlimited Qs",
             },
@@ -782,7 +783,10 @@ const Quiz: React.FC = () => {
                   : "bg-bgSurface border-borderMuted hover:border-brand/20 dark:hover:border-white/15"
               }`}
             >
-              <div className="mb-2 text-2xl">{mode.icon}</div>
+              <mode.Icon
+                size={24}
+                className={`mb-2 ${selectedMode === mode.id ? "text-brand" : "text-textDim"}`}
+              />
               <p className="font-display text-sm font-semibold tracking-tight">
                 {mode.label}
               </p>

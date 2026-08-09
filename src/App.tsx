@@ -73,6 +73,9 @@ const TermsOfService = lazy(() => import("./Pages/TermsOfService"));
 // ── Admin pages — lazy too, so the admin panel's JS never ships to
 //    regular students at all, only to admins who actually visit /admin ──
 const AdminOverview = lazy(() => import("./admin/pages/AdminOverview"));
+const AdminTopicOverview = lazy(
+  () => import("./admin/pages/AdminTopicOverview"),
+);
 const AdminUsers = lazy(() => import("./admin/pages/AdminUsers"));
 const AdminAuditLog = lazy(
   () =>
@@ -359,6 +362,16 @@ const App: React.FC = () => {
                   <AdminGuard>
                     <AdminLayout title="Adminquestions">
                       <Adminquestions />
+                    </AdminLayout>
+                  </AdminGuard>
+                }
+              />
+              <Route
+                path="/admin/topics"
+                element={
+                  <AdminGuard>
+                    <AdminLayout title="Topic Overview">
+                      <AdminTopicOverview />
                     </AdminLayout>
                   </AdminGuard>
                 }

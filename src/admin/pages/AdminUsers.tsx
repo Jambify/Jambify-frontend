@@ -12,6 +12,20 @@
  * they'd fail anyway. The DB triggers are what actually enforce this;
  * this UI check is just so a non-owner admin isn't met with a confusing
  * Postgres error after clicking.
+ *
+ * FIX (this pass): two bugs in UserHistoryPanel —
+ *   1. quiz_sessions also receives one row per subject from mock exams
+ *      (see MockExam.tsx's handleFinishExam -> addQuizResult("mock", ...)),
+ *      tagged mode: "mock". Those are bookkeeping writes for
+ *      subject_accuracy/topic_mastery, not real practice quizzes, but the
+ *      Quizzes tab was rendering them anyway with no mode filter — hence
+ *      "Literature MOCK" showing up next to real "English PRACTICE" rows.
+ *      Now filtered out via practiceQuizzes.
+ *   2. subject_scores is actually Record<string, { correct, total, score }>
+ *      (confirmed against MockHistoryService.ts's real save shape), not
+ *      Record<string, number> as previously typed — String()-ing an object
+ *      produced the literal "[object Object]" text. Now rendered properly
+ *      as "correct/total (score%)".
  */
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
@@ -66,6 +80,14 @@ interface AdminUser {
   is_owner?: boolean; // merged in client-side from admin_users, not a profiles column
 }
 
+// Exact shape confirmed against MockHistoryService.ts's saveMockExamHistory —
+// subject_scores is built as { [subject]: { correct, total, score } }.
+interface SubjectScoreDetail {
+  correct: number;
+  total: number;
+  score: number;
+}
+
 interface MockExamRow {
   id: string;
   taken_at: string;
@@ -75,7 +97,7 @@ interface MockExamRow {
   accuracy: number;
   time_taken_secs: number;
   subjects: string[];
-  subject_scores: Record<string, number> | null;
+  subject_scores: Record<string, SubjectScoreDetail> | null;
 }
 
 interface QuizSessionRow {
@@ -185,6 +207,21 @@ const fmtDuration = (secs: number | null | undefined) => {
   return m > 0 ? `${m}m ${s}s` : `${s}s`;
 };
 
+// Formats a subject_scores entry, which is always { correct, total, score }
+// per MockHistoryService.ts. Defensive fallback kept only in case a
+// legacy/malformed row (pre-dating this shape) ever slips through.
+const formatSubjectScore = (val: SubjectScoreDetail | number | null | undefined): string => {
+  if (val == null) return "—";
+  if (typeof val === "number") return String(val);
+  const { correct, total, score } = val;
+  if (correct !== undefined && total !== undefined) {
+    return score !== undefined
+      ? `${correct}/${total} (${score}%)`
+      : `${correct}/${total}`;
+  }
+  return score !== undefined ? `${score}%` : "—";
+};
+
 // ── User history panel (mock exams / quizzes / study sessions) ────────────────
 
 const UserHistoryPanel: React.FC<{ userId: string }> = ({ userId }) => {
@@ -195,6 +232,15 @@ const UserHistoryPanel: React.FC<{ userId: string }> = ({ userId }) => {
   const [studySessions, setStudySessions] = useState<StudySessionRow[]>([]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
+
+  // FIX 1: mock exams write one bookkeeping row per subject into
+  // quiz_sessions (mode: "mock") purely to keep subject_accuracy /
+  // topic_mastery current — those aren't real practice quizzes and are
+  // already fully represented in the Mock Exams tab, so they're excluded
+  // here to avoid double-showing/double-counting them as "quizzes".
+  const practiceQuizzes = quizzes.filter(
+    (q) => q.mode?.toLowerCase() !== "mock",
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -265,7 +311,11 @@ const UserHistoryPanel: React.FC<{ userId: string }> = ({ userId }) => {
           value={mockExams.length}
           color="text-brand-light"
         />
-        <StatMini label="Quizzes" value={quizzes.length} color="text-success" />
+        <StatMini
+          label="Quizzes"
+          value={practiceQuizzes.length}
+          color="text-success"
+        />
         <StatMini
           label="Study Time"
           value={`${Math.round(totalStudyMins / 60)}h`}
@@ -353,8 +403,12 @@ const UserHistoryPanel: React.FC<{ userId: string }> = ({ userId }) => {
                           <p className="text-textDim mb-1 text-[10px] font-bold tracking-widest uppercase">
                             Per-subject scores
                           </p>
-                          {Object.entries(m.subject_scores).map(([subj, score]) => (
-                            <Row key={subj} label={subj} value={String(score)} />
+                          {Object.entries(m.subject_scores).map(([subj, val]) => (
+                            <Row
+                              key={subj}
+                              label={subj}
+                              value={formatSubjectScore(val)}
+                            />
                           ))}
                         </div>
                       )}
@@ -366,10 +420,10 @@ const UserHistoryPanel: React.FC<{ userId: string }> = ({ userId }) => {
 
           {/* Quizzes */}
           {tab === "quiz" &&
-            (quizzes.length === 0 ? (
+            (practiceQuizzes.length === 0 ? (
               <EmptyRow label="No quizzes taken yet" />
             ) : (
-              quizzes.map((q) => (
+              practiceQuizzes.map((q) => (
                 <div
                   key={q.id}
                   className="bg-bgSurface border-borderMuted rounded-brand border"

@@ -8,6 +8,15 @@ import ExamSettings from "../components/Settings/ExamSettings";
 import DangerZone from "../components/Settings/DangerZone";
 import HelpSupport from "../components/Settings/HelpSupport";
 import { cn } from "../lib/utils/utils";
+import {
+  User,
+  Target,
+  Settings as SettingsIcon,
+  HelpCircle,
+  Wrench,
+  
+} from "lucide-react";
+import type{ LucideIcon,} from "lucide-react"
 
 type Tab = "profile" | "exam" | "account" | "help";
 
@@ -15,16 +24,16 @@ interface SettingsLocationState {
   activeTab?: Tab;
 }
 
-const TABS: { id: Tab; label: string; icon: string }[] = [
-  { id: "profile", label: "Profile", icon: "👤" },
-  { id: "exam", label: "Exam settings", icon: "🎯" },
-  { id: "account", label: "Account", icon: "⚙️" },
-  { id: "help", label: "Help & Support", icon: "❓" },
+const TABS: { id: Tab; label: string; icon: LucideIcon }[] = [
+  { id: "profile", label: "Profile", icon: User },
+  { id: "exam", label: "Exam settings", icon: Target },
+  { id: "account", label: "Account", icon: SettingsIcon },
+  { id: "help", label: "Help & Support", icon: HelpCircle },
 ];
 
 const Settings: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const { name, isAdmin, isModerator } = useUserStore(); // NEW: isModerator
+  const { name, isAdmin, isModerator } = useUserStore();
   const location = useLocation();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<Tab>(
@@ -49,7 +58,7 @@ const Settings: React.FC = () => {
         canonical="https://www.schooldra.com/settings"
       />
       <div className="mx-auto max-w-2xl">
-        {/* <── Page header ── */}
+        {/* Page header */}
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="font-display text-2xl font-bold tracking-tight">
@@ -66,12 +75,13 @@ const Settings: React.FC = () => {
               onClick={() => navigate("/admin")}
               className="bg-brand hover:bg-brand/90 rounded-brand flex w-full items-center justify-center gap-2 px-4 py-3 text-sm font-bold text-white transition-all sm:w-auto sm:py-2"
             >
-              🛠️ Admin Panel
+              <Wrench className="h-4 w-4" />
+              <span>Admin Panel</span>
             </button>
           )}
         </div>
 
-        {/* <── Avatar + name hero ── */}
+        {/* Avatar + name hero */}
         <div className="bg-bgCard border-borderMuted rounded-brand-xl mb-5 flex items-center gap-4 border p-5">
           <div className="bg-brand font-display shadow-brand flex h-16 w-16 shrink-0 items-center justify-center rounded-full text-xl font-bold text-white">
             {initials || "?"}
@@ -90,26 +100,29 @@ const Settings: React.FC = () => {
           </div>
         </div>
 
-        {/* <── Tab switcher ── */}
+        {/* Tab switcher */}
         <div className="bg-bgSurface rounded-brand-lg border-borderMuted mb-5 flex gap-1 border p-1">
-          {TABS.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={cn(
-                "rounded-brand flex flex-1 items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium transition-all",
-                activeTab === tab.id
-                  ? "bg-bgCard text-textMain border-borderMuted border shadow-sm"
-                  : "text-textMuted hover:text-textMain touch-target no-double-tap active:scale-95",
-              )}
-            >
-              <span className="text-base leading-none">{tab.icon}</span>
-              <span className="hidden sm:inline">{tab.label}</span>
-            </button>
-          ))}
+          {TABS.map((tab) => {
+            const Icon = tab.icon;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={cn(
+                  "rounded-brand flex flex-1 items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium transition-all",
+                  activeTab === tab.id
+                    ? "bg-bgCard text-textMain border-borderMuted border shadow-sm"
+                    : "text-textMuted hover:text-textMain touch-target no-double-tap active:scale-95",
+                )}
+              >
+                <Icon className="h-4 w-4 shrink-0" />
+                <span className="hidden sm:inline">{tab.label}</span>
+              </button>
+            );
+          })}
         </div>
 
-        {/* <── Tab content ── */}
+        {/* Tab content */}
         <div className="animate-fadeIn">
           {activeTab === "profile" && <ProfileForm />}
           {activeTab === "exam" && <ExamSettings />}

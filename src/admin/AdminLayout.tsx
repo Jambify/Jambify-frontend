@@ -21,7 +21,7 @@ import { cn } from '../lib/utils/utils';
 import {
   Users, BarChart2, ShieldAlert,
   Menu, X, Home, Clock, Megaphone,
-  Database, AlertTriangle, UserCog,
+  Database, AlertTriangle, UserCog, Layers,
 } from 'lucide-react';
 import schooldraLogo from "../assets/schooldraLogo.webp"
 
@@ -35,11 +35,11 @@ const NAV = [
   { path: '/admin/reports',         label: 'FlaggedReports',   icon: AlertTriangle, end: false },
   { path: '/admin/users',           label: 'Users',            icon: Users,         end: false },
   { path: '/admin/Adminquestions',  label: 'AdminQuestions',   icon: Database,      end: false },
+  { path: '/admin/topics',          label: 'TopicOverview',    icon: Layers,        end: false },
   { path: '/admin/AdminBroadcast',  label: 'AdminBroadcast',   icon: Megaphone,     end: false },
   { path: '/admin/roles',           label: 'Admin Roles',      icon: UserCog,       end: false },
   { path: '/admin/audit-log',       label: 'Audit Log',        icon: Clock,         end: false },
 ];
-
 const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title }) => {
   const navigate    = useNavigate();
   const [open, setOpen] = useState(false);

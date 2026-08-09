@@ -1,12 +1,7 @@
 // src/lib/subjectMeta.ts
 /**
- * Single source of truth for how a subject is represented visually —
- * icon + color — across every guest page (Quiz, Mock Exam, Past Questions).
- * Previously GuestQuiz/GuestMockExam used raw emoji + hardcoded Tailwind
- * gradients, while GuestPastQuestions used Lucide icons + CSS-variable
- * color tokens. This file makes the second approach the only approach,
- * so a future palette change (like the one earlier in this project)
- * updates every subject badge everywhere at once.
+ * Single source of truth for how a subject and subject combinations are
+ * represented visually across every page (Settings, Quiz, Mock Exam, Past Questions).
  */
 import {
   BookOpen,
@@ -22,8 +17,52 @@ import {
   Church,
   BookOpenCheck,
   ShoppingBag,
+  Stethoscope,
+  Cpu,
+  Scale,
+  Briefcase,
   type LucideIcon,
 } from "lucide-react";
+
+export interface SubjectCombo {
+  id: string;
+  label: string;
+  subjects: string[];
+  icon: LucideIcon;
+}
+
+export const SUBJECT_COMBOS: SubjectCombo[] = [
+  {
+    id: "medicine",
+    label: "Medicine & Pharmacy",
+    subjects: ["English", "Biology", "Chemistry", "Physics"],
+    icon: Stethoscope,
+  },
+  {
+    id: "engineering",
+    label: "Engineering & Tech",
+    subjects: ["English", "Mathematics", "Physics", "Chemistry"],
+    icon: Cpu,
+  },
+  {
+    id: "social-sci",
+    label: "Social Sciences",
+    subjects: ["English", "Mathematics", "Economics", "Government"],
+    icon: TrendingUp,
+  },
+  {
+    id: "law",
+    label: "Law & Arts",
+    subjects: ["English", "Literature", "Government", "CRS/IRS"],
+    icon: Scale,
+  },
+  {
+    id: "Commerce",
+    label: "Commerce & Business",
+    subjects: ["English", "Commerce", "Economics", "CRS/IRS"],
+    icon: Briefcase,
+  },
+];
 
 export const SUBJECT_ICONS: Record<string, LucideIcon> = {
   English: BookOpen,
@@ -65,3 +104,6 @@ export const getSubjectIcon = (subject: string): LucideIcon =>
 
 export const getSubjectColor = (subject: string): string =>
   SUBJECT_COLORS[subject] ?? DEFAULT_SUBJECT_COLOR;
+
+export const getComboById = (id: string): SubjectCombo | undefined =>
+  SUBJECT_COMBOS.find((combo) => combo.id === id);
