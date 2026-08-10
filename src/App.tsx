@@ -35,6 +35,7 @@ import FrozenAccountGuard from "./components/auth/FrozenAccountGuard";
 import ProRevokedModal from "./components/auth/ProRevokedModal";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+
 // ── Admin layout/guard — kept eager, small, needed on every /admin/* route ──
 import AdminGuard from "./admin/AdminGuard";
 import AdminLayout from "./admin/AdminLayout";
@@ -45,6 +46,7 @@ const Dashboard = lazy(() => import("./Pages/Dashboard"));
 const Landing = lazy(() => import("./Pages/LandingPage"));
 const AboutPage = lazy(() => import("./Pages/Aboutpage"));
 const Quiz = lazy(() => import("./Pages/Quiz"));
+const AllSessions = lazy(() => import("./Pages/AllSessions"));
 const Performance = lazy(() => import("./Pages/Performance"));
 const Subjects = lazy(() => import("./Pages/Subjects"));
 const MockExam = lazy(() => import("./Pages/MockExam/MockExam"));
@@ -235,6 +237,14 @@ const App: React.FC = () => {
                 element={
                   <RouteGuard>
                     <Subjects />
+                  </RouteGuard>
+                }
+              />
+              <Route
+                path="/sessions"
+                element={
+                  <RouteGuard>
+                    <AllSessions />
                   </RouteGuard>
                 }
               />

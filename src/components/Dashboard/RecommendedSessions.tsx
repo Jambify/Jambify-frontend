@@ -136,7 +136,7 @@ const RecommendedSessions: React.FC = () => {
           Recommended Sessions
         </h3>
         <button
-          onClick={() => navigate("/subjects")}
+          onClick={() => navigate("/sessions")}
           className="text-brand-light text-xs hover:underline"
         >
           See all →
