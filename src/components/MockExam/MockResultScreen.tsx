@@ -16,6 +16,7 @@ import {
   Sparkles,
   ArrowUp,
 } from "lucide-react";
+import { renderQuestionText } from "../../lib/utils/renderQuestionText";
 
 interface MockResultsScreenProps {
   onRetry: () => void;
@@ -295,7 +296,7 @@ const MockResultsScreen: React.FC<MockResultsScreenProps> = ({
                                   </div>
                                 )}
                                 <p className="text-textMain mb-6 text-sm leading-relaxed font-bold sm:text-base">
-                                  {q.text}
+                                  {renderQuestionText(q.text)}
                                 </p>
 
                                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">

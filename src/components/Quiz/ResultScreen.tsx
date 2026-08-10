@@ -16,6 +16,7 @@ import {
   ChevronUp,
 } from "lucide-react";
 import QuestionAIExplanation from "./QuestionAIExplanation";
+import { renderQuestionText } from "../../lib/utils/renderQuestionText";
 
 interface ResultsScreenProps {
   onRetry: () => void;
@@ -57,7 +58,7 @@ const ReviewItem: React.FC<ReviewItemProps> = ({
         </span>
         <div className="min-w-0 flex-1">
           <p className="text-textMain line-clamp-2 text-xs font-medium md:text-sm">
-            {q.text}
+            {renderQuestionText(q.text)}
           </p>
           <div className="mt-1 flex flex-wrap items-center gap-2">
             {!wasCorrect && !skipped && (

@@ -44,6 +44,7 @@ import NetworkErrorAlert from "../../components/ui/NetworkErrorAlert";
 import { saveMockExamHistory } from "../../Services/MockHistoryService";
 import MockHistory from "../../components/MockExam/MockHistory";
 import schooldraLogo from "../../../src/assets/schooldraLogo.webp";
+import { renderQuestionText } from "../../lib/utils/renderQuestionText";
 
 import {
   Menu,
@@ -918,7 +919,7 @@ const MockExam: React.FC = () => {
                 )}
 
                 <p className="text-textMain mb-10 text-xl leading-relaxed font-semibold tracking-tight sm:text-2xl">
-                  {q.text}
+                  {renderQuestionText(q.text)}
                 </p>
 
                 <div className="grid grid-cols-1 gap-4">
