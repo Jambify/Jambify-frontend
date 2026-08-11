@@ -296,7 +296,7 @@ const MockResultsScreen: React.FC<MockResultsScreenProps> = ({
                                   </div>
                                 )}
                                 <p className="text-textMain mb-6 text-sm leading-relaxed font-bold sm:text-base">
-                                  {renderQuestionText(q.text)}
+                                   {renderQuestionText(q.text, q.subject)}
                                 </p>
 
                                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">

@@ -58,7 +58,7 @@ const ReviewItem: React.FC<ReviewItemProps> = ({
         </span>
         <div className="min-w-0 flex-1">
           <p className="text-textMain line-clamp-2 text-xs font-medium md:text-sm">
-            {renderQuestionText(q.text)}
+            {renderQuestionText(q.text, q.subject)}
           </p>
           <div className="mt-1 flex flex-wrap items-center gap-2">
             {!wasCorrect && !skipped && (

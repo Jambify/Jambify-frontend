@@ -1,4 +1,5 @@
 import DOMPurify from "dompurify";
+import { formatScienceText, SCIENCE_SUBJECTS } from "./utils/formatScienceText";
 
 let purifyInstance: typeof DOMPurify | null = null;
 
@@ -15,9 +16,14 @@ export function sanitizeHtml(html: string): string {
   });
 }
 
-export function sanitizeQuestionText(text: string): string {
-  // Apply our bold/italic/underline replacements, then sanitize
-  const formattedText = text
+export function sanitizeQuestionText(text: string, subject?: string): string {
+  // Apply chemistry/math subscript+arrow formatting first (Chemistry,
+  // Physics, Mathematics only — see formatScienceText.ts for scope/limits),
+  // then our existing bold/italic/underline replacements, then sanitize.
+  const scienceFormatted =
+    subject && SCIENCE_SUBJECTS.includes(subject) ? formatScienceText(text) : text;
+
+  const formattedText = scienceFormatted
     .replace(/\*\*(.*?)\*\*/g, '<em class="font-semibold text-brand">$1</em>')
     .replace(/\*(.*?)\*/g, '<em class="text-brand">$1</em>')
     .replace(

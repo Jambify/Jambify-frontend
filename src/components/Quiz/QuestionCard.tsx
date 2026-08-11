@@ -63,7 +63,7 @@ const QuestionCard: React.FC = () => {
         <p
           className="text-textMain mb-6 text-base leading-relaxed font-normal sm:text-lg"
           dangerouslySetInnerHTML={{
-            __html: sanitizeQuestionText(q.text),
+            __html: sanitizeQuestionText(q.text, q.subject),
           }}
         />
 

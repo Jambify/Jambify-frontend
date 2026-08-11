@@ -919,7 +919,7 @@ const MockExam: React.FC = () => {
                 )}
 
                 <p className="text-textMain mb-10 text-xl leading-relaxed font-semibold tracking-tight sm:text-2xl">
-                  {renderQuestionText(q.text)}
+                  {renderQuestionText(q.text, q.subject)}
                 </p>
 
                 <div className="grid grid-cols-1 gap-4">
