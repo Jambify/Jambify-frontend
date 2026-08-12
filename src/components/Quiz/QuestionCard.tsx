@@ -34,11 +34,16 @@ const QuestionCard: React.FC = () => {
 
   if (!q) return null;
 
-  // --- Format question text for science subjects ---
-  let formattedText = q.text;
-  if (SCIENCE_SUBJECTS.includes(q.subject)) {
-    formattedText = formatScienceText(q.text);
-  }
+  // --- Check if this is a science subject ---
+  const isScience = SCIENCE_SUBJECTS.includes(q.subject);
+
+  // --- Format question text ---
+  const formattedText = isScience ? formatScienceText(q.text) : q.text;
+
+  // --- Format options ---
+  const formattedOptions = isScience 
+    ? q.options.map(opt => formatScienceText(opt))
+    : q.options;
 
   return (
     <div className="animate-fadeIn">
@@ -74,26 +79,19 @@ const QuestionCard: React.FC = () => {
           }}
         />
 
-        {/* Options */}
+        {/* Options - with science formatting */}
         <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-          {q.options.map((opt, i) => {
-            // Also format options for science subjects
-            let formattedOpt = opt;
-            if (SCIENCE_SUBJECTS.includes(q.subject)) {
-              formattedOpt = formatScienceText(opt);
-            }
-            return (
-              <OptionButton
-                key={i}
-                index={i}
-                text={formattedOpt}
-                chosen={chosen}
-                correct={q.answer}
-                answered={hasAnswered}
-                onSelect={() => !hasAnswered && submitAnswer(currentIndex, i)}
-              />
-            );
-          })}
+          {formattedOptions.map((opt, i) => (
+            <OptionButton
+              key={i}
+              index={i}
+              text={opt}
+              chosen={chosen}
+              correct={q.answer}
+              answered={hasAnswered}
+              onSelect={() => !hasAnswered && submitAnswer(currentIndex, i)}
+            />
+          ))}
         </div>
       </div>
 
