@@ -5,7 +5,8 @@ import ExplanationBox from "./Explanation";
 import { useState } from "react";
 import Button from "../ui/Button";
 import ReportQuestionButton from "../shared/ReportQuestionButton";
-import { sanitizeQuestionText,  } from "../../lib/sanitize-html";
+import { sanitizeQuestionText } from "../../lib/sanitize-html";
+import { formatScienceText, SCIENCE_SUBJECTS } from "../../lib/utils/formatScienceText";
 
 const SUBJ_STYLES: Record<string, { bg: string; text: string }> = {
   English: { bg: "bg-brand/10", text: "text-brand-light" },
@@ -33,6 +34,12 @@ const QuestionCard: React.FC = () => {
 
   if (!q) return null;
 
+  // --- Format question text for science subjects ---
+  let formattedText = q.text;
+  if (SCIENCE_SUBJECTS.includes(q.subject)) {
+    formattedText = formatScienceText(q.text);
+  }
+
   return (
     <div className="animate-fadeIn">
       {/* Card */}
@@ -59,28 +66,34 @@ const QuestionCard: React.FC = () => {
           <ReportQuestionButton questionId={q.id} context="quiz" compact />
         </div>
 
-        {/* Question text */}
+        {/* Question text - with science formatting */}
         <p
           className="text-textMain mb-6 text-base leading-relaxed font-normal sm:text-lg"
           dangerouslySetInnerHTML={{
-            __html: sanitizeQuestionText(q.text, q.subject),
+            __html: sanitizeQuestionText(formattedText, q.subject),
           }}
         />
 
-        {/*<{/* Options */}
-
+        {/* Options */}
         <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-          {q.options.map((opt, i) => (
-            <OptionButton
-              key={i}
-              index={i}
-              text={opt}
-              chosen={chosen}
-              correct={q.answer}
-              answered={hasAnswered}
-              onSelect={() => !hasAnswered && submitAnswer(currentIndex, i)}
-            />
-          ))}
+          {q.options.map((opt, i) => {
+            // Also format options for science subjects
+            let formattedOpt = opt;
+            if (SCIENCE_SUBJECTS.includes(q.subject)) {
+              formattedOpt = formatScienceText(opt);
+            }
+            return (
+              <OptionButton
+                key={i}
+                index={i}
+                text={formattedOpt}
+                chosen={chosen}
+                correct={q.answer}
+                answered={hasAnswered}
+                onSelect={() => !hasAnswered && submitAnswer(currentIndex, i)}
+              />
+            );
+          })}
         </div>
       </div>
 
@@ -89,7 +102,7 @@ const QuestionCard: React.FC = () => {
 
       {/* Actions row */}
       <div className="mt-4 flex items-center justify-between gap-3">
-        {/*   <{/* Hint button */}
+        {/* Hint button */}
         <div className="flex flex-col gap-3">
           {!hasAnswered && (
             <button
