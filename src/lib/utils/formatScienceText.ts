@@ -19,6 +19,12 @@
 //   want the charge superscripted correctly.
 // - Subscript letters only exist in Unicode for: a e i o r u v x n.
 //   Any other letter needed as a subscript (rare) won't convert.
+// - FIXED: Rule 5 ("Cn" -> C + subscript n) previously matched when
+//   followed by whitespace or end-of-string, which caught the ordinary
+//   English word "An" (e.g. "An organic compound...") and wrongly
+//   subscripted its "n". Now it only matches when immediately followed
+//   by another uppercase letter with NO space — the only way "Cn"
+//   actually appears in real formula notation like "CnH2n".
 
 const SUBSCRIPT_DIGITS: Record<string, string> = {
   "0": "₀", "1": "₁", "2": "₂", "3": "₃", "4": "₄",
@@ -74,8 +80,12 @@ export function formatScienceText(text: string): string {
   // ── 4. Bare coefficient+variable: "2n" (not already consumed above) ─
   out = out.replace(/(\d+)n(?![a-zA-Z0-9])/g, (_, d1) => toSubscript(d1) + toSubscript("n"));
 
-  // ── 5. Element letter + trailing "n" before next element/end: "Cn" ─
-  out = out.replace(/([A-Z])n(?=[A-Z]|\s|$)/g, (_, el) => el + toSubscript("n"));
+  // ── 5. Element letter + trailing "n" DIRECTLY before next element ──
+  // (FIXED: no longer matches whitespace/end-of-string — that caught
+  // "An organic compound" as if "An" were formula notation. Real formula
+  // "Cn" in e.g. "CnH2n" is always immediately followed by another
+  // element symbol with zero space between them.)
+  out = out.replace(/([A-Z])n(?=[A-Z])/g, (_, el) => el + toSubscript("n"));
 
   // ── 6. General element-formula digit subscript: H2O, CO2, CaCO3 ────
   out = out.replace(/([A-Za-z])(\d+)(?!\d)/g, (_, letter, digits) => letter + toSubscript(digits));
