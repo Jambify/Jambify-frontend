@@ -1,4 +1,4 @@
-// src/Pages/Performance.tsx (FIXED)
+// src/Pages/Performance.tsx (FIXED - No emojis, all Lucide icons)
 
 import React, { useState, useEffect } from "react";
 import PageHelmet from "../components/SEO/PageHelmet";
@@ -20,6 +20,17 @@ import {
   Zap,
   RefreshCw,
   AlertCircle,
+  BookOpen,
+  TrendingUp,
+  Award,
+  BarChart3,
+  Activity,
+  Medal,
+  Flame,
+  CheckCircle,
+  AlertTriangle,
+  Library,
+  PieChart,
 } from "lucide-react";
 
 export const getSubjectIcon = (subject: string) => {
@@ -29,11 +40,11 @@ export const getSubjectIcon = (subject: string) => {
 
   return <Icon className="h-5 w-5" style={{ color }} />;
 };
+
 const Performance: React.FC = () => {
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  // NEW: Local state to handle button visual feedback explicitly
   const [isManualRefreshing, setIsManualRefreshing] = useState(false);
 
   const {
@@ -43,7 +54,6 @@ const Performance: React.FC = () => {
     avgAccuracy,
     isLoading,
     loadPerformanceData,
-    // isInitialized: performanceInitialized,
     error: performanceError,
     hasFetched: performanceHasFetched,
   } = usePerformanceStore();
@@ -79,14 +89,12 @@ const Performance: React.FC = () => {
 
   useEffect(() => {
     console.log("🔵 Loading performance data...");
-    // Passing false to keep background sync quiet on component mount
     loadPerformanceData(false);
     if (!subjectsInitialized) {
       loadSubjects();
     }
   }, [loadSubjects, subjectsInitialized]);
 
-  // NEW: Handle user clicking the explicit "Refresh Data" button
   const handleManualRefresh = async () => {
     setIsManualRefreshing(true);
     try {
@@ -94,7 +102,6 @@ const Performance: React.FC = () => {
     } catch (err) {
       console.error("Refresh failed", err);
     } finally {
-      // Small timeout ensures the animation finishes smoothly
       setTimeout(() => {
         setIsManualRefreshing(false);
       }, 600);
@@ -178,7 +185,6 @@ const Performance: React.FC = () => {
         description="Detailed breakdown of your academic progress with charts, mock history, and topic-level insights to guide JAMB UTME study."
         canonical="https://www.schooldra.com/performance"
       />
-      {/* Sleek background sync progress loader indicator line */}
       {isLoading && (
         <div className="bg-bgCard fixed top-0 left-0 z-50 h-0.5 w-full overflow-hidden">
           <div className="bg-brand h-full w-1/3 animate-[loading-bar_1.5s_ease-in-out_infinite]" />
@@ -256,14 +262,14 @@ const Performance: React.FC = () => {
           </div>
         </div>
 
-        {/* Performance Cards */}
+        {/* Performance Cards - NO EMOJIS */}
         <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
           <StatCard
             label="Average Accuracy"
             value={`${Math.round(displayAccuracy)}%`}
             sub={displayAccuracy > 0 ? "Overall average" : "No data yet"}
             color="text-brand"
-            icon="🎯"
+            icon={<Target className="h-6 w-6" />}
             iconBg="bg-brand/10"
             valueSize="text-3xl lg:text-4xl"
             truncate={false}
@@ -285,7 +291,7 @@ const Performance: React.FC = () => {
                   : "Choose your combo"
             }
             color="text-success"
-            icon="🏆"
+            icon={<Trophy className="h-6 w-6" />}
             iconBg="bg-success/10"
             valueSize="text-2xl"
           />
@@ -317,7 +323,7 @@ const Performance: React.FC = () => {
                         : "Choose your combo"
             }
             color="text-danger"
-            icon="⚠️"
+            icon={<AlertTriangle className="h-6 w-6" />}
             iconBg="bg-danger/10"
             valueSize="text-2xl"
           />
@@ -326,7 +332,7 @@ const Performance: React.FC = () => {
             value={displayTotalQuestions.toLocaleString()}
             sub="Total attempted"
             color="text-warn"
-            icon="📚"
+            icon={<BookOpen className="h-6 w-6" />}
             iconBg="bg-warn/10"
             valueSize="text-3xl lg:text-4xl"
             truncate={false}
@@ -476,7 +482,7 @@ const Performance: React.FC = () => {
                 <div className="mb-6 flex items-center justify-between gap-2">
                   <div className="flex items-center gap-3">
                     <div className="bg-brand shadow-brand/20 flex h-10 w-10 items-center justify-center rounded-2xl text-white shadow-xl">
-                      <Trophy size={20} />
+                      <Medal size={20} />
                     </div>
                     <div>
                       <h4 className="text-textMain text-xs font-black tracking-widest uppercase">
@@ -625,7 +631,7 @@ interface StatCardProps {
   value: string;
   sub: string;
   color: string;
-  icon: string;
+  icon: React.ReactNode;
   iconBg: string;
   valueSize?: string;
   truncate?: boolean;
@@ -644,7 +650,7 @@ const StatCard: React.FC<StatCardProps> = ({
 }) => (
   <div className="bg-bgCard border-borderMuted hover:border-brand/30 group relative flex h-full flex-col overflow-hidden rounded-4xl border p-6 shadow-sm transition-all hover:shadow-md lg:p-7">
     <div
-      className={`mb-5 flex h-14 w-14 items-center justify-center rounded-2xl text-2xl shadow-sm transition-transform group-hover:scale-110 ${iconBg}`}
+      className={`mb-5 flex h-14 w-14 items-center justify-center rounded-2xl shadow-sm transition-transform group-hover:scale-110 ${iconBg}`}
     >
       {icon}
     </div>
