@@ -21,16 +21,9 @@ import {
   RefreshCw,
   AlertCircle,
   BookOpen,
-  TrendingUp,
-  Award,
-  BarChart3,
-  Activity,
   Medal,
-  Flame,
-  CheckCircle,
   AlertTriangle,
-  Library,
-  PieChart,
+ 
 } from "lucide-react";
 
 export const getSubjectIcon = (subject: string) => {
