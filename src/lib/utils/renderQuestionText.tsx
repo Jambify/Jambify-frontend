@@ -85,16 +85,16 @@ export function renderQuestionText(text: string, subject?: string): React.ReactN
   // INSIDE a $$...$$ block.
   const chunks = text.split(/(\$\$[^$]+\$\$|\$[^$]+\$)/g);
 
-  return chunks.flatMap((chunk, i) => {
+  return chunks.reduce<React.ReactNode[]>((acc, chunk, i) => {
     if (chunk.startsWith("$$") && chunk.endsWith("$$") && chunk.length > 4) {
       const html = renderMathToHtml(chunk.slice(2, -2), true);
-      return [<span key={`math-${i}`} dangerouslySetInnerHTML={{ __html: html }} />];
+      return acc.concat([<span key={`math-${i}`} dangerouslySetInnerHTML={{ __html: html }} />]);
     }
     if (chunk.startsWith("$") && chunk.endsWith("$") && chunk.length > 2) {
       const html = renderMathToHtml(chunk.slice(1, -1), false);
-      return [<span key={`math-${i}`} dangerouslySetInnerHTML={{ __html: html }} />];
+      return acc.concat([<span key={`math-${i}`} dangerouslySetInnerHTML={{ __html: html }} />]);
     }
     // Non-LaTeX chunk — run through the existing Unicode/bracket pipeline
-    return renderPlainSegment(chunk, subject, `seg-${i}`);
-  });
+    return acc.concat(renderPlainSegment(chunk, subject, `seg-${i}`));
+  }, []);
 }

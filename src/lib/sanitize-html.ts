@@ -32,13 +32,13 @@ export function sanitizeQuestionText(text: string, subject?: string): string {
   let protectedText: string = text ?? "";
 
   // Replace block $$...$$ first (more specific pattern)
-  protectedText = protectedText.replace(KATEX_BLOCK_RE, (match, latex: string) => {
+  protectedText = protectedText.replace(KATEX_BLOCK_RE, (_match, latex: string) => {
     katexFragments.push(renderKatexHtml(latex, true));
     return `{{__KATEX_FRAGMENT_${katexFragments.length - 1}__}}`;
   });
 
   // Then replace inline $...$
-  protectedText = protectedText.replace(KATEX_INLINE_RE, (match, latex: string) => {
+  protectedText = protectedText.replace(KATEX_INLINE_RE, (_match, latex: string) => {
     katexFragments.push(renderKatexHtml(latex, false));
     return `{{__KATEX_FRAGMENT_${katexFragments.length - 1}__}}`;
   });
