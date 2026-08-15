@@ -1,5 +1,6 @@
 import React from "react";
 import { cn } from "../../lib/utils/utils";
+import { ExplanationText } from "../shared/ExplanationText";
 
 interface ExplanationBoxProps {
   visible: boolean;
@@ -23,7 +24,9 @@ const ExplanationBox: React.FC<ExplanationBoxProps> = ({ visible, text }) => {
           Explanation
         </span>
       </div>
-      <p className="text-textMuted text-sm leading-relaxed">{text}</p>
+      <p className="text-textMuted text-sm leading-relaxed">
+        <ExplanationText text={text} />
+      </p>
     </div>
   );
 };

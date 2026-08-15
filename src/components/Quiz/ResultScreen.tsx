@@ -4,6 +4,8 @@ import { useQuizSession } from "../../hooks/useQuizSession";
 import Button from "../ui/Button";
 import { cn } from "../../lib/utils/utils";
 import { useStudyTrackingStore } from "../../Store/useStudyTrackingStore";
+                
+import {ExplanationText} from "../../components/shared/ExplanationText";
 import {
   Trophy,
   Target,
@@ -102,7 +104,7 @@ const ReviewItem: React.FC<ReviewItemProps> = ({
                   <span className="font-mono opacity-60">
                     {String.fromCharCode(65 + optIdx)}.
                   </span>
-                  <span className="flex-1 wrap-break-word">{opt}</span>
+                 <span className="flex-1 wrap-break-word">{renderQuestionText(opt, q.subject)}</span>
                   {isCorrectOpt && <span>✓</span>}
                   {isUserOpt && !isCorrectOpt && <span>← Your pick</span>}
                 </div>
@@ -116,7 +118,7 @@ const ReviewItem: React.FC<ReviewItemProps> = ({
                 Built-in Explanation
               </p>
               <p className="text-textMuted text-[11px] leading-relaxed md:text-xs">
-                {q.explanation}
+                <ExplanationText text={q.explanation} />
               </p>
             </div>
           )}
@@ -167,9 +169,9 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({
   // Relevant mainly for marathon mode, where `total` can be up to 100
   // but the timer often cuts the session short. This does NOT affect
   // `pct`, which stays correct/total as before.
- const attempted = questions.filter(
-  (_, i) => answers[i] !== undefined && answers[i] !== -1,
-).length;
+  const attempted = questions.filter(
+    (_, i) => answers[i] !== undefined && answers[i] !== -1,
+  ).length;
   const unattempted = total - attempted;
 
   const { icon, label, color } =

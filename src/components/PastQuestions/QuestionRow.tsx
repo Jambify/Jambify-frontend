@@ -1,6 +1,8 @@
 import React from "react";
 import { cn } from "../../lib/utils/utils";
 import type { Question } from "../../Types";
+import { renderQuestionText } from "../../lib/utils/renderQuestionText";
+import { ExplanationText } from "../shared/ExplanationText";
 
 interface QuestionRowProps {
   question: Question;
@@ -86,7 +88,7 @@ const QuestionRow: React.FC<QuestionRowProps> = ({
               !isExpanded && "line-clamp-2",
             )}
           >
-            {q.text}
+            {renderQuestionText(q.text, q.subject)}
           </p>
         </div>
 
@@ -132,7 +134,9 @@ const QuestionRow: React.FC<QuestionRowProps> = ({
                 >
                   {i === q.answer ? "✓" : LETTERS[i]}
                 </span>
-                <span className="leading-relaxed">{opt}</span>
+                <span className="leading-relaxed">
+                  {renderQuestionText(opt, q.subject)}
+                </span>
               </div>
             ))}
           </div>
@@ -143,7 +147,7 @@ const QuestionRow: React.FC<QuestionRowProps> = ({
               Explanation
             </p>
             <p className="text-textMuted text-sm leading-relaxed">
-              {q.explanation}
+              <ExplanationText text={q.explanation} />
             </p>
           </div>
         </div>

@@ -25,6 +25,8 @@ import { SUBJECT_COLORS, getSubjectIcon } from "../../lib/subjectMeta";
 import QuestionAIExplanation from "../../components/Quiz/QuestionAIExplanation";
 
 import { useOfflineStore } from "../../Store/useOfflineStore";
+import { renderQuestionText } from "../../lib/utils/renderQuestionText";
+import { ExplanationText } from "../../components/shared/ExplanationText";
 
 type Screen = "subject" | "quiz" | "results";
 
@@ -494,7 +496,7 @@ const GuestQuiz: React.FC = () => {
                 </div>
 
                 <p className="text-textMain text-lg leading-relaxed font-medium tracking-tight sm:text-xl">
-                  {q.text}
+                  {renderQuestionText(q.text, q.subject)}
                 </p>
               </div>
 
@@ -538,7 +540,9 @@ const GuestQuiz: React.FC = () => {
                         >
                           {String.fromCharCode(65 + i)}
                         </div>
-                        <span className="flex-1">{opt}</span>
+                        <span className="flex-1">
+                          {renderQuestionText(opt, q.subject)}
+                        </span>
                       </div>
                       {showRight && (
                         <CheckCircle className="animate-in zoom-in h-5 w-5 shrink-0 duration-300" />
@@ -582,7 +586,12 @@ const GuestQuiz: React.FC = () => {
                       </div>
                       <div className="mb-4 h-px w-full bg-current opacity-10" />
                       <p className="text-textMain text-sm leading-relaxed font-medium">
-                        {q.explanation || "No built-in explanation available."}
+                        <ExplanationText
+                          text={
+                            q.explanation ||
+                            "No built-in explanation available."
+                          }
+                        />
                       </p>
                     </div>
 

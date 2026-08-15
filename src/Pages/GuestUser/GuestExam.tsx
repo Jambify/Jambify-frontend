@@ -34,6 +34,8 @@ import { useExamTimer } from "../../hooks/useExamTimer";
 import ValidatedInput from "../../components/ui/ValidatedInput";
 import { truncateInput } from "../../lib/validation";
 import QuestionAIExplanation from "../../components/Quiz/QuestionAIExplanation";
+import { renderQuestionText } from "../../lib/utils/renderQuestionText";
+import { ExplanationText } from "../../components/shared/ExplanationText";
 
 const MOCK_DURATION = 7200; // 2 hours in seconds
 
@@ -148,7 +150,7 @@ const GuestReviewItem: React.FC<GuestReviewItemProps> = ({
         </span>
         <div className="min-w-0 flex-1">
           <p className="text-textMain line-clamp-2 text-xs font-medium sm:text-sm md:text-base">
-            {q.text}
+            {renderQuestionText(q.text, q.subject)}
           </p>
           <div className="mt-1.5 flex flex-wrap items-center gap-2">
             {!wasCorrect && !skipped && (
@@ -192,7 +194,9 @@ const GuestReviewItem: React.FC<GuestReviewItemProps> = ({
                   <span className="font-mono opacity-60">
                     {String.fromCharCode(65 + optIdx)}.
                   </span>
-                  <span className="flex-1 wrap-break-word">{opt}</span>
+                  <span className="flex-1 wrap-break-word">
+                    {renderQuestionText(opt, q.subject)}
+                  </span>
                   {isCorrectOpt && <span>✓</span>}
                   {isUserOpt && !isCorrectOpt && <span>← Your pick</span>}
                 </div>
@@ -206,7 +210,7 @@ const GuestReviewItem: React.FC<GuestReviewItemProps> = ({
                 Built-in Explanation
               </p>
               <p className="text-textMuted text-[11px] leading-relaxed sm:text-xs md:text-sm">
-                {q.explanation}
+                <ExplanationText text={q.explanation} />
               </p>
             </div>
           )}
@@ -908,7 +912,7 @@ const GuestMockExam: React.FC = () => {
                 </div>
 
                 <p className="text-textMain mb-12 text-xl leading-relaxed font-medium tracking-tight sm:text-2xl">
-                  {q.text}
+                  {renderQuestionText(q.text, q.subject)}
                 </p>
 
                 {/* Options */}
@@ -936,7 +940,9 @@ const GuestMockExam: React.FC = () => {
                       >
                         {String.fromCharCode(65 + i)}
                       </div>
-                      <span className="flex-1 leading-tight">{opt}</span>
+                      <span className="flex-1 leading-tight">
+                        {renderQuestionText(opt, q.subject)}
+                      </span>
                       {chosen === i && (
                         <div className="bg-brand/20 flex h-6 w-6 shrink-0 items-center justify-center rounded-full">
                           <div className="bg-brand h-2 w-2 rounded-full" />

@@ -15,6 +15,7 @@ import ExamPaywall from "../../components/MockExam/ExamPaywall";
 import ReportQuestionButton from "../../components/shared/ReportQuestionButton";
 import { cn } from "../../lib/utils/utils";
 import { useAIChat, type ChatMessage } from "../../hooks/useAIChat";
+import { renderQuestionText } from "../../lib/utils/renderQuestionText";
 // import { buildQuestionContext } from "../../lib/ai";
 import {
   CheckCircle,
@@ -30,6 +31,7 @@ import {
 } from "lucide-react";
 import Button from "../../components/Layout/Button";
 import type { Question } from "../../Types";
+import { ExplanationText } from "../../components/shared/ExplanationText";
 
 // ── Typing dots ───────────────────────────────────────────────────────────────
 const TypingDots: React.FC = () => (
@@ -208,7 +210,7 @@ Please respond with your structured analysis as instructed in your system prompt
             )}
           </div>
           <p className="text-textMain line-clamp-3 text-xs leading-relaxed">
-            {question.text}
+            {renderQuestionText(question.text, question.subject)}
           </p>
           <div className="mt-1.5 flex flex-wrap items-center gap-2">
             <span className="bg-success/10 text-success border-success/20 rounded-full border px-2 py-0.5 text-[10px] font-medium">
@@ -545,7 +547,7 @@ const ReviewScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                           Q {idx + 1}
                         </span>
                         <p className="text-textMain mt-1 text-sm leading-snug font-bold wrap-break-word md:text-lg">
-                          {q.text}
+                          {renderQuestionText(q.text, q.subject)}
                         </p>
                       </div>
                     </div>
@@ -568,7 +570,7 @@ const ReviewScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                             <span className="mr-1 font-mono opacity-50">
                               {String.fromCharCode(65 + i)}.
                             </span>
-                            {opt}
+                            {renderQuestionText(opt, q.subject)}
                           </span>
                           {i === q.answer && (
                             <CheckCircle size={14} className="ml-2 shrink-0" />
@@ -587,7 +589,9 @@ const ReviewScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                           <BookOpen size={14} /> Explanation
                         </div>
                         <p className="text-textMuted text-xs leading-relaxed wrap-break-word md:text-sm">
-                          {q.explanation || "No explanation provided."}
+                          <ExplanationText
+                            text={q.explanation || "No explanation provided."}
+                          />
                         </p>
                       </div>
 

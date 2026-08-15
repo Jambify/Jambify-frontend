@@ -17,6 +17,7 @@ import {
   ArrowUp,
 } from "lucide-react";
 import { renderQuestionText } from "../../lib/utils/renderQuestionText";
+import { ExplanationText } from "../shared/ExplanationText";
 
 interface MockResultsScreenProps {
   onRetry: () => void;
@@ -316,7 +317,7 @@ const MockResultsScreen: React.FC<MockResultsScreenProps> = ({
                                         <span className="font-mono font-bold opacity-40">
                                           {String.fromCharCode(65 + optIdx)}.
                                         </span>
-                                        <span>{opt}</span>
+                                       <span>{renderQuestionText(opt, q.subject)}</span>
                                       </div>
                                       {optIdx === q.answer && (
                                         <CheckCircle
@@ -365,7 +366,7 @@ const MockResultsScreen: React.FC<MockResultsScreenProps> = ({
                                           Explanation
                                         </span>
                                       </div>
-                                      {q.explanation.replace(/<[^>]*>/g, "")}
+                                      <ExplanationText text={q.explanation.replace(/<[^>]*>/g, "")} />
                                     </div>
                                   )}
                                 </div>

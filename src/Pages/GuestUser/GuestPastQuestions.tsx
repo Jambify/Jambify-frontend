@@ -20,6 +20,7 @@ import type { Question } from "../../Types";
 import { fetchAllQuestionsForBrowse } from "../../Services/questionService";
 import ValidatedInput from "../../components/ui/ValidatedInput";
 import { truncateInput } from "../../lib/validation";
+import { renderQuestionText } from "../../lib/utils/renderQuestionText";
 
 const VALID_YEARS = [
   "All",
@@ -450,7 +451,7 @@ const GuestPastQuestions = () => {
                             </span>
                           </div>
                           <p className="text-textMain leading-relaxed font-medium">
-                            {q.text}
+                            {renderQuestionText(q.text, q.subject)}
                           </p>
                         </div>
                         <ChevronRight
@@ -498,7 +499,7 @@ const GuestPastQuestions = () => {
                                     : "text-textDim"
                                 }
                               >
-                                {opt}
+                                {renderQuestionText(opt, q.subject)}
                               </span>
                               {optIdx === q.answer && (
                                 <CheckCircle2

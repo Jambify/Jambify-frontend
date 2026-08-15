@@ -6,7 +6,11 @@ import { useState } from "react";
 import Button from "../ui/Button";
 import ReportQuestionButton from "../shared/ReportQuestionButton";
 import { sanitizeQuestionText } from "../../lib/sanitize-html";
-import { formatScienceText, SCIENCE_SUBJECTS } from "../../lib/utils/formatScienceText";
+import {
+  formatScienceText,
+  SCIENCE_SUBJECTS,
+} from "../../lib/utils/formatScienceText";
+import { ExplanationText } from "../shared/ExplanationText";
 
 const SUBJ_STYLES: Record<string, { bg: string; text: string }> = {
   English: { bg: "bg-brand/10", text: "text-brand-light" },
@@ -41,8 +45,8 @@ const QuestionCard: React.FC = () => {
   const formattedText = isScience ? formatScienceText(q.text) : q.text;
 
   // --- Format options ---
-  const formattedOptions = isScience 
-    ? q.options.map(opt => formatScienceText(opt))
+  const formattedOptions = isScience
+    ? q.options.map((opt) => formatScienceText(opt))
     : q.options;
 
   return (
@@ -71,7 +75,7 @@ const QuestionCard: React.FC = () => {
           <ReportQuestionButton questionId={q.id} context="quiz" compact />
         </div>
 
-        {/* Question text - with science formatting */}
+        {/* Question text - with science formatting + KaTeX (now via augmented sanitizeQuestionText) */}
         <p
           className="text-textMain mb-6 text-base leading-relaxed font-normal sm:text-lg"
           dangerouslySetInnerHTML={{
@@ -79,13 +83,14 @@ const QuestionCard: React.FC = () => {
           }}
         />
 
-        {/* Options - with science formatting */}
+        {/* Options - pass subject to OptionButton, still uses renderQuestionText internally for KaTeX/science */}
         <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
           {formattedOptions.map((opt, i) => (
             <OptionButton
               key={i}
               index={i}
               text={opt}
+              subject={q.subject}
               chosen={chosen}
               correct={q.answer}
               answered={hasAnswered}
@@ -118,7 +123,7 @@ const QuestionCard: React.FC = () => {
           {showHint && !hasAnswered && (
             <div className="animate-fadeIn rounded-brand bg-brand-dim border-brand/20 text-textMain border p-3 text-sm leading-relaxed italic">
               <span className="text-brand-light mr-1 font-bold">Hint:</span>
-              {q.explanation.split(".")[0] + "."}
+              <ExplanationText text={q.explanation.split(".")[0] + "."} />
             </div>
           )}
         </div>

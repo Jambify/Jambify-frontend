@@ -928,6 +928,7 @@ const MockExam: React.FC = () => {
                       key={`${currentIndex}-${i}`}
                       index={i}
                       text={opt}
+                      subject={q.subject}
                       chosen={chosen}
                       correct={-1}
                       answered={false}

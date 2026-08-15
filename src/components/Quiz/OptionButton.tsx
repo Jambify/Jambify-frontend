@@ -1,10 +1,12 @@
 import React from "react";
 import { cn } from "../../lib/utils/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import { renderQuestionText } from "../../lib/utils/renderQuestionText";
 
 interface OptionButtonProps {
   index: number;
   text: string;
+  subject?: string;
   chosen: number; // -1 if nothing chosen yet
   correct: number; // index of correct answer
   answered: boolean;
@@ -16,6 +18,7 @@ const LETTERS = ["A", "B", "C", "D"];
 const OptionButton: React.FC<OptionButtonProps> = ({
   index,
   text,
+  subject,
   chosen,
   correct,
   answered,
@@ -105,7 +108,7 @@ const OptionButton: React.FC<OptionButtonProps> = ({
                   : "text-textMain",
           )}
         >
-          {text}
+          {renderQuestionText(text, subject)}
         </span>
       </div>
 

@@ -8,6 +8,8 @@ import ReportQuestionButton from "../components/shared/ReportQuestionButton";
 import Button from "../components/ui/Button";
 import ValidatedInput from "../components/ui/ValidatedInput";
 import { truncateInput } from "../lib/validation";
+import { renderQuestionText } from "../lib/utils/renderQuestionText";
+import {ExplanationText} from "../components/shared/ExplanationText";
 import {
   Loader2,
   Search,
@@ -607,7 +609,7 @@ const PastQuestions = () => {
                             </span>
                           </div>
                           <p className="text-textMain leading-relaxed font-medium">
-                            {q.text}
+                            {renderQuestionText(q.text, q.subject)}
                           </p>
                         </div>
                         <ChevronRight
@@ -656,7 +658,7 @@ const PastQuestions = () => {
                                     : "text-textDim"
                                 }
                               >
-                                {opt}
+                                {renderQuestionText(opt, q.subject)}
                               </span>
                               {optIdx === q.answer && (
                                 <CheckCircle2
@@ -668,14 +670,12 @@ const PastQuestions = () => {
                           ))}
                         </div>
 
-                        <div className="bg-brand/5 border-brand/10 rounded-xl border p-4">
-                          <h5 className="text-brand-light mb-1 text-sm font-semibold">
-                            Explanation
-                          </h5>
-                          <p className="text-textMain text-sm">
-                            {q.explanation}
-                          </p>
-                        </div>
+                        <h5 className="text-brand-light mb-1 text-sm font-semibold">
+                          Explanation
+                        </h5>
+                        <p className="text-textMain text-sm">
+                          <ExplanationText text={q.explanation} />
+                        </p>
                         <QuestionAIHelper question={q} />
                       </div>
                     )}
