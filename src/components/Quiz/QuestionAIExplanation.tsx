@@ -1,8 +1,15 @@
 import React, { useState } from "react";
-import { Sparkles, ChevronDown, ChevronUp, Loader2, AlertCircle } from "lucide-react";
+import {
+  Sparkles,
+  ChevronDown,
+  ChevronUp,
+  Loader2,
+  AlertCircle,
+} from "lucide-react";
 import { cn } from "../../lib/utils/utils";
 import { askAI } from "../../lib/ai";
 import type { Question } from "../../Types";
+import { ExplanationText } from "../shared/ExplanationText";
 
 interface QuestionAIExplanationProps {
   question: Question;
@@ -76,8 +83,8 @@ ${
 
 2. WHY THE CORRECT ANSWER IS RIGHT:
 Explain why ${String.fromCharCode(
-  65 + question.answer,
-)}. ${correctAnswerText} is the correct choice. Be specific — reference the question, any relevant JAMB patterns, and break down the logic step by step in 3-4 short sentences.
+        65 + question.answer,
+      )}. ${correctAnswerText} is the correct choice. Be specific — reference the question, any relevant JAMB patterns, and break down the logic step by step in 3-4 short sentences.
 
 3. WHY THE OTHER OPTIONS ARE INCORRECT:
 For each of the remaining wrong options (NOT the user's answer and NOT the correct answer), give a 1-sentence reason why it's wrong. Be concise.
@@ -85,10 +92,14 @@ For each of the remaining wrong options (NOT the user's answer and NOT the corre
 Keep the entire response under 220 words total. Use plain language suitable for a secondary school student. Never use markdown formatting, no asterisks, no backticks, no dashes for bullets.`;
 
       try {
-        const result = await askAI([{ role: "user", parts: [{ text: prompt }] }]);
+        const result = await askAI([
+          { role: "user", parts: [{ text: prompt }] },
+        ]);
         setAiExplanation(result);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to get AI explanation");
+        setError(
+          err instanceof Error ? err.message : "Failed to get AI explanation",
+        );
       } finally {
         setIsLoading(false);
       }
@@ -103,10 +114,10 @@ Keep the entire response under 220 words total. Use plain language suitable for 
           "flex w-full items-center justify-between gap-2 rounded-xl px-3 py-2 text-xs font-bold tracking-tight uppercase transition-all active:scale-[0.99]",
           compact ? "px-3 py-2 text-[10px]" : "px-4 py-2.5",
           isCorrect
-            ? "bg-success/10 text-success hover:bg-success/15 border border-success/20"
+            ? "bg-success/10 text-success hover:bg-success/15 border-success/20 border"
             : skipped
-              ? "bg-brand/10 text-brand hover:bg-brand/15 border border-brand/20"
-              : "bg-danger/10 text-danger hover:bg-danger/15 border border-danger/20",
+              ? "bg-brand/10 text-brand hover:bg-brand/15 border-brand/20 border"
+              : "bg-danger/10 text-danger hover:bg-danger/15 border-danger/20 border",
         )}
       >
         <span className="flex items-center gap-2">
@@ -146,7 +157,7 @@ Keep the entire response under 220 words total. Use plain language suitable for 
           )}
 
           {error && (
-            <div className="flex items-start gap-2 py-2 text-[11px] text-danger">
+            <div className="text-danger flex items-start gap-2 py-2 text-[11px]">
               <AlertCircle size={14} className="mt-0.5 shrink-0" />
               <span>{error}</span>
             </div>
@@ -154,10 +165,10 @@ Keep the entire response under 220 words total. Use plain language suitable for 
 
           {aiExplanation && (
             <div
-              className="text-textMain whitespace-pre-wrap text-xs leading-relaxed md:text-sm"
+              className="text-textMain text-xs leading-relaxed whitespace-pre-wrap md:text-sm"
               style={{ wordBreak: "break-word" }}
             >
-              {aiExplanation}
+              <ExplanationText text={aiExplanation} />
             </div>
           )}
         </div>
