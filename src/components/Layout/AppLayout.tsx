@@ -1,4 +1,4 @@
-import React, { type ReactNode } from "react";
+import React, { type ReactNode, useState, useRef } from "react";
 import { Link } from "react-router";
 import { useUserStore } from "../../Store/useUserStore";
 import { useExamCountdown } from "../../hooks/useExamCountdown";
@@ -22,6 +22,8 @@ import {
   Sparkles,
   Flame,
   Hourglass,
+  Loader2,
+  RefreshCw,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "../../lib/utils/utils";
@@ -34,6 +36,7 @@ interface LayoutProps {
   setIsSidebarOpen?: (open: boolean) => void;
   hideSidebar?: boolean;
   className?: string;
+  onRefresh?: () => Promise<void> | void;
 }
 
 const IconMap: Record<string, LucideIcon> = {
@@ -53,12 +56,6 @@ const getInitials = (name: string) => {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 };
 
-// FIX: previously `currentPage.charAt(0).toUpperCase() + currentPage.slice(1)`
-// only capitalised the first character of the raw slug, so
-// "past-questions" rendered literally as "Past-questions" — hyphen and all.
-// On narrow screens the browser was free to wrap right at that hyphen,
-// producing the broken two-line "Past-\nquestions" title. This turns
-// every hyphen-segment into its own capitalised word instead.
 const formatPageTitle = (slug: string) =>
   slug
     .split("-")
@@ -91,6 +88,8 @@ const NavItem = ({ label, active, badge, icon, path }: any) => {
   );
 };
 
+const PULL_THRESHOLD = 80;
+
 const AppLayout: React.FC<LayoutProps> = ({
   children,
   currentPage,
@@ -98,21 +97,103 @@ const AppLayout: React.FC<LayoutProps> = ({
   setIsSidebarOpen = () => {},
   hideSidebar = false,
   className,
+  onRefresh,
 }) => {
   const name = useUserStore((state) => state.name);
   const targetScore = useUserStore((state) => state.targetScore);
   const streak = useUserStore((state) => state.streak);
   const isPro = useUserStore((state) => state.isPro);
-  const { daysLeft } = useExamCountdown(); // ← Dynamic countdown
+  const { daysLeft } = useExamCountdown();
   const { isOnline, wasOffline } = useNetworkStatus();
+
+  const [pullDistance, setPullDistance] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const touchStartRef = useRef(0);
 
   const displayName = name || "Guest User";
   const initials = getInitials(displayName);
   const pageTitle = formatPageTitle(currentPage);
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (window.scrollY === 0 && !isRefreshing) {
+      touchStartRef.current = e.touches[0].clientY;
+    } else {
+      touchStartRef.current = 0;
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!touchStartRef.current || isRefreshing) return;
+    const currentY = e.touches[0].clientY;
+    const distance = currentY - touchStartRef.current;
+
+    if (distance > 0 && window.scrollY === 0) {
+      // Resistance curve calculation like IG/X
+      const pull = Math.min(distance * 0.45, PULL_THRESHOLD + 20);
+      setPullDistance(pull);
+    }
+  };
+
+  const handleTouchEnd = async () => {
+    if (!touchStartRef.current || isRefreshing) return;
+
+    if (pullDistance >= PULL_THRESHOLD) {
+      setIsRefreshing(true);
+      setPullDistance(PULL_THRESHOLD);
+
+      if (onRefresh) {
+        await onRefresh();
+      } else {
+        await new Promise((resolve) => setTimeout(resolve, 1200));
+        window.location.reload();
+      }
+
+      setIsRefreshing(false);
+    }
+
+    setPullDistance(0);
+    touchStartRef.current = 0;
+  };
+
+  const pullProgress = Math.min(pullDistance / PULL_THRESHOLD, 1);
+
   return (
-    <div className="bg-bgMain text-textMain selection:bg-brand/30 min-h-screen font-sans">
-      <div className=" lg:pt-5 lg:pl-64">
+    <div
+      className="bg-bgMain text-textMain selection:bg-brand/30 min-h-screen font-sans"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
+      {/* PULL TO REFRESH SPINNER */}
+      <motion.div
+        aria-hidden="true"
+        className="fixed top-16 inset-x-0 z-90 flex justify-center pointer-events-none"
+        animate={{
+          y: isRefreshing ? 12 : pullDistance > 0 ? pullDistance : -50,
+          opacity: pullDistance > 10 || isRefreshing ? 1 : 0,
+        }}
+        transition={
+          isRefreshing
+            ? { type: "spring", stiffness: 300, damping: 20 }
+            : { duration: 0.1 }
+        }
+      >
+        <div className="bg-bgSurface border-borderMuted/80 text-brand flex h-10 w-10 items-center justify-center rounded-full border shadow-xl backdrop-blur-md">
+          {isRefreshing ? (
+            <Loader2 className="h-5 w-5 animate-spin" />
+          ) : (
+            <RefreshCw
+              className="h-5 w-5 transition-transform"
+              style={{
+                transform: `rotate(${pullProgress * 180}deg)`,
+                opacity: Math.max(0.3, pullProgress),
+              }}
+            />
+          )}
+        </div>
+      </motion.div>
+
+      <div className="lg:pt-5 lg:pl-64">
         <AnnouncementBanner />
       </div>
 
@@ -149,6 +230,7 @@ const AppLayout: React.FC<LayoutProps> = ({
           </motion.div>
         )}
       </AnimatePresence>
+
       {/* MOBILE SIDEBAR (Drawer) */}
       {!hideSidebar && (
         <Sidebar
@@ -291,10 +373,7 @@ const AppLayout: React.FC<LayoutProps> = ({
       <main className={cn("flex-1 pb-28 lg:pb-0", !hideSidebar && "lg:ml-60")}>
         {!hideSidebar && (
           <header className="bg-bgMain/85 border-borderMuted safe-area-top fixed-ios sticky top-0 z-50 flex h-14 items-center justify-between gap-2 border-b px-3 backdrop-blur-md sm:px-4 lg:px-7">
-            {/* LEFT: hamburger + title. min-w-0 lets the title truncate
-                instead of pushing the pills off-screen or wrapping. */}
             <div className="flex min-w-0 items-center gap-2 sm:gap-3">
-              {/* HAMBURGER (ONLY MOBILE) */}
               <button
                 onClick={() => setIsSidebarOpen(true)}
                 className="hover:bg-bgCard touch-target no-double-tap shrink-0 rounded-md p-2 lg:hidden"
@@ -308,11 +387,6 @@ const AppLayout: React.FC<LayoutProps> = ({
               </h1>
             </div>
 
-            {/* RIGHT: stat pills. On mobile these collapse to icon + number
-                only (no "day"/"days" label, no greeting) so they can't
-                crowd out the title — the old version kept full pill
-                padding and text at every width, which is what jammed the
-                header on smaller phones. */}
             <div className="flex shrink-0 items-center gap-1.5 sm:gap-2 lg:gap-3">
               <span className="text-textDim hidden text-xs md:inline">
                 Hi, {displayName.split(" ")[0]}!
@@ -434,11 +508,6 @@ const AppLayout: React.FC<LayoutProps> = ({
                 <div className="bg-brand border-bgCard dark:border-bgMain flex h-15 w-15 rotate-45 items-center justify-center rounded-2xl border-2 shadow-[0_12px_30px_rgba(91,59,255,0.4)] transition-all group-hover:scale-105 group-active:scale-95">
                   <FileText size={26} className="-rotate-45 text-white" />
                 </div>
-                {/* FIX: this label had both `gap-1` from the parent flex
-                    container AND `mt-14` (56px) stacked on top of it,
-                    pushing "Practice" well below the visible nav bar so it
-                    read as a floating, unlabeled diamond. `gap-1` alone is
-                    enough spacing under the 60px icon box. */}
                 <span className="text-brand-light text-[10px] font-black tracking-tighter uppercase">
                   Practice
                 </span>
