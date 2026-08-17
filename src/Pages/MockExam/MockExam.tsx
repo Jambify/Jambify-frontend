@@ -506,7 +506,7 @@ const MockExam: React.FC = () => {
         isSidebarOpen={isSidebarOpen}
         setIsSidebarOpen={setIsSidebarOpen}
       >
-        <div className="mx-auto max-w-4xl px-4 py-8">
+        <div className="mx-auto max-w-4xl  py-8">
           <div className="bg-bgCard border-borderMuted rounded-brand-xl border p-8 shadow-sm">
             <div className="mb-8 text-center">
               <h2 className="font-display text-brand mb-2 text-3xl font-black">

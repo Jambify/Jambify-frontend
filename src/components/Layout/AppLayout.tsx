@@ -20,6 +20,8 @@ import {
   Wifi,
   Trophy,
   Sparkles,
+  Flame,
+  Hourglass,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "../../lib/utils/utils";
@@ -50,6 +52,19 @@ const getInitials = (name: string) => {
   if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 };
+
+// FIX: previously `currentPage.charAt(0).toUpperCase() + currentPage.slice(1)`
+// only capitalised the first character of the raw slug, so
+// "past-questions" rendered literally as "Past-questions" — hyphen and all.
+// On narrow screens the browser was free to wrap right at that hyphen,
+// producing the broken two-line "Past-\nquestions" title. This turns
+// every hyphen-segment into its own capitalised word instead.
+const formatPageTitle = (slug: string) =>
+  slug
+    .split("-")
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
 
 const NavItem = ({ label, active, badge, icon, path }: any) => {
   const IconComponent = IconMap[icon] || LayoutGrid;
@@ -93,6 +108,7 @@ const AppLayout: React.FC<LayoutProps> = ({
 
   const displayName = name || "Guest User";
   const initials = getInitials(displayName);
+  const pageTitle = formatPageTitle(currentPage);
 
   return (
     <div className="bg-bgMain text-textMain selection:bg-brand/30 min-h-screen font-sans">
@@ -272,37 +288,57 @@ const AppLayout: React.FC<LayoutProps> = ({
       )}
 
       {/* MAIN CONTENT AREA */}
-      <main className={cn("flex-1 pb-24 lg:pb-0", !hideSidebar && "lg:ml-60")}>
+      <main className={cn("flex-1 pb-28 lg:pb-0", !hideSidebar && "lg:ml-60")}>
         {!hideSidebar && (
-          <header className="bg-bgMain/85 border-borderMuted safe-area-top fixed-ios sticky top-0 z-50 flex h-14 items-center justify-between border-b px-4 backdrop-blur-md lg:px-7">
-            <div className="flex items-center gap-3">
+          <header className="bg-bgMain/85 border-borderMuted safe-area-top fixed-ios sticky top-0 z-50 flex h-14 items-center justify-between gap-2 border-b px-3 backdrop-blur-md sm:px-4 lg:px-7">
+            {/* LEFT: hamburger + title. min-w-0 lets the title truncate
+                instead of pushing the pills off-screen or wrapping. */}
+            <div className="flex min-w-0 items-center gap-2 sm:gap-3">
               {/* HAMBURGER (ONLY MOBILE) */}
               <button
                 onClick={() => setIsSidebarOpen(true)}
-                className="hover:bg-bgCard touch-target no-double-tap rounded-md p-2 lg:hidden"
+                className="hover:bg-bgCard touch-target no-double-tap shrink-0 rounded-md p-2 lg:hidden"
                 aria-label="Open menu"
               >
                 <Menu size={22} />
               </button>
 
-              <h1 className="font-display text-base font-semibold">
-                {currentPage.charAt(0).toUpperCase() + currentPage.slice(1)}
+              <h1 className="font-display truncate text-[15px] font-semibold sm:text-base">
+                {pageTitle}
               </h1>
             </div>
 
-            <div className="flex items-center gap-2 lg:gap-3">
-              <span className="text-textDim hidden text-xs sm:inline">
+            {/* RIGHT: stat pills. On mobile these collapse to icon + number
+                only (no "day"/"days" label, no greeting) so they can't
+                crowd out the title — the old version kept full pill
+                padding and text at every width, which is what jammed the
+                header on smaller phones. */}
+            <div className="flex shrink-0 items-center gap-1.5 sm:gap-2 lg:gap-3">
+              <span className="text-textDim hidden text-xs md:inline">
                 Hi, {displayName.split(" ")[0]}!
               </span>
-              {/* Dynamic Streak Badge */}
-              <div className="rounded-full border border-orange-500/20 bg-orange-500/10 px-2.5 py-1 text-[10px] font-medium text-orange-400 lg:px-3 lg:text-xs">
-                🔥 {streak} day{streak !== 1 ? "s" : ""}
+
+              {/* Streak */}
+              <div className="flex items-center gap-1 rounded-full border border-orange-500/20 bg-orange-500/10 px-2 py-1 text-[10px] font-medium text-orange-400 sm:gap-1.5 sm:px-3 sm:text-xs">
+                <Flame size={13} className="shrink-0" />
+                <span>{streak}</span>
+                <span className="hidden sm:inline">
+                  day{streak !== 1 ? "s" : ""}
+                </span>
               </div>
-              {/* Dynamic Countdown Badge - No more hardcoded 47d! */}
-              <div className="bg-brand-dim text-brand-light border-brand/20 rounded-full border px-2.5 py-1 text-[10px] font-medium lg:px-3 lg:text-xs">
-                ⏳ {daysLeft} day{daysLeft !== 1 ? "s" : ""}
+
+              {/* Countdown */}
+              <div className="bg-brand-dim text-brand-light border-brand/20 flex items-center gap-1 rounded-full border px-2 py-1 text-[10px] font-medium sm:gap-1.5 sm:px-3 sm:text-xs">
+                <Hourglass size={13} className="shrink-0" />
+                <span>{daysLeft}</span>
+                <span className="hidden sm:inline">
+                  day{daysLeft !== 1 ? "s" : ""}
+                </span>
               </div>
-              <ThemeToggle />
+
+              <div className="hidden sm:block">
+                <ThemeToggle />
+              </div>
             </div>
           </header>
         )}
@@ -398,7 +434,12 @@ const AppLayout: React.FC<LayoutProps> = ({
                 <div className="bg-brand border-bgCard dark:border-bgMain flex h-15 w-15 rotate-45 items-center justify-center rounded-2xl border-2 shadow-[0_12px_30px_rgba(91,59,255,0.4)] transition-all group-hover:scale-105 group-active:scale-95">
                   <FileText size={26} className="-rotate-45 text-white" />
                 </div>
-                <span className="text-brand-light mt-14 text-[10px] font-black tracking-tighter uppercase">
+                {/* FIX: this label had both `gap-1` from the parent flex
+                    container AND `mt-14` (56px) stacked on top of it,
+                    pushing "Practice" well below the visible nav bar so it
+                    read as a floating, unlabeled diamond. `gap-1` alone is
+                    enough spacing under the 60px icon box. */}
+                <span className="text-brand-light text-[10px] font-black tracking-tighter uppercase">
                   Practice
                 </span>
               </Link>

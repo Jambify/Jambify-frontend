@@ -316,7 +316,15 @@ const PastQuestions = () => {
         description="Practice real JAMB past questions from 2015 to 2025. Create an account to unlock full access to every year and subject."
         canonical="https://www.schooldra.com/past-questions"
       />
-      <div className="mx-auto max-w-5xl space-y-6 px-4 py-6">
+      {/* FIX: this was `mx-auto max-w-5xl space-y-6 px-4 py-6`. AppLayout's
+          content wrapper already applies `p-4 lg:p-7` around every page's
+          children, so this extra `px-4` was STACKING with that — the card
+          below was sitting inside ~32px of horizontal margin per side on
+          mobile instead of the intended ~16px, making it look narrower
+          than every other screen in the app. Horizontal padding now comes
+          from AppLayout alone; this wrapper only keeps vertical rhythm
+          and the max-width constraint. */}
+      <div className="mx-auto max-w-5xl space-y-6 py-6">
         {showScrollTop && (
           <button
             onClick={scrollToTop}
