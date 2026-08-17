@@ -6,6 +6,7 @@ import { useAIChat } from "../../hooks/useAIChat";
 import type { Question } from "../../Types";
 import ValidatedInput from "../ui/ValidatedInput";
 import { truncateInput } from "../../lib/validation";
+import { ExplanationText } from "../shared/ExplanationText";
 
 interface QuestionAIHelperProps {
   question: Question;
@@ -40,6 +41,8 @@ Question (${question.subject}, ${question.year}, topic: ${question.topic}):
 Options: ${question.options.map((o, i) => `${String.fromCharCode(65 + i)}. ${o}`).join(" | ")}
 Correct answer: ${String.fromCharCode(65 + question.answer)}. ${question.options[question.answer]}
 Official explanation: ${question.explanation}
+
+IMPORTANT: The option order above has been randomized specifically for this student's session and will NOT match the order you may have seen this question in during training. Ignore any memorized option lettering for this question — treat the "Correct answer" line above as the single source of truth. Whenever you refer to the correct answer, ALWAYS state both its letter AND its exact value together (e.g. "Option D (2.06 kg)"), never the letter alone, so any mismatch is immediately visible rather than silently wrong.
 
 Be concise, encouraging, and specific to this question. Under 150 words unless asked for more detail.`;
 
@@ -93,10 +96,15 @@ Be concise, encouraging, and specific to this question. Under 150 words unless a
                   : "bg-bgSurface border-borderMuted text-textMain mr-6 border"
               }`}
             >
-              {msg.content || (msg.isStreaming ? "…" : "")}
+              {msg.content ? (
+                <ExplanationText text={msg.content} />
+              ) : msg.isStreaming ? (
+                "…"
+              ) : (
+                ""
+              )}
             </div>
           ))}
-
           {isLoading && messages[messages.length - 1]?.role !== "ai" && (
             <div className="text-textDim flex items-center gap-2 text-xs">
               <Loader2 size={14} className="animate-spin" />

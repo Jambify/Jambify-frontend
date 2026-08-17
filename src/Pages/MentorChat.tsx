@@ -19,6 +19,7 @@ import { useSubjectStore } from "../Store/useSubjectStore";
 import { useAIChat, type ChatMessage } from "../hooks/useAIChat";
 import { cn } from "../lib/utils/utils";
 import { truncateInput } from "../lib/validation";
+import { ExplanationText } from "../components/shared/ExplanationText";
 import {
   Send,
   Sparkles,
@@ -31,7 +32,13 @@ import {
   AlertTriangle,
   Calendar,
   Trophy,
-  ShieldCheck, // NEW — staff badge icon
+  ShieldCheck,
+  Clock,
+  Lightbulb,
+  FileSearch,
+  BarChart4,
+  Layers,
+  AlertCircle,
 } from "lucide-react";
 
 // ── Mentor system prompt (students) ───────────────────────────────────────────
@@ -55,25 +62,25 @@ Use bullet points and numbered steps for clarity where useful.`;
 // ── Starter prompts (students) ─────────────────────────────────────────────────
 const BASE_STARTERS = [
   {
-    icon: "📅",
+    icon: Calendar,
     label: "Make me a study plan",
     prompt:
       "Create a personalized 2-week study plan for me based on my weak subjects and exam date.",
   },
   {
-    icon: "⏱️",
+    icon: Clock,
     label: "Time management tips",
     prompt:
       "Give me practical time management tips for the JAMB exam. How should I allocate time per question?",
   },
   {
-    icon: "🎯",
+    icon: Target,
     label: "How to hit my target score",
     prompt:
       "What specific steps do I need to take to reach my target score? Be very specific.",
   },
   {
-    icon: "📝",
+    icon: AlertCircle,
     label: "Common JAMB mistakes",
     prompt:
       "What are the most common mistakes students make in JAMB and how do I avoid them?",
@@ -83,25 +90,25 @@ const BASE_STARTERS = [
 // NEW — starter prompts shown to staff instead of students
 const STAFF_STARTERS = [
   {
-    icon: "🔎",
+    icon: FileSearch,
     label: "Check a question",
     prompt:
       "I want to review a question from our bank for accuracy. I'll paste the question, options, and marked answer — please verify it's correct and flag anything ambiguous.",
   },
   {
-    icon: "📊",
+    icon: BarChart4,
     label: "Common misconceptions",
     prompt:
       "What are the most common student misconceptions in a JAMB subject I'm moderating? Pick a subject and break it down.",
   },
   {
-    icon: "🧩",
+    icon: Lightbulb,
     label: "Explain a tricky topic",
     prompt:
       "Explain a commonly-confused JAMB topic the way I'd need to explain it to a struggling student, so I can improve our content around it.",
   },
   {
-    icon: "🗂️",
+    icon: Layers,
     label: "Syllabus check",
     prompt:
       "Is there anything in the current JAMB syllabus that's commonly outdated in older question banks? What should I watch for when reviewing questions?",
@@ -159,7 +166,13 @@ const MessageBubble: React.FC<{ msg: ChatMessage }> = ({ msg }) => {
         )}
         style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}
       >
-        {msg.content || (msg.isStreaming ? "" : "…")}
+        {msg.content ? (
+          <ExplanationText text={msg.content} />
+        ) : msg.isStreaming ? (
+          ""
+        ) : (
+          "…"
+        )}
       </div>
     </div>
   );
@@ -179,12 +192,12 @@ const MentorChat: React.FC = () => {
     examDate,
     examYear,
     questionsCompleted,
-    isAdmin, // NEW
-    isModerator, // NEW
+    isAdmin,
+    isModerator,
   } = useUserStore();
   const { subjects, loadSubjects, isInitialized } = useSubjectStore();
 
-  const isStaff = isAdmin || isModerator; // NEW
+  const isStaff = isAdmin || isModerator;
 
   useEffect(() => {
     if (!isInitialized) loadSubjects();
@@ -478,7 +491,7 @@ Student profile:
                   <h2 className="font-display text-textMain mb-1 text-xl font-bold">
                     {isStaff
                       ? `Hey ${name || "there"}`
-                      : `Hi ${name || "there"} 👋`}
+                      : `Hi ${name || "there"}`}
                   </h2>
                   <p className="text-textDim max-w-xs text-sm leading-relaxed">
                     {isStaff
@@ -497,7 +510,7 @@ Student profile:
                       onClick={() => sendMessage(s.prompt)}
                       className="bg-bgSurface border-borderMuted rounded-brand hover:border-brand/40 hover:bg-brand/5 group flex items-center gap-2.5 border px-3 py-2.5 text-left transition-all"
                     >
-                      <span className="shrink-0 text-base">{s.icon}</span>
+                      <s.icon className="h-4 w-4 shrink-0 text-brand" />
                       <span className="text-textMuted group-hover:text-textMain text-xs font-medium transition-colors">
                         {s.label}
                       </span>
@@ -654,7 +667,7 @@ Student profile:
                   onClick={() => sendMessage(s.prompt)}
                   className="rounded-brand hover:bg-bgSurface group flex w-full items-center gap-2 px-2.5 py-2 text-left transition-colors"
                 >
-                  <span className="shrink-0 text-sm">{s.icon}</span>
+                  <s.icon className="h-4 w-4 shrink-0 text-brand" />
                   <span className="text-textDim group-hover:text-textMain text-xs leading-snug transition-colors">
                     {s.label}
                   </span>

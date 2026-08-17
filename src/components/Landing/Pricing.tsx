@@ -6,43 +6,90 @@
  * pull DISPLAY_PRICE from useUserStore instead of the literal "₦3,000".
  */
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { motion } from "framer-motion";
 import { ArrowRight, Check } from "lucide-react";
 import { fadeUp } from "./animation";
 
-const PLANS = [
-  {
-    name: "Free",
-    price: "₦0",
-    tag: "Start here",
-    features: [
-      "Full mock exams, real UTME timing",
-      "Daily practice quizzes, all subjects",
-      "Performance dashboard & streaks",
-    ],
-    cta: "Start Free",
-    to: "/signup",
-    highlighted: false,
-  },
-  {
-    name: "Pro",
-    price: "₦3,000",
-    tag: "Per month · cancel anytime",
-    features: [
-      "See correct answers on every question",
-      "AI Tutor — explains why each answer is right or wrong",
-      "Full access to 4,180+ past questions (1990–2024)",
-      "Browse past questions by subject, year, or topic",
-    ],
-    cta: "Go Pro",
-    to: "/signup?plan=pro",
-    highlighted: true,
-  },
-];
+const FALLBACK_QUESTION_COUNT = 4180;
+const FALLBACK_YEAR_RANGE = "1990–2024";
 
 const Pricing: React.FC = () => {
+  const [questionCount, setQuestionCount] = useState<number>(FALLBACK_QUESTION_COUNT);
+  const [yearRange, setYearRange] = useState<string>(FALLBACK_YEAR_RANGE);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function fetchStats() {
+      const { supabase } = await import("../../lib/supabase");
+
+      // Execute queries in parallel using .limit(1) to avoid PostgREST aggregation errors
+      const [countRes, minYearRes, maxYearRes] = await Promise.all([
+        supabase.from("questions").select("id", { count: "exact", head: true }),
+        supabase.from("questions").select("year").not("year", "is", null).order("year", { ascending: true }).limit(1),
+        supabase.from("questions").select("year").not("year", "is", null).order("year", { ascending: false }).limit(1),
+      ]);
+
+      if (cancelled) return;
+
+      // Update question count directly
+      if (!countRes.error && typeof countRes.count === "number") {
+        setQuestionCount(countRes.count);
+      }
+
+      // Update year range
+      const minYear = minYearRes.data?.[0]?.year;
+      const maxYear = maxYearRes.data?.[0]?.year;
+
+      if (minYear && maxYear) {
+        const min = parseInt(String(minYear), 10);
+        const max = parseInt(String(maxYear), 10);
+        if (!isNaN(min) && !isNaN(max)) {
+          setYearRange(min === max ? `${min}` : `${min}–${max}`);
+        }
+      }
+    }
+
+    fetchStats();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const formattedCount = questionCount.toLocaleString();
+
+  const plans = [
+    {
+      name: "Free",
+      price: "₦0",
+      tag: "Start here",
+      features: [
+        "Full mock exams, real UTME timing",
+        "Daily practice quizzes, all subjects",
+        "Performance dashboard & streaks",
+      ],
+      cta: "Start Free",
+      to: "/signup",
+      highlighted: false,
+    },
+    {
+      name: "Pro",
+      price: "₦3,000",
+      tag: "Per month · cancel anytime",
+      features: [
+        "See correct answers on every question",
+        "AI Tutor — explains why each answer is right or wrong",
+        `Full access to ${formattedCount}+ past questions (${yearRange})`,
+        "Browse past questions by subject, year, or topic",
+      ],
+      cta: "Go Pro",
+      to: "/signup?plan=pro",
+      highlighted: true,
+    },
+  ];
+
   return (
     <section id="pricing" className="border-borderMuted border-t">
       <div className="mx-auto max-w-5xl px-6 py-16 lg:py-24">
@@ -55,7 +102,7 @@ const Pricing: React.FC = () => {
           </h2>
         </motion.div>
         <div className="grid gap-6 md:grid-cols-2">
-          {PLANS.map((p) => (
+          {plans.map((p) => (
             <motion.div
               key={p.name}
               {...fadeUp}

@@ -1,65 +1,75 @@
-/**
- * src/components/landing/Hero.tsx
- * ───────────────────────────────────
- * Split hero: headline + stats on the left, product demo video on the right.
- * The question-count stat is fetched live from Supabase so it never goes
- * stale as questions are added/removed via the admin panel.
- *
- * Video loading strategy: the demo video is NOT downloaded on page load.
- * It previously had autoPlay + preload="metadata" together, which is a
- * contradiction — autoPlay forces an eager fetch regardless of the preload
- * hint, so the full file was downloading on every landing-page visit before
- * anyone had even seen the poster. Now: poster only, until the user clicks
- * play. Nothing video-related touches the network until then.
- */
-
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router";
-import { motion } from "framer-motion";
+import { motion, animate } from "framer-motion";
 import { ArrowRight, Play } from "lucide-react";
 import { fadeUp } from "./animation";
 import heroDemoVideo from "../../assets/Hero-Demo.mp4";
 import heroPoster from "../../assets/hero.png";
 
-// Shown instantly while the real count loads, and as a fallback if the
-// fetch fails — keeps the layout stable instead of flashing "0+" or blank.
 const FALLBACK_QUESTION_COUNT = 4180;
+const FALLBACK_YEAR_RANGE = "1990–2024";
 
 const Hero: React.FC = () => {
-  const [questionCount, setQuestionCount] = useState<number>(
-    FALLBACK_QUESTION_COUNT,
-  );
+  const [displayCount, setDisplayCount] = useState<number>(FALLBACK_QUESTION_COUNT);
+  const [yearRange, setYearRange] = useState<string>(FALLBACK_YEAR_RANGE);
+  const [isCountLoading, setIsCountLoading] = useState(true);
   const [showVideo, setShowVideo] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
+    let stopAnimation: (() => void) | undefined;
 
-    async function fetchCount() {
-      // Dynamically imported so the Supabase client (and its ~50KB of JS)
-      // isn't part of the critical landing-page bundle just to fetch one
-      // number — it loads in parallel, after the initial render is unblocked.
+    async function fetchStats() {
       const { supabase } = await import("../../lib/supabase");
 
-      const { count, error } = await supabase
-        .from("questions")
-        .select("id", { count: "exact", head: true });
+      const [countRes, minYearRes, maxYearRes] = await Promise.all([
+        supabase.from("questions").select("id", { count: "exact", head: true }),
+        supabase.from("questions").select("year").not("year", "is", null).order("year", { ascending: true }).limit(1),
+        supabase.from("questions").select("year").not("year", "is", null).order("year", { ascending: false }).limit(1),
+      ]);
 
-      if (!cancelled && !error && typeof count === "number") {
-        setQuestionCount(count);
+      if (cancelled) return;
+
+      if (!countRes.error && typeof countRes.count === "number") {
+        const controls = animate(FALLBACK_QUESTION_COUNT, countRes.count, {
+          duration: 0.9,
+          ease: "easeOut",
+          onUpdate: (latest) => {
+            if (!cancelled) setDisplayCount(Math.round(latest));
+          },
+        });
+        stopAnimation = controls.stop;
       }
-      // On error, questionCount just stays at FALLBACK_QUESTION_COUNT — no visible failure.
+
+      const minYear = minYearRes.data?.[0]?.year;
+      const maxYear = maxYearRes.data?.[0]?.year;
+
+      if (minYear && maxYear) {
+        const min = parseInt(String(minYear), 10);
+        const max = parseInt(String(maxYear), 10);
+        if (!isNaN(min) && !isNaN(max)) {
+          setYearRange(min === max ? `${min}` : `${min}–${max}`);
+        }
+      }
+
+      setIsCountLoading(false);
     }
 
-    fetchCount();
+    fetchStats();
     return () => {
       cancelled = true;
+      stopAnimation?.();
     };
   }, []);
 
-  const formattedCount = questionCount.toLocaleString();
+  const formattedCount = displayCount.toLocaleString();
 
   const stats = [
-    { value: `${formattedCount}+`, label: "Questions from 1990–2024" },
+    {
+      value: `${formattedCount}+`,
+      label: `Questions from ${yearRange}`,
+      animated: true,
+    },
     { value: "180", label: "Questions per mock, real UTME timing" },
     { value: "4", label: "Subjects tracked per student" },
   ];
@@ -121,9 +131,27 @@ const Hero: React.FC = () => {
                 key={s.label}
                 className="bg-bgSurface/60 rounded-3xl p-4 text-center shadow-[0_18px_40px_rgba(0,0,0,0.12)]"
               >
-                <div className="font-display text-textMain text-2xl font-extrabold">
-                  {s.value}
-                </div>
+                {s.animated ? (
+                  <motion.div
+                    className="font-display text-textMain text-2xl font-extrabold tabular-nums"
+                    animate={
+                      isCountLoading
+                        ? { opacity: [0.55, 1, 0.55] }
+                        : { opacity: 1 }
+                    }
+                    transition={
+                      isCountLoading
+                        ? { duration: 1.1, repeat: Infinity, ease: "easeInOut" }
+                        : { duration: 0.3 }
+                    }
+                  >
+                    {s.value}
+                  </motion.div>
+                ) : (
+                  <div className="font-display text-textMain text-2xl font-extrabold">
+                    {s.value}
+                  </div>
+                )}
                 <div className="text-textMuted mt-2 text-xs leading-snug">
                   {s.label}
                 </div>
@@ -147,8 +175,6 @@ const Hero: React.FC = () => {
           </div>
           <div className="relative aspect-video">
             {showVideo ? (
-              // Only mounted — and only then does the browser fetch anything —
-              // once the user has actually asked to see it.
               <video
                 className="h-full w-full object-contain"
                 poster={heroPoster}
