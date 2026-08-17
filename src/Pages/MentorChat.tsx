@@ -290,7 +290,7 @@ Student profile:
         canonical="https://www.schooldra.com/mentor"
       />
       <div
-        className="-mx-4 -mt-4 flex gap-3 overflow-hidden px-4 pt-4 lg:-mx-7 lg:-mt-7 lg:px-7 lg:pt-7"
+        className="-mx-4 -mt-4 flex gap-3 overflow-hidden  pt-4 lg:-mx-7 lg:-mt-7 lg:px-7 lg:pt-7"
         style={{ height: "calc(100vh - 56px - 1.75rem)" }}
       >
         {/* ── Left: Context panel (desktop only) ─────────────────── */}

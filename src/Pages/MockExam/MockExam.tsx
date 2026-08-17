@@ -687,7 +687,7 @@ const MockExam: React.FC = () => {
             )}
           </div>
         </div>
-        <div className="mx-auto max-w-4xl px-4 pb-8">
+        <div className="mx-auto max-w-4xl  pb-8">
           <MockHistory />
         </div>
       </AppLayout>

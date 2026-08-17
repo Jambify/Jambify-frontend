@@ -191,7 +191,7 @@ const Performance: React.FC = () => {
         }
       `}</style>
 
-      <div className="animate-fadeIn mx-auto max-w-350 space-y-6 px-2 lg:px-4">
+      <div className="animate-fadeIn mx-auto max-w-350 space-y-6">
         {error && hasData && (
           <div className="bg-warning/10 border-warning/30 flex flex-col gap-3 rounded-xl border p-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
