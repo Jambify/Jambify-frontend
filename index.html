@@ -51,13 +51,20 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
       rel="preload"
       as="style"
       href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap"
-      onload="this.rel='stylesheet'"
+      onload="this.rel = 'stylesheet'"
     />
     <noscript>
-      <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+      <link
+        href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet"
+      />
     </noscript>
     <script>
       (function () {
@@ -81,32 +88,32 @@
 
     <!-- Structured Data: Schema.org -->
     <!-- Structured Data: Schema.org -->
-<script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "EducationalOrganization",
-    "name": "SCHOOLDRA",
-    "url": "https://www.schooldra.com",
-    "logo": "https://www.schooldra.com/SCHOOLDRA.LOGO.webp",
-    "description": "Prepare for JAMB UTME with SCHOOLDRA - past questions, mock exams, AI tutoring, and performance tracking tailored for Nigerian students",
-    "sameAs": [
-      "https://www.instagram.com/shreda_shadrach",
-      "https://x.com/sha_dra_ch"
-    ],
-    "contactPoint": {
-      "@type": "ContactPoint",
-      "contactType": "Customer Support",
-      "email": "support@schooldra.com"
-    },
-    "address": {
-      "@type": "PostalAddress",
-      "addressCountry": "NG",
-      "addressRegion": "NG"
-    },
-    "areaServed": "NG",
-    "numberOfEmployees": "1-50"
-  }
-</script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "EducationalOrganization",
+        "name": "SCHOOLDRA",
+        "url": "https://www.schooldra.com",
+        "logo": "https://www.schooldra.com/SCHOOLDRA.LOGO.webp",
+        "description": "Prepare for JAMB UTME with SCHOOLDRA - past questions, mock exams, AI tutoring, and performance tracking tailored for Nigerian students",
+        "sameAs": [
+          "https://www.instagram.com/shreda_shadrach",
+          "https://x.com/sha_dra_ch"
+        ],
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "contactType": "Customer Support",
+          "email": "support@schooldra.com"
+        },
+        "address": {
+          "@type": "PostalAddress",
+          "addressCountry": "NG",
+          "addressRegion": "NG"
+        },
+        "areaServed": "NG",
+        "numberOfEmployees": "1-50"
+      }
+    </script>
 
     <!-- Structured Data: WebSite with SearchAction -->
     <script type="application/ld+json">
@@ -128,11 +135,11 @@
     <script type="module" src="/src/main.tsx"></script>
 
     <script>
-  try {
-    const saved = localStorage.getItem("schooldra-theme");
-    const theme = saved || "dark";
-    document.documentElement.setAttribute("data-theme", theme);
-  } catch (e) {}
-</script>
+      try {
+        const saved = localStorage.getItem("schooldra-theme");
+        const theme = saved || "dark";
+        document.documentElement.setAttribute("data-theme", theme);
+      } catch (e) {}
+    </script>
   </body>
 </html>
