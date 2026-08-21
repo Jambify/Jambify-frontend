@@ -8,6 +8,8 @@
     "build": "vite build && npx playwright install chromium && node scripts/prerender.mjs && node scripts/generate-sitemap.mjs",
     "preview": "vite preview",
     "prerender": "node scripts/prerender.mjs",
+    "optimize:images": "node scripts/optimize-images.js",
+    "analyze": "cross-env ANALYZE=true vite build",
     "format": "prettier --write ."
   },
   "overrides": {
@@ -47,6 +49,8 @@
     "playwright": "^1.62.0",
     "prettier": "^3.0.0",
     "prettier-plugin-tailwindcss": "^0.6.0",
+    "rollup-plugin-visualizer": "^5.14.0",
+    "sharp": "^0.34.3",
     "terser": "^5.49.0",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.65.0",

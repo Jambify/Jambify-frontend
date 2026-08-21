@@ -1,10 +1,19 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
+import { visualizer } from "rollup-plugin-visualizer";
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [
+    react(),
+    tailwindcss(),
+    visualizer({
+      filename: "dist/stats.html",
+      gzipSize: true,
+      open: process.env.ANALYZE === "true",
+    }),
+  ],
   base: "/", // Use absolute paths for assets
   build: {
     outDir: "dist",
@@ -15,10 +24,18 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (id.includes("node_modules")) {
-            // Split heavy libraries into their own chunks
             if (id.includes("framer-motion")) return "animation-vendor";
             if (id.includes("@supabase")) return "supabase-vendor";
-            
+            if (id.includes("katex")) return "katex-vendor";
+            if (
+              id.includes("react-dom") ||
+              id.includes("react-router") ||
+              id.includes("/react/")
+            ) {
+              return "vendor-react";
+            }
+            if (id.includes("lucide-react")) return "vendor-ui";
+
             // Catch-all for other dependencies
             return "vendor";
           }

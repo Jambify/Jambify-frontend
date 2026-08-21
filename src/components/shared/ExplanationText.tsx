@@ -5,23 +5,10 @@
 // back to plain text for explanations with no LaTeX at all — cheap
 // early exit so the ~600+ explanations WITHOUT LaTeX pay zero cost.
 //
-// SETUP REQUIRED (one-time):
-//   1. npm install katex
-//   2. Add this import once near the top of your app entry (e.g.
-//      src/main.tsx), not per-component:
-//        import "katex/dist/katex.min.css";
+// KaTeX CSS is loaded via src/lib/katex-styles.ts (pulled in here and
+// in renderQuestionText.tsx) so landing/auth routes skip that CSS on FCP.
 //
-// SCOPE: this is separate from formatScienceText.ts / renderQuestionText.tsx
-// (which handle Unicode subscripts/arrows in `text`/`options`). This
-// component is specifically for `explanation`, which contains real LaTeX
-// syntax rather than plain-text formulas.
-//
-// Security note: KaTeX is configured with trust: false, which disables
-// LaTeX commands capable of embedding arbitrary HTML/URLs (\href, \url,
-// \includegraphics, etc. are stripped/ignored) — this is KaTeX's own
-// built-in guard against untrusted input. Used here instead of a
-// DOMPurify pass, since KaTeX's rendered output is dense with span/svg
-// markup that a generic HTML allowlist would otherwise strip apart.
+import "../../lib/katex-styles";
 
 import React from "react";
 import katex from "katex";

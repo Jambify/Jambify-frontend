@@ -200,16 +200,24 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           "flex flex-col transition-transform duration-300 ease-in-out",
           isOpen ? "translate-x-0" : "-translate-x-full",
         )}
+        aria-label="Main navigation sidebar"
       >
         {/* Logo */}
         <div className="border-borderMuted flex items-center justify-between border-b px-5 py-5">
-          <div className="flex items-center gap-1">
-            <img src={schooldraLogo} alt="Schooldra Logo" className="h-8 w-8" />
+          <a href="/dashboard" aria-label="Schooldra Home" className="flex items-center gap-1">
+            <img
+              src={schooldraLogo}
+              alt="Schooldra Logo"
+              className="h-8 w-8"
+              width={32}
+              height={32}
+              loading="eager"
+            />
 
             <span className="text-brand-light text-lg font-black tracking-wider">
               Schooldra
             </span>
-          </div>
+          </a>
           {isPro && (
             <div className="bg-brand/10 text-brand border-brand/20 rounded border px-2 py-1 text-[10px] font-black tracking-widest uppercase">
               Pro
@@ -218,9 +226,22 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 space-y-6 overflow-y-auto px-3 py-4">
-          <NavSection label="Main" items={MAIN_NAV} onNavigate={onClose} />
-          <NavSection label="Study" items={STUDY_NAV} onNavigate={onClose} />
+        <nav
+          className="flex-1 space-y-6 overflow-y-auto px-3 py-4"
+          aria-label="Main navigation"
+        >
+          <NavSection
+            label="Main"
+            labelId="main-nav-label"
+            items={MAIN_NAV}
+            onNavigate={onClose}
+          />
+          <NavSection
+            label="Study"
+            labelId="study-nav-label"
+            items={STUDY_NAV}
+            onNavigate={onClose}
+          />
 
           {/* Help & Support */}
           <div className="border-borderMuted/30 mt-4 border-t pt-4">
@@ -330,13 +351,17 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 /** Reusable nav section with label + items */
 const NavSection: React.FC<{
   label: string;
+  labelId: string;
   items: NavItem[];
   onNavigate: () => void;
-}> = ({ label, items, onNavigate }) => (
-  <div>
-    <p className="text-textDim mb-1.5 px-3 text-[10px] font-medium tracking-widest uppercase">
+}> = ({ label, labelId, items, onNavigate }) => (
+  <section aria-labelledby={labelId}>
+    <h2
+      id={labelId}
+      className="text-textDim mb-1.5 px-3 text-[10px] font-medium tracking-widest uppercase"
+    >
       {label}
-    </p>
+    </h2>
     {items.map((item) => (
       <NavLink
         key={item.path}
@@ -361,7 +386,7 @@ const NavSection: React.FC<{
         )}
       </NavLink>
     ))}
-  </div>
+  </section>
 );
 
 export default Sidebar;

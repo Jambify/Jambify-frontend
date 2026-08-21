@@ -49,7 +49,35 @@ const PageHelmet: React.FC<PageHelmetProps> = ({
   children,
 }) => {
   const resolvedImage = ogImage || DEFAULT_OG_IMAGE;
-  
+  const resolvedUrl = canonical || "https://www.schooldra.com";
+
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "EducationalOrganization",
+    additionalType: "https://schema.org/WebApplication",
+    name: SITE_NAME,
+    url: resolvedUrl,
+    logo: DEFAULT_OG_IMAGE,
+    image: resolvedImage,
+    description,
+    sameAs: [
+      "https://www.instagram.com/shreda_shadrach",
+      "https://x.com/sha_dra_ch",
+    ],
+    potentialAction: {
+      "@type": "JoinAction",
+      target: "https://www.schooldra.com/signup",
+    },
+    creator: {
+      "@type": "Person",
+      name: "Shadrach",
+    },
+    audience: {
+      "@type": "EducationalAudience",
+      educationalRole: "student",
+      audienceType: "Secondary School Students",
+    },
+  };
 
   return (
     <Helmet>
@@ -76,6 +104,10 @@ const PageHelmet: React.FC<PageHelmetProps> = ({
       <meta name="twitter:description" content={ogDescription || description} />
       <meta name="twitter:image" content={resolvedImage} />
       <meta property="twitter:creator" content={TWITTER_HANDLE} />
+
+      <script type="application/ld+json">
+        {JSON.stringify(structuredData)}
+      </script>
 
       {children}
     </Helmet>

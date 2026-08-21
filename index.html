@@ -41,28 +41,18 @@
     <meta name="theme-color" content="#7c3cff" />
     <meta name="background_color" content="#090a16" />
 
-    <!-- Google Fonts: load here so they are available before first paint.
-         Must match exactly what index.css's theme tokens reference
-         (--font-display / --font-body / --font-mono) — Manrope + DM Mono.
-         Previously this loaded Syne + DM Sans + DM Mono instead, which
-         downloaded two unused font families and never loaded Manrope at
-         all (Manrope was only being pulled in via a separate @import in
-         index.css, which has since been removed to fix render-blocking). -->
+    <!-- Google Fonts — non-blocking: matches index.css (--font-display / --font-body / --font-mono) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap"
-      rel="stylesheet"
-    />
-    <link
       rel="preload"
       as="style"
-      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap"
-      onload="this.rel = 'stylesheet'"
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap"
+      onload="this.onload=null;this.rel='stylesheet'"
     />
     <noscript>
       <link
-        href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap"
         rel="stylesheet"
       />
     </noscript>
@@ -86,20 +76,35 @@
       })();
     </script>
 
-    <!-- Structured Data: Schema.org -->
-    <!-- Structured Data: Schema.org -->
+    <!-- Structured Data: EducationalPlatform (agentic browsing + SEO) -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
         "@type": "EducationalOrganization",
+        "additionalType": "https://schema.org/WebApplication",
         "name": "SCHOOLDRA",
+        "alternateName": "Schooldra",
         "url": "https://www.schooldra.com",
         "logo": "https://www.schooldra.com/SCHOOLDRA.LOGO.webp",
-        "description": "Prepare for JAMB UTME with SCHOOLDRA - past questions, mock exams, AI tutoring, and performance tracking tailored for Nigerian students",
+        "image": "https://www.schooldra.com/SCHOOLDRA.LOGO.webp",
+        "description": "AI-powered JAMB/UTME exam preparation platform for Nigerian secondary students — past questions, mock exams, AI tutoring, and performance tracking",
         "sameAs": [
           "https://www.instagram.com/shreda_shadrach",
           "https://x.com/sha_dra_ch"
         ],
+        "potentialAction": {
+          "@type": "JoinAction",
+          "target": "https://www.schooldra.com/signup"
+        },
+        "creator": {
+          "@type": "Person",
+          "name": "Shadrach"
+        },
+        "audience": {
+          "@type": "EducationalAudience",
+          "educationalRole": "student",
+          "audienceType": "Secondary School Students"
+        },
         "contactPoint": {
           "@type": "ContactPoint",
           "contactType": "Customer Support",
@@ -107,11 +112,9 @@
         },
         "address": {
           "@type": "PostalAddress",
-          "addressCountry": "NG",
-          "addressRegion": "NG"
+          "addressCountry": "NG"
         },
-        "areaServed": "NG",
-        "numberOfEmployees": "1-50"
+        "areaServed": "NG"
       }
     </script>
 

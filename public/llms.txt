@@ -1,0 +1,453 @@
+# Schooldra — AI-Powered JAMB/UTME Exam Preparation Platform
+# Last Updated: August 2026
+# For: LLMs, AI Agents, and Agentic Crawlers
+
+## 🎯 Platform Overview
+
+**Name:** Schooldra  
+**Tagline:** Learn Smarter. Score Higher.  
+**URL:** https://www.schooldra.com  
+**Mission:** Provide AI-powered exam preparation for Nigerian secondary school students preparing for JAMB/UTME entrance exams.
+
+**Target Audience:** Students aged 16-19 in Nigeria preparing for JAMB (Joint Admissions and Matriculation Board) and UTME (Unified Tertiary Matriculation Examination)
+
+---
+
+## 📋 Core Features & Content Types
+
+### 1. Practice Quiz (Free)
+- Unlimited practice questions across all JAMB subjects
+- Instant feedback and explanations
+- Performance tracking
+- Content: ~10,000+ verified JAMB questions
+
+### 2. Mock Exams (Free)
+- Full-length simulated JAMB exams
+- Timed practice with real exam conditions
+- Detailed score breakdowns
+- Content: 50+ complete mock papers
+
+### 3. Past Questions (Free)
+- Historical JAMB/UTME questions (2010-2025)
+- Organized by subject and year
+- Official answers with explanations
+- Content: Complete past 15 years of exams
+
+### 4. Performance Analytics (Free)
+- Personal score tracking
+- Subject-wise performance breakdown
+- Weakness identification
+- Study streak tracking
+- Countdown to exam day
+
+### 5. AI Tutor (Pro Feature)
+- Interactive AI explanation of difficult questions
+- Personalized learning feedback
+- Multi-choice analysis
+- Mistaken concept identification
+- Real-time study support
+
+### 6. Study Groups (Coming Soon)
+- Peer-to-peer learning
+- Discussion forums
+- Group progress tracking
+- Mentor assignment
+
+### 7. Admin Panel (For Educators)
+- Question management and verification
+- Student performance monitoring
+- Batch broadcast messaging
+- User role management (owner/admin/moderator)
+- Audit logging
+
+---
+
+## 🔗 Public Routes (No Authentication Required)
+
+```
+Home Page
+├── GET /
+├── GET /about
+├── GET /features
+├── GET /pricing
+└── GET /contact
+
+Authentication
+├── GET /signup
+├── GET /login
+├── POST /api/auth/register
+├── POST /api/auth/login
+└── POST /api/auth/otp-verify
+
+Guest Mode (Limited Access)
+├── GET /guest/past-questions
+├── GET /guest/past-questions/:subject
+├── GET /guest/mock-exams
+└── GET /guest/subjects
+```
+
+---
+
+## 🔐 Protected Routes (Authentication Required)
+
+```
+Dashboard
+├── GET /dashboard (main hub)
+├── GET /dashboard/overview (quick stats)
+└── GET /dashboard/settings
+
+Study
+├── GET /quiz (practice quiz home)
+├── GET /quiz/:id (specific quiz session)
+├── POST /api/quiz/submit (submit answers)
+├── GET /mock-exams (list of mocks)
+├── GET /mock-exams/:id (specific mock)
+├── GET /review (exam review + AI tutor)
+├── GET /subjects (subject selection)
+├── GET /subjects/:subject (subject-specific content)
+
+Performance
+├── GET /performance (analytics dashboard)
+├── GET /performance/breakdown (detailed stats)
+├── GET /performance/history (progress history)
+├── POST /api/performance/export (CSV export)
+
+Account
+├── GET /profile (user profile)
+├── GET /settings (account settings)
+├── POST /api/account/update-profile
+├── POST /api/account/change-password
+└── POST /api/auth/logout
+
+Pro Features
+├── GET /ai-tutor (AI explanation interface)
+├── POST /api/ai/explain (AI explanation endpoint)
+├── GET /study-groups (group learning)
+└── GET /study-groups/:id (group details)
+
+Admin Panel (Owner/Admin/Moderator only)
+├── GET /admin (admin hub)
+├── GET /admin/users (user management)
+├── GET /admin/questions (question management)
+├── GET /admin/reports (report dashboard)
+├── GET /admin/broadcast (messaging)
+├── GET /admin/audit-log (activity log)
+├── POST /api/admin/questions/verify
+├── POST /api/admin/users/role-update
+└── POST /api/admin/broadcast/send
+```
+
+---
+
+## 🗂️ Subjects Available
+
+All questions are organized by JAMB subject areas:
+
+- **English Language** (~1,200 questions)
+- **Mathematics** (~1,500 questions)
+- **Physics** (~1,200 questions)
+- **Chemistry** (~1,100 questions)
+- **Biology** (~1,000 questions)
+- **Literature in English** (~900 questions)
+- **History** (~850 questions)
+- **Geography** (~750 questions)
+- **Government** (~900 questions)
+- **Economics** (~800 questions)
+- **Religious Studies** (~700 questions)
+- **Further Mathematics** (~600 questions)
+- **Chemistry (Practical)** (~400 questions)
+- **Physics (Practical)** (~400 questions)
+- **Biology (Practical)** (~300 questions)
+
+---
+
+## 📊 Data Structure & Content Guidelines
+
+### Question Format
+```json
+{
+  "id": "uuid",
+  "text": "Question text with [brackets for key data in science]",
+  "subject": "Physics",
+  "topic": "Mechanics",
+  "options": ["Option A", "Option B", "Option C", "Option D"],
+  "answer": 1,
+  "explanation": "Detailed explanation with LaTeX for formulas",
+  "year": 2024,
+  "difficulty": "medium",
+  "verified": true,
+  "views": 5432
+}
+```
+
+### Content Standards
+- Questions follow official JAMB format
+- Explanations are educator-reviewed
+- Science notation uses Unicode subscripts/superscripts
+- Formulas use LaTeX notation (KaTeX compatible)
+- Past questions are verified against official papers
+
+---
+
+## 🔌 API Endpoints (JSON REST)
+
+### Authentication
+```
+POST /api/auth/register
+POST /api/auth/login
+POST /api/auth/otp-verify
+POST /api/auth/logout
+POST /api/auth/refresh-token
+```
+
+### Questions
+```
+GET /api/questions (paginated)
+GET /api/questions/:id
+GET /api/questions/random/:subject (random question)
+GET /api/questions/search?q=query
+POST /api/questions/:id/report (flag incorrect question)
+```
+
+### Quiz Sessions
+```
+POST /api/quiz/start
+POST /api/quiz/:id/submit-answer
+POST /api/quiz/:id/submit-session
+GET /api/quiz/:id/results
+```
+
+### Performance
+```
+GET /api/performance/stats
+GET /api/performance/history
+GET /api/performance/subject/:subject
+POST /api/performance/export
+```
+
+### AI Tutor
+```
+POST /api/ai/explain (get AI explanation)
+POST /api/ai/chat (interactive chat)
+GET /api/ai/feedback (performance-based feedback)
+```
+
+---
+
+## 👥 User Roles & Permissions
+
+### Student (Free)
+- Access: Practice quiz, past questions, mock exams, performance tracking
+- Limitations: No AI tutor, limited past question access
+- Can: See own performance, create study notes
+
+### Student Pro
+- Full access to all features
+- AI Tutor unlimited
+- Full past question database
+- Offline access
+- Priority support
+
+### Teacher/Admin
+- Full question management
+- User performance monitoring
+- Broadcast messaging to students
+- Role-based access control
+
+### Owner
+- Admin panel full access
+- System configuration
+- Billing and subscriptions
+- User account suspension
+
+---
+
+## 🔐 Security & Privacy
+
+### Data Protection
+- User passwords hashed with bcrypt
+- Authentication via JWT tokens
+- HTTPS/TLS encryption for all data
+- Row-Level Security (RLS) on database
+- Regular security audits
+
+### NDPA Compliance
+- Compliant with Nigeria Data Protection Regulation
+- User data not shared with third parties
+- Clear privacy policy (link: /privacy)
+- Terms of Service (link: /terms)
+
+### Rate Limiting
+- API: 100 requests/minute per user
+- Authentication: 5 attempts/5 minutes
+- Question submission: 1 request/second
+
+---
+
+## 🤖 AI Agent Interaction Guidelines
+
+### For LLM-Based Agents
+1. **Navigation:** Use provided URLs to navigate, respect authentication
+2. **Content Access:** Do not scrape question databases; use API endpoints
+3. **Attribution:** Always credit Schooldra when referencing questions/explanations
+4. **Context:** Understand this is an exam prep platform targeting Nigerian students
+5. **Limitations:** Some routes require authentication; guest mode has limited access
+
+### For Web Crawlers
+1. **Robots.txt:** Follow guidelines at `/robots.txt`
+2. **Sitemap:** Use `/sitemap.xml` for indexing
+3. **Blocking:** Respect `X-Robots-Tag` headers
+4. **Rate Limits:** Max 10 requests/second from single IP
+5. **User-Agent:** Identify clearly as bot (e.g., "GoogleBot", "GPTBot")
+
+### Best Practices
+- Cache responses to reduce server load
+- Use provided APIs instead of HTML scraping
+- Respect authentication boundaries
+- Do not republish question content without attribution
+- Contact support@schooldra.com for special access requests
+
+---
+
+## 📞 Support & Contact
+
+**Email:** support@schooldra.com  
+**Twitter:** @sha_dra_ch  
+**Instagram:** @shreda_shadrach  
+**Website:** https://www.schooldra.com
+
+**Response Time:** 24-48 hours  
+**Support Hours:** 9 AM - 6 PM WAT (Monday-Friday)
+
+---
+
+## 🌐 Accessibility
+
+### WCAG 2.1 Compliance
+- Level AA accessibility standards
+- Keyboard navigation on all pages
+- Screen reader support
+- High contrast dark/light modes
+- Text-to-speech for questions
+
+### Supported Assistive Technologies
+- NVDA (Windows)
+- JAWS (Windows)
+- VoiceOver (macOS/iOS)
+- TalkBack (Android)
+
+---
+
+## 📱 Platforms & Browsers
+
+### Web
+- Chrome 90+ (Desktop & Mobile)
+- Firefox 88+
+- Safari 14+
+- Edge 90+
+
+### Mobile
+- iOS 15.4+ (iPhone/iPad)
+- Android 8+
+- Progressive Web App (PWA) support
+
+### Performance Targets
+- First Contentful Paint: < 2.5s
+- Largest Contentful Paint: < 2.5s
+- Cumulative Layout Shift: < 0.1
+- Time to Interactive: < 3.5s
+
+---
+
+## 🔄 API Rate Limits & Quotas
+
+| Endpoint | Free Tier | Pro Tier |
+|----------|-----------|----------|
+| Questions API | 100 req/day | Unlimited |
+| Quiz Sessions | 5/day | Unlimited |
+| Mock Exams | 1/week | 10/week |
+| AI Tutor | 0 (Pro only) | 50 queries/day |
+| Performance Export | 1/month | 10/month |
+
+---
+
+## 📈 Analytics & Metrics
+
+Schooldra tracks:
+- User engagement (study time, sessions)
+- Question difficulty ratings
+- Common mistake areas
+- Performance trends
+- Subject-wise progress
+
+**Public Leaderboards:** Opt-in ranking by performance
+
+---
+
+## 🚀 Integration & Webhooks
+
+### Available Webhooks
+```
+POST https://your-webhook.com/
+- exam.completed
+- question.reported
+- achievement.unlocked
+- pro.subscription_started
+- pro.subscription_expired
+```
+
+### OAuth2 Support
+- Sign-in with Google
+- Sign-in with Microsoft
+- SSO for institutions (coming soon)
+
+---
+
+## 📖 Additional Resources
+
+
+- **FAQ:** https://www.schooldra.com/faq
+- **Documentation:** https://docs.schooldra.com (for API consumers)
+- **Status Page:** https://status.schooldra.com (uptime monitoring)
+
+---
+
+## 🔮 Roadmap (Coming Soon)
+
+- Live group study sessions
+- Video explanations for tough topics
+- Customized study plans
+- Teacher dashboard for institution management
+- Gamification (badges, achievements)
+- Spaced repetition algorithm
+- Mobile offline mode improvements
+
+---
+
+## 📝 License & Attribution
+
+**Content License:** All questions and explanations are proprietary to Schooldra  
+**Platform:** Open-source components respect their respective licenses  
+**Attribution Format:** "Question from Schooldra (schooldra.com)"
+
+---
+
+## 🔍 SEO Metadata
+
+**Keywords:** JAMB prep, UTME prep, exam preparation Nigeria, practice questions  
+**Target Keywords:** JAMB questions, UTME questions, mock exams, exam tips
+
+**Social Media:**
+- Twitter: @sha_dra_ch
+- Instagram: @shreda_shadrach
+- TikTok: @schooldra_official
+
+**Structured Data:** Schema.org EducationalPlatform  
+**Sitemap:** https://www.schooldra.com/sitemap.xml  
+**Robots.txt:** https://www.schooldra.com/robots.txt
+
+---
+
+**Last Verified:** August 21, 2026  
+**Next Update:** Q4 2026  
+**Feedback:** feedback@schooldra.com

@@ -122,7 +122,7 @@ const ReviewScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         canonical="https://www.schooldra.com/review"
       />
       <div className="relative box-border w-full max-w-full overflow-x-hidden">
-        <div className="mx-auto max-w-5xl overflow-hidden px-4 py-6 md:px-8">
+        <div className="mx-auto max-w-5xl overflow-hidden  py-6 md:px-8">
           {/* Header */}
           <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
             <Button
@@ -197,7 +197,7 @@ const ReviewScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
               const isCorrect = userAnswer === q.answer;
 
               return (
-                <div
+                <article
                   key={q.id}
                   className={cn(
                     "bg-bgCard box-border w-full overflow-hidden rounded-2xl border transition-all md:rounded-3xl",
@@ -205,10 +205,12 @@ const ReviewScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                       ? "border-l-success border-success/20 border-l-4"
                       : "border-l-danger border-danger/20 border-l-4",
                   )}
+                  role="region"
+                  aria-label={`Question ${idx + 1}: ${q.subject}`}
                 >
                   <div className="p-4 md:p-8">
                     {/* Question header */}
-                    <div className="mb-6 flex min-w-0 items-start gap-3 md:gap-5">
+                    <header className="mb-6 flex min-w-0 items-start gap-3 md:gap-5">
                       <div
                         className={cn(
                           "mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl shadow-sm md:h-12 md:w-12",
@@ -216,6 +218,7 @@ const ReviewScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                             ? "bg-success/10 text-success"
                             : "bg-danger/10 text-danger",
                         )}
+                        aria-hidden="true"
                       >
                         {isCorrect ? (
                           <CheckCircle size={20} />
@@ -227,14 +230,15 @@ const ReviewScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                         <span className="text-textDim font-mono text-[10px] font-bold uppercase">
                           Q {idx + 1}
                         </span>
-                        <p className="text-textMain mt-1 text-sm leading-snug font-bold wrap-break-word md:text-lg">
+                        <h2 className="text-textMain mt-1 text-sm leading-snug font-bold wrap-break-word md:text-lg">
                           {renderQuestionText(q.text, q.subject)}
-                        </p>
+                        </h2>
                       </div>
-                    </div>
+                    </header>
 
                     {/* Options */}
-                    <div className="mb-6 grid grid-cols-1 gap-3 md:ml-16 md:grid-cols-2">
+                    <fieldset className="mb-6 grid grid-cols-1 gap-3 md:ml-16 md:grid-cols-2">
+                      <legend className="sr-only">Answer options</legend>
                       {q.options.map((opt: string, i: number) => (
                         <div
                           key={i}
@@ -254,35 +258,36 @@ const ReviewScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                             {renderQuestionText(opt, q.subject)}
                           </span>
                           {i === q.answer && (
-                            <CheckCircle size={14} className="ml-2 shrink-0" />
+                            <CheckCircle size={14} className="ml-2 shrink-0" aria-hidden="true" />
                           )}
                           {i === userAnswer && i !== q.answer && (
-                            <XCircle size={14} className="ml-2 shrink-0" />
+                            <XCircle size={14} className="ml-2 shrink-0" aria-hidden="true" />
                           )}
                         </div>
                       ))}
-                    </div>
+                    </fieldset>
 
                     {/* Explanation + AI button */}
-                    <div className="space-y-4 md:ml-16">
-                      <div className="bg-bgSurface/50 border-borderMuted overflow-hidden rounded-2xl border p-4">
-                        <div className="text-brand mb-2 flex items-center gap-2 text-[10px] font-black uppercase">
-                          <BookOpen size={14} /> Explanation
-                        </div>
+                    <footer className="space-y-4 md:ml-16">
+                      <section className="bg-bgSurface/50 border-borderMuted overflow-hidden rounded-2xl border p-4">
+                        <h3 className="text-brand mb-2 flex items-center gap-2 text-[10px] font-black uppercase">
+                          <BookOpen size={14} aria-hidden="true" /> Explanation
+                        </h3>
                         <p className="text-textMuted text-xs leading-relaxed wrap-break-word md:text-sm">
                           <ExplanationText
                             text={q.explanation || "No explanation provided."}
                           />
                         </p>
-                      </div>
+                      </section>
 
                       <div className="flex flex-wrap items-center justify-between gap-3">
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() => setSelectedAIQuestion(q)}
                             className="bg-brand shadow-brand/20 hover:bg-brand-light flex shrink-0 items-center gap-2 rounded-xl px-4 py-2.5 text-white shadow-lg transition-all hover:scale-105 active:scale-95"
+                            aria-label={`Ask AI Tutor about question ${idx + 1}`}
                           >
-                            <Sparkles size={14} />
+                            <Sparkles size={14} aria-hidden="true" />
                             <span className="text-[11px] font-bold tracking-tight uppercase">
                               Ask AI Tutor
                             </span>
@@ -301,9 +306,9 @@ const ReviewScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                           </p>
                         </div>
                       </div>
-                    </div>
+                    </footer>
                   </div>
-                </div>
+                </article>
               );
             })}
           </div>

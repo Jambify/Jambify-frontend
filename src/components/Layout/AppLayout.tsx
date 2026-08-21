@@ -70,7 +70,7 @@ const NavItem = ({ label, active, badge, icon, path }: any) => {
       to={path}
       className={`rounded-brand group mb-0.5 flex cursor-pointer items-center gap-3 p-2.5 text-[13.5px] transition-all ${
         active
-          ? "bg-brand/15 text-brand-light font-semibold shadow-[0_8px_24px_rgba(124,60,255,0.12)]"
+          ? "bg-brand/15 text-brand-light font-semibold shadow-[0_8px_24px_rgba(0,102,255,0.12)]"
           : "text-textMuted hover:bg-bgCard hover:text-textMain"
       }`}
     >
@@ -80,7 +80,7 @@ const NavItem = ({ label, active, badge, icon, path }: any) => {
       />
       <span className="flex-1">{label}</span>
       {badge && (
-        <span className="bg-brand min-w-4.5 rounded-full px-1.5 py-0.5 text-center text-[10px] font-bold text-white shadow-[0_8px_24px_rgba(124,60,255,0.15)]">
+        <span className="bg-brand min-w-4.5 rounded-full px-1.5 py-0.5 text-center text-[10px] font-bold text-white shadow-[0_8px_24px_rgba(0,102,255,0.15)]">
           {badge}
         </span>
       )}
@@ -109,28 +109,55 @@ const AppLayout: React.FC<LayoutProps> = ({
   const [pullDistance, setPullDistance] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const touchStartRef = useRef(0);
+  const touchStartXRef = useRef(0); // Track horizontal movement to prevent false triggers
+  const isDrawerOpenRef = useRef(false); // Detect if drawer is open (disable pull-to-refresh)
 
   const displayName = name || "Guest User";
   const initials = getInitials(displayName);
   const pageTitle = formatPageTitle(currentPage);
 
   const handleTouchStart = (e: React.TouchEvent) => {
+    // Don't trigger if at the top but haven't actually started vertical scroll yet
+    // or if drawer is open (z-50 overlay)
+    if (isDrawerOpenRef.current) {
+      touchStartRef.current = 0;
+      return;
+    }
+
     if (window.scrollY === 0 && !isRefreshing) {
       touchStartRef.current = e.touches[0].clientY;
+      touchStartXRef.current = e.touches[0].clientX;
     } else {
       touchStartRef.current = 0;
+      touchStartXRef.current = 0;
     }
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!touchStartRef.current || isRefreshing) return;
-    const currentY = e.touches[0].clientY;
-    const distance = currentY - touchStartRef.current;
 
-    if (distance > 0 && window.scrollY === 0) {
-      // Resistance curve calculation like IG/X
-      const pull = Math.min(distance * 0.45, PULL_THRESHOLD + 20);
+    const currentY = e.touches[0].clientY;
+    const currentX = e.touches[0].clientX;
+    const distanceY = currentY - touchStartRef.current;
+    const distanceX = Math.abs(currentX - touchStartXRef.current);
+
+    // Only trigger if:
+    // 1. User is pulling DOWN (distanceY > 0)
+    // 2. Vertical movement is more than horizontal (prevent horizontal swipe confusion)
+    // 3. At top of page (scrollY === 0)
+    if (
+      distanceY > 0 &&
+      distanceY > distanceX &&
+      window.scrollY === 0
+    ) {
+      // Resistance curve: make it feel harder to pull
+      const pull = Math.min(distanceY * 0.4, PULL_THRESHOLD + 20);
       setPullDistance(pull);
+    } else {
+      // Reset if user starts dragging horizontally
+      if (distanceX > distanceY) {
+        setPullDistance(0);
+      }
     }
   };
 
@@ -153,9 +180,22 @@ const AppLayout: React.FC<LayoutProps> = ({
 
     setPullDistance(0);
     touchStartRef.current = 0;
+    touchStartXRef.current = 0;
   };
 
   const pullProgress = Math.min(pullDistance / PULL_THRESHOLD, 1);
+
+  // Listen for drawer open/close (check if modal exists in DOM)
+  React.useEffect(() => {
+    const checkDrawerOpen = () => {
+      // Check if there's a drawer/modal overlay with high z-index
+      const drawer = document.querySelector('[style*="z-50"]');
+      isDrawerOpenRef.current = !!drawer && drawer.className.includes('fixed');
+    };
+
+    const interval = setInterval(checkDrawerOpen, 100);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div
@@ -178,7 +218,7 @@ const AppLayout: React.FC<LayoutProps> = ({
             : { duration: 0.1 }
         }
       >
-        <div className="bg-bgSurface border-borderMuted/80 text-brand flex h-10 w-10 items-center justify-center rounded-full border shadow-xl backdrop-blur-md">
+        <div className="bg-bgSurface border-borderMuted/80 text-brand flex h-10 w-10 items-center justify-center rounded-full border shadow-xl">
           {isRefreshing ? (
             <Loader2 className="h-5 w-5 animate-spin" />
           ) : (
@@ -206,7 +246,7 @@ const AppLayout: React.FC<LayoutProps> = ({
             exit={{ y: -50, opacity: 0 }}
             className="pointer-events-none fixed inset-x-0 top-0 z-999 flex justify-center p-4"
           >
-            <div className="network-banner-offline flex items-center gap-3 rounded-full border border-white/20 px-6 py-2.5 shadow-2xl backdrop-blur-md">
+            <div className="network-banner-offline flex items-center gap-3 rounded-full border border-white/20 px-6 py-2.5 shadow-2xl">
               <WifiOff size={18} className="animate-pulse text-white" />
               <span className="text-sm font-bold tracking-tight text-white">
                 You are offline. Some features may be limited.
@@ -221,7 +261,7 @@ const AppLayout: React.FC<LayoutProps> = ({
             exit={{ y: -50, opacity: 0 }}
             className="pointer-events-none fixed inset-x-0 top-0 z-999 flex justify-center p-4"
           >
-            <div className="network-banner-online flex items-center gap-3 rounded-full border border-white/20 px-6 py-2.5 shadow-2xl backdrop-blur-md">
+            <div className="network-banner-online flex items-center gap-3 rounded-full border border-white/20 px-6 py-2.5 shadow-2xl">
               <Wifi size={18} className="text-white" />
               <span className="text-sm font-bold tracking-tight text-white">
                 Back online! Syncing your progress...
@@ -241,9 +281,12 @@ const AppLayout: React.FC<LayoutProps> = ({
 
       {/* DESKTOP SIDEBAR */}
       {!hideSidebar && (
-        <aside className="bg-bgSurface border-borderMuted fixed top-0 bottom-0 left-0 z-100 hidden w-60 flex-col border-r lg:flex">
+        <aside
+          className="bg-bgSurface border-borderMuted fixed top-0 bottom-0 left-0 z-100 hidden w-60 flex-col border-r lg:flex"
+          aria-label="Main navigation sidebar"
+        >
           <div className="border-borderMuted flex items-center justify-between border-b p-6 pb-4">
-            <a href="/dashboard">
+            <a href="/dashboard" aria-label="Schooldra Home">
               <div className="flex cursor-pointer items-center gap-1">
                 <img
                   src={schooldraLogo}
@@ -265,11 +308,14 @@ const AppLayout: React.FC<LayoutProps> = ({
             )}
           </div>
 
-          <nav className="flex-1 space-y-6 overflow-y-auto p-3">
-            <section>
-              <p className="text-textDim mb-2 px-2 text-[10px] font-medium tracking-widest uppercase">
+          <nav className="flex-1 space-y-6 overflow-y-auto p-3" aria-label="Main navigation">
+            <section aria-labelledby="desktop-main-nav">
+              <h2
+                id="desktop-main-nav"
+                className="text-textDim mb-2 px-2 text-[10px] font-medium tracking-widest uppercase"
+              >
                 Main
-              </p>
+              </h2>
               <NavItem
                 label="Dashboard"
                 active={currentPage === "dashboard"}
@@ -291,10 +337,13 @@ const AppLayout: React.FC<LayoutProps> = ({
               <NavItem label="Settings" icon="settings" path="/settings" />
             </section>
 
-            <section>
-              <p className="text-textDim mb-2 px-2 text-[10px] font-medium tracking-widest uppercase">
+            <section aria-labelledby="desktop-study-nav">
+              <h2
+                id="desktop-study-nav"
+                className="text-textDim mb-2 px-2 text-[10px] font-medium tracking-widest uppercase"
+              >
                 Study
-              </p>
+              </h2>
               <NavItem label="Mock Exams" icon="clock" path="/mock-exams" />
               <NavItem label="Study Groups" icon="users" path="/study-groups" />
               <NavItem
@@ -372,7 +421,10 @@ const AppLayout: React.FC<LayoutProps> = ({
       {/* MAIN CONTENT AREA */}
       <main className={cn("flex-1 pb-28 lg:pb-0", !hideSidebar && "lg:ml-60")}>
         {!hideSidebar && (
-          <header className="bg-bgMain/85 border-borderMuted safe-area-top fixed-ios sticky top-0 z-50 flex h-14 items-center justify-between gap-2 border-b px-3 backdrop-blur-md sm:px-4 lg:px-7">
+          <header
+            role="banner"
+            className="bg-bgMain/85 border-borderMuted safe-area-top fixed-ios sticky top-0 z-50 flex h-14 items-center justify-between gap-2 border-b px-3 backdrop-blur-md sm:px-4 lg:px-7"
+          >
             <div className="flex min-w-0 items-center gap-2 sm:gap-3">
               <button
                 onClick={() => setIsSidebarOpen(true)}
@@ -430,8 +482,11 @@ const AppLayout: React.FC<LayoutProps> = ({
 
       {/* MOBILE BOTTOM NAVIGATION */}
       {!hideSidebar && (
-        <div className="bg-bgSurface/98 border-borderMuted/30 safe-area-bottom shadow-nav fixed right-0 bottom-0 left-0 z-100 border-t backdrop-blur-2xl lg:hidden">
-          <nav className="relative flex h-18 items-center justify-around px-1">
+        <div className="bg-bgSurface/98 border-borderMuted/30 safe-area-bottom shadow-nav fixed right-0 bottom-0 left-0 z-100 border-t lg:hidden">
+          <nav
+            className="relative flex h-18 items-center justify-around px-1"
+            aria-label="Mobile bottom navigation"
+          >
             <Link
               to="/dashboard"
               className="touch-target no-double-tap flex h-full flex-1 flex-col items-center justify-center gap-1 transition-all active:scale-90"
@@ -505,7 +560,7 @@ const AppLayout: React.FC<LayoutProps> = ({
                 className="group absolute -top-6 flex flex-col items-center gap-1"
                 aria-label="Quiz"
               >
-                <div className="bg-brand border-bgCard dark:border-bgMain flex h-15 w-15 rotate-45 items-center justify-center rounded-2xl border-2 shadow-[0_12px_30px_rgba(91,59,255,0.4)] transition-all group-hover:scale-105 group-active:scale-95">
+                <div className="bg-brand border-bgCard dark:border-bgMain flex h-15 w-15 rotate-45 items-center justify-center rounded-2xl border-2 shadow-[0_12px_30px_rgba(0,102,255,0.4)] transition-all group-hover:scale-105 group-active:scale-95">
                   <FileText size={26} className="-rotate-45 text-white" />
                 </div>
                 <span className="text-brand-light text-[10px] font-black tracking-tighter uppercase">

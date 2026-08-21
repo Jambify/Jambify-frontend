@@ -144,7 +144,7 @@ Please respond with your structured analysis as instructed in your system prompt
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end">
+    <div className="fixed inset-0 z-999 flex justify-end">
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
@@ -153,7 +153,7 @@ Please respond with your structured analysis as instructed in your system prompt
 
       {/* Drawer panel — 100dvh = viewport height (excludes keyboard on mobile) */}
       <div
-        className="bg-bgCard animate-in slide-in-from-right relative z-10 flex w-full max-w-md flex-col overflow-hidden shadow-2xl duration-300"
+        className="bg-bgCard animate-in slide-in-from-right relative z-50 flex w-full max-w-md flex-col overflow-hidden shadow-2xl duration-300"
         style={{
           height: "100dvh",
         }}
@@ -274,28 +274,48 @@ Please respond with your structured analysis as instructed in your system prompt
               </div>
             )}
 
-          {/* Error message — improved styling */}
+          {/* Error message with retry */}
           {error && (
-            <div className="mr-auto w-full max-w-xs animate-in slide-in-from-top duration-300">
-              <div className="bg-danger/8 border-danger/30 rounded-2xl border px-4 py-3 flex items-start gap-3">
-                <div className="flex-shrink-0 pt-0.5">
-                  <AlertCircle className="text-danger h-4 w-4" />
+            <div className="mr-auto w-full max-w-sm animate-in slide-in-from-top duration-300">
+              <div className="bg-danger/12 border-danger/40 rounded-2xl border px-4 py-3 flex flex-col gap-3">
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 pt-0.5">
+                    <AlertCircle className="text-danger h-5 w-5" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-danger text-sm font-bold">Error</p>
+                    <p className="text-danger/85 text-xs leading-relaxed mt-0.5">
+                      {error}
+                    </p>
+                  </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-danger text-sm font-medium">Error</p>
-                  <p className="text-danger/70 text-xs leading-relaxed mt-1">
-                    {error}
-                  </p>
+                {/* Retry and Dismiss buttons */}
+                <div className="flex gap-2 pt-1">
+                  <button
+                    onClick={() => {
+                      // Retry: send the last user message again
+                      const lastUserMsg = messages
+                        .slice()
+                        .reverse()
+                        .find((m) => m.role === "user");
+                      if (lastUserMsg) {
+                        sendMessage(lastUserMsg.content);
+                      }
+                    }}
+                    className="bg-danger text-white hover:bg-danger/90 active:scale-95 flex-1 rounded-lg px-3 py-1.5 text-xs font-bold transition-all"
+                  >
+                    Try Again
+                  </button>
+                  <button
+                    onClick={() => {
+                      // Dismiss: error clears naturally when new message arrives
+                      setInput("");
+                    }}
+                    className="bg-danger/20 text-danger hover:bg-danger/30 rounded-lg px-3 py-1.5 text-xs font-bold transition-colors"
+                  >
+                    Dismiss
+                  </button>
                 </div>
-                <button
-                  onClick={() => {
-                    // Clear error by sending a new message or retry
-                  }}
-                  className="text-danger/50 hover:text-danger flex-shrink-0 p-1 transition-colors"
-                  aria-label="Close error"
-                >
-                  <X className="h-4 w-4" />
-                </button>
               </div>
             </div>
           )}

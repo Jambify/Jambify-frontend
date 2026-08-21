@@ -100,13 +100,14 @@ if (typeof window !== "undefined") {
   window.supabase = supabase;
 }
 
-// Minimal, dependency-free loading fallback shown while a route chunk
-// downloads — deliberately not importing any existing PageLoader-style
-// component here, so this file doesn't accidentally pull in more weight
-// than the lazy-loading is trying to save.
+// Minimal loading fallback — skeleton UI while route chunks download
 const RouteFallback: React.FC = () => (
-  <div className="bg-bgMain flex min-h-screen items-center justify-center">
-    <div className="border-brand h-8 w-8 animate-spin rounded-full border-2 border-t-transparent" />
+  <div className="bg-bgMain flex min-h-screen items-center justify-center p-6">
+    <div className="animate-pulse space-y-4 w-full max-w-md">
+      <div className="bg-bgSurface h-12 rounded-brand-lg w-3/4" />
+      <div className="bg-bgSurface h-48 rounded-brand-xl w-full" />
+      <div className="bg-bgSurface h-8 rounded-brand w-1/2" />
+    </div>
   </div>
 );
 

@@ -1,4 +1,5 @@
 // src/lib/utils/renderQuestionText.tsx
+import "../katex-styles";
 import React from "react";
 import katex from "katex";
 import { formatScienceText, SCIENCE_SUBJECTS } from "./formatScienceText";

@@ -9,6 +9,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, Check } from "lucide-react";
 import { fadeUp } from "./animation";
+import OptimizedImage from "../OptimizedImage";
 
 export interface ShowcaseSectionProps {
   id: string;
@@ -66,7 +67,14 @@ const ShowcaseSection: React.FC<ShowcaseSectionProps> = ({
           transition={{ ...fadeUp.transition, delay: 0.1 }}
           className="border-borderMuted bg-bgCard flex-1 overflow-hidden rounded-2xl border shadow-xl"
         >
-          <img src={image} alt={title} className="w-full object-cover" width={1200} height={700} loading="lazy" />
+          <OptimizedImage
+            src={image}
+            alt={title}
+            className="w-full object-cover"
+            width={1200}
+            height={700}
+            loading="lazy"
+          />
         </motion.div>
       </div>
     </section>
