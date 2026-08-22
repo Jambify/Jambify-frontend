@@ -24,16 +24,25 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (id.includes("node_modules")) {
-            if (id.includes("framer-motion")) return "animation-vendor";
-            if (id.includes("@supabase")) return "supabase-vendor";
-            if (id.includes("katex")) return "katex-vendor";
+            // Group ALL React ecosystem + its transitive deps together
+            // to avoid circular chunk dependencies (scheduler, zustand,
+            // use-sync-external-store, react-is, prop-types all depend
+            // on or are depended on by react/react-dom)
             if (
               id.includes("react-dom") ||
               id.includes("react-router") ||
-              id.includes("/react/")
+              id.includes("/react/") ||
+              id.includes("scheduler") ||
+              id.includes("use-sync-external-store") ||
+              id.includes("react-is") ||
+              id.includes("prop-types") ||
+              id.includes("zustand")
             ) {
               return "vendor-react";
             }
+            if (id.includes("framer-motion")) return "animation-vendor";
+            if (id.includes("@supabase")) return "supabase-vendor";
+            if (id.includes("katex")) return "katex-vendor";
             if (id.includes("lucide-react")) return "vendor-ui";
 
             // Catch-all for other dependencies

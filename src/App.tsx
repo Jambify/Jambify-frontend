@@ -12,16 +12,13 @@
    spinner), then redirects an already-authenticated + fully-onboarded
    user straight to /dashboard instead of showing Landing/SignIn/SignUp.
 
-   PERF FIX: every page used to be a static top-level import, which means
-   visiting "/" downloaded the JS for the entire app — quiz engine, mock
-   exams, the whole admin panel — in one bundle, whether or not any of it
-   ran on that page. That's the likely source of PageSpeed's "5,998 KiB
-   total payload" and "253 KiB unused JavaScript" flags. Converted every
-   route component to React.lazy() so each route only loads its own chunk.
-   Kept eager: layout/guard wrappers that run on every route regardless
-   (RouteGuard, AdminGuard, AdminLayout, ScrollToTop, StudyTimeTracker,
-   AuthErrorBoundary, FrozenAccountGuard, ProRevokedModal) since they're
-   small and always needed immediately, not page-specific.
+   PERF FIX (v2): First-paint / direct-landing routes are now EAGER
+   (Landing, SignIn, SignUp, Onboarding, Dashboard, Welcome, About,
+   Privacy/Terms pages, AuthCallback, all Guest landing/legal pages) so
+   those pages never flash a skeleton — they ship in the main bundle and
+   render instantly. Only genuinely heavy, deeper-in-the-app routes stay
+   lazy-loaded with per-page Suspense skeletons that visually mirror the
+   real page layout to avoid any jarring layout shift on swap-in.
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 import React, { lazy, Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router";
@@ -35,45 +32,60 @@ import FrozenAccountGuard from "./components/auth/FrozenAccountGuard";
 import ProRevokedModal from "./components/auth/ProRevokedModal";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+// ── Skeletons (one per lazy route, each shaped like the real page) ──────
+import ReviewExamSkeleton from "./components/skeletons/ReviewExamSkeleton";
+import MockExamSkeleton from "./components/skeletons/MockExamSkeleton";
+import PerformanceSkeleton from "./components/skeletons/PerformanceSkeleton";
+import StudyGroupsSkeleton from "./components/skeletons/StudyGroupsSkeleton";
+import QuizSkeleton from "./components/skeletons/QuizSkeleton";
+import ChatSkeleton from "./components/skeletons/ChatSkeleton";
+import SettingsSkeleton from "./components/skeletons/SettingsSkeleton";
+import SubjectGridSkeleton from "./components/skeletons/SubjectGridSkeleton";
+import ListSkeleton from "./components/skeletons/ListSkeleton";
+import ProSkeleton from "./components/skeletons/ProSkeleton";
+import AdminSkeleton from "./components/skeletons/AdminSkeleton";
 
 // ── Admin layout/guard — kept eager, small, needed on every /admin/* route ──
 import AdminGuard from "./admin/AdminGuard";
 import AdminLayout from "./admin/AdminLayout";
 
-// ── Lazy-loaded pages — each becomes its own chunk, only fetched when
-//    that route is actually visited ──────────────────────────────────────
-const Dashboard = lazy(() => import("./Pages/Dashboard"));
-const Landing = lazy(() => import("./Pages/LandingPage"));
-const AboutPage = lazy(() => import("./Pages/Aboutpage"));
+// ── EAGER: first-paint / direct-landing pages. Ship in the main bundle,
+//    render instantly, NEVER show a Suspense skeleton. ───────────────────
+import Dashboard from "./Pages/Dashboard";
+import Landing from "./Pages/LandingPage";
+import AboutPage from "./Pages/Aboutpage";
+import Onboarding from "./Pages/OnBoarding";
+import SignUp from "./Pages/Authentication/SignUp";
+import SignIn from "./Pages/Authentication/SignIn";
+import Welcome from "./Pages/Welcome";
+import AuthCallback from "./components/auth/AuthCallback";
+import GuestLanding from "./Pages/GuestUser/GuestLanding";
+import PrivacyPolicy from "./Pages/PrivacyPolicy";
+import GuestPrivacyPolicy from "./Pages/GuestUser/GuestPrivacy";
+import GuestTermsOfService from "./Pages/GuestUser/GuestLegal";
+import TermsOfService from "./Pages/TermsOfService";
+
+// ── LAZY: heavy / deeper-in-the-app routes. Each gets its own chunk and
+//    its own matching Suspense skeleton (see per-route wrappers below). ──
 const Quiz = lazy(() => import("./Pages/Quiz"));
 const AllSessions = lazy(() => import("./Pages/AllSessions"));
 const Performance = lazy(() => import("./Pages/Performance"));
 const Subjects = lazy(() => import("./Pages/Subjects"));
 const MockExam = lazy(() => import("./Pages/MockExam/MockExam"));
-const Onboarding = lazy(() => import("./Pages/OnBoarding"));
-const SignUp = lazy(() => import("./Pages/Authentication/SignUp"));
-const SignIn = lazy(() => import("./Pages/Authentication/SignIn"));
-const Welcome = lazy(() => import("./Pages/Welcome"));
 const Settings = lazy(() => import("./Pages/Settings"));
 const StudyGroups = lazy(() => import("./Pages/StudyGroups"));
 const MentorChat = lazy(() => import("./Pages/MentorChat"));
 const PastQuestions = lazy(() => import("./Pages/PastQuestions"));
 const ReviewScreen = lazy(() => import("./Pages/MockExam/ReviewExam"));
 const ProPage = lazy(() => import("./Pages/Pro"));
-const AuthCallback = lazy(() => import("./components/auth/AuthCallback"));
-const GuestLanding = lazy(() => import("./Pages/GuestUser/GuestLanding"));
 const GuestQuiz = lazy(() => import("./Pages/GuestUser/GuestQuiz"));
 const GuestMock = lazy(() => import("./Pages/GuestUser/GuestExam"));
-const PrivacyPolicy = lazy(() => import("./Pages/PrivacyPolicy"));
-const GuestPrivacyPolicy = lazy(() => import("./Pages/GuestUser/GuestPrivacy"));
-const GuestTermsOfService = lazy(() => import("./Pages/GuestUser/GuestLegal"));
 const GuestPastQuestions = lazy(
   () => import("./Pages/GuestUser/GuestPastQuestions"),
 );
-const TermsOfService = lazy(() => import("./Pages/TermsOfService"));
 
-// ── Admin pages — lazy too, so the admin panel's JS never ships to
-//    regular students at all, only to admins who actually visit /admin ──
+// ── Admin pages — always lazy so admin JS never ships to regular students.
+//    All share the AdminSkeleton layout (stats rows + data table). ───────
 const AdminOverview = lazy(() => import("./admin/pages/AdminOverview"));
 const AdminTopicOverview = lazy(
   () => import("./admin/pages/AdminTopicOverview"),
@@ -100,17 +112,6 @@ if (typeof window !== "undefined") {
   window.supabase = supabase;
 }
 
-// Minimal loading fallback — skeleton UI while route chunks download
-const RouteFallback: React.FC = () => (
-  <div className="bg-bgMain flex min-h-screen items-center justify-center p-6">
-    <div className="animate-pulse space-y-4 w-full max-w-md">
-      <div className="bg-bgSurface h-12 rounded-brand-lg w-3/4" />
-      <div className="bg-bgSurface h-48 rounded-brand-xl w-full" />
-      <div className="bg-bgSurface h-8 rounded-brand w-1/2" />
-    </div>
-  </div>
-);
-
 const App: React.FC = () => {
   return (
     <AuthErrorBoundary>
@@ -120,297 +121,337 @@ const App: React.FC = () => {
         <StudyTimeTracker />
 
         <ChunkErrorBoundary>
-          <Suspense fallback={<RouteFallback />}>
-            <Routes>
-              <Route
-                path="/"
-                element={
-                  <RouteGuard>
-                    <Landing />
-                  </RouteGuard>
-                }
-              />
-              <Route path="/about" element={<AboutPage />} />
-              <Route
-                path="/signup"
-                element={
-                  <RouteGuard>
-                    <SignUp />
-                  </RouteGuard>
-                }
-              />
-              <Route
-                path="/signin"
-                element={
-                  <RouteGuard>
-                    <SignIn />
-                  </RouteGuard>
-                }
-              />
-              <Route path="/auth/callback" element={<AuthCallback />} />
+          <Routes>
+            {/* ── EAGER routes — no Suspense, render instantly ──────── */}
+            <Route
+              path="/"
+              element={
+                <RouteGuard>
+                  <Landing />
+                </RouteGuard>
+              }
+            />
+            <Route path="/about" element={<AboutPage />} />
+            <Route
+              path="/signup"
+              element={
+                <RouteGuard>
+                  <SignUp />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/signin"
+              element={
+                <RouteGuard>
+                  <SignIn />
+                </RouteGuard>
+              }
+            />
+            <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route path="/guest" element={<GuestLanding />} />
+            <Route
+              path="/guest/privacy-policy"
+              element={<GuestPrivacyPolicy />}
+            />
+            <Route
+              path="/guest/terms-of-service"
+              element={<GuestTermsOfService />}
+            />
+            <Route
+              path="/onboarding"
+              element={
+                <RouteGuard>
+                  <Onboarding />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/welcome"
+              element={
+                <RouteGuard>
+                  <Welcome />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/dashboard"
+              element={
+                <RouteGuard>
+                  <Dashboard />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/privacy-policy"
+              element={
+                <RouteGuard>
+                  <PrivacyPolicy />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/terms-of-service"
+              element={
+                <RouteGuard>
+                  <TermsOfService />
+                </RouteGuard>
+              }
+            />
 
-              <Route path="/guest" element={<GuestLanding />} />
-              <Route path="/guest/quiz" element={<GuestQuiz />} />
-              <Route path="/guest/mock" element={<GuestMock />} />
+            {/* ── LAZY routes — each wrapped with its own matching skeleton ── */}
+            <Route
+              path="/guest/quiz"
+              element={
+                <Suspense fallback={<QuizSkeleton />}>
+                  <GuestQuiz />
+                </Suspense>
+              }
+            />
+            <Route
+              path="/guest/mock"
+              element={
+                <Suspense fallback={<MockExamSkeleton />}>
+                  <GuestMock />
+                </Suspense>
+              }
+            />
+            <Route
+              path="/guest/past-questions"
+              element={
+                <Suspense fallback={<SubjectGridSkeleton />}>
+                  <GuestPastQuestions />
+                </Suspense>
+              }
+            />
+            <Route
+              path="/guest/past-questions/:subject"
+              element={
+                <Suspense fallback={<QuizSkeleton />}>
+                  <GuestPastQuestions />
+                </Suspense>
+              }
+            />
+            <Route
+              path="/guest/past-questions/:subject/:year"
+              element={
+                <Suspense fallback={<QuizSkeleton />}>
+                  <GuestPastQuestions />
+                </Suspense>
+              }
+            />
 
-              {/* SEO routes — one component (GuestPastQuestions) reads subject/year
-                from the URL via useParams instead of local filter state, so each
-                subject/year combination is its own crawlable, prerenderable URL.
-                Order matters: react-router matches top-down, but since these are
-                nested static -> dynamic -> dynamic, no ambiguity here. */}
-              <Route
-                path="/guest/past-questions"
-                element={<GuestPastQuestions />}
-              />
-              <Route
-                path="/guest/past-questions/:subject"
-                element={<GuestPastQuestions />}
-              />
-              <Route
-                path="/guest/past-questions/:subject/:year"
-                element={<GuestPastQuestions />}
-              />
-
-              {/* Public, unauthenticated legal pages — used by Landing/Guest footers */}
-              <Route
-                path="/guest/privacy-policy"
-                element={
-                  <GuestPrivacyPolicy
-                  // // title="Privacy Policy"
-                  // effectiveDate="July 14, 2026"
-                  // blocks={[]}
-                  />
-                }
-              />
-              <Route
-                path="/guest/terms-of-service"
-                element={
-                  <GuestTermsOfService
-                  // title="Terms of Service"
-                  // effectiveDate="July 14, 2026"
-                  // blocks={[]}
-                  />
-                }
-              />
-
-              <Route
-                path="/onboarding"
-                element={
-                  <RouteGuard>
-                    <Onboarding />
-                  </RouteGuard>
-                }
-              />
-              <Route
-                path="/welcome"
-                element={
-                  <RouteGuard>
-                    <Welcome />
-                  </RouteGuard>
-                }
-              />
-              <Route
-                path="/dashboard"
-                element={
-                  <RouteGuard>
-                    <Dashboard />
-                  </RouteGuard>
-                }
-              />
-              <Route
-                path="/quiz"
-                element={
-                  <RouteGuard>
+            <Route
+              path="/quiz"
+              element={
+                <RouteGuard>
+                  <Suspense fallback={<QuizSkeleton />}>
                     <Quiz />
-                  </RouteGuard>
-                }
-              />
-              <Route
-                path="/performance"
-                element={
-                  <RouteGuard>
+                  </Suspense>
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/performance"
+              element={
+                <RouteGuard>
+                  <Suspense fallback={<PerformanceSkeleton />}>
                     <Performance />
-                  </RouteGuard>
-                }
-              />
-              <Route
-                path="/subjects"
-                element={
-                  <RouteGuard>
+                  </Suspense>
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/subjects"
+              element={
+                <RouteGuard>
+                  <Suspense fallback={<SubjectGridSkeleton />}>
                     <Subjects />
-                  </RouteGuard>
-                }
-              />
-              <Route
-                path="/sessions"
-                element={
-                  <RouteGuard>
+                  </Suspense>
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/sessions"
+              element={
+                <RouteGuard>
+                  <Suspense fallback={<ListSkeleton />}>
                     <AllSessions />
-                  </RouteGuard>
-                }
-              />
-              <Route
-                path="/mock-exams"
-                element={
-                  <RouteGuard>
+                  </Suspense>
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/mock-exams"
+              element={
+                <RouteGuard>
+                  <Suspense fallback={<MockExamSkeleton />}>
                     <MockExam />
-                  </RouteGuard>
-                }
-              />
-              <Route
-                path="/settings"
-                element={
-                  <RouteGuard>
+                  </Suspense>
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <RouteGuard>
+                  <Suspense fallback={<SettingsSkeleton />}>
                     <Settings />
-                  </RouteGuard>
-                }
-              />
-              <Route
-                path="/study-groups"
-                element={
-                  <RouteGuard>
+                  </Suspense>
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/study-groups"
+              element={
+                <RouteGuard>
+                  <Suspense fallback={<StudyGroupsSkeleton />}>
                     <StudyGroups />
-                  </RouteGuard>
-                }
-              />
-              {/* chat with our mentor */}
-              <Route
-                path="/mentor"
-                element={
-                  <RouteGuard>
+                  </Suspense>
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/mentor"
+              element={
+                <RouteGuard>
+                  <Suspense fallback={<ChatSkeleton />}>
                     <MentorChat />
-                  </RouteGuard>
-                }
-              />
-              <Route
-                path="/past-questions"
-                element={
-                  <RouteGuard>
+                  </Suspense>
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/past-questions"
+              element={
+                <RouteGuard>
+                  <Suspense fallback={<QuizSkeleton />}>
                     <PastQuestions />
-                  </RouteGuard>
-                }
-              />
-
-              {/* Authenticated-only legal pages (logged-in account area) */}
-              <Route
-                path="/privacy-policy"
-                element={
-                  <RouteGuard>
-                    <PrivacyPolicy />
-                  </RouteGuard>
-                }
-              />
-              <Route
-                path="/terms-of-service"
-                element={
-                  <RouteGuard>
-                    <TermsOfService />
-                  </RouteGuard>
-                }
-              />
-
-              <Route
-                path="/pro"
-                element={
-                  <RouteGuard>
+                  </Suspense>
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/pro"
+              element={
+                <RouteGuard>
+                  <Suspense fallback={<ProSkeleton />}>
                     <ProPage />
-                  </RouteGuard>
-                }
-              />
-              <Route
-                path="/review"
-                element={
-                  <RouteGuard>
+                  </Suspense>
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/review"
+              element={
+                <RouteGuard>
+                  <Suspense fallback={<ReviewExamSkeleton />}>
                     <ReviewScreen onBack={() => window.history.back()} />
-                  </RouteGuard>
-                }
-              />
+                  </Suspense>
+                </RouteGuard>
+              }
+            />
 
-              {/* ── Admin routes ── guarded by email allowlist ── */}
-              <Route
-                path="/admin"
-                element={
+            {/* ── LAZY Admin routes — share AdminSkeleton layout ── */}
+            <Route
+              path="/admin"
+              element={
+                <Suspense fallback={<AdminSkeleton />}>
                   <AdminGuard>
                     <AdminLayout title="Overview">
                       <AdminOverview />
                     </AdminLayout>
                   </AdminGuard>
-                }
-              />
-              <Route
-                path="/admin/users"
-                element={
+                </Suspense>
+              }
+            />
+            <Route
+              path="/admin/users"
+              element={
+                <Suspense fallback={<AdminSkeleton />}>
                   <AdminGuard>
                     <AdminLayout title="Users">
                       <AdminUsers />
                     </AdminLayout>
                   </AdminGuard>
-                }
-              />
-              <Route
-                path="/admin/audit-log"
-                element={
+                </Suspense>
+              }
+            />
+            <Route
+              path="/admin/audit-log"
+              element={
+                <Suspense fallback={<AdminSkeleton />}>
                   <AdminGuard>
                     <AdminLayout title="Audit Log">
                       <AdminAuditLog />
                     </AdminLayout>
                   </AdminGuard>
-                }
-              />
-              <Route
-                path="/admin/AdminBroadcast"
-                element={
+                </Suspense>
+              }
+            />
+            <Route
+              path="/admin/AdminBroadcast"
+              element={
+                <Suspense fallback={<AdminSkeleton />}>
                   <AdminGuard>
                     <AdminLayout title="AdminBroadcast">
                       <AdminBroadcast />
                     </AdminLayout>
                   </AdminGuard>
-                }
-              />
-              <Route
-                path="/admin/Adminquestions"
-                element={
+                </Suspense>
+              }
+            />
+            <Route
+              path="/admin/Adminquestions"
+              element={
+                <Suspense fallback={<AdminSkeleton />}>
                   <AdminGuard>
                     <AdminLayout title="Adminquestions">
                       <Adminquestions />
                     </AdminLayout>
                   </AdminGuard>
-                }
-              />
-              <Route
-                path="/admin/topics"
-                element={
+                </Suspense>
+              }
+            />
+            <Route
+              path="/admin/topics"
+              element={
+                <Suspense fallback={<AdminSkeleton />}>
                   <AdminGuard>
                     <AdminLayout title="Topic Overview">
                       <AdminTopicOverview />
                     </AdminLayout>
                   </AdminGuard>
-                }
-              />
-              <Route
-                path="/admin/reports"
-                element={
+                </Suspense>
+              }
+            />
+            <Route
+              path="/admin/reports"
+              element={
+                <Suspense fallback={<AdminSkeleton />}>
                   <AdminGuard>
                     <AdminLayout title="AdminReports">
                       <AdminReports />
                     </AdminLayout>
                   </AdminGuard>
-                }
-              />
-              <Route
-                path="/admin/roles"
-                element={
+                </Suspense>
+              }
+            />
+            <Route
+              path="/admin/roles"
+              element={
+                <Suspense fallback={<AdminSkeleton />}>
                   <AdminGuard>
                     <AdminLayout title="AdminRoles">
                       <AdminRoles />
                     </AdminLayout>
                   </AdminGuard>
-                }
-              />
+                </Suspense>
+              }
+            />
 
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </Suspense>
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
         </ChunkErrorBoundary>
       </FrozenAccountGuard>
     </AuthErrorBoundary>

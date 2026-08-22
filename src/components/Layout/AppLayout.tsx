@@ -1,7 +1,8 @@
-import React, { type ReactNode, useState, useRef } from "react";
+import React, { type ReactNode, useState, useRef, } from "react";
 import { Link } from "react-router";
 import { useUserStore } from "../../Store/useUserStore";
 import { useExamCountdown } from "../../hooks/useExamCountdown";
+import { useProStatus } from "../../hooks/useProStatus";
 import Sidebar from "./Sidebar";
 import { useNetworkStatus } from "../../hooks/useNetworkStatus";
 import schooldraLogo from "../../assets/schooldraLogo.webp";
@@ -20,10 +21,14 @@ import {
   Wifi,
   Trophy,
   Sparkles,
+  Crown,
+  Mail,
   Flame,
   Hourglass,
   Loader2,
   RefreshCw,
+  X,
+  ArrowRight,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "../../lib/utils/utils";
@@ -90,6 +95,185 @@ const NavItem = ({ label, active, badge, icon, path }: any) => {
 
 const PULL_THRESHOLD = 80;
 
+/**
+ * Walk up from `el` looking for the nearest scrollable ancestor (an element
+ * with overflow-y: auto/scroll whose content is taller than its box).
+ * Returns null if the only scrollable container is `<body>` / window.
+ *
+ * We need this because the naive `window.scrollY === 0` check is wrong
+ * whenever the *actual* scrollable container under the touch point is an
+ * inner element, e.g. the question/chat area in ReviewExam, the
+ * subject-list sidebar in MockExam, the 5×5 question palette sidebar,
+ * etc. In those cases window.scrollY stays 0 forever but the user is
+ * mid-scroll inside that inner container — a downward swipe should be
+ * "scroll up the inner content," not pull-to-refresh.
+ */
+const findScrollableParent = (el: HTMLElement | null): HTMLElement | null => {
+  if (!el || el === document.body || el === document.documentElement)
+    return null;
+  const style = window.getComputedStyle(el);
+  const overflowY = style.overflowY;
+  if (
+    (overflowY === "auto" || overflowY === "scroll") &&
+    el.scrollHeight > el.clientHeight + 1
+  ) {
+    return el;
+  }
+  return findScrollableParent(el.parentElement);
+};
+
+const innerScrollAtTop = (touchTarget: EventTarget | null): boolean => {
+  const el = (touchTarget ?? null) as HTMLElement | null;
+  const scrollable = findScrollableParent(el);
+  return !scrollable || scrollable.scrollTop <= 0;
+};
+
+/**
+ * Banner driven by `useProStatus` output. It replaces the old one-size-fits-all
+ * "Pro Access Revoked" modal with context-aware copy + a CTA that matches the
+ * actual status (renew vs. contact support vs. retry payment).
+ */
+interface ProStatusBannerProps {
+  status: ReturnType<typeof useProStatus>;
+  dismissed: boolean;
+  onDismiss: () => void;
+}
+const ProStatusBanner: React.FC<ProStatusBannerProps> = ({
+  status,
+  dismissed,
+  onDismiss,
+}) => {
+  if (!status.showAlert || dismissed) return null;
+
+  const toneClasses = (() => {
+    switch (status.status) {
+      case "expiring_soon":
+        return {
+          wrap: "border-warn/30 bg-warn/10",
+          iconBg: "bg-warn/15 text-warn border-warn/30",
+        };
+      case "revoked_early":
+      case "inactive":
+      case "payment_failed":
+        return {
+          wrap: "border-danger/30 bg-danger/10",
+          iconBg: "bg-danger/15 text-danger border-danger/30",
+        };
+      case "expired_natural":
+      case "expired_admin_grant":
+      default:
+        return {
+          wrap: "border-brand/25 bg-brand/10",
+          iconBg: "bg-brand/15 text-brand border-brand/30",
+        };
+    }
+  })();
+
+  const cta = status.primaryAction;
+  const ctaHref =
+    cta === "renew" || cta === "try_again"
+      ? "/pro"
+      : cta === "contact_support"
+        ? "mailto:support@schooldra.com?subject=Pro%20Status%20Help"
+        : null;
+
+  return (
+    <div
+      className={cn(
+        "relative mb-3 flex items-start gap-3 overflow-hidden rounded-2xl border px-4 py-3 shadow-sm sm:px-5",
+        toneClasses.wrap,
+      )}
+      role="status"
+      aria-live="polite"
+    >
+      <div
+        className={cn(
+          "mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border",
+          toneClasses.iconBg,
+        )}
+      >
+        {status.status === "revoked_early" || status.status === "inactive" ? (
+          <AlertTriangle className="h-4.5 w-4.5" />
+        ) : status.status === "payment_failed" ? (
+          <X className="h-4.5 w-4.5" />
+        ) : (
+          <Crown className="h-4.5 w-4.5" />
+        )}
+      </div>
+
+      <div className="min-w-0 flex-1 pt-0.5">
+        <p className="text-textMain text-sm font-semibold leading-snug">
+          {status.shortMessage || "Pro Status"}
+        </p>
+        <p className="text-textMuted mt-0.5 text-xs leading-relaxed">
+          {status.message}
+        </p>
+        {ctaHref && (
+          <div className="mt-3">
+            {ctaHref.startsWith("mailto:") ? (
+              <a
+                href={ctaHref}
+                className="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold text-textMain underline decoration-2 underline-offset-4 hover:opacity-80"
+              >
+                <Mail className="h-3.5 w-3.5" /> Contact support
+              </a>
+            ) : (
+              <Link
+                to={ctaHref}
+                className="bg-brand hover:bg-brand-light inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold text-white shadow-[0_10px_24px_rgba(124,60,255,0.22)] transition-all"
+              >
+                <Sparkles className="h-3.5 w-3.5" />
+                {cta === "try_again" ? "Try Pro again" : "Renew Pro"}
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            )}
+          </div>
+        )}
+      </div>
+
+      <button
+        type="button"
+        onClick={onDismiss}
+        aria-label="Dismiss Pro status alert"
+        className="text-textDim hover:text-textMain -mr-1 mt-0.5 shrink-0 rounded-lg p-1.5 transition-colors"
+      >
+        <X className="h-4 w-4" />
+      </button>
+    </div>
+  );
+};
+
+// Lucide icon aliased for ProStatusBanner since AlertTriangle is imported via
+// destructuring alongside the other icons below.
+const AlertTriangle = ({ className }: { className?: string }) => {
+  const Icon = (React.useMemo(
+    () =>
+      (
+        p: React.SVGProps<SVGSVGElement> & {
+          size?: number | string;
+        },
+      ) => (
+        <svg
+          width={p.size ?? 16}
+          height={p.size ?? 16}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={1.8}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          {...p}
+        >
+          <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" />
+          <line x1="12" y1="9" x2="12" y2="13" />
+          <line x1="12" y1="17" x2="12.01" y2="17" />
+        </svg>
+      ),
+    [],
+  ));
+  return <Icon className={className} />;
+};
+
 const AppLayout: React.FC<LayoutProps> = ({
   children,
   currentPage,
@@ -105,26 +289,35 @@ const AppLayout: React.FC<LayoutProps> = ({
   const isPro = useUserStore((state) => state.isPro);
   const { daysLeft } = useExamCountdown();
   const { isOnline, wasOffline } = useNetworkStatus();
+  const proStatus = useProStatus();
 
   const [pullDistance, setPullDistance] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [proBannerDismissed, setProBannerDismissed] = useState(false);
   const touchStartRef = useRef(0);
-  const touchStartXRef = useRef(0); // Track horizontal movement to prevent false triggers
-  const isDrawerOpenRef = useRef(false); // Detect if drawer is open (disable pull-to-refresh)
+  const touchStartXRef = useRef(0);
+  const isDrawerOpenRef = useRef(false);
 
   const displayName = name || "Guest User";
   const initials = getInitials(displayName);
   const pageTitle = formatPageTitle(currentPage);
 
+  // Banner shows on status changes — re-arm when a new status with showAlert
+  // fires so the user sees the updated message (e.g. stale → expired).
+  React.useEffect(() => {
+    if (proStatus.showAlert) setProBannerDismissed(false);
+  }, [proStatus.status, proStatus.showAlert]);
+
   const handleTouchStart = (e: React.TouchEvent) => {
-    // Don't trigger if at the top but haven't actually started vertical scroll yet
-    // or if drawer is open (z-50 overlay)
     if (isDrawerOpenRef.current) {
       touchStartRef.current = 0;
       return;
     }
-
-    if (window.scrollY === 0 && !isRefreshing) {
+    const target = e.target;
+    const windowAtTop = window.scrollY <= 0;
+    // BOTH must be true: outer page is at top AND every inner scrollable
+    // ancestor under the starting touch point is ALSO at its top.
+    if (windowAtTop && innerScrollAtTop(target) && !isRefreshing) {
       touchStartRef.current = e.touches[0].clientY;
       touchStartXRef.current = e.touches[0].clientX;
     } else {
@@ -141,20 +334,16 @@ const AppLayout: React.FC<LayoutProps> = ({
     const distanceY = currentY - touchStartRef.current;
     const distanceX = Math.abs(currentX - touchStartXRef.current);
 
-    // Only trigger if:
-    // 1. User is pulling DOWN (distanceY > 0)
-    // 2. Vertical movement is more than horizontal (prevent horizontal swipe confusion)
-    // 3. At top of page (scrollY === 0)
-    if (
-      distanceY > 0 &&
-      distanceY > distanceX &&
-      window.scrollY === 0
-    ) {
-      // Resistance curve: make it feel harder to pull
+    // Recheck on every move: user might have started touch at top of an
+    // inner container but since scrolled it via momentum/inertia, or they
+    // were at the top and the page was still rubber-banding. If the
+    // scrollable parent is no longer at the top, bail immediately.
+    const stillAtTheTop = window.scrollY <= 0 && innerScrollAtTop(e.target);
+
+    if (distanceY > 0 && distanceY > distanceX && stillAtTheTop) {
       const pull = Math.min(distanceY * 0.4, PULL_THRESHOLD + 20);
       setPullDistance(pull);
     } else {
-      // Reset if user starts dragging horizontally
       if (distanceX > distanceY) {
         setPullDistance(0);
       }
@@ -190,7 +379,7 @@ const AppLayout: React.FC<LayoutProps> = ({
     const checkDrawerOpen = () => {
       // Check if there's a drawer/modal overlay with high z-index
       const drawer = document.querySelector('[style*="z-50"]');
-      isDrawerOpenRef.current = !!drawer && drawer.className.includes('fixed');
+      isDrawerOpenRef.current = !!drawer && drawer.className.includes("fixed");
     };
 
     const interval = setInterval(checkDrawerOpen, 100);
@@ -207,7 +396,7 @@ const AppLayout: React.FC<LayoutProps> = ({
       {/* PULL TO REFRESH SPINNER */}
       <motion.div
         aria-hidden="true"
-        className="fixed top-16 inset-x-0 z-90 flex justify-center pointer-events-none"
+        className="pointer-events-none fixed inset-x-0 top-16 z-90 flex justify-center"
         animate={{
           y: isRefreshing ? 12 : pullDistance > 0 ? pullDistance : -50,
           opacity: pullDistance > 10 || isRefreshing ? 1 : 0,
@@ -235,6 +424,11 @@ const AppLayout: React.FC<LayoutProps> = ({
 
       <div className="lg:pt-5 lg:pl-64">
         <AnnouncementBanner />
+        <ProStatusBanner
+          status={proStatus}
+          dismissed={proBannerDismissed}
+          onDismiss={() => setProBannerDismissed(true)}
+        />
       </div>
 
       {/* Network Status Toast */}
@@ -308,7 +502,10 @@ const AppLayout: React.FC<LayoutProps> = ({
             )}
           </div>
 
-          <nav className="flex-1 space-y-6 overflow-y-auto p-3" aria-label="Main navigation">
+          <nav
+            className="flex-1 space-y-6 overflow-y-auto p-3"
+            aria-label="Main navigation"
+          >
             <section aria-labelledby="desktop-main-nav">
               <h2
                 id="desktop-main-nav"
