@@ -1,7 +1,7 @@
 import React from "react";
 
 const QuizSkeleton: React.FC = () => (
-  <div className="mx-auto max-w-2xl animate-pulse py-6">
+  <div className="mx-auto max-w-2xl animate-pulse">
     <div className="mb-8 space-y-2">
       <div className="bg-bgSurface h-8 w-40 rounded" />
       <div className="bg-bgSurface h-4 w-64 rounded" />
@@ -39,7 +39,7 @@ const QuizSkeleton: React.FC = () => (
       ))}
     </div>
 
-    <div className="mb-6 flex justify-center">
+    <div className="mb-5 flex justify-center">
       <div className="bg-bgSurface h-9 w-40 rounded-xl" />
     </div>
 

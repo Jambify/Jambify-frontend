@@ -1,7 +1,7 @@
 import React from "react";
 
 const PerformanceSkeleton: React.FC = () => (
-  <div className="mx-auto max-w-5xl animate-pulse space-y-6 py-6 md:px-8">
+  <div className="animate-fadeIn mx-auto max-w-350 animate-pulse space-y-6">
     <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
       <div className="space-y-2">
         <div className="bg-bgSurface h-9 w-56 rounded lg:h-11" />
@@ -15,7 +15,7 @@ const PerformanceSkeleton: React.FC = () => (
       </div>
     </div>
 
-    <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
       {[1, 2, 3, 4].map((i) => (
         <div
           key={i}

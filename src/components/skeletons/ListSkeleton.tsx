@@ -1,8 +1,8 @@
 import React from "react";
 
 const ListSkeleton: React.FC = () => (
-  <div className="mx-auto max-w-5xl animate-pulse py-6 md:px-8">
-    <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+  <div className="animate-fadeIn mx-auto max-w-4xl animate-pulse space-y-6 px-2 lg:px-4">
+    <div className="mb-2 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
       <div className="space-y-2">
         <div className="bg-bgSurface h-9 w-40 rounded" />
         <div className="bg-bgSurface h-4 w-56 rounded" />

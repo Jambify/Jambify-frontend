@@ -1,7 +1,7 @@
 import React from "react";
 
 const ProSkeleton: React.FC = () => (
-  <div className="mx-auto max-w-5xl animate-pulse py-6 md:px-8">
+  <div className="mx-auto max-w-4xl animate-pulse py-6">
     <div className="mb-12 space-y-3 text-center">
       <div className="bg-bgSurface mx-auto h-10 w-64 rounded" />
       <div className="bg-bgSurface mx-auto h-5 w-96 rounded" />
@@ -13,7 +13,7 @@ const ProSkeleton: React.FC = () => (
         <div
           key={plan}
           className={`bg-bgCard rounded-3xl p-8 shadow-lg ${
-            plan === 2 ? "ring-brand scale-105 ring-2" : ""
+            plan === 2 ? "scale-105" : ""
           }`}
         >
           {plan === 2 && (

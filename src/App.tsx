@@ -23,6 +23,7 @@
 import React, { lazy, Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router";
 import RouteGuard from "./components/Layout/RouteGuard";
+import AppLayout from "./components/Layout/AppLayout";
 import StudyTimeTracker from "./components/StudyTimeTracker";
 import AuthErrorBoundary from "./components/ui/AuthErrorBoundary";
 import ChunkErrorBoundary from "./components/ChunkErrorBoundary";
@@ -256,7 +257,11 @@ const App: React.FC = () => {
               element={
                 <RouteGuard>
                   <Suspense
-                    fallback={<div className="bg-bgMain min-h-[60vh]" />}
+                    fallback={
+                      <AppLayout currentPage="performance">
+                        <div className="bg-bgMain min-h-[60vh]" />
+                      </AppLayout>
+                    }
                   >
                     <Performance />
                   </Suspense>
@@ -268,7 +273,11 @@ const App: React.FC = () => {
               element={
                 <RouteGuard>
                   <Suspense
-                    fallback={<div className="bg-bgMain min-h-[60vh]" />}
+                    fallback={
+                      <AppLayout currentPage="subjects">
+                        <div className="bg-bgMain min-h-[60vh]" />
+                      </AppLayout>
+                    }
                   >
                     <Subjects />
                   </Suspense>

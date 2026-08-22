@@ -1,7 +1,7 @@
 import React from "react";
 
 const SettingsSkeleton: React.FC = () => (
-  <div className="mx-auto max-w-2xl animate-pulse py-6">
+  <div className="mx-auto max-w-2xl animate-pulse">
     <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div className="space-y-1.5">
         <div className="bg-bgSurface h-8 w-32 rounded" />

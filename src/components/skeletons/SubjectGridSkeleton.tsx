@@ -1,13 +1,13 @@
 import React from "react";
 
 const SubjectGridSkeleton: React.FC = () => (
-  <div className="mx-auto max-w-5xl animate-pulse py-6 md:px-8">
-    <div className="mb-8 space-y-2">
+  <div className="animate-fadeIn mx-auto max-w-350 animate-pulse space-y-6">
+    <div className="space-y-2">
       <div className="bg-bgSurface h-9 w-48 rounded" />
       <div className="bg-bgSurface h-4 w-64 rounded" />
     </div>
 
-    <div className="mb-6 flex items-center gap-2">
+    <div className="flex items-center gap-2">
       <div className="bg-bgSurface h-11 flex-1 rounded-full" />
       <div className="bg-bgSurface h-11 w-24 rounded-full" />
     </div>

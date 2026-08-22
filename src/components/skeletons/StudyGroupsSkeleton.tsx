@@ -1,7 +1,7 @@
 import React from "react";
 
 const StudyGroupsSkeleton: React.FC = () => (
-  <div className="animate-pulse py-6 md:px-8">
+  <div className="animate-pulse">
     <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
       <div className="space-y-2">
         <div className="bg-bgSurface h-8 w-44 rounded" />
@@ -64,10 +64,7 @@ const StudyGroupsSkeleton: React.FC = () => (
               <div className="bg-bgSurface h-3 w-20 rounded" />
               <div className="ml-auto flex -space-x-2">
                 {[1, 2, 3].map((m) => (
-                  <div
-                    key={m}
-                    className="bg-bgSurface ring-bgCard h-6 w-6 rounded-full ring-2"
-                  />
+                  <div key={m} className="bg-bgSurface h-6 w-6 rounded-full" />
                 ))}
               </div>
               <div className="bg-bgSurface h-3 w-8 rounded" />
