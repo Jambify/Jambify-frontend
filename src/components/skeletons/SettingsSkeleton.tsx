@@ -1,74 +1,68 @@
 import React from "react";
 
 const SettingsSkeleton: React.FC = () => (
-  <div className="animate-pulse mx-auto max-w-5xl py-6 md:px-8">
-    <div className="mb-8 space-y-2">
-      <div className="h-9 w-44 rounded bg-bgSurface" />
-      <div className="h-4 w-64 rounded bg-bgSurface" />
+  <div className="mx-auto max-w-2xl animate-pulse py-6">
+    <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="space-y-1.5">
+        <div className="bg-bgSurface h-8 w-32 rounded" />
+        <div className="bg-bgSurface h-4 w-72 rounded" />
+      </div>
+      <div className="bg-bgSurface h-10 w-32 rounded-xl sm:h-9" />
     </div>
 
-    <div className="mb-6 flex gap-2 overflow-x-auto border-b border-borderMuted pb-1">
-      {[1, 2, 3, 4, 5].map((t) => (
-        <div key={t} className="h-9 w-28 shrink-0 rounded-lg bg-bgSurface" />
+    <div className="bg-bgCard mb-5 flex items-center gap-4 rounded-2xl p-5">
+      <div className="bg-bgSurface flex h-16 w-16 shrink-0 items-center justify-center rounded-full" />
+      <div className="space-y-1.5">
+        <div className="bg-bgSurface h-5 w-28 rounded" />
+        <div className="bg-bgSurface h-4 w-44 rounded" />
+      </div>
+    </div>
+
+    <div className="bg-bgSurface mb-5 flex gap-1 rounded-xl p-1">
+      {[1, 2, 3, 4].map((t) => (
+        <div key={t} className="bg-bgCard h-9 flex-1 rounded-lg" />
       ))}
     </div>
 
-    <div className="space-y-6">
-      <div className="rounded-2xl border border-borderMuted bg-bgCard p-6">
-        <div className="mb-6 flex items-center gap-4">
-          <div className="h-20 w-20 rounded-full bg-bgSurface" />
-          <div className="space-y-2">
-            <div className="h-5 w-32 rounded bg-bgSurface" />
-            <div className="h-3 w-40 rounded bg-bgSurface" />
+    <div className="space-y-5">
+      <div className="bg-bgCard space-y-4 rounded-xl p-5">
+        <div className="bg-bgSurface h-3 w-32 rounded" />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="space-y-1.5">
+            <div className="bg-bgSurface h-3 w-12 rounded" />
+            <div className="bg-bgSurface h-10 w-full rounded-lg" />
+          </div>
+          <div className="space-y-1.5">
+            <div className="bg-bgSurface h-3 w-12 rounded" />
+            <div className="bg-bgSurface h-10 w-full rounded-lg" />
           </div>
         </div>
-        <div className="space-y-4">
-          {[1, 2, 3, 4].map((f) => (
-            <div key={f} className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-              <div className="space-y-2">
-                <div className="h-3 w-24 rounded bg-bgSurface" />
-                <div className="h-11 w-full rounded-lg border bg-bgSurface" />
-              </div>
-              <div className="space-y-2">
-                <div className="h-3 w-24 rounded bg-bgSurface" />
-                <div className="h-11 w-full rounded-lg border bg-bgSurface" />
-              </div>
-            </div>
-          ))}
+        <div className="space-y-1.5">
+          <div className="bg-bgSurface h-3 w-24 rounded" />
+          <div className="bg-bgSurface relative h-10 w-full rounded-lg">
+            <div className="bg-bgCard absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2 rounded" />
+          </div>
         </div>
-      </div>
-
-      <div className="rounded-2xl border border-borderMuted bg-bgCard p-6">
-        <div className="mb-4 h-5 w-32 rounded bg-bgSurface" />
-        <div className="space-y-4">
-          {[1, 2, 3].map((r) => (
-            <div
-              key={r}
-              className="flex items-center justify-between rounded-xl border border-borderMuted bg-bgSurface/30 p-4"
-            >
-              <div className="space-y-1">
-                <div className="h-4 w-36 rounded bg-bgCard" />
-                <div className="h-3 w-52 rounded bg-bgCard" />
-              </div>
-              <div className="h-7 w-12 rounded-full bg-bgCard" />
-            </div>
-          ))}
+        <div className="space-y-1.5">
+          <div className="bg-bgSurface h-3 w-36 rounded" />
+          <div className="bg-bgSurface h-14 w-full rounded-xl" />
         </div>
-      </div>
-
-      <div className="rounded-2xl border border-borderMuted bg-bgCard p-6">
-        <div className="mb-4 h-5 w-40 rounded bg-bgSurface" />
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          {[1, 2, 3].map((c) => (
-            <div
-              key={c}
-              className="rounded-xl border border-borderMuted bg-bgSurface/30 p-5"
-            >
-              <div className="mb-3 h-10 w-10 rounded-xl bg-bgCard" />
-              <div className="mb-1 h-4 w-20 rounded bg-bgCard" />
-              <div className="h-3 w-32 rounded bg-bgCard" />
-            </div>
-          ))}
+          <div className="space-y-1.5">
+            <div className="bg-bgSurface h-3 w-20 rounded" />
+            <div className="bg-bgSurface h-10 w-full rounded-lg" />
+          </div>
+          <div className="space-y-1.5">
+            <div className="bg-bgSurface h-3 w-24 rounded" />
+            <div className="bg-bgSurface h-10 w-full rounded-lg" />
+          </div>
+          <div className="space-y-1.5">
+            <div className="bg-bgSurface h-3 w-20 rounded" />
+            <div className="bg-bgSurface h-10 w-full rounded-lg" />
+          </div>
+        </div>
+        <div className="flex justify-end pt-2">
+          <div className="bg-bgSurface h-10 w-20 rounded-lg" />
         </div>
       </div>
     </div>

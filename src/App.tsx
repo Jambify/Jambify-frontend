@@ -35,7 +35,6 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 // ── Skeletons (one per lazy route, each shaped like the real page) ──────
 import ReviewExamSkeleton from "./components/skeletons/ReviewExamSkeleton";
 import MockExamSkeleton from "./components/skeletons/MockExamSkeleton";
-import PerformanceSkeleton from "./components/skeletons/PerformanceSkeleton";
 import StudyGroupsSkeleton from "./components/skeletons/StudyGroupsSkeleton";
 import QuizSkeleton from "./components/skeletons/QuizSkeleton";
 import ChatSkeleton from "./components/skeletons/ChatSkeleton";
@@ -44,6 +43,7 @@ import SubjectGridSkeleton from "./components/skeletons/SubjectGridSkeleton";
 import ListSkeleton from "./components/skeletons/ListSkeleton";
 import ProSkeleton from "./components/skeletons/ProSkeleton";
 import AdminSkeleton from "./components/skeletons/AdminSkeleton";
+import PastQuestionsSkeleton from "./components/skeletons/PastQuestionsSkeleton";
 
 // ── Admin layout/guard — kept eager, small, needed on every /admin/* route ──
 import AdminGuard from "./admin/AdminGuard";
@@ -255,7 +255,9 @@ const App: React.FC = () => {
               path="/performance"
               element={
                 <RouteGuard>
-                  <Suspense fallback={<PerformanceSkeleton />}>
+                  <Suspense
+                    fallback={<div className="bg-bgMain min-h-[60vh]" />}
+                  >
                     <Performance />
                   </Suspense>
                 </RouteGuard>
@@ -265,7 +267,9 @@ const App: React.FC = () => {
               path="/subjects"
               element={
                 <RouteGuard>
-                  <Suspense fallback={<SubjectGridSkeleton />}>
+                  <Suspense
+                    fallback={<div className="bg-bgMain min-h-[60vh]" />}
+                  >
                     <Subjects />
                   </Suspense>
                 </RouteGuard>
@@ -325,7 +329,7 @@ const App: React.FC = () => {
               path="/past-questions"
               element={
                 <RouteGuard>
-                  <Suspense fallback={<QuizSkeleton />}>
+                  <Suspense fallback={<PastQuestionsSkeleton />}>
                     <PastQuestions />
                   </Suspense>
                 </RouteGuard>

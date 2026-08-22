@@ -5,12 +5,15 @@ import { ArrowRight, Play } from "lucide-react";
 import { fadeUp } from "./animation";
 import heroDemoVideo from "../../assets/Hero-Demo.mp4";
 import heroPoster from "../../assets/hero.png";
+import OptimizedImage from "../OptimizedImage";
 
 const FALLBACK_QUESTION_COUNT = 4180;
 const FALLBACK_YEAR_RANGE = "1990–2024";
 
 const Hero: React.FC = () => {
-  const [displayCount, setDisplayCount] = useState<number>(FALLBACK_QUESTION_COUNT);
+  const [displayCount, setDisplayCount] = useState<number>(
+    FALLBACK_QUESTION_COUNT,
+  );
   const [yearRange, setYearRange] = useState<string>(FALLBACK_YEAR_RANGE);
   const [isCountLoading, setIsCountLoading] = useState(true);
   const [showVideo, setShowVideo] = useState(false);
@@ -24,8 +27,18 @@ const Hero: React.FC = () => {
 
       const [countRes, minYearRes, maxYearRes] = await Promise.all([
         supabase.from("questions").select("id", { count: "exact", head: true }),
-        supabase.from("questions").select("year").not("year", "is", null).order("year", { ascending: true }).limit(1),
-        supabase.from("questions").select("year").not("year", "is", null).order("year", { ascending: false }).limit(1),
+        supabase
+          .from("questions")
+          .select("year")
+          .not("year", "is", null)
+          .order("year", { ascending: true })
+          .limit(1),
+        supabase
+          .from("questions")
+          .select("year")
+          .not("year", "is", null)
+          .order("year", { ascending: false })
+          .limit(1),
       ]);
 
       if (cancelled) return;
@@ -179,7 +192,7 @@ const Hero: React.FC = () => {
                 className="h-full w-full object-contain"
                 poster={heroPoster}
                 controls
-                autoPlay
+                preload="none"
                 playsInline
               >
                 <source src={heroDemoVideo} type="video/mp4" />
@@ -191,13 +204,15 @@ const Hero: React.FC = () => {
                 aria-label="Play product demo video"
                 className="group relative h-full w-full"
               >
-                <img
+                <OptimizedImage
                   src={heroPoster}
                   alt="SCHOOLDRA product demo preview"
+                  webp
                   className="h-full w-full object-contain"
                   width={1280}
                   height={720}
-                  loading="lazy"
+                  loading="eager"
+                  fetchPriority="high"
                 />
                 <span className="absolute inset-0 flex items-center justify-center bg-black/30 transition-colors group-hover:bg-black/40">
                   <span className="bg-brand shadow-brand/40 flex h-16 w-16 items-center justify-center rounded-full shadow-xl transition-transform group-hover:scale-105">
