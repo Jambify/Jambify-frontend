@@ -40,7 +40,6 @@ import ReportQuestionButton from "../../components/shared/ReportQuestionButton";
 import { fetchQuestionsWithFallback } from "../../Services/questionService";
 import type { Question } from "../../Types";
 import LoadingScreen from "../../components/ui/LoadingScreen";
-import NetworkErrorAlert from "../../components/ui/NetworkErrorAlert";
 import { saveMockExamHistory } from "../../Services/MockHistoryService";
 import MockHistory from "../../components/MockExam/MockHistory";
 import schooldraLogo from "../../../src/assets/schooldraLogo.webp";
@@ -56,6 +55,8 @@ import {
   Clock,
   AlertTriangle,
   X,
+  AlertCircle,
+  RefreshCw,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import ValidatedInput from "../../components/ui/ValidatedInput";
@@ -506,7 +507,7 @@ const MockExam: React.FC = () => {
         isSidebarOpen={isSidebarOpen}
         setIsSidebarOpen={setIsSidebarOpen}
       >
-        <div className="mx-auto max-w-4xl  py-8">
+        <div className="mx-auto max-w-4xl py-8">
           <div className="bg-bgCard border-borderMuted rounded-brand-xl border p-8 shadow-sm">
             <div className="mb-8 text-center">
               <h2 className="font-display text-brand mb-2 text-3xl font-black">
@@ -536,14 +537,39 @@ const MockExam: React.FC = () => {
             {/* Network Error Alert */}
             {(errorMessage?.includes("CONNECTION_ERROR") ||
               errorMessage?.includes("OFFLINE")) && (
-              <NetworkErrorAlert
-                message={errorMessage}
-                onRetry={() => {
-                  setErrorMessage(null);
-                  handleStart();
-                }}
-                onDismiss={() => setErrorMessage(null)}
-              />
+              <div className="bg-warning/10 border-warning/30 animate-in fade-in slide-in-from-top-4 mb-6 flex flex-col gap-3 rounded-xl border p-4 duration-300 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="bg-warning/15 text-warning flex h-10 w-10 shrink-0 items-center justify-center rounded-xl">
+                    <AlertCircle className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="text-textMain text-sm font-semibold">
+                      Unable to load exam questions
+                    </p>
+                    <p className="text-textDim mt-0.5 text-xs">
+                      {errorMessage}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex gap-2 sm:flex-col-reverse">
+                  <button
+                    onClick={() => setErrorMessage(null)}
+                    className="bg-bgSurface hover:bg-bgCard text-textMuted hover:text-textMain rounded-lg px-3 py-2 text-xs font-bold transition-colors"
+                  >
+                    Dismiss
+                  </button>
+                  <button
+                    onClick={() => {
+                      setErrorMessage(null);
+                      handleStart();
+                    }}
+                    className="bg-warning hover:bg-warning/90 flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-bold text-white transition-all active:scale-95 sm:w-auto"
+                  >
+                    <RefreshCw size={14} />
+                    Retry
+                  </button>
+                </div>
+              </div>
             )}
 
             {/* Error Message */}
@@ -687,7 +713,7 @@ const MockExam: React.FC = () => {
             )}
           </div>
         </div>
-        <div className="mx-auto max-w-4xl  pb-8">
+        <div className="mx-auto max-w-4xl pb-8">
           <MockHistory />
         </div>
       </AppLayout>

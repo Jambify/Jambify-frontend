@@ -3,7 +3,6 @@ import PageHelmet from "../components/SEO/PageHelmet";
 import AppLayout from "../components/Layout/AppLayout";
 import { useSubjectStore } from "../Store/useSubjectStore";
 import SubjectCard from "../components/Subjects/SubjectCard";
-import PageLoader from "../components/ui/PageLoader";
 import { usePerformanceStore } from "../Store/usePerformanceStore";
 import { useUserStore } from "../Store/useUserStore";
 import { SUBJECT_COMBO_MAP } from "../Store/useSubjectStore";
@@ -86,19 +85,6 @@ const Subjects: React.FC = () => {
           subjects.reduce((s, sub) => s + sub.accuracy, 0) / subjects.length,
         )
       : 0;
-
-  // Show full-page loader only on initial load (no data yet)
-  if (isLoading && !hasFetched) {
-    return (
-      <AppLayout
-        currentPage="subjects"
-        isSidebarOpen={isSidebarOpen}
-        setIsSidebarOpen={setIsSidebarOpen}
-      >
-        <PageLoader message="Curating your subjects..." />
-      </AppLayout>
-    );
-  }
 
   // Show full-page error only if error AND no data
   if (error && !hasData) {
@@ -258,52 +244,95 @@ const Subjects: React.FC = () => {
         </div>
 
         {/* Stats Overview */}
-        <div className="bg-bgCard border-borderMuted rounded-brand-lg border p-4">
-          <div className="mb-2 flex items-center justify-between">
-            <span className="text-textMuted text-xs">
-              Overall mastery across all subjects
-            </span>
-            <span className="text-brand-light font-mono text-sm font-semibold">
-              {overallAccuracy}%
-            </span>
+        {isLoading && !hasFetched ? (
+          <div className="bg-bgCard border-borderMuted animate-pulse rounded-brand-lg border p-4">
+            <div className="mb-2 flex items-center justify-between">
+              <div className="bg-bgSurface h-3 w-56 rounded" />
+              <div className="bg-bgSurface h-4 w-12 rounded" />
+            </div>
+            <div className="bg-bgSurface h-2 overflow-hidden rounded-full">
+              <div className="bg-bgCard h-full w-1/2 rounded-full" />
+            </div>
+            <div className="mt-3 flex flex-wrap gap-3">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="flex items-center gap-1.5">
+                  <div className="bg-bgSurface h-4 w-4 rounded" />
+                  <div className="bg-bgSurface h-3 w-10 rounded" />
+                </div>
+              ))}
+            </div>
           </div>
-          <div className="bg-bgSurface h-2 overflow-hidden rounded-full">
-            <div
-              className="bg-brand h-full rounded-full transition-all duration-700"
-              style={{ width: `${overallAccuracy}%` }}
-            />
+        ) : (
+          <div className="bg-bgCard border-borderMuted rounded-brand-lg border p-4">
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-textMuted text-xs">
+                Overall mastery across all subjects
+              </span>
+              <span className="text-brand-light font-mono text-sm font-semibold">
+                {overallAccuracy}%
+              </span>
+            </div>
+            <div className="bg-bgSurface h-2 overflow-hidden rounded-full">
+              <div
+                className="bg-brand h-full rounded-full transition-all duration-700"
+                style={{ width: `${overallAccuracy}%` }}
+              />
+            </div>
+            <div className="mt-3 flex flex-wrap gap-3">
+              {subjects.map((s) => (
+                <div key={s.id} className="flex items-center gap-1.5">
+                  <span className="text-sm">{s.icon}</span>
+                  <span
+                    className="font-mono text-[11px] font-medium"
+                    style={{ color: s.color }}
+                  >
+                    {s.accuracy}%
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
-          <div className="mt-3 flex flex-wrap gap-3">
-            {subjects.map((s) => (
-              <div key={s.id} className="flex items-center gap-1.5">
-                <span className="text-sm">{s.icon}</span>
-                <span
-                  className="font-mono text-[11px] font-medium"
-                  style={{ color: s.color }}
-                >
-                  {s.accuracy}%
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
+        )}
 
         {/* Subject Grid — 2 columns */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {sorted.map((subject) => (
-            <SubjectCard
-              key={subject.id}
-              subject={subject}
-              isExpanded={expandedId === subject.id}
-              isBest={subject.name === bestSubjectName}
-              isWorst={subject.name === worstSubjectName}
-              onToggle={() =>
-                setExpandedId((prev) =>
-                  prev === subject.id ? null : subject.id,
-                )
-              }
-            />
-          ))}
+          {isLoading && !hasFetched ? (
+            // Scoped skeleton — only the grid, not the entire page
+            <>
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="bg-bgCard border-borderMuted animate-pulse rounded-brand-xl border p-6 shadow-sm">
+                  <div className="mb-4 flex items-center gap-3">
+                    <div className="bg-bgSurface h-12 w-12 rounded-xl" />
+                    <div className="space-y-1.5">
+                      <div className="bg-bgSurface h-5 w-28 rounded" />
+                      <div className="bg-bgSurface h-3 w-20 rounded" />
+                    </div>
+                  </div>
+                  <div className="bg-bgSurface mb-4 h-2 w-full rounded-full" />
+                  <div className="mb-5 flex justify-between">
+                    <div className="bg-bgSurface h-3 w-16 rounded" />
+                    <div className="bg-bgSurface h-3 w-10 rounded" />
+                  </div>
+                  <div className="bg-bgSurface h-11 w-full rounded-xl" />
+                </div>
+              ))}
+            </>
+          ) : (
+            sorted.map((subject) => (
+              <SubjectCard
+                key={subject.id}
+                subject={subject}
+                isExpanded={expandedId === subject.id}
+                isBest={subject.name === bestSubjectName}
+                isWorst={subject.name === worstSubjectName}
+                onToggle={() =>
+                  setExpandedId((prev) =>
+                    prev === subject.id ? null : subject.id,
+                  )
+                }
+              />
+            ))
+          )}
         </div>
       </div>
     </AppLayout>

@@ -429,7 +429,7 @@ const updateSubjectProgressInDB = async (
 
 export const useSubjectStore = create<SubjectState>()((set, get) => ({
   subjects: [],
-  isLoading: false,
+  isLoading: true,
   error: null,
   isInitialized: false,
   hasFetched: false,
@@ -475,5 +475,5 @@ export const useSubjectStore = create<SubjectState>()((set, get) => ({
       });
     }
   },
-  reset: () => set({ subjects: [], isLoading: false, error: null, isInitialized: false, hasFetched: false }),
+  reset: () => set({ subjects: [], isLoading: true, error: null, isInitialized: false, hasFetched: false }),
 }));

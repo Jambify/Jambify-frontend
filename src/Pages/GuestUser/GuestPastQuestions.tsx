@@ -106,7 +106,7 @@ const GuestPastQuestions = () => {
   const [search, setSearch] = useState("");
 
   const [questions, setQuestions] = useState<Question[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [loadingError, setLoadingError] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 

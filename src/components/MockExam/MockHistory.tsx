@@ -55,11 +55,28 @@ const MockHistory: React.FC = () => {
         </button>
       </div>
 
-      {/* Loading */}
+      {/* Loading — scoped skeleton only for list area, header stays always visible */}
       {isLoading && !hasFetched && (
-        <div className="flex flex-col items-center justify-center py-12">
-          <div className="border-brand mb-3 h-8 w-8 animate-spin rounded-full border-4 border-t-transparent" />
-          <p className="text-textDim text-sm">Loading history...</p>
+        <div className="space-y-4 py-2">
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="bg-bgSurface/50 border-borderMuted animate-pulse flex items-center gap-4 rounded-2xl border p-4"
+            >
+              <div className="bg-bgCard flex h-11 w-11 shrink-0 items-center justify-center rounded-xl" />
+              <div className="min-w-0 flex-1 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="bg-bgCard h-4 w-28 rounded" />
+                  <div className="bg-bgCard h-5 w-12 rounded-full" />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="bg-bgCard h-3 w-24 rounded" />
+                  <div className="bg-bgCard h-3 w-16 rounded" />
+                </div>
+                <div className="bg-bgCard h-2 w-full rounded-full" />
+              </div>
+            </div>
+          ))}
         </div>
       )}
 

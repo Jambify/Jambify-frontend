@@ -115,7 +115,7 @@ export const useGroupStore = create<GroupState>()((set, get) => ({
   groups: [],
   myGroupIds: [],
   messages: {},
-  loading: false,
+  loading: true,
   msgLoading: false,
   error: null,
   nameCache: new Map<string, string>(),

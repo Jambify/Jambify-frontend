@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useUserStore } from "../Store/useUserStore";
 import { supabase } from "../lib/supabase";
 
@@ -27,9 +27,12 @@ interface ProStatusInfo {
   expiresAt: Date | null;
   /** Which CTA to render next to the banner message */
   primaryAction: ProStatusAction;
+  /** pro_users row id — used to scope localStorage dismissal per event */
+  proRowId: string | null;
 }
 
 interface ProRow {
+  id: string;
   status: "active" | "inactive" | "expired" | string;
   plan_type: string | null;
   payment_reference: string | null;
@@ -73,11 +76,17 @@ export const useProStatus = (): ProStatusInfo => {
     showAlert: false,
     expiresAt: null,
     primaryAction: null,
+    proRowId: null,
   });
+
+  // Guards the stale-row DB sync so it only fires once per mount, not
+  // repeatedly if a store update causes re-renders mid-effect.
+  const hasSyncedRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
     if (!userId) {
+      hasSyncedRef.current = false;
       setInfo({
         isActive: false,
         status: "none",
@@ -86,6 +95,7 @@ export const useProStatus = (): ProStatusInfo => {
         showAlert: false,
         expiresAt: null,
         primaryAction: null,
+        proRowId: null,
       });
       return;
     }
@@ -94,7 +104,7 @@ export const useProStatus = (): ProStatusInfo => {
       const { data: proRow } = await supabase
         .from("pro_users")
         .select(
-          "status, plan_type, payment_reference, expires_at, updated_at, created_at",
+          "id, status, plan_type, payment_reference, expires_at, updated_at, created_at",
         )
         .eq("user_id", userId)
         .order("created_at", { ascending: false })
@@ -104,6 +114,7 @@ export const useProStatus = (): ProStatusInfo => {
       if (cancelled) return;
 
       if (!proRow) {
+        hasSyncedRef.current = false;
         setInfo({
           isActive: false,
           status: "none",
@@ -112,11 +123,13 @@ export const useProStatus = (): ProStatusInfo => {
           showAlert: false,
           expiresAt: null,
           primaryAction: null,
+          proRowId: null,
         });
         return;
       }
 
       const row = proRow as ProRow;
+      const rowId = row.id;
       const now = new Date();
       const expiresAt = toDate(row.expires_at);
       const updatedAt = toDate(row.updated_at);
@@ -143,9 +156,8 @@ export const useProStatus = (): ProStatusInfo => {
             ? `Pro expires in ${daysLeft} day${daysLeft === 1 ? "" : "s"}`
             : "Pro Active";
           const msg = expiringSoon
-            ? `Your Schooldra Pro access expires in ${daysLeft} day${
-                daysLeft === 1 ? "" : "s"
-              } (${fmt(expiresAt)}). Renew now to keep access.`
+            ? `Your Schooldra Pro access expires in ${daysLeft} day${daysLeft === 1 ? "" : "s"
+            } (${fmt(expiresAt)}). Renew now to keep access.`
             : `Pro access is active until ${fmt(expiresAt)}.`;
           setInfo({
             isActive: true,
@@ -155,6 +167,7 @@ export const useProStatus = (): ProStatusInfo => {
             showAlert: expiringSoon,
             expiresAt,
             primaryAction: expiringSoon ? "renew" : null,
+            proRowId: rowId,
           });
           return;
         }
@@ -201,6 +214,7 @@ export const useProStatus = (): ProStatusInfo => {
               showAlert: true,
               expiresAt,
               primaryAction: "contact_support",
+              proRowId: rowId,
             });
           } else {
             setInfo({
@@ -213,6 +227,7 @@ export const useProStatus = (): ProStatusInfo => {
               showAlert: true,
               expiresAt,
               primaryAction: "renew",
+              proRowId: rowId,
             });
           }
           return;
@@ -229,6 +244,7 @@ export const useProStatus = (): ProStatusInfo => {
           showAlert: true,
           expiresAt,
           primaryAction: "contact_support",
+          proRowId: rowId,
         });
         return;
       }
@@ -245,6 +261,7 @@ export const useProStatus = (): ProStatusInfo => {
           showAlert: true,
           expiresAt,
           primaryAction: isAdminGrant ? "contact_support" : "renew",
+          proRowId: rowId,
         });
         return;
       }
@@ -266,6 +283,7 @@ export const useProStatus = (): ProStatusInfo => {
             showAlert: true,
             expiresAt,
             primaryAction: "try_again",
+            proRowId: rowId,
           });
         } else {
           setInfo({
@@ -277,6 +295,7 @@ export const useProStatus = (): ProStatusInfo => {
             showAlert: true,
             expiresAt,
             primaryAction: "contact_support",
+            proRowId: rowId,
           });
         }
         return;
@@ -291,6 +310,7 @@ export const useProStatus = (): ProStatusInfo => {
         showAlert: false,
         expiresAt,
         primaryAction: null,
+        proRowId: rowId,
       });
     };
 

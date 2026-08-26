@@ -1,4 +1,4 @@
-import React, { type ReactNode, useState, useRef, } from "react";
+import React, { type ReactNode, useState, useRef } from "react";
 import { Link } from "react-router";
 import { useUserStore } from "../../Store/useUserStore";
 import { useExamCountdown } from "../../hooks/useExamCountdown";
@@ -202,7 +202,7 @@ const ProStatusBanner: React.FC<ProStatusBannerProps> = ({
       </div>
 
       <div className="min-w-0 flex-1 pt-0.5">
-        <p className="text-textMain text-sm font-semibold leading-snug">
+        <p className="text-textMain text-sm leading-snug font-semibold">
           {status.shortMessage || "Pro Status"}
         </p>
         <p className="text-textMuted mt-0.5 text-xs leading-relaxed">
@@ -213,7 +213,7 @@ const ProStatusBanner: React.FC<ProStatusBannerProps> = ({
             {ctaHref.startsWith("mailto:") ? (
               <a
                 href={ctaHref}
-                className="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold text-textMain underline decoration-2 underline-offset-4 hover:opacity-80"
+                className="text-textMain inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold underline decoration-2 underline-offset-4 hover:opacity-80"
               >
                 <Mail className="h-3.5 w-3.5" /> Contact support
               </a>
@@ -235,7 +235,7 @@ const ProStatusBanner: React.FC<ProStatusBannerProps> = ({
         type="button"
         onClick={onDismiss}
         aria-label="Dismiss Pro status alert"
-        className="text-textDim hover:text-textMain -mr-1 mt-0.5 shrink-0 rounded-lg p-1.5 transition-colors"
+        className="text-textDim hover:text-textMain mt-0.5 -mr-1 shrink-0 rounded-lg p-1.5 transition-colors"
       >
         <X className="h-4 w-4" />
       </button>
@@ -246,7 +246,7 @@ const ProStatusBanner: React.FC<ProStatusBannerProps> = ({
 // Lucide icon aliased for ProStatusBanner since AlertTriangle is imported via
 // destructuring alongside the other icons below.
 const AlertTriangle = ({ className }: { className?: string }) => {
-  const Icon = (React.useMemo(
+  const Icon = React.useMemo(
     () =>
       (
         p: React.SVGProps<SVGSVGElement> & {
@@ -270,9 +270,11 @@ const AlertTriangle = ({ className }: { className?: string }) => {
         </svg>
       ),
     [],
-  ));
+  );
   return <Icon className={className} />;
 };
+
+const DISMISS_KEY_PREFIX = "schooldra_pro_alert_dismissed_";
 
 const AppLayout: React.FC<LayoutProps> = ({
   children,
@@ -283,6 +285,7 @@ const AppLayout: React.FC<LayoutProps> = ({
   className,
   onRefresh,
 }) => {
+  const userId = useUserStore((state) => state.id);
   const name = useUserStore((state) => state.name);
   const targetScore = useUserStore((state) => state.targetScore);
   const streak = useUserStore((state) => state.streak);
@@ -293,7 +296,14 @@ const AppLayout: React.FC<LayoutProps> = ({
 
   const [pullDistance, setPullDistance] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [proBannerDismissed, setProBannerDismissed] = useState(false);
+
+  // Compute dismiss state synchronously so the banner never flashes visible
+  // before the effect can read localStorage and hide it.
+  const [proBannerDismissed, setProBannerDismissed] = useState<boolean>(() => {
+    if (!userId || !proStatus.proRowId) return false;
+    const key = `${DISMISS_KEY_PREFIX}${userId}_${proStatus.proRowId}`;
+    try { return localStorage.getItem(key) === "true"; } catch { return false; }
+  });
   const touchStartRef = useRef(0);
   const touchStartXRef = useRef(0);
   const isDrawerOpenRef = useRef(false);
@@ -302,11 +312,30 @@ const AppLayout: React.FC<LayoutProps> = ({
   const initials = getInitials(displayName);
   const pageTitle = formatPageTitle(currentPage);
 
-  // Banner shows on status changes — re-arm when a new status with showAlert
-  // fires so the user sees the updated message (e.g. stale → expired).
+  const dismissKey =
+    userId && proStatus.proRowId
+      ? `${DISMISS_KEY_PREFIX}${userId}_${proStatus.proRowId}`
+      : null;
+
+  // Re-check localStorage only when the specific pro_users row changes
+  // (proRowId changing = a new pro event, so we re-arm the banner).
+  // Changing status alone (active→expiring) on the SAME row must NOT
+  // flip proBannerDismissed back to false — the user already dismissed it.
   React.useEffect(() => {
-    if (proStatus.showAlert) setProBannerDismissed(false);
-  }, [proStatus.status, proStatus.showAlert]);
+    if (!proStatus.showAlert || !dismissKey) return;
+    try {
+      setProBannerDismissed(localStorage.getItem(dismissKey) === "true");
+    } catch {
+      setProBannerDismissed(false);
+    }
+  }, [proStatus.proRowId, dismissKey]); // ← proRowId only, not status
+
+  const handleProBannerDismiss = () => {
+    if (dismissKey) {
+      localStorage.setItem(dismissKey, "true");
+    }
+    setProBannerDismissed(true);
+  };
 
   const handleTouchStart = (e: React.TouchEvent) => {
     if (isDrawerOpenRef.current) {
@@ -393,18 +422,20 @@ const AppLayout: React.FC<LayoutProps> = ({
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      {/* PULL TO REFRESH SPINNER */}
+      {/* PULL TO REFRESH SPINNER
+           Only visible once pull > 25px (raised from 10) to prevent
+           accidental micro-gesture flashes on normal scroll-to-top. */}
       <motion.div
         aria-hidden="true"
         className="pointer-events-none fixed inset-x-0 top-16 z-90 flex justify-center"
         animate={{
           y: isRefreshing ? 12 : pullDistance > 0 ? pullDistance : -50,
-          opacity: pullDistance > 10 || isRefreshing ? 1 : 0,
+          opacity: pullDistance > 25 || isRefreshing ? 1 : 0,
         }}
         transition={
           isRefreshing
             ? { type: "spring", stiffness: 300, damping: 20 }
-            : { duration: 0.1 }
+            : { duration: 0.15 }   // slightly longer fade so brief micro-pulls don't flash
         }
       >
         <div className="bg-bgSurface border-borderMuted/80 text-brand flex h-10 w-10 items-center justify-center rounded-full border shadow-xl">
@@ -427,7 +458,7 @@ const AppLayout: React.FC<LayoutProps> = ({
         <ProStatusBanner
           status={proStatus}
           dismissed={proBannerDismissed}
-          onDismiss={() => setProBannerDismissed(true)}
+          onDismiss={handleProBannerDismiss}
         />
       </div>
 

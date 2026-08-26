@@ -27,9 +27,10 @@ import {
   Zap,
   Target,
   Infinity as InfinityIcon,
+  AlertCircle,
+  RefreshCw,
 } from "lucide-react";
 import LoadingScreen from "../components/ui/LoadingScreen";
-import NetworkErrorAlert from "../components/ui/NetworkErrorAlert";
 import { useOfflineStore } from "../Store/useOfflineStore";
 import type { Question } from "../Types";
 
@@ -511,14 +512,37 @@ const Quiz: React.FC = () => {
       <div className="mx-auto max-w-2xl">
         {(loadError?.includes("CONNECTION_ERROR") ||
           loadError?.includes("OFFLINE")) && (
-          <NetworkErrorAlert
-            message={loadError}
-            onRetry={() => {
-              setLoadError(null);
-              handleStart();
-            }}
-            onDismiss={() => setLoadError(null)}
-          />
+          <div className="bg-warning/10 border-warning/30 animate-in fade-in slide-in-from-top-4 mb-6 flex flex-col gap-3 rounded-xl border p-4 duration-300 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-3">
+              <div className="bg-warning/15 text-warning flex h-10 w-10 shrink-0 items-center justify-center rounded-xl">
+                <AlertCircle className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-textMain text-sm font-semibold">
+                  Unable to load questions
+                </p>
+                <p className="text-textDim mt-0.5 text-xs">{loadError}</p>
+              </div>
+            </div>
+            <div className="flex gap-2 sm:flex-col-reverse">
+              <button
+                onClick={() => setLoadError(null)}
+                className="bg-bgSurface hover:bg-bgCard text-textMuted hover:text-textMain rounded-lg px-3 py-2 text-xs font-bold transition-colors"
+              >
+                Dismiss
+              </button>
+              <button
+                onClick={() => {
+                  setLoadError(null);
+                  handleStart();
+                }}
+                className="bg-warning hover:bg-warning/90 flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-bold text-white transition-all active:scale-95 sm:w-auto"
+              >
+                <RefreshCw size={14} />
+                Retry
+              </button>
+            </div>
+          </div>
         )}
 
         {loadError &&

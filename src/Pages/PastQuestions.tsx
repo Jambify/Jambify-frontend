@@ -9,9 +9,8 @@ import Button from "../components/ui/Button";
 import ValidatedInput from "../components/ui/ValidatedInput";
 import { truncateInput } from "../lib/validation";
 import { renderQuestionText } from "../lib/utils/renderQuestionText";
-import {ExplanationText} from "../components/shared/ExplanationText";
+import { ExplanationText } from "../components/shared/ExplanationText";
 import {
-  Loader2,
   Search,
   X,
   ChevronLeft,
@@ -132,7 +131,7 @@ const PastQuestions = () => {
   const [page, setPage] = useState(1);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [availableTopics, setAvailableTopics] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [loadingError, setLoadingError] = useState<string | null>(null);
@@ -465,21 +464,49 @@ const PastQuestions = () => {
           </div>
         </div>
 
-        {/* Loading State */}
+        {/* Loading State — scoped to data sections only */}
         {isLoading && questions.length === 0 && (
-          <div className="mx-auto flex max-w-350 flex-col items-center justify-center gap-6 px-2 py-20 lg:px-4">
-            <div className="bg-brand/10 flex h-20 w-20 items-center justify-center rounded-3xl">
-              <Loader2 className="text-brand h-10 w-10 animate-spin" />
+          <>
+            <div className="flex animate-pulse items-center justify-between">
+              <div className="bg-bgSurface h-4 w-40 rounded" />
             </div>
-            <div className="space-y-2 text-center">
-              <h2 className="font-display text-textMain text-2xl font-bold">
-                Loading your past questions
-              </h2>
-              <p className="text-textDim mx-auto max-w-sm text-sm">
-                Please wait while we fetch your questions
-              </p>
+
+            <div className="animate-pulse space-y-4">
+              {[1, 2, 3].map((q) => (
+                <div
+                  key={q}
+                  className="bg-bgCard border-borderMuted overflow-hidden rounded-2xl border p-5"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="bg-bgSurface flex h-10 w-10 shrink-0 items-center justify-center rounded-full" />
+                    <div className="min-w-0 flex-1">
+                      <div className="mb-2 flex flex-wrap items-center gap-3">
+                        <div className="bg-bgSurface h-5 w-20 rounded-full" />
+                        <div className="bg-bgSurface h-4 w-16 rounded" />
+                        <div className="bg-bgSurface h-4 w-20 rounded" />
+                      </div>
+                      <div className="space-y-1.5">
+                        <div className="bg-bgSurface h-5 w-full rounded" />
+                        <div className="bg-bgSurface h-5 w-5/6 rounded" />
+                        <div className="bg-bgSurface h-5 w-2/3 rounded" />
+                      </div>
+                    </div>
+                    <div className="bg-bgSurface h-5 w-5 shrink-0 rounded" />
+                  </div>
+                </div>
+              ))}
             </div>
-          </div>
+
+            <div className="flex animate-pulse items-center justify-between pt-4">
+              <div className="bg-bgSurface h-10 w-28 rounded-xl" />
+              <div className="flex items-center gap-2">
+                {[1, 2, 3, 4, 5].map((p) => (
+                  <div key={p} className="bg-bgSurface h-10 w-10 rounded-xl" />
+                ))}
+              </div>
+              <div className="bg-bgSurface h-10 w-28 rounded-xl" />
+            </div>
+          </>
         )}
 
         {/* Error Banner */}
