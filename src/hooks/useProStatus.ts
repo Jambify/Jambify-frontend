@@ -29,6 +29,10 @@ interface ProStatusInfo {
   primaryAction: ProStatusAction;
   /** pro_users row id — used to scope localStorage dismissal per event */
   proRowId: string | null;
+  /** plan_type from pro_users row — used to distinguish admin-grant vs purchased */
+  planType: string | null;
+  /** payment_reference from pro_users row — used to detect admin-grant pattern */
+  paymentReference: string | null;
 }
 
 interface ProRow {
@@ -77,6 +81,8 @@ export const useProStatus = (): ProStatusInfo => {
     expiresAt: null,
     primaryAction: null,
     proRowId: null,
+    planType: null,
+    paymentReference: null,
   });
 
   // Guards the stale-row DB sync so it only fires once per mount, not
@@ -96,6 +102,8 @@ export const useProStatus = (): ProStatusInfo => {
         expiresAt: null,
         primaryAction: null,
         proRowId: null,
+        planType: null,
+        paymentReference: null,
       });
       return;
     }
@@ -124,6 +132,8 @@ export const useProStatus = (): ProStatusInfo => {
           expiresAt: null,
           primaryAction: null,
           proRowId: null,
+          planType: null,
+          paymentReference: null,
         });
         return;
       }
@@ -168,6 +178,8 @@ export const useProStatus = (): ProStatusInfo => {
             expiresAt,
             primaryAction: expiringSoon ? "renew" : null,
             proRowId: rowId,
+            planType: row.plan_type,
+            paymentReference: row.payment_reference,
           });
           return;
         }
@@ -215,6 +227,8 @@ export const useProStatus = (): ProStatusInfo => {
               expiresAt,
               primaryAction: "contact_support",
               proRowId: rowId,
+              planType: row.plan_type,
+              paymentReference: row.payment_reference,
             });
           } else {
             setInfo({
@@ -228,6 +242,8 @@ export const useProStatus = (): ProStatusInfo => {
               expiresAt,
               primaryAction: "renew",
               proRowId: rowId,
+              planType: row.plan_type,
+              paymentReference: row.payment_reference,
             });
           }
           return;
@@ -245,6 +261,8 @@ export const useProStatus = (): ProStatusInfo => {
           expiresAt,
           primaryAction: "contact_support",
           proRowId: rowId,
+          planType: row.plan_type,
+          paymentReference: row.payment_reference,
         });
         return;
       }
@@ -262,6 +280,8 @@ export const useProStatus = (): ProStatusInfo => {
           expiresAt,
           primaryAction: isAdminGrant ? "contact_support" : "renew",
           proRowId: rowId,
+          planType: row.plan_type,
+          paymentReference: row.payment_reference,
         });
         return;
       }
@@ -284,6 +304,8 @@ export const useProStatus = (): ProStatusInfo => {
             expiresAt,
             primaryAction: "try_again",
             proRowId: rowId,
+            planType: row.plan_type,
+            paymentReference: row.payment_reference,
           });
         } else {
           setInfo({
@@ -296,6 +318,8 @@ export const useProStatus = (): ProStatusInfo => {
             expiresAt,
             primaryAction: "contact_support",
             proRowId: rowId,
+            planType: row.plan_type,
+            paymentReference: row.payment_reference,
           });
         }
         return;
@@ -311,6 +335,8 @@ export const useProStatus = (): ProStatusInfo => {
         expiresAt,
         primaryAction: null,
         proRowId: rowId,
+        planType: row.plan_type,
+        paymentReference: row.payment_reference,
       });
     };
 

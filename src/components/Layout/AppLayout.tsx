@@ -245,6 +245,84 @@ const ProStatusBanner: React.FC<ProStatusBannerProps> = ({
   );
 };
 
+const WELCOME_DISMISS_PREFIX = "schooldra_pro_welcome_seen_";
+
+interface ProWelcomeBannerProps {
+  status: ReturnType<typeof useProStatus>;
+  userId: string | null;
+}
+
+const ProWelcomeBanner: React.FC<ProWelcomeBannerProps> = ({
+  status,
+  userId,
+}) => {
+  const isActive = status.status === "active" || status.status === "expiring_soon";
+  const welcomeKey =
+    userId && status.proRowId
+      ? `${WELCOME_DISMISS_PREFIX}${userId}_${status.proRowId}`
+      : null;
+
+  const [seen, setSeen] = React.useState<boolean>(true);
+
+  React.useEffect(() => {
+    if (!welcomeKey) return;
+    try {
+      setSeen(localStorage.getItem(welcomeKey) === "true");
+    } catch {
+      setSeen(false);
+    }
+  }, [welcomeKey]);
+
+  const dismiss = () => {
+    if (welcomeKey) {
+      try {
+        localStorage.setItem(welcomeKey, "true");
+      } catch {}
+    }
+    setSeen(true);
+  };
+
+  if (!isActive || seen || !welcomeKey) return null;
+
+  // Check if this is an admin grant by looking at plan_type or payment_reference pattern
+  const isAdminGrant =
+    status.planType === "admin_grant" ||
+    (status.planType && status.planType.toLowerCase() === "admin_grant") ||
+    (status.paymentReference && status.paymentReference.startsWith("admin-grant-"));
+
+  return (
+    <div
+      className="border-success/30 bg-success/10 relative mb-3 flex items-start gap-3 overflow-hidden rounded-2xl border px-4 py-3 shadow-sm sm:px-5"
+      role="status"
+      aria-live="polite"
+    >
+      <div className="border-success/30 bg-success/15 text-success mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border">
+        <Trophy className="h-4.5 w-4.5" />
+      </div>
+      <div className="min-w-0 flex-1 pt-0.5">
+        <p className="text-textMain text-sm leading-snug font-semibold">
+          {isAdminGrant
+            ? "You've been granted Schooldra Pro!"
+            : "Welcome to Schooldra Pro!"}
+        </p>
+        <p className="text-textMuted mt-0.5 text-xs leading-relaxed">
+          {isAdminGrant
+            ? "An admin has unlocked Pro for your account. Enjoy AI Tutor, offline mode, and full mock exam review."
+            : "Your purchase was successful. AI Tutor, offline mode, and full mock exam review are now unlocked."}
+        </p>
+      </div>
+      <button
+        type="button"
+        onClick={dismiss}
+        aria-label="Dismiss welcome message"
+        className="text-textDim hover:text-textMain mt-0.5 -mr-1 shrink-0 rounded-lg p-1.5 transition-colors"
+      >
+        <X className="h-4 w-4" />
+      </button>
+    </div>
+  );
+};
+
 // Lucide icon aliased for ProStatusBanner since AlertTriangle is imported via
 // destructuring alongside the other icons below.
 const AlertTriangle = ({ className }: { className?: string }) => {
@@ -538,6 +616,7 @@ const AppLayout: React.FC<LayoutProps> = ({
 
       <div className="lg:pt-5 lg:pl-64">
         <AnnouncementBanner />
+        <ProWelcomeBanner status={proStatus} userId={userId} />
         <ProStatusBanner
           status={proStatus}
           dismissed={proBannerDismissed}
