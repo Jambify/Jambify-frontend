@@ -467,44 +467,44 @@ const PastQuestions = () => {
         {/* Loading State — scoped to data sections only */}
         {isLoading && questions.length === 0 && (
           <>
-            <div className="flex animate-pulse items-center justify-between">
-              <div className="bg-bgSurface h-4 w-40 rounded" />
+            <div className="flex items-center justify-between">
+              <div className="bg-bgSurface skeleton-shimmer h-4 w-40 rounded" />
             </div>
 
-            <div className="animate-pulse space-y-4">
+            <div className="space-y-4">
               {[1, 2, 3].map((q) => (
                 <div
                   key={q}
                   className="bg-bgCard border-borderMuted overflow-hidden rounded-2xl border p-5"
                 >
                   <div className="flex items-start gap-4">
-                    <div className="bg-bgSurface flex h-10 w-10 shrink-0 items-center justify-center rounded-full" />
+                    <div className="bg-bgSurface skeleton-shimmer flex h-10 w-10 shrink-0 items-center justify-center rounded-full" />
                     <div className="min-w-0 flex-1">
                       <div className="mb-2 flex flex-wrap items-center gap-3">
-                        <div className="bg-bgSurface h-5 w-20 rounded-full" />
-                        <div className="bg-bgSurface h-4 w-16 rounded" />
-                        <div className="bg-bgSurface h-4 w-20 rounded" />
+                        <div className="bg-bgSurface skeleton-shimmer h-5 w-20 rounded-full" />
+                        <div className="bg-bgSurface skeleton-shimmer h-4 w-16 rounded" />
+                        <div className="bg-bgSurface skeleton-shimmer h-4 w-20 rounded" />
                       </div>
                       <div className="space-y-1.5">
-                        <div className="bg-bgSurface h-5 w-full rounded" />
-                        <div className="bg-bgSurface h-5 w-5/6 rounded" />
-                        <div className="bg-bgSurface h-5 w-2/3 rounded" />
+                        <div className="bg-bgSurface skeleton-shimmer h-5 w-full rounded" />
+                        <div className="bg-bgSurface skeleton-shimmer h-5 w-5/6 rounded" />
+                        <div className="bg-bgSurface skeleton-shimmer h-5 w-2/3 rounded" />
                       </div>
                     </div>
-                    <div className="bg-bgSurface h-5 w-5 shrink-0 rounded" />
+                    <div className="bg-bgSurface skeleton-shimmer h-5 w-5 shrink-0 rounded" />
                   </div>
                 </div>
               ))}
             </div>
 
-            <div className="flex animate-pulse items-center justify-between pt-4">
-              <div className="bg-bgSurface h-10 w-28 rounded-xl" />
+            <div className="flex items-center justify-between pt-4">
+              <div className="bg-bgSurface skeleton-shimmer h-10 w-28 rounded-xl" />
               <div className="flex items-center gap-2">
                 {[1, 2, 3, 4, 5].map((p) => (
-                  <div key={p} className="bg-bgSurface h-10 w-10 rounded-xl" />
+                  <div key={p} className="bg-bgSurface skeleton-shimmer h-10 w-10 rounded-xl" />
                 ))}
               </div>
-              <div className="bg-bgSurface h-10 w-28 rounded-xl" />
+              <div className="bg-bgSurface skeleton-shimmer h-10 w-28 rounded-xl" />
             </div>
           </>
         )}

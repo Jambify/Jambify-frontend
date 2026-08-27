@@ -86,8 +86,8 @@ const Settings: React.FC = () => {
           <div className="bg-brand font-display shadow-brand flex h-16 w-16 shrink-0 items-center justify-center rounded-full text-xl font-bold text-white">
             {initials || "?"}
           </div>
-          <div>
-            <p className="font-display text-lg font-semibold tracking-tight">
+          <div className="min-w-0 flex-1">
+            <p className="font-display text-lg font-semibold tracking-tight whitespace-normal break-words">
               {name || "Your name"}
             </p>
             <p className="text-textMuted mt-0.5 text-sm">

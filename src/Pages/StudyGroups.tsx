@@ -289,10 +289,37 @@ const StudyGroups: React.FC = () => {
         </p>
       )}
 
-      {/* Loading */}
+      {/* Loading - scoped skeleton cards in grid */}
       {loading && (
-        <div className="flex justify-center py-12">
-          <Loader2 className="text-brand h-6 w-6 animate-spin" />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {[1, 2, 3, 4, 5, 6].map((g) => (
+            <div
+              key={g}
+              className="bg-bgCard overflow-hidden rounded-2xl shadow-sm"
+            >
+              <div className="bg-bgSurface skeleton-shimmer h-28 w-full" />
+              <div className="space-y-3 p-5">
+                <div className="flex items-start justify-between">
+                  <div className="space-y-2">
+                    <div className="bg-bgSurface skeleton-shimmer h-5 w-40 rounded" />
+                    <div className="bg-bgSurface skeleton-shimmer h-3 w-24 rounded" />
+                  </div>
+                  <div className="bg-bgSurface skeleton-shimmer h-6 w-6 rounded-full" />
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="bg-bgSurface skeleton-shimmer h-6 w-6 rounded-full" />
+                  <div className="bg-bgSurface skeleton-shimmer h-3 w-20 rounded" />
+                  <div className="ml-auto flex -space-x-2">
+                    {[1, 2, 3].map((m) => (
+                      <div key={m} className="bg-bgSurface skeleton-shimmer h-6 w-6 rounded-full" />
+                    ))}
+                  </div>
+                  <div className="bg-bgSurface skeleton-shimmer h-3 w-8 rounded" />
+                </div>
+                <div className="bg-bgSurface skeleton-shimmer h-10 w-full rounded-xl" />
+              </div>
+            </div>
+          ))}
         </div>
       )}
 

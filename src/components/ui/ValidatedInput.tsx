@@ -41,7 +41,7 @@ const ValidatedInput: React.FC<Props> = ({
 
   const inputClass =
     className ||
-    "bg-bgSurface border-borderMuted text-textMain w-full rounded-lg border px-3 py-2 text-sm focus:ring-2 focus:outline-none";
+    "bg-bgSurface border-borderMuted text-textMain w-full min-w-0 rounded-lg border px-3 py-2 text-sm focus:ring-2 focus:outline-none";
 
   return (
     <div>

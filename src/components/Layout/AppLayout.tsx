@@ -93,20 +93,13 @@ const NavItem = ({ label, active, badge, icon, path }: any) => {
   );
 };
 
-const PULL_THRESHOLD = 80;
+const PULL_TRIGGER = 90;
+const ICON_VISIBLE_AT = 40;
 
 /**
  * Walk up from `el` looking for the nearest scrollable ancestor (an element
  * with overflow-y: auto/scroll whose content is taller than its box).
  * Returns null if the only scrollable container is `<body>` / window.
- *
- * We need this because the naive `window.scrollY === 0` check is wrong
- * whenever the *actual* scrollable container under the touch point is an
- * inner element, e.g. the question/chat area in ReviewExam, the
- * subject-list sidebar in MockExam, the 5×5 question palette sidebar,
- * etc. In those cases window.scrollY stays 0 forever but the user is
- * mid-scroll inside that inner container — a downward swipe should be
- * "scroll up the inner content," not pull-to-refresh.
  */
 const findScrollableParent = (el: HTMLElement | null): HTMLElement | null => {
   if (!el || el === document.body || el === document.documentElement)
@@ -127,6 +120,15 @@ const innerScrollAtTop = (touchTarget: EventTarget | null): boolean => {
   const scrollable = findScrollableParent(el);
   return !scrollable || scrollable.scrollTop <= 0;
 };
+
+type PullPhase = "hidden" | "visible" | "refreshing";
+interface PullState {
+  phase: PullPhase;
+  /** Smooth visible pull (0..120). Only set when pulling is confirmed. */
+  distance: number;
+}
+
+const INITIAL_PULL: PullState = { phase: "hidden", distance: 0 };
 
 /**
  * Banner driven by `useProStatus` output. It replaces the old one-size-fits-all
@@ -294,19 +296,34 @@ const AppLayout: React.FC<LayoutProps> = ({
   const { isOnline, wasOffline } = useNetworkStatus();
   const proStatus = useProStatus();
 
-  const [pullDistance, setPullDistance] = useState(0);
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [pullState, setPullState] = useState<PullState>(INITIAL_PULL);
 
-  // Compute dismiss state synchronously so the banner never flashes visible
-  // before the effect can read localStorage and hide it.
-  const [proBannerDismissed, setProBannerDismissed] = useState<boolean>(() => {
-    if (!userId || !proStatus.proRowId) return false;
-    const key = `${DISMISS_KEY_PREFIX}${userId}_${proStatus.proRowId}`;
-    try { return localStorage.getItem(key) === "true"; } catch { return false; }
-  });
-  const touchStartRef = useRef(0);
-  const touchStartXRef = useRef(0);
+  const [proBannerDismissed, setProBannerDismissed] = useState<boolean>(true);
   const isDrawerOpenRef = useRef(false);
+
+  // ── Pull-to-refresh gesture tracking ────────────────────────────────
+  // Raw gesture progress is tracked in refs so we don't trigger a React
+  // re-render on every tiny touch-move (which would be ~60/sec and cause
+  // flicker). Only when the gesture crosses a confirmed visible-state
+  // threshold do we write to state.
+  const gestureRef = useRef({
+    active: false,
+    startY: 0,
+    startX: 0,
+    // Raw delta (before damping). We keep this so we can damp differently
+    // for "visible" vs "trigger" thresholds without losing precision.
+    rawDelta: 0,
+    // Confidence counter: how many consecutive move events is the user
+    // still pulling beyond the visibility threshold? We require at least
+    // 2 consecutive frames (≈32ms) at > ICON_VISIBLE_AT before showing
+    // the icon. This kills micro-bounce flashes from normal scroll-to-top
+    // momentum or iOS rubber-banding.
+    sustainedFrames: 0,
+  });
+
+  // Helper: clamp a number into [min, max].
+  const clamp = (v: number, min: number, max: number) =>
+    Math.max(min, Math.min(max, v));
 
   const displayName = name || "Guest User";
   const initials = getInitials(displayName);
@@ -322,13 +339,13 @@ const AppLayout: React.FC<LayoutProps> = ({
   // Changing status alone (active→expiring) on the SAME row must NOT
   // flip proBannerDismissed back to false — the user already dismissed it.
   React.useEffect(() => {
-    if (!proStatus.showAlert || !dismissKey) return;
+    if (!dismissKey) return;
     try {
       setProBannerDismissed(localStorage.getItem(dismissKey) === "true");
     } catch {
       setProBannerDismissed(false);
     }
-  }, [proStatus.proRowId, dismissKey]); // ← proRowId only, not status
+  }, [proStatus.proRowId, dismissKey]);
 
   const handleProBannerDismiss = () => {
     if (dismissKey) {
@@ -337,81 +354,133 @@ const AppLayout: React.FC<LayoutProps> = ({
     setProBannerDismissed(true);
   };
 
+  // ── Touch handlers (pull-to-refresh) ────────────────────────────────
+
   const handleTouchStart = (e: React.TouchEvent) => {
-    if (isDrawerOpenRef.current) {
-      touchStartRef.current = 0;
+    const g = gestureRef.current;
+    // Never start a pull while a drawer/modal overlay is open, or during
+    // an active refresh cycle.
+    if (isDrawerOpenRef.current || pullState.phase === "refreshing") {
+      g.active = false;
       return;
     }
-    const target = e.target;
     const windowAtTop = window.scrollY <= 0;
-    // BOTH must be true: outer page is at top AND every inner scrollable
-    // ancestor under the starting touch point is ALSO at its top.
-    if (windowAtTop && innerScrollAtTop(target) && !isRefreshing) {
-      touchStartRef.current = e.touches[0].clientY;
-      touchStartXRef.current = e.touches[0].clientX;
+    const innerAtTop = innerScrollAtTop(e.target);
+    if (windowAtTop && innerAtTop) {
+      g.active = true;
+      g.startY = e.touches[0].clientY;
+      g.startX = e.touches[0].clientX;
+      g.rawDelta = 0;
+      g.sustainedFrames = 0;
     } else {
-      touchStartRef.current = 0;
-      touchStartXRef.current = 0;
+      g.active = false;
     }
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    if (!touchStartRef.current || isRefreshing) return;
+    const g = gestureRef.current;
+    if (!g.active || pullState.phase === "refreshing") return;
 
-    const currentY = e.touches[0].clientY;
-    const currentX = e.touches[0].clientX;
-    const distanceY = currentY - touchStartRef.current;
-    const distanceX = Math.abs(currentX - touchStartXRef.current);
+    const y = e.touches[0].clientY;
+    const x = e.touches[0].clientX;
+    const dy = y - g.startY;
+    const dx = Math.abs(x - g.startX);
 
-    // Recheck on every move: user might have started touch at top of an
-    // inner container but since scrolled it via momentum/inertia, or they
-    // were at the top and the page was still rubber-banding. If the
-    // scrollable parent is no longer at the top, bail immediately.
-    const stillAtTheTop = window.scrollY <= 0 && innerScrollAtTop(e.target);
-
-    if (distanceY > 0 && distanceY > distanceX && stillAtTheTop) {
-      const pull = Math.min(distanceY * 0.4, PULL_THRESHOLD + 20);
-      setPullDistance(pull);
-    } else {
-      if (distanceX > distanceY) {
-        setPullDistance(0);
+    // 1. If the user has moved more horizontally than vertically, this
+    //    gesture is a side-swipe, not a pull-down. Kill it permanently.
+    if (dx > dy && dx > 8) {
+      g.active = false;
+      if (pullState.phase === "visible") {
+        setPullState(INITIAL_PULL);
       }
+      return;
+    }
+
+    // 2. Re-verify scroll position on every move: the user might have
+    //    started at the very top but an inner container moved via
+    //    momentum, or they were rubber-banding.
+    const stillAtTop = window.scrollY <= 0 && innerScrollAtTop(e.target);
+    if (!stillAtTop || dy <= 0) {
+      g.rawDelta = 0;
+      g.sustainedFrames = 0;
+      if (pullState.phase === "visible") {
+        setPullState(INITIAL_PULL);
+      }
+      return;
+    }
+
+    // 3. Damp the pull (feels springy, not 1:1 with finger).
+    const damped = dy * 0.45;
+    g.rawDelta = damped;
+
+    // 4. Visibility gating: require sustained pull above ICON_VISIBLE_AT
+    //    for at least 2 consecutive move events before showing anything.
+    //    This is the critical fix for single-frame micro-bounce flashes.
+    if (damped >= ICON_VISIBLE_AT) {
+      g.sustainedFrames += 1;
+    } else {
+      g.sustainedFrames = 0;
+      if (pullState.phase === "visible") {
+        setPullState(INITIAL_PULL);
+      }
+      return;
+    }
+
+    if (g.sustainedFrames >= 2) {
+      const capped = clamp(damped, 0, PULL_TRIGGER + 30);
+      setPullState({ phase: "visible", distance: capped });
     }
   };
 
   const handleTouchEnd = async () => {
-    if (!touchStartRef.current || isRefreshing) return;
+    const g = gestureRef.current;
+    if (!g.active) return;
+    g.active = false;
 
-    if (pullDistance >= PULL_THRESHOLD) {
-      setIsRefreshing(true);
-      setPullDistance(PULL_THRESHOLD);
+    if (pullState.phase === "refreshing") return;
 
-      if (onRefresh) {
-        await onRefresh();
-      } else {
-        await new Promise((resolve) => setTimeout(resolve, 1200));
-        window.location.reload();
+    const finalDelta = g.rawDelta;
+
+    if (pullState.phase === "visible" && finalDelta >= PULL_TRIGGER) {
+      setPullState({ phase: "refreshing", distance: PULL_TRIGGER });
+      try {
+        if (onRefresh) {
+          await onRefresh();
+        } else {
+          await new Promise((resolve) => setTimeout(resolve, 1200));
+          window.location.reload();
+        }
+      } finally {
+        // Small cooldown so animation settles before removing the spinner.
+        await new Promise((resolve) => setTimeout(resolve, 220));
+        setPullState(INITIAL_PULL);
       }
-
-      setIsRefreshing(false);
+    } else {
+      // Pull released too early — fade out cleanly. A brief transition
+      // ensures no instant snap, even if the underlying state flips fast.
+      setPullState(INITIAL_PULL);
     }
 
-    setPullDistance(0);
-    touchStartRef.current = 0;
-    touchStartXRef.current = 0;
+    g.rawDelta = 0;
+    g.sustainedFrames = 0;
   };
 
-  const pullProgress = Math.min(pullDistance / PULL_THRESHOLD, 1);
+  // Pull progress (0..1) for spinner rotation during visible phase.
+  const pullProgress =
+    pullState.phase === "visible"
+      ? clamp(pullState.distance / PULL_TRIGGER, 0, 1)
+      : pullState.phase === "refreshing"
+        ? 1
+        : 0;
 
-  // Listen for drawer open/close (check if modal exists in DOM)
+  // Poll for drawer/modal presence — writes to ref ONLY, never setState.
+  // Pure ref mutation, no React re-renders — cannot cause flicker.
   React.useEffect(() => {
     const checkDrawerOpen = () => {
-      // Check if there's a drawer/modal overlay with high z-index
       const drawer = document.querySelector('[style*="z-50"]');
       isDrawerOpenRef.current = !!drawer && drawer.className.includes("fixed");
     };
-
-    const interval = setInterval(checkDrawerOpen, 100);
+    const interval = setInterval(checkDrawerOpen, 120);
     return () => clearInterval(interval);
   }, []);
 
@@ -422,31 +491,45 @@ const AppLayout: React.FC<LayoutProps> = ({
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      {/* PULL TO REFRESH SPINNER
-           Only visible once pull > 25px (raised from 10) to prevent
-           accidental micro-gesture flashes on normal scroll-to-top. */}
+      {/* ── Pull-to-refresh spinner ─────────────────────────────────
+           Completely rebuilt: visibility is gated by a phase state machine
+           (hidden → visible → refreshing → hidden) not by raw pixel
+           distance on every frame. Icon only appears after a sustained
+           2-frame pull past ICON_VISIBLE_AT (40px damped ≈ 89px raw),
+           so micro-bounces from normal scroll-to-top can never trigger
+           even a single-frame flash. */}
       <motion.div
         aria-hidden="true"
         className="pointer-events-none fixed inset-x-0 top-16 z-90 flex justify-center"
-        animate={{
-          y: isRefreshing ? 12 : pullDistance > 0 ? pullDistance : -50,
-          opacity: pullDistance > 25 || isRefreshing ? 1 : 0,
+        initial={false}
+        animate={(() => {
+          switch (pullState.phase) {
+            case "refreshing":
+              return { y: 12, opacity: 1 };
+            case "visible":
+              return { y: pullState.distance, opacity: 1 };
+            case "hidden":
+            default:
+              return { y: -50, opacity: 0 };
+          }
+        })()}
+        transition={{
+          type: pullState.phase === "refreshing" ? "spring" : "tween",
+          stiffness: 320,
+          damping: 24,
+          duration: pullState.phase === "refreshing" ? undefined : 0.18,
+          ease: "easeOut",
         }}
-        transition={
-          isRefreshing
-            ? { type: "spring", stiffness: 300, damping: 20 }
-            : { duration: 0.15 }   // slightly longer fade so brief micro-pulls don't flash
-        }
       >
         <div className="bg-bgSurface border-borderMuted/80 text-brand flex h-10 w-10 items-center justify-center rounded-full border shadow-xl">
-          {isRefreshing ? (
+          {pullState.phase === "refreshing" ? (
             <Loader2 className="h-5 w-5 animate-spin" />
           ) : (
             <RefreshCw
-              className="h-5 w-5 transition-transform"
+              className="h-5 w-5"
               style={{
                 transform: `rotate(${pullProgress * 180}deg)`,
-                opacity: Math.max(0.3, pullProgress),
+                opacity: 0.3 + 0.7 * pullProgress,
               }}
             />
           )}
@@ -668,7 +751,7 @@ const AppLayout: React.FC<LayoutProps> = ({
             </div>
 
             <div className="flex shrink-0 items-center gap-1.5 sm:gap-2 lg:gap-3">
-              <span className="text-textDim hidden text-xs md:inline">
+              <span className="text-textDim hidden text-xs md:inline whitespace-nowrap overflow-hidden text-ellipsis">
                 Hi, {displayName.split(" ")[0]}!
               </span>
 
@@ -862,6 +945,19 @@ const AppLayout: React.FC<LayoutProps> = ({
                 Profile
               </span>
             </Link>
+
+            {/* Theme Toggle - Mobile */}
+            <button
+              className="touch-target no-double-tap flex h-full flex-1 flex-col items-center justify-center gap-1 transition-all active:scale-90"
+              aria-label="Toggle theme"
+            >
+              <div className="rounded-xl p-2 transition-colors">
+                <ThemeToggle />
+              </div>
+              <span className="text-[10px] font-bold tracking-tight text-textDim/70 transition-colors">
+                Theme
+              </span>
+            </button>
           </nav>
         </div>
       )}

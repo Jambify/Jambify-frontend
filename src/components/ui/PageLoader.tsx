@@ -131,11 +131,11 @@ const PageLoader: React.FC<PageLoaderProps> = ({
 
       {/* Professional Skeleton Pulse Placeholder */}
       <div className="mt-16 w-full max-w-sm space-y-5 opacity-20">
-        <div className="bg-bgSurface h-2 w-full animate-pulse rounded-full" />
-        <div className="bg-bgSurface mx-auto h-2 w-2/3 animate-pulse rounded-full" />
+        <div className="bg-bgSurface skeleton-shimmer h-2 w-full rounded-full" />
+        <div className="bg-bgSurface skeleton-shimmer mx-auto h-2 w-2/3 rounded-full" />
         <div className="grid grid-cols-2 gap-4 pt-6">
-          <div className="bg-bgSurface h-16 animate-pulse rounded-2xl" />
-          <div className="bg-bgSurface h-16 animate-pulse rounded-2xl" />
+          <div className="bg-bgSurface skeleton-shimmer h-16 rounded-2xl" />
+          <div className="bg-bgSurface skeleton-shimmer h-16 rounded-2xl" />
         </div>
       </div>
     </div>

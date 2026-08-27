@@ -245,19 +245,19 @@ const Subjects: React.FC = () => {
 
         {/* Stats Overview */}
         {isLoading && !hasFetched ? (
-          <div className="bg-bgCard border-borderMuted animate-pulse rounded-brand-lg border p-4">
+          <div className="bg-bgCard border-borderMuted rounded-brand-lg border p-4">
             <div className="mb-2 flex items-center justify-between">
-              <div className="bg-bgSurface h-3 w-56 rounded" />
-              <div className="bg-bgSurface h-4 w-12 rounded" />
+              <div className="bg-bgSurface skeleton-shimmer h-3 w-56 rounded" />
+              <div className="bg-bgSurface skeleton-shimmer h-4 w-12 rounded" />
             </div>
             <div className="bg-bgSurface h-2 overflow-hidden rounded-full">
-              <div className="bg-bgCard h-full w-1/2 rounded-full" />
+              <div className="bg-bgCard skeleton-shimmer h-full w-1/2 rounded-full" />
             </div>
             <div className="mt-3 flex flex-wrap gap-3">
               {[1, 2, 3, 4].map((i) => (
                 <div key={i} className="flex items-center gap-1.5">
-                  <div className="bg-bgSurface h-4 w-4 rounded" />
-                  <div className="bg-bgSurface h-3 w-10 rounded" />
+                  <div className="bg-bgSurface skeleton-shimmer h-4 w-4 rounded" />
+                  <div className="bg-bgSurface skeleton-shimmer h-3 w-10 rounded" />
                 </div>
               ))}
             </div>
@@ -300,20 +300,23 @@ const Subjects: React.FC = () => {
             // Scoped skeleton — only the grid, not the entire page
             <>
               {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="bg-bgCard border-borderMuted animate-pulse rounded-brand-xl border p-6 shadow-sm">
+                <div
+                  key={i}
+                  className="bg-bgCard border-borderMuted rounded-brand-xl border p-6 shadow-sm"
+                >
                   <div className="mb-4 flex items-center gap-3">
-                    <div className="bg-bgSurface h-12 w-12 rounded-xl" />
+                    <div className="bg-bgSurface skeleton-shimmer h-12 w-12 rounded-xl" />
                     <div className="space-y-1.5">
-                      <div className="bg-bgSurface h-5 w-28 rounded" />
-                      <div className="bg-bgSurface h-3 w-20 rounded" />
+                      <div className="bg-bgSurface skeleton-shimmer h-5 w-28 rounded" />
+                      <div className="bg-bgSurface skeleton-shimmer h-3 w-20 rounded" />
                     </div>
                   </div>
-                  <div className="bg-bgSurface mb-4 h-2 w-full rounded-full" />
+                  <div className="bg-bgSurface skeleton-shimmer mb-4 h-2 w-full rounded-full" />
                   <div className="mb-5 flex justify-between">
-                    <div className="bg-bgSurface h-3 w-16 rounded" />
-                    <div className="bg-bgSurface h-3 w-10 rounded" />
+                    <div className="bg-bgSurface skeleton-shimmer h-3 w-16 rounded" />
+                    <div className="bg-bgSurface skeleton-shimmer h-3 w-10 rounded" />
                   </div>
-                  <div className="bg-bgSurface h-11 w-full rounded-xl" />
+                  <div className="bg-bgSurface skeleton-shimmer h-11 w-full rounded-xl" />
                 </div>
               ))}
             </>

@@ -9,7 +9,6 @@ import { useUserStore } from "../Store/useUserStore";
 import { useSubjectStore, SUBJECT_COMBO_MAP } from "../Store/useSubjectStore";
 import { computeBestWorstSubjects } from "../lib/subjectInsights";
 import WeeklyChart from "../components/Performance/WeeklyChart";
-import PageLoader from "../components/ui/PageLoader";
 import {
   getSubjectIcon as getMetaSubjectIcon,
   getSubjectColor,
@@ -258,10 +257,10 @@ const Performance: React.FC = () => {
               >
                 <div className="bg-bgSurface mb-5 flex h-14 w-14 items-center justify-center rounded-2xl shadow-sm" />
                 <div className="bg-bgSurface mb-1.5 h-5 w-40 rounded" />
-                <div className="mb-auto min-h-[3.5rem]">
+                <div className="mb-auto min-h-14">
                   <div className="bg-bgSurface mt-1 h-10 w-24 rounded lg:h-11" />
                 </div>
-                <div className="bg-bgSurface mt-2 h-3 w-28 animate-pulse rounded" />
+                <div className="bg-bgSurface skeleton-shimmer mt-2 h-3 w-28 rounded" />
               </div>
             ))}
           </div>
@@ -350,10 +349,10 @@ const Performance: React.FC = () => {
                 <div className="bg-bgCard border-borderMuted rounded-brand-2xl border p-6 shadow-sm lg:p-8">
                   <div className="mb-8 flex items-center justify-between">
                     <div className="flex flex-col gap-2">
-                      <div className="bg-bgSurface h-6 w-40 animate-pulse rounded" />
-                      <div className="bg-bgSurface h-3 w-48 animate-pulse rounded" />
+                      <div className="bg-bgSurface skeleton-shimmer h-6 w-40 rounded" />
+                      <div className="bg-bgSurface skeleton-shimmer h-3 w-48 rounded" />
                     </div>
-                    <div className="bg-bgSurface h-7 w-16 animate-pulse rounded-full" />
+                    <div className="bg-bgSurface skeleton-shimmer h-7 w-16 rounded-full" />
                   </div>
                   <div className="h-64 lg:h-80">
                     <div className="flex h-full items-end justify-between gap-2">
@@ -363,10 +362,10 @@ const Performance: React.FC = () => {
                           className="flex flex-1 flex-col items-center gap-2"
                         >
                           <div
-                            className="bg-bgSurface w-full animate-pulse rounded-t-lg"
+                            className="bg-bgSurface skeleton-shimmer w-full rounded-t-lg"
                             style={{ height: `${20 + d * 10}%` }}
                           />
-                          <div className="bg-bgSurface h-2 w-6 animate-pulse rounded" />
+                          <div className="bg-bgSurface skeleton-shimmer h-2 w-6 rounded" />
                         </div>
                       ))}
                     </div>
@@ -379,8 +378,8 @@ const Performance: React.FC = () => {
                       key={s}
                       className="bg-bgCard border-borderMuted rounded-brand-2xl flex flex-col items-center gap-4 border p-5 shadow-sm"
                     >
-                      <div className="bg-bgSurface flex h-12 w-12 animate-pulse items-center justify-center rounded-xl" />
-                      <div className="bg-bgSurface h-3 w-24 animate-pulse rounded" />
+                      <div className="bg-bgSurface skeleton-shimmer flex h-12 w-12 items-center justify-center rounded-xl" />
+                      <div className="bg-bgSurface skeleton-shimmer h-3 w-24 rounded" />
                     </div>
                   ))}
                 </div>
@@ -435,43 +434,43 @@ const Performance: React.FC = () => {
                 <div className="bg-bgSurface absolute top-0 right-0 -mt-32 -mr-32 h-64 w-64 rounded-full blur-3xl" />
                 <div className="relative z-10 mb-8 flex items-center justify-between">
                   <div className="flex flex-col gap-2">
-                    <div className="bg-bgSurface h-6 w-52 animate-pulse rounded" />
-                    <div className="bg-bgSurface h-3 w-56 animate-pulse rounded" />
+                    <div className="bg-bgSurface skeleton-shimmer h-6 w-52 rounded" />
+                    <div className="bg-bgSurface skeleton-shimmer h-3 w-56 rounded" />
                   </div>
-                  <div className="bg-bgSurface h-9 w-9 animate-pulse rounded-full" />
+                  <div className="bg-bgSurface skeleton-shimmer h-9 w-9 rounded-full" />
                 </div>
 
                 <div className="relative z-10 grid flex-1 grid-cols-1 gap-6">
                   <div className="bg-bgSurface/40 border-borderMuted/60 rounded-brand-2xl flex flex-col justify-between border p-6">
                     <div>
                       <div className="mb-6 flex items-center gap-3">
-                        <div className="bg-bgCard flex h-10 w-10 animate-pulse items-center justify-center rounded-xl" />
-                        <div className="bg-bgCard h-3 w-32 animate-pulse rounded" />
+                        <div className="bg-bgCard skeleton-shimmer flex h-10 w-10 items-center justify-center rounded-xl" />
+                        <div className="bg-bgCard skeleton-shimmer h-3 w-32 rounded" />
                       </div>
                       <div className="flex items-baseline gap-2">
-                        <div className="bg-bgCard h-16 w-28 animate-pulse rounded" />
-                        <div className="bg-bgCard h-5 w-12 animate-pulse rounded" />
+                        <div className="bg-bgCard skeleton-shimmer h-16 w-28 rounded" />
+                        <div className="bg-bgCard skeleton-shimmer h-5 w-12 rounded" />
                       </div>
                     </div>
                     <div className="mt-6 flex items-center justify-between pt-4">
-                      <div className="bg-bgCard h-3 w-36 animate-pulse rounded" />
-                      <div className="bg-bgCard h-5 w-16 animate-pulse rounded" />
+                      <div className="bg-bgCard skeleton-shimmer h-3 w-36 rounded" />
+                      <div className="bg-bgCard skeleton-shimmer h-5 w-16 rounded" />
                     </div>
                   </div>
 
                   <div className="bg-bgSurface/40 border-borderMuted/60 rounded-brand-2xl flex flex-col justify-between border p-6">
                     <div>
                       <div className="mb-6 flex items-center gap-3">
-                        <div className="bg-bgCard flex h-10 w-10 animate-pulse items-center justify-center rounded-xl" />
-                        <div className="bg-bgCard h-3 w-32 animate-pulse rounded" />
+                        <div className="bg-bgCard skeleton-shimmer flex h-10 w-10 items-center justify-center rounded-xl" />
+                        <div className="bg-bgCard skeleton-shimmer h-3 w-32 rounded" />
                       </div>
                       <div className="flex items-baseline gap-2">
-                        <div className="bg-bgCard h-16 w-28 animate-pulse rounded" />
-                        <div className="bg-bgCard h-5 w-12 animate-pulse rounded" />
+                        <div className="bg-bgCard skeleton-shimmer h-16 w-28 rounded" />
+                        <div className="bg-bgCard skeleton-shimmer h-5 w-12 rounded" />
                       </div>
                     </div>
                     <div className="mt-6 flex items-center justify-between pt-4">
-                      <div className="bg-bgCard h-3 w-28 animate-pulse rounded" />
+                      <div className="bg-bgCard skeleton-shimmer h-3 w-28 rounded" />
                     </div>
                   </div>
                 </div>
@@ -479,25 +478,25 @@ const Performance: React.FC = () => {
                 <div className="bg-bgSurface/40 border-borderMuted/40 rounded-brand-2xl relative z-10 mt-8 border p-6 lg:p-7">
                   <div className="mb-6 flex items-center justify-between gap-2">
                     <div className="flex items-center gap-3">
-                      <div className="bg-bgCard flex h-10 w-10 animate-pulse items-center justify-center rounded-2xl" />
+                      <div className="bg-bgCard skeleton-shimmer flex h-10 w-10 items-center justify-center rounded-2xl" />
                       <div className="space-y-1">
-                        <div className="bg-bgCard h-3 w-40 animate-pulse rounded" />
-                        <div className="bg-bgCard h-3 w-44 animate-pulse rounded" />
+                        <div className="bg-bgCard skeleton-shimmer h-3 w-40 rounded" />
+                        <div className="bg-bgCard skeleton-shimmer h-3 w-44 rounded" />
                       </div>
                     </div>
                     <div className="space-y-1 text-right">
-                      <div className="bg-bgCard h-7 w-14 animate-pulse rounded" />
-                      <div className="bg-bgCard ml-auto h-2 w-20 animate-pulse rounded" />
+                      <div className="bg-bgCard skeleton-shimmer h-7 w-14 rounded" />
+                      <div className="bg-bgCard skeleton-shimmer ml-auto h-2 w-20 rounded" />
                     </div>
                   </div>
 
                   <div className="bg-bgDeep border-borderMuted/20 h-5 overflow-hidden rounded-full border p-1.5">
-                    <div className="bg-bgSurface h-full w-2/3 animate-pulse rounded-full" />
+                    <div className="bg-bgSurface skeleton-shimmer h-full w-2/3 rounded-full" />
                   </div>
 
                   <div className="mt-5 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-                    <div className="bg-bgSurface h-3 w-48 animate-pulse rounded" />
-                    <div className="bg-bgSurface h-6 w-28 animate-pulse rounded-full" />
+                    <div className="bg-bgSurface skeleton-shimmer h-3 w-48 rounded" />
+                    <div className="bg-bgSurface skeleton-shimmer h-6 w-28 rounded-full" />
                   </div>
                 </div>
               </div>
@@ -663,7 +662,7 @@ const Performance: React.FC = () => {
         {showDataSkeleton ? (
           <div className="space-y-6 pt-4">
             <div className="flex items-center justify-between">
-              <div className="bg-bgSurface h-7 w-44 animate-pulse rounded" />
+              <div className="bg-bgSurface skeleton-shimmer h-7 w-44 rounded" />
               <div className="bg-borderMuted/50 mx-6 hidden h-px flex-1 md:block" />
             </div>
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
@@ -673,20 +672,20 @@ const Performance: React.FC = () => {
                   className="bg-bgCard border-borderMuted rounded-2xl border p-5"
                 >
                   <div className="mb-4 flex items-center gap-3">
-                    <div className="bg-bgSurface flex h-12 w-12 animate-pulse items-center justify-center rounded-xl" />
+                    <div className="bg-bgSurface skeleton-shimmer flex h-12 w-12 items-center justify-center rounded-xl" />
                     <div className="space-y-1">
-                      <div className="bg-bgSurface h-5 w-28 animate-pulse rounded" />
-                      <div className="bg-bgSurface h-3 w-32 animate-pulse rounded" />
+                      <div className="bg-bgSurface skeleton-shimmer h-5 w-28 rounded" />
+                      <div className="bg-bgSurface skeleton-shimmer h-3 w-32 rounded" />
                     </div>
                   </div>
                   <div className="bg-bgSurface/50 rounded-xl p-3">
                     <div className="mb-1 flex items-center gap-1.5">
                       <div className="bg-bgCard h-1.5 w-1.5 rounded-full" />
-                      <div className="bg-bgCard h-3 w-24 animate-pulse rounded" />
+                      <div className="bg-bgCard skeleton-shimmer h-3 w-24 rounded" />
                     </div>
                     <div className="flex items-center justify-between">
-                      <div className="bg-bgCard h-4 w-40 animate-pulse rounded" />
-                      <div className="bg-bgCard h-4 w-10 animate-pulse rounded" />
+                      <div className="bg-bgCard skeleton-shimmer h-4 w-40 rounded" />
+                      <div className="bg-bgCard skeleton-shimmer h-4 w-10 rounded" />
                     </div>
                   </div>
                 </div>

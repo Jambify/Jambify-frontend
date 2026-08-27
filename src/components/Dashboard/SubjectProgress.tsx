@@ -62,7 +62,7 @@ const SubjectProgress: React.FC = () => {
   const [_loadingStep, setLoadingStep] = useState(0);
   const [isTimeoutError, setIsTimeoutError] = useState(false);
 
-  const isWaiting = isLoading || !hasFetched;
+  const isWaiting = isLoading && !hasFetched;
 
   useEffect(() => {
     let messageTimer: ReturnType<typeof setInterval>;
@@ -165,18 +165,18 @@ const SubjectProgress: React.FC = () => {
           {[1, 2, 3, 4].map((i) => (
             <div
               key={i}
-              className="bg-bgSurface/40 border-borderMuted flex animate-pulse items-center gap-3 rounded-[1.5rem] border p-4"
+              className="bg-bgSurface/40 border-borderMuted flex items-center gap-3 rounded-[1.5rem] border p-4"
             >
-              <div className="bg-bgCard flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl" />
+              <div className="bg-bgCard skeleton-shimmer flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl" />
               <div className="min-w-0 flex-1 space-y-1.5">
-                <div className="bg-bgCard h-4 w-36 rounded" />
-                <div className="bg-bgCard h-3 w-24 rounded" />
+                <div className="bg-bgCard skeleton-shimmer h-4 w-36 rounded" />
+                <div className="bg-bgCard skeleton-shimmer h-3 w-24 rounded" />
               </div>
               <div className="flex shrink-0 flex-col items-end gap-2">
-                <div className="bg-bgCard h-6 w-12 rounded-full" />
-                <div className="bg-bgTrack h-2.5 w-24 overflow-hidden rounded-full">
+                <div className="bg-bgCard skeleton-shimmer h-6 w-12 rounded-full" />
+                <div className="bg-bgTrack skeleton-shimmer h-2.5 w-24 overflow-hidden rounded-full">
                   <div
-                    className="bg-bgCard h-full rounded-full"
+                    className="bg-bgCard skeleton-shimmer h-full rounded-full"
                     style={{ width: `${25 + i * 15}%` }}
                   />
                 </div>

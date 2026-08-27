@@ -17,13 +17,13 @@ export const Field: React.FC<{
   error?: string;
   children: React.ReactNode;
 }> = ({ label, error, children }) => (
-  <div className="mb-4 last:mb-0">
+  <div className="mb-4 last:mb-0 min-w-0">
     {label && (
       <label className="text-textDim mb-2 block text-[11px] font-medium tracking-widest uppercase">
         {label}
       </label>
     )}
-    {children}
+    <div className="min-w-0">{children}</div>
     {error && <p className="text-danger mt-1.5 text-[11px]">{error}</p>}
   </div>
 );

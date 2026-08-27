@@ -33,18 +33,7 @@ import FrozenAccountGuard from "./components/auth/FrozenAccountGuard";
 import ProRevokedModal from "./components/auth/ProRevokedModal";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-// ── Skeletons (one per lazy route, each shaped like the real page) ──────
-import ReviewExamSkeleton from "./components/skeletons/ReviewExamSkeleton";
-import MockExamSkeleton from "./components/skeletons/MockExamSkeleton";
-import StudyGroupsSkeleton from "./components/skeletons/StudyGroupsSkeleton";
-import QuizSkeleton from "./components/skeletons/QuizSkeleton";
-import ChatSkeleton from "./components/skeletons/ChatSkeleton";
-import SettingsSkeleton from "./components/skeletons/SettingsSkeleton";
-import SubjectGridSkeleton from "./components/skeletons/SubjectGridSkeleton";
-import ListSkeleton from "./components/skeletons/ListSkeleton";
-import ProSkeleton from "./components/skeletons/ProSkeleton";
-import AdminSkeleton from "./components/skeletons/AdminSkeleton";
-import PastQuestionsSkeleton from "./components/skeletons/PastQuestionsSkeleton";
+// ── Skeletons (only for pages that fetch data on mount) ──────
 
 // ── Admin layout/guard — kept eager, small, needed on every /admin/* route ──
 import AdminGuard from "./admin/AdminGuard";
@@ -86,7 +75,7 @@ const GuestPastQuestions = lazy(
 );
 
 // ── Admin pages — always lazy so admin JS never ships to regular students.
-//    All share the AdminSkeleton layout (stats rows + data table). ───────
+//    AdminOverview has section-scoped skeletons inline.
 const AdminOverview = lazy(() => import("./admin/pages/AdminOverview"));
 const AdminTopicOverview = lazy(
   () => import("./admin/pages/AdminTopicOverview"),
@@ -204,7 +193,13 @@ const App: React.FC = () => {
             <Route
               path="/guest/quiz"
               element={
-                <Suspense fallback={<QuizSkeleton />}>
+                <Suspense
+                  fallback={
+                    <AppLayout currentPage="quiz">
+                      <div className="bg-bgMain min-h-[60vh]" />
+                    </AppLayout>
+                  }
+                >
                   <GuestQuiz />
                 </Suspense>
               }
@@ -212,7 +207,13 @@ const App: React.FC = () => {
             <Route
               path="/guest/mock"
               element={
-                <Suspense fallback={<MockExamSkeleton />}>
+                <Suspense
+                  fallback={
+                    <AppLayout currentPage="mock">
+                      <div className="bg-bgMain min-h-[60vh]" />
+                    </AppLayout>
+                  }
+                >
                   <GuestMock />
                 </Suspense>
               }
@@ -220,7 +221,13 @@ const App: React.FC = () => {
             <Route
               path="/guest/past-questions"
               element={
-                <Suspense fallback={<SubjectGridSkeleton />}>
+                <Suspense
+                  fallback={
+                    <AppLayout currentPage="past-questions">
+                      <div className="bg-bgMain min-h-[60vh]" />
+                    </AppLayout>
+                  }
+                >
                   <GuestPastQuestions />
                 </Suspense>
               }
@@ -228,7 +235,13 @@ const App: React.FC = () => {
             <Route
               path="/guest/past-questions/:subject"
               element={
-                <Suspense fallback={<QuizSkeleton />}>
+                <Suspense
+                  fallback={
+                    <AppLayout currentPage="past-questions">
+                      <div className="bg-bgMain min-h-[60vh]" />
+                    </AppLayout>
+                  }
+                >
                   <GuestPastQuestions />
                 </Suspense>
               }
@@ -236,7 +249,13 @@ const App: React.FC = () => {
             <Route
               path="/guest/past-questions/:subject/:year"
               element={
-                <Suspense fallback={<QuizSkeleton />}>
+                <Suspense
+                  fallback={
+                    <AppLayout currentPage="past-questions">
+                      <div className="bg-bgMain min-h-[60vh]" />
+                    </AppLayout>
+                  }
+                >
                   <GuestPastQuestions />
                 </Suspense>
               }
@@ -246,7 +265,13 @@ const App: React.FC = () => {
               path="/quiz"
               element={
                 <RouteGuard>
-                  <Suspense fallback={<QuizSkeleton />}>
+                  <Suspense
+                    fallback={
+                      <AppLayout currentPage="quiz">
+                        <div className="bg-bgMain min-h-[60vh]" />
+                      </AppLayout>
+                    }
+                  >
                     <Quiz />
                   </Suspense>
                 </RouteGuard>
@@ -288,7 +313,13 @@ const App: React.FC = () => {
               path="/sessions"
               element={
                 <RouteGuard>
-                  <Suspense fallback={<ListSkeleton />}>
+                  <Suspense
+                    fallback={
+                      <AppLayout currentPage="sessions">
+                        <div className="bg-bgMain min-h-[60vh]" />
+                      </AppLayout>
+                    }
+                  >
                     <AllSessions />
                   </Suspense>
                 </RouteGuard>
@@ -298,7 +329,13 @@ const App: React.FC = () => {
               path="/mock-exams"
               element={
                 <RouteGuard>
-                  <Suspense fallback={<MockExamSkeleton />}>
+                  <Suspense
+                    fallback={
+                      <AppLayout currentPage="mock">
+                        <div className="bg-bgMain min-h-[60vh]" />
+                      </AppLayout>
+                    }
+                  >
                     <MockExam />
                   </Suspense>
                 </RouteGuard>
@@ -308,7 +345,13 @@ const App: React.FC = () => {
               path="/settings"
               element={
                 <RouteGuard>
-                  <Suspense fallback={<SettingsSkeleton />}>
+                  <Suspense
+                    fallback={
+                      <AppLayout currentPage="settings">
+                        <div className="bg-bgMain min-h-[60vh]" />
+                      </AppLayout>
+                    }
+                  >
                     <Settings />
                   </Suspense>
                 </RouteGuard>
@@ -318,7 +361,13 @@ const App: React.FC = () => {
               path="/study-groups"
               element={
                 <RouteGuard>
-                  <Suspense fallback={<StudyGroupsSkeleton />}>
+                  <Suspense
+                    fallback={
+                      <AppLayout currentPage="groups">
+                        <div className="bg-bgMain min-h-[60vh]" />
+                      </AppLayout>
+                    }
+                  >
                     <StudyGroups />
                   </Suspense>
                 </RouteGuard>
@@ -328,7 +377,13 @@ const App: React.FC = () => {
               path="/mentor"
               element={
                 <RouteGuard>
-                  <Suspense fallback={<ChatSkeleton />}>
+                  <Suspense
+                    fallback={
+                      <AppLayout currentPage="mentor">
+                        <div className="bg-bgMain min-h-[60vh]" />
+                      </AppLayout>
+                    }
+                  >
                     <MentorChat />
                   </Suspense>
                 </RouteGuard>
@@ -338,7 +393,13 @@ const App: React.FC = () => {
               path="/past-questions"
               element={
                 <RouteGuard>
-                  <Suspense fallback={<PastQuestionsSkeleton />}>
+                  <Suspense
+                    fallback={
+                      <AppLayout currentPage="past-questions">
+                        <div className="bg-bgMain min-h-[60vh]" />
+                      </AppLayout>
+                    }
+                  >
                     <PastQuestions />
                   </Suspense>
                 </RouteGuard>
@@ -348,7 +409,13 @@ const App: React.FC = () => {
               path="/pro"
               element={
                 <RouteGuard>
-                  <Suspense fallback={<ProSkeleton />}>
+                  <Suspense
+                    fallback={
+                      <AppLayout currentPage="pro">
+                        <div className="bg-bgMain min-h-[60vh]" />
+                      </AppLayout>
+                    }
+                  >
                     <ProPage />
                   </Suspense>
                 </RouteGuard>
@@ -358,18 +425,32 @@ const App: React.FC = () => {
               path="/review"
               element={
                 <RouteGuard>
-                  <Suspense fallback={<ReviewExamSkeleton />}>
+                  <Suspense
+                    fallback={
+                      <AppLayout currentPage="Review">
+                        <div className="bg-bgMain min-h-[60vh]" />
+                      </AppLayout>
+                    }
+                  >
                     <ReviewScreen onBack={() => window.history.back()} />
                   </Suspense>
                 </RouteGuard>
               }
             />
 
-            {/* ── LAZY Admin routes — share AdminSkeleton layout ── */}
+            {/* ── LAZY Admin routes — section-scoped skeletons inline in pages ── */}
             <Route
               path="/admin"
               element={
-                <Suspense fallback={<AdminSkeleton />}>
+                <Suspense
+                  fallback={
+                    <AdminGuard>
+                      <AdminLayout title="Overview">
+                        <div className="bg-bgMain min-h-[60vh]" />
+                      </AdminLayout>
+                    </AdminGuard>
+                  }
+                >
                   <AdminGuard>
                     <AdminLayout title="Overview">
                       <AdminOverview />
@@ -381,7 +462,15 @@ const App: React.FC = () => {
             <Route
               path="/admin/users"
               element={
-                <Suspense fallback={<AdminSkeleton />}>
+                <Suspense
+                  fallback={
+                    <AdminGuard>
+                      <AdminLayout title="Users">
+                        <div className="bg-bgMain min-h-[60vh]" />
+                      </AdminLayout>
+                    </AdminGuard>
+                  }
+                >
                   <AdminGuard>
                     <AdminLayout title="Users">
                       <AdminUsers />
@@ -393,7 +482,15 @@ const App: React.FC = () => {
             <Route
               path="/admin/audit-log"
               element={
-                <Suspense fallback={<AdminSkeleton />}>
+                <Suspense
+                  fallback={
+                    <AdminGuard>
+                      <AdminLayout title="Audit Log">
+                        <div className="bg-bgMain min-h-[60vh]" />
+                      </AdminLayout>
+                    </AdminGuard>
+                  }
+                >
                   <AdminGuard>
                     <AdminLayout title="Audit Log">
                       <AdminAuditLog />
@@ -405,7 +502,15 @@ const App: React.FC = () => {
             <Route
               path="/admin/AdminBroadcast"
               element={
-                <Suspense fallback={<AdminSkeleton />}>
+                <Suspense
+                  fallback={
+                    <AdminGuard>
+                      <AdminLayout title="AdminBroadcast">
+                        <div className="bg-bgMain min-h-[60vh]" />
+                      </AdminLayout>
+                    </AdminGuard>
+                  }
+                >
                   <AdminGuard>
                     <AdminLayout title="AdminBroadcast">
                       <AdminBroadcast />
@@ -417,7 +522,15 @@ const App: React.FC = () => {
             <Route
               path="/admin/Adminquestions"
               element={
-                <Suspense fallback={<AdminSkeleton />}>
+                <Suspense
+                  fallback={
+                    <AdminGuard>
+                      <AdminLayout title="Adminquestions">
+                        <div className="bg-bgMain min-h-[60vh]" />
+                      </AdminLayout>
+                    </AdminGuard>
+                  }
+                >
                   <AdminGuard>
                     <AdminLayout title="Adminquestions">
                       <Adminquestions />
@@ -429,7 +542,15 @@ const App: React.FC = () => {
             <Route
               path="/admin/topics"
               element={
-                <Suspense fallback={<AdminSkeleton />}>
+                <Suspense
+                  fallback={
+                    <AdminGuard>
+                      <AdminLayout title="Topic Overview">
+                        <div className="bg-bgMain min-h-[60vh]" />
+                      </AdminLayout>
+                    </AdminGuard>
+                  }
+                >
                   <AdminGuard>
                     <AdminLayout title="Topic Overview">
                       <AdminTopicOverview />
@@ -441,7 +562,15 @@ const App: React.FC = () => {
             <Route
               path="/admin/reports"
               element={
-                <Suspense fallback={<AdminSkeleton />}>
+                <Suspense
+                  fallback={
+                    <AdminGuard>
+                      <AdminLayout title="AdminReports">
+                        <div className="bg-bgMain min-h-[60vh]" />
+                      </AdminLayout>
+                    </AdminGuard>
+                  }
+                >
                   <AdminGuard>
                     <AdminLayout title="AdminReports">
                       <AdminReports />
@@ -453,7 +582,15 @@ const App: React.FC = () => {
             <Route
               path="/admin/roles"
               element={
-                <Suspense fallback={<AdminSkeleton />}>
+                <Suspense
+                  fallback={
+                    <AdminGuard>
+                      <AdminLayout title="AdminRoles">
+                        <div className="bg-bgMain min-h-[60vh]" />
+                      </AdminLayout>
+                    </AdminGuard>
+                  }
+                >
                   <AdminGuard>
                     <AdminLayout title="AdminRoles">
                       <AdminRoles />

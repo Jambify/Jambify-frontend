@@ -61,19 +61,19 @@ const MockHistory: React.FC = () => {
           {[1, 2, 3].map((i) => (
             <div
               key={i}
-              className="bg-bgSurface/50 border-borderMuted animate-pulse flex items-center gap-4 rounded-2xl border p-4"
+              className="bg-bgSurface/50 border-borderMuted flex items-center gap-4 rounded-2xl border p-4"
             >
-              <div className="bg-bgCard flex h-11 w-11 shrink-0 items-center justify-center rounded-xl" />
+              <div className="bg-bgCard flex h-11 w-11 shrink-0 items-center justify-center skeleton-shimmer rounded-xl" />
               <div className="min-w-0 flex-1 space-y-2">
                 <div className="flex items-center justify-between">
-                  <div className="bg-bgCard h-4 w-28 rounded" />
-                  <div className="bg-bgCard h-5 w-12 rounded-full" />
+                  <div className="bg-bgCard h-4 w-28 skeleton-shimmer rounded" />
+                  <div className="bg-bgCard h-5 w-12 skeleton-shimmer rounded-full" />
                 </div>
                 <div className="flex items-center justify-between">
-                  <div className="bg-bgCard h-3 w-24 rounded" />
-                  <div className="bg-bgCard h-3 w-16 rounded" />
+                  <div className="bg-bgCard h-3 w-24 skeleton-shimmer rounded" />
+                  <div className="bg-bgCard h-3 w-16 skeleton-shimmer rounded" />
                 </div>
-                <div className="bg-bgCard h-2 w-full rounded-full" />
+                <div className="bg-bgCard h-2 w-full skeleton-shimmer rounded-full" />
               </div>
             </div>
           ))}

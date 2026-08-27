@@ -247,10 +247,10 @@ const Dashboard: React.FC = () => {
             </div>
 
             {/* Greeting */}
-            <h2 className="font-display mb-1 text-2xl leading-snug font-bold tracking-tight md:text-3xl">
+            <h2 className="font-display mb-1 text-2xl leading-snug font-bold tracking-tight md:text-3xl whitespace-normal break-words">
               Ready to ace it,
             </h2>
-            <h2 className="font-display mb-4 text-2xl leading-snug font-bold tracking-tight md:text-3xl">
+            <h2 className="font-display mb-4 text-2xl leading-snug font-bold tracking-tight md:text-3xl whitespace-normal break-words">
               <span className="text-brand-light">{name || "Champion"}</span>?
             </h2>
 
@@ -263,12 +263,12 @@ const Dashboard: React.FC = () => {
             </p>
 
             {/* CTAs */}
-            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+            <div className="flex flex-nowrap items-center gap-2 sm:gap-2.5">
               {/* Primary pair — always visible, share width equally on mobile */}
-              <div className="flex min-w-0 flex-1 gap-2 sm:flex-none sm:gap-3">
+              <div className="flex min-w-0 flex-1 gap-2 sm:gap-2.5">
                 <button
                   onClick={() => navigate("/quiz")}
-                  className="bg-brand hover:bg-brand-light rounded-brand shadow-brand/30 inline-flex flex-1 items-center justify-center gap-1.5 px-3 py-2.5 text-sm font-semibold whitespace-nowrap text-white shadow-lg transition-all active:scale-95 sm:flex-none sm:gap-2 sm:px-5"
+                  className="bg-brand hover:bg-brand-light rounded-brand shadow-brand/30 inline-flex flex-1 items-center justify-center gap-1.5 px-2.5 py-2.5 text-sm font-semibold whitespace-nowrap text-white shadow-lg transition-all active:scale-95 sm:flex-none sm:gap-1.5 sm:px-4"
                 >
                   <BookOpen className="h-4 w-4 shrink-0" />
                   <span className="sm:hidden">Daily Quiz</span>
@@ -276,7 +276,7 @@ const Dashboard: React.FC = () => {
                 </button>
                 <button
                   onClick={() => navigate("/mock-exams")}
-                  className="bg-bgSurface hover:bg-bgDeep text-textMain border-borderMuted rounded-brand inline-flex flex-1 items-center justify-center gap-1.5 border px-3 py-2.5 text-sm font-semibold whitespace-nowrap transition-all active:scale-95 sm:flex-none sm:gap-2 sm:px-5"
+                  className="bg-bgSurface hover:bg-bgDeep text-textMain border-borderMuted rounded-brand inline-flex flex-1 items-center justify-center gap-1.5 border px-2.5 py-2.5 text-sm font-semibold whitespace-nowrap transition-all active:scale-95 sm:flex-none sm:gap-1.5 sm:px-4"
                 >
                   <Target className="h-4 w-4 shrink-0" />
                   Mock Exam
@@ -286,10 +286,10 @@ const Dashboard: React.FC = () => {
               {/* View Progress — hidden on mobile, visible sm+ */}
               <button
                 onClick={() => navigate("/performance")}
-                className="text-textDim hover:text-textMain rounded-brand hidden items-center gap-2 px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-all sm:inline-flex"
+                className="text-textDim hover:text-textMain rounded-brand hidden min-w-0 shrink-0 items-center gap-1.5 px-3 py-2.5 text-sm font-medium whitespace-nowrap transition-all sm:inline-flex"
               >
-                <TrendingUp className="h-4 w-4" />
-                View Progress
+                <TrendingUp className="h-4 w-4 shrink-0" />
+                <span>View Progress</span>
               </button>
             </div>
           </div>
@@ -400,8 +400,8 @@ const Dashboard: React.FC = () => {
           </div>
           {isLoading && !hasFetched ? (
             <>
-              <div className="bg-bgTrack h-8 w-24 animate-pulse rounded" />
-              <div className="bg-bgTrack h-3 w-16 animate-pulse rounded" />
+              <div className="bg-bgTrack skeleton-shimmer h-8 w-24 rounded" />
+              <div className="bg-bgTrack skeleton-shimmer h-3 w-16 rounded" />
             </>
           ) : bestScore > 0 ? (
             <>
@@ -437,8 +437,8 @@ const Dashboard: React.FC = () => {
           </div>
           {isLoading && !hasFetched ? (
             <>
-              <div className="bg-bgTrack h-8 w-20 animate-pulse rounded" />
-              <div className="bg-bgTrack h-3 w-20 animate-pulse rounded" />
+              <div className="bg-bgTrack skeleton-shimmer h-8 w-20 rounded" />
+              <div className="bg-bgTrack skeleton-shimmer h-3 w-20 rounded" />
             </>
           ) : questionsCompleted > 0 ? (
             <>
@@ -473,9 +473,9 @@ const Dashboard: React.FC = () => {
           </div>
           {isLoading && !hasFetched ? (
             <>
-              <div className="bg-bgTrack h-8 w-28 animate-pulse rounded" />
-              <div className="bg-bgTrack mt-1 h-3 w-32 animate-pulse rounded" />
-              <div className="bg-bgTrack mt-2 h-1 w-full animate-pulse rounded" />
+              <div className="bg-bgTrack skeleton-shimmer h-8 w-28 rounded" />
+              <div className="bg-bgTrack skeleton-shimmer mt-1 h-3 w-32 rounded" />
+              <div className="bg-bgTrack skeleton-shimmer mt-2 h-1 w-full rounded" />
             </>
           ) : (
             <>
@@ -533,8 +533,8 @@ const Dashboard: React.FC = () => {
           </div>
           {isLoading && !hasFetched ? (
             <>
-              <div className="bg-bgTrack h-8 w-20 animate-pulse rounded" />
-              <div className="bg-bgTrack h-3 w-16 animate-pulse rounded" />
+              <div className="bg-bgTrack skeleton-shimmer h-8 w-20 rounded" />
+              <div className="bg-bgTrack skeleton-shimmer h-3 w-16 rounded" />
             </>
           ) : streak > 0 ? (
             <>
