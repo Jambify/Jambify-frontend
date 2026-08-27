@@ -398,7 +398,7 @@ const Dashboard: React.FC = () => {
               <Target className="text-brand h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </div>
           </div>
-          {isLoading && !hasFetched ? (
+          {isLoading ? (
             <>
               <div className="bg-bgTrack skeleton-shimmer h-8 w-24 rounded" />
               <div className="bg-bgTrack skeleton-shimmer h-3 w-16 rounded" />
@@ -435,7 +435,7 @@ const Dashboard: React.FC = () => {
               <CheckCircle2 className="text-success h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </div>
           </div>
-          {isLoading && !hasFetched ? (
+          {isLoading ? (
             <>
               <div className="bg-bgTrack skeleton-shimmer h-8 w-20 rounded" />
               <div className="bg-bgTrack skeleton-shimmer h-3 w-20 rounded" />
@@ -471,7 +471,7 @@ const Dashboard: React.FC = () => {
               <BookOpen className="text-brand h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </div>
           </div>
-          {isLoading && !hasFetched ? (
+          {isLoading ? (
             <>
               <div className="bg-bgTrack skeleton-shimmer h-8 w-28 rounded" />
               <div className="bg-bgTrack skeleton-shimmer mt-1 h-3 w-32 rounded" />
@@ -531,7 +531,7 @@ const Dashboard: React.FC = () => {
               />
             </div>
           </div>
-          {isLoading && !hasFetched ? (
+          {isLoading ? (
             <>
               <div className="bg-bgTrack skeleton-shimmer h-8 w-20 rounded" />
               <div className="bg-bgTrack skeleton-shimmer h-3 w-16 rounded" />

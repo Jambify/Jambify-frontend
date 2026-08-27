@@ -945,19 +945,6 @@ const AppLayout: React.FC<LayoutProps> = ({
                 Profile
               </span>
             </Link>
-
-            {/* Theme Toggle - Mobile */}
-            <button
-              className="touch-target no-double-tap flex h-full flex-1 flex-col items-center justify-center gap-1 transition-all active:scale-90"
-              aria-label="Toggle theme"
-            >
-              <div className="rounded-xl p-2 transition-colors">
-                <ThemeToggle />
-              </div>
-              <span className="text-[10px] font-bold tracking-tight text-textDim/70 transition-colors">
-                Theme
-              </span>
-            </button>
           </nav>
         </div>
       )}
