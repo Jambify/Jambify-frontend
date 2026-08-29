@@ -623,7 +623,7 @@ export const fetchAllQuestionsForBrowse = async (
 
       if (error) {
         console.error("[fetchAllQuestionsForBrowse] Error:", error);
-        break;
+        throw error; // Re-throw to let caller handle network errors
       }
 
       const batch = (data ?? []) as DbQuestionRow[];
@@ -655,7 +655,8 @@ export const fetchAllQuestionsForBrowse = async (
     return [];
   } catch (err) {
     console.error("[fetchAllQuestionsForBrowse] Critical failure:", err);
-    return [];
+    // Re-throw the error so the caller can handle it properly (show network error, retry, etc.)
+    throw err;
   }
 };
 

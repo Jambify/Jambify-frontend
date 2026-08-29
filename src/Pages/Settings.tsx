@@ -87,7 +87,7 @@ const Settings: React.FC = () => {
             {initials || "?"}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="font-display text-lg font-semibold tracking-tight whitespace-normal break-words">
+            <p className="font-display text-lg font-semibold tracking-tight whitespace-normal wrap-break-word">
               {name || "Your name"}
             </p>
             <p className="text-textMuted mt-0.5 text-sm">

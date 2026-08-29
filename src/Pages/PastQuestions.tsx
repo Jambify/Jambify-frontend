@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { useSearchParams } from "react-router";
 import AppLayout from "../components/Layout/AppLayout";
 import { useUserStore } from "../Store/useUserStore";
@@ -102,9 +102,6 @@ const PastQuestions = () => {
 
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Read filters from the URL. Subject now always resolves to a real
-  // subject — never "All" — falling back to DEFAULT_SUBJECT if the URL
-  // doesn't specify one or specifies something invalid.
   const filters: Filters = useMemo(() => {
     const subjectParam = searchParams.get("subject");
     const yearParam = searchParams.get("year");
@@ -137,6 +134,24 @@ const PastQuestions = () => {
   const [loadingError, setLoadingError] = useState<string | null>(null);
   const [isManualRefreshing, setIsManualRefreshing] = useState(false);
 
+  // FIX: needed for the offline-guard and the "no results" condition
+  // below — same reasoning as before, no UI attached to it beyond
+  // gating existing conditions.
+  const [isOnline, setIsOnline] = useState(
+    typeof navigator !== "undefined" ? navigator.onLine : true,
+  );
+
+  useEffect(() => {
+    const goOnline = () => setIsOnline(true);
+    const goOffline = () => setIsOnline(false);
+    window.addEventListener("online", goOnline);
+    window.addEventListener("offline", goOffline);
+    return () => {
+      window.removeEventListener("online", goOnline);
+      window.removeEventListener("offline", goOffline);
+    };
+  }, []);
+
   useEffect(() => {
     const handleScroll = () => {
       setShowScrollTop(window.scrollY > 400);
@@ -153,79 +168,71 @@ const PastQuestions = () => {
     });
   };
 
-  const loadData = async (isManual = false) => {
-    if (isManual) setIsManualRefreshing(true);
-    setIsLoading(true);
-    setLoadingError(null);
+  // FIX: loadData (manual refresh) and the old useEffect's inline
+  // loadDataEffect were two separate copies of the same fetch logic —
+  // one had an isMounted guard, the other didn't. Merged into one
+  // function guarded by a request id so a stale response can never
+  // overwrite a newer one's state.
+  const requestIdRef = useRef(0);
 
-    try {
-      // Subject is always a real value now (never "All"), so this always
-      // scopes the fetch to exactly one subject — never the whole bank.
-      const qs = await Promise.race([
-        fetchAllQuestionsForBrowse(
+  const loadData = useCallback(
+    async (isManual = false) => {
+      const thisRequestId = ++requestIdRef.current;
+
+      if (isManual) setIsManualRefreshing(true);
+      setIsLoading(true);
+      setLoadingError(null);
+      setQuestions([]);
+
+      // FIX: fail fast when we already know we're offline, instead of
+      // trusting whatever the fetch promise resolves with. Uses the
+      // exact same error state/copy as a normal fetch failure — no
+      // new UI branch.
+      if (typeof navigator !== "undefined" && !navigator.onLine) {
+        if (thisRequestId === requestIdRef.current) {
+          setLoadingError("Failed to load questions. Please try again.");
+          setIsLoading(false);
+          if (isManual) {
+            setTimeout(() => setIsManualRefreshing(false), 600);
+          }
+        }
+        return;
+      }
+
+      try {
+        const qs = await fetchAllQuestionsForBrowse(
           filters.subject,
           filters.year,
           filters.topic,
           filters.difficulty,
-        ),
-        new Promise((_, reject) =>
-          setTimeout(() => reject(new Error("Request timed out")), 15000),
-        ),
-      ]);
-      setQuestions(qs as Question[]);
-    } catch (e) {
-      console.error("Error loading questions:", e);
-      setLoadingError(
-        (e as Error)?.message || "Failed to load questions. Please try again.",
-      );
-    } finally {
-      setIsLoading(false);
-      if (isManual) {
-        setTimeout(() => {
-          setIsManualRefreshing(false);
-        }, 600);
+        );
+        if (thisRequestId !== requestIdRef.current) return; // stale response
+        setQuestions(qs as Question[]);
+      } catch (e) {
+        if (thisRequestId !== requestIdRef.current) return; // stale response
+        console.error("Error loading questions:", e);
+        setLoadingError(
+          (e as Error)?.message || "Failed to load questions. Please try again.",
+        );
+      } finally {
+        if (thisRequestId === requestIdRef.current) {
+          setIsLoading(false);
+          if (isManual) {
+            setTimeout(() => setIsManualRefreshing(false), 600);
+          }
+        }
       }
-    }
-  };
+    },
+    [filters.subject, filters.year, filters.topic, filters.difficulty],
+  );
+
+  useEffect(() => {
+    loadData(false);
+  }, [loadData]);
 
   const handleManualRefresh = async () => {
     await loadData(true);
   };
-
-  useEffect(() => {
-    let isMounted = true;
-    const loadDataEffect = async () => {
-      setIsLoading(true);
-      setLoadingError(null);
-      try {
-        const qs = await Promise.race([
-          fetchAllQuestionsForBrowse(
-            filters.subject,
-            filters.year,
-            filters.topic,
-            filters.difficulty,
-          ),
-          new Promise((_, reject) =>
-            setTimeout(() => reject(new Error("Request timed out")), 15000),
-          ),
-        ]);
-        if (isMounted) setQuestions(qs as Question[]);
-      } catch (e) {
-        console.error("Error loading questions:", e);
-        if (isMounted)
-          setLoadingError(
-            (e as Error)?.message ||
-              "Failed to load questions. Please try again.",
-          );
-      } finally {
-        if (isMounted) setIsLoading(false);
-      }
-    };
-    loadDataEffect();
-    return () => {
-      isMounted = false;
-    };
-  }, [filters.subject, filters.year, filters.topic, filters.difficulty]);
 
   useEffect(() => {
     let isMounted = true;
@@ -270,9 +277,6 @@ const PastQuestions = () => {
       };
 
       const params = new URLSearchParams();
-      // Subject is always set now — always written to the URL so the
-      // fetch scope is explicit and shareable, never implicitly "every
-      // subject."
       params.set("subject", merged.subject);
       if (merged.year !== "All") params.set("year", merged.year);
       if (merged.topic !== "All") params.set("topic", merged.topic);
@@ -315,14 +319,6 @@ const PastQuestions = () => {
         description="Practice real JAMB past questions from 2015 to 2025. Create an account to unlock full access to every year and subject."
         canonical="https://www.schooldra.com/past-questions"
       />
-      {/* FIX: this was `mx-auto max-w-5xl space-y-6 px-4 py-6`. AppLayout's
-          content wrapper already applies `p-4 lg:p-7` around every page's
-          children, so this extra `px-4` was STACKING with that — the card
-          below was sitting inside ~32px of horizontal margin per side on
-          mobile instead of the intended ~16px, making it look narrower
-          than every other screen in the app. Horizontal padding now comes
-          from AppLayout alone; this wrapper only keeps vertical rhythm
-          and the max-width constraint. */}
       <div className="mx-auto max-w-5xl space-y-6 py-6">
         {showScrollTop && (
           <button
@@ -389,8 +385,6 @@ const PastQuestions = () => {
                 }
                 className="bg-bgSurface border-borderMuted text-textMain focus:ring-brand/50 w-full rounded-xl border px-4 py-2.5 focus:ring-2 focus:outline-none"
               >
-                {/* "All Subjects" removed on purpose — selecting it used to
-                    fetch every subject's entire question set in one go. */}
                 {ALL_SUBJECTS.map((s: string) => (
                   <option key={s} value={s}>
                     {s}
@@ -562,8 +556,10 @@ const PastQuestions = () => {
             </button>
           </div>
         )}
-        {/* No Results */}
-        {!isLoading && paginated.length === 0 && (
+
+        {/* No Results — FIX: added `isOnline` so this can never render
+            as a stand-in for a failed offline fetch */}
+        {!isLoading && !loadingError && isOnline && paginated.length === 0 && (
           <div className="bg-bgCard border-borderMuted rounded-2xl border p-12 text-center">
             <div className="mb-4 text-5xl">📚</div>
             <h3 className="text-textMain mb-2 text-xl font-bold">

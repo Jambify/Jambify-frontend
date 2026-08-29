@@ -64,6 +64,7 @@ export function useAIChat(options: UseAIChatOptions = {}) {
   );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [lastFailedMessage, setLastFailedMessage] = useState<string | null>(null);
 
   const streamingIdRef = useRef<string | null>(null);
   const abortRef = useRef(false);
@@ -97,6 +98,7 @@ export function useAIChat(options: UseAIChatOptions = {}) {
       if (!text.trim() || isLoading || isAtLimit) return;
 
       setError(null);
+      setLastFailedMessage(null);
       abortRef.current = false;
 
       const userMsg: ChatMessage = {
@@ -172,17 +174,9 @@ export function useAIChat(options: UseAIChatOptions = {}) {
           streamingIdRef.current = null;
           setIsLoading(false);
           setError(err.message);
-          setMessages((prev) =>
-            prev.map((m) =>
-              m.id === aiId
-                ? {
-                    ...m,
-                    content: `❌ Error: ${err.message}`,
-                    isStreaming: false,
-                  }
-                : m,
-            ),
-          );
+          setLastFailedMessage(text.trim());
+          // Remove the failed AI placeholder message
+          setMessages((prev) => prev.filter((m) => m.id !== aiId));
         },
         systemPrompt,
       );
@@ -190,10 +184,19 @@ export function useAIChat(options: UseAIChatOptions = {}) {
     [isLoading, isAtLimit, messages, systemPrompt, storageKey, toGeminiHistory],
   );
 
+  const retryLastMessage = useCallback(() => {
+    if (lastFailedMessage) {
+      sendMessage(lastFailedMessage);
+      setLastFailedMessage(null);
+      setError(null);
+    }
+  }, [lastFailedMessage, sendMessage]);
+
   const clearHistory = useCallback(() => {
     abortRef.current = true;
     setMessages([]);
     setError(null);
+    setLastFailedMessage(null);
     setIsLoading(false);
     if (storageKey) {
       try {
@@ -211,6 +214,7 @@ export function useAIChat(options: UseAIChatOptions = {}) {
     sendMessage,
     clearHistory,
     setMessages,
+    retryLastMessage,
     /** Show a soft warning when approaching the limit */
     isNearLimit,
     /** Input should be disabled when at the hard limit */

@@ -39,6 +39,7 @@ import {
   BarChart4,
   Layers,
   AlertCircle,
+  RefreshCw,
 } from "lucide-react";
 
 // ── Mentor system prompt (students) ───────────────────────────────────────────
@@ -240,6 +241,8 @@ Student profile:
     isNearLimit,
     isAtLimit,
     messagesRemaining,
+    error,
+    retryLastMessage,
   } = useAIChat({
     systemPrompt,
     storageKey: `schooldra-mentor-${name || "guest"}`,
@@ -481,6 +484,34 @@ Student profile:
 
           {/* Messages area */}
           <div className="flex-1 space-y-4 overflow-y-auto scroll-smooth px-4 py-4">
+            {/* Error Banner */}
+            {error && (
+              <div className="bg-danger/10 border-danger/30 flex flex-col gap-3 rounded-xl border p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-3">
+                  <AlertCircle className="text-danger h-5 w-5 shrink-0" />
+                  <div>
+                    <p className="text-textMain text-sm font-semibold">
+                      Connection failed
+                    </p>
+                    <p className="text-textDim mt-0.5 text-xs">
+                      {error}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={retryLastMessage}
+                  disabled={isLoading}
+                  className="bg-danger hover:bg-danger/90 flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-bold text-white transition-all active:scale-95 sm:w-auto disabled:opacity-75"
+                >
+                  <RefreshCw
+                    size={14}
+                    className={isLoading ? "animate-spin" : ""}
+                  />
+                  {isLoading ? "Retrying..." : "Retry"}
+                </button>
+              </div>
+            )}
+
             {/* Empty state — greeting + starters */}
             {isEmpty && (
               <div className="flex h-full flex-col items-center justify-center gap-6 py-8 text-center">
