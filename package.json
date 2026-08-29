@@ -19,6 +19,7 @@
     "@sparticuz/chromium": "^147.0.0",
     "@supabase/supabase-js": "^2.105.1",
     "@tailwindcss/vite": "^4.2.2",
+    "@vercel/analytics": "^2.0.1",
     "clsx": "^2.1.1",
     "dexie": "^4.4.4",
     "dompurify": "^3.4.11",
