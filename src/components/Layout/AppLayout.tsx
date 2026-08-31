@@ -256,7 +256,8 @@ const ProWelcomeBanner: React.FC<ProWelcomeBannerProps> = ({
   status,
   userId,
 }) => {
-  const isActive = status.status === "active" || status.status === "expiring_soon";
+  const isActive =
+    status.status === "active" || status.status === "expiring_soon";
   const welcomeKey =
     userId && status.proRowId
       ? `${WELCOME_DISMISS_PREFIX}${userId}_${status.proRowId}`
@@ -288,7 +289,8 @@ const ProWelcomeBanner: React.FC<ProWelcomeBannerProps> = ({
   const isAdminGrant =
     status.planType === "admin_grant" ||
     (status.planType && status.planType.toLowerCase() === "admin_grant") ||
-    (status.paymentReference && status.paymentReference.startsWith("admin-grant-"));
+    (status.paymentReference &&
+      status.paymentReference.startsWith("admin-grant-"));
 
   return (
     <div
@@ -813,7 +815,7 @@ const AppLayout: React.FC<LayoutProps> = ({
         {!hideSidebar && (
           <header
             role="banner"
-            className="bg-bgMain/85 border-borderMuted safe-area-top fixed-ios sticky top-0 z-50 flex h-14 items-center justify-between gap-2 border-b px-3 backdrop-blur-md sm:px-4 lg:px-7"
+            className="bg-bgMain/85 border-borderMuted safe-area-top sticky inset-x-0 top-0 z-50 flex h-14 w-full items-center justify-between gap-2 border-b px-3 backdrop-blur-md sm:px-4 lg:px-7"
           >
             <div className="flex min-w-0 items-center gap-2 sm:gap-3">
               <button
@@ -830,7 +832,7 @@ const AppLayout: React.FC<LayoutProps> = ({
             </div>
 
             <div className="flex shrink-0 items-center gap-1.5 sm:gap-2 lg:gap-3">
-              <span className="text-textDim hidden text-xs md:inline whitespace-nowrap overflow-hidden text-ellipsis">
+              <span className="text-textDim hidden overflow-hidden text-xs text-ellipsis whitespace-nowrap md:inline">
                 Hi, {displayName.split(" ")[0]}!
               </span>
 

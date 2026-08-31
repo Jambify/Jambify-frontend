@@ -32,7 +32,6 @@ import ScrollToTop from "./components/Scrolltotop";
 import FrozenAccountGuard from "./components/auth/FrozenAccountGuard";
 import ProRevokedModal from "./components/auth/ProRevokedModal";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { Analytics } from "@vercel/analytics/next"
 
 // ── Skeletons (only for pages that fetch data on mount) ──────
 
@@ -111,8 +110,7 @@ const App: React.FC = () => {
         <ProRevokedModal />
         <ScrollToTop />
         <StudyTimeTracker />
-         <Analytics />
-
+         
         <ChunkErrorBoundary>
           <Routes>
             {/* ── EAGER routes — no Suspense, render instantly ──────── */}
