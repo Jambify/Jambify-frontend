@@ -61,16 +61,6 @@ interface ProfileRow {
   has_seen_welcome?: boolean | null;
 }
 
-export const APP_CONFIG = {
-  PRICING: {
-    PRO_LIFETIME: 3000,
-    CURRENCY: "₦",
-    DISPLAY_PRICE: "3,000",
-    PRO_LIFETIME_YEARLY: 20000,
-    DISPLAY_PRICE_YEARLY: "20,000",
-  },
-};
-
 interface UserState {
   // ── Profile ──────────────────────────────────────────
   id: string | null;

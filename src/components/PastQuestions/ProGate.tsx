@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useUserStore } from "../../Store/useUserStore";
 import Button from "../ui/Button";
-import { APP_CONFIG } from "../../Store/useUserStore"; // Importing the app config for pricing details
+import { APP_CONFIG } from "../../config/appConfig";
 import { Crown } from "lucide-react";
 import { supabase } from "../../lib/supabase";
 

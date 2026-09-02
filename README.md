@@ -58,25 +58,25 @@ This application provides an interactive quiz-based learning experience tailored
 ```
 src/
 ├── components/
-│   ├── ui/           ← StatCard, Badge, ProgressBar, Button
-│   ├── quiz/         ← QuestionCard, OptionButton, TimerBar, ResultsScreen
-│   ├── dashboard/    ← SubjectProgress, DailyGoals, ActivityChart
-│   └── layout/       ← AppLayout, Sidebar, Topbar (move your Layout here)
-├── pages/
+│   ├── ui/           ← shared controls, modals, and loading states
+│   ├── Quiz/         ← QuestionCard, OptionButton, TimeBar, ResultScreen
+│   ├── Dashboard/    ← SubjectProgress, DailyGoals, LeaderboardCard
+│   └── Layout/       ← AppLayout, Sidebar, RouteGuard
+├── Pages/
 │   ├── Dashboard.tsx
 │   ├── Quiz.tsx
 │   ├── Performance.tsx
 │   ├── Subjects.tsx
 │   └── MockExam.tsx
-├── store/
+├── Store/
 │   ├── useUserStore.ts
 │   └── useQuizStore.ts
-├── data/
-│   └── questions.ts  ← mock questions until you have an API
+├── Data/
+│   └── Questions/    ← local question bank
 ├── hooks/
 │   └── useTimer.ts   ← reusable countdown hook
 └── lib/
-    └── utils.ts      ← cn(), formatTime(), etc.
+    └── utils/        ← shared formatting and rendering helpers
 │
 ├── Types/
 │   └── index.ts

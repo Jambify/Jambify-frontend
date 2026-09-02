@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { useUserStore, APP_CONFIG } from "../../Store/useUserStore";
+import { useUserStore } from "../../Store/useUserStore";
+import { APP_CONFIG } from "../../config/appConfig";
 import { supabase } from "../../lib/supabase";
 import Button from "../ui/Button";
 import { Crown, Lock, CheckCircle, Loader2, ExternalLink } from "lucide-react";

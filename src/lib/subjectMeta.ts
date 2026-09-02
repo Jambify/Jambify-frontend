@@ -104,6 +104,3 @@ export const getSubjectIcon = (subject: string): LucideIcon =>
 
 export const getSubjectColor = (subject: string): string =>
   SUBJECT_COLORS[subject] ?? DEFAULT_SUBJECT_COLOR;
-
-export const getComboById = (id: string): SubjectCombo | undefined =>
-  SUBJECT_COMBOS.find((combo) => combo.id === id);
