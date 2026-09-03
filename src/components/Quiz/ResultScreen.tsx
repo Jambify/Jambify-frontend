@@ -4,8 +4,8 @@ import { useQuizSession } from "../../hooks/useQuizSession";
 import Button from "../ui/Button";
 import { cn } from "../../lib/utils/utils";
 import { useStudyTrackingStore } from "../../Store/useStudyTrackingStore";
-                
-import {ExplanationText} from "../../components/shared/ExplanationText";
+
+import { ExplanationText } from "../../components/shared/ExplanationText";
 import {
   Trophy,
   Target,
@@ -104,7 +104,9 @@ const ReviewItem: React.FC<ReviewItemProps> = ({
                   <span className="font-mono opacity-60">
                     {String.fromCharCode(65 + optIdx)}.
                   </span>
-                 <span className="flex-1 wrap-break-word">{renderQuestionText(opt, q.subject)}</span>
+                  <span className="flex-1 wrap-break-word">
+                    {renderQuestionText(opt, q.subject)}
+                  </span>
                   {isCorrectOpt && <span>✓</span>}
                   {isUserOpt && !isCorrectOpt && <span>← Your pick</span>}
                 </div>

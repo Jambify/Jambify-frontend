@@ -17,9 +17,8 @@ import {
   HelpCircle,
   Download,
   Wrench,
-  
 } from "lucide-react";
-import type{ LucideIcon,} from "lucide-react"
+import type { LucideIcon } from "lucide-react";
 
 type Tab = "profile" | "exam" | "offline" | "account" | "help";
 
@@ -91,7 +90,7 @@ const Settings: React.FC = () => {
             {initials || "?"}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="font-display text-lg font-semibold tracking-tight whitespace-normal wrap-break-word">
+            <p className="font-display text-lg font-semibold tracking-tight wrap-break-word whitespace-normal">
               {name || "Your name"}
             </p>
             <p className="text-textMuted mt-0.5 text-sm">
@@ -133,9 +132,12 @@ const Settings: React.FC = () => {
           {activeTab === "offline" && (
             <section className="space-y-4">
               <div>
-                <h3 className="font-display text-lg font-bold">Offline packs</h3>
+                <h3 className="font-display text-lg font-bold">
+                  Offline packs
+                </h3>
                 <p className="text-textMuted mt-1 text-sm">
-                  Download question packs now so you can practise without an internet connection.
+                  Download question packs now so you can practise without an
+                  internet connection.
                 </p>
               </div>
               {isPro ? (
@@ -146,9 +148,12 @@ const Settings: React.FC = () => {
                 </div>
               ) : (
                 <div className="bg-bgCard border-borderMuted rounded-brand-xl border p-5 text-sm">
-                  <p className="font-semibold">Offline packs are a Pro feature.</p>
+                  <p className="font-semibold">
+                    Offline packs are a Pro feature.
+                  </p>
                   <p className="text-textMuted mt-1">
-                    Upgrade to download and manage question packs on this device.
+                    Upgrade to download and manage question packs on this
+                    device.
                   </p>
                 </div>
               )}

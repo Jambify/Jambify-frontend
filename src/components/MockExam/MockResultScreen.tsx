@@ -116,9 +116,9 @@ const MockResultsScreen: React.FC<MockResultsScreenProps> = ({
         </div>
       )}
       {/* Score Overview - Premium Card */}
-      <div className="relative mb-10 overflow-hidden rounded-brand-2xl border border-borderMuted bg-bgCard p-10 shadow-2xl shadow-brand/15">
-        <div className="pointer-events-none absolute -top-24 -right-24 h-64 w-64 rounded-full bg-brand/10 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-24 -left-24 h-64 w-64 rounded-full bg-success/10 blur-3xl" />
+      <div className="rounded-brand-2xl border-borderMuted bg-bgCard shadow-brand/15 relative mb-10 overflow-hidden border p-10 shadow-2xl">
+        <div className="bg-brand/10 pointer-events-none absolute -top-24 -right-24 h-64 w-64 rounded-full blur-3xl" />
+        <div className="bg-success/10 pointer-events-none absolute -bottom-24 -left-24 h-64 w-64 rounded-full blur-3xl" />
         <div className="relative z-10">
           <h2 className="text-textDim mb-6 text-sm font-black tracking-[0.35em] uppercase">
             Unified Mock Result
@@ -127,30 +127,30 @@ const MockResultsScreen: React.FC<MockResultsScreenProps> = ({
             <div className="font-display text-brand text-8xl leading-none font-black tracking-tighter sm:text-[6rem]">
               {jambScore}
             </div>
-            <div className="rounded-full bg-bgSurface/90 px-4 py-2 text-sm font-bold uppercase tracking-[0.24em] text-textDim shadow-sm">
+            <div className="bg-bgSurface/90 text-textDim rounded-full px-4 py-2 text-sm font-bold tracking-[0.24em] uppercase shadow-sm">
               Out of 400
             </div>
           </div>
 
-          <div className="mt-12 grid gap-4 border-t border-borderMuted/60 pt-10 md:grid-cols-3">
-            <div className="rounded-[24px] bg-bgSurface/70 p-5 shadow-sm">
-              <span className="text-textDim block text-[10px] font-black uppercase tracking-[0.35em]">
+          <div className="border-borderMuted/60 mt-12 grid gap-4 border-t pt-10 md:grid-cols-3">
+            <div className="bg-bgSurface/70 rounded-[24px] p-5 shadow-sm">
+              <span className="text-textDim block text-[10px] font-black tracking-[0.35em] uppercase">
                 Accuracy
               </span>
               <span className="font-display text-textMain mt-3 block text-3xl font-black">
                 {percentageScore}%
               </span>
             </div>
-            <div className="rounded-[24px] bg-bgSurface/70 p-5 shadow-sm">
-              <span className="text-textDim block text-[10px] font-black uppercase tracking-[0.35em]">
+            <div className="bg-bgSurface/70 rounded-[24px] p-5 shadow-sm">
+              <span className="text-textDim block text-[10px] font-black tracking-[0.35em] uppercase">
                 Correct
               </span>
               <span className="font-display text-textMain mt-3 block text-3xl font-black">
                 {totalCorrect} / {totalQuestions}
               </span>
             </div>
-            <div className="rounded-[24px] bg-bgSurface/70 p-5 shadow-sm">
-              <span className="text-textDim block text-[10px] font-black uppercase tracking-[0.35em]">
+            <div className="bg-bgSurface/70 rounded-[24px] p-5 shadow-sm">
+              <span className="text-textDim block text-[10px] font-black tracking-[0.35em] uppercase">
                 Status
               </span>
               <span
@@ -172,15 +172,15 @@ const MockResultsScreen: React.FC<MockResultsScreenProps> = ({
         </div>
       </div>
 
-      <h3 className="text-textDim mb-6 ml-1 flex items-center gap-2 text-xs font-black uppercase tracking-[0.35em]">
-        <span className="h-2.5 w-2.5 rounded-full bg-brand inline-block" />
+      <h3 className="text-textDim mb-6 ml-1 flex items-center gap-2 text-xs font-black tracking-[0.35em] uppercase">
+        <span className="bg-brand inline-block h-2.5 w-2.5 rounded-full" />
         Subject Performance
       </h3>
       <div className="mb-12 grid grid-cols-1 gap-4 md:grid-cols-2">
         {subjectBreakdown.map((sb) => (
           <div
             key={sb.subject}
-            className="group overflow-hidden rounded-brand-2xl border border-borderMuted bg-bgCard p-6 shadow-sm transition-all hover:border-brand/30 hover:shadow-brand/10"
+            className="group rounded-brand-2xl border-borderMuted bg-bgCard hover:border-brand/30 hover:shadow-brand/10 overflow-hidden border p-6 shadow-sm transition-all"
           >
             <div className="mb-5 flex items-start justify-between gap-4">
               <div>
@@ -189,7 +189,7 @@ const MockResultsScreen: React.FC<MockResultsScreenProps> = ({
                 </h3>
                 <div
                   className={cn(
-                    "mt-3 inline-flex rounded-full border px-3 py-1 text-[9px] font-black uppercase tracking-[0.25em]",
+                    "mt-3 inline-flex rounded-full border px-3 py-1 text-[9px] font-black tracking-[0.25em] uppercase",
                     getPerformanceBg(sb.performance),
                     getPerformanceColor(sb.performance),
                   )}
@@ -206,7 +206,7 @@ const MockResultsScreen: React.FC<MockResultsScreenProps> = ({
                 </div>
               </div>
             </div>
-            <div className="rounded-full bg-bgSurface h-3 overflow-hidden">
+            <div className="bg-bgSurface h-3 overflow-hidden rounded-full">
               <div
                 className={cn(
                   "h-full rounded-full transition-all duration-1000 ease-out",
@@ -318,7 +318,7 @@ const MockResultsScreen: React.FC<MockResultsScreenProps> = ({
                                   </div>
                                 )}
                                 <p className="text-textMain mb-6 text-sm leading-relaxed font-bold sm:text-base">
-                                   {renderQuestionText(q.text, q.subject)}
+                                  {renderQuestionText(q.text, q.subject)}
                                 </p>
 
                                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -338,7 +338,9 @@ const MockResultsScreen: React.FC<MockResultsScreenProps> = ({
                                         <span className="font-mono font-bold opacity-40">
                                           {String.fromCharCode(65 + optIdx)}.
                                         </span>
-                                       <span>{renderQuestionText(opt, q.subject)}</span>
+                                        <span>
+                                          {renderQuestionText(opt, q.subject)}
+                                        </span>
                                       </div>
                                       {optIdx === q.answer && (
                                         <CheckCircle
@@ -387,7 +389,12 @@ const MockResultsScreen: React.FC<MockResultsScreenProps> = ({
                                           Explanation
                                         </span>
                                       </div>
-                                      <ExplanationText text={q.explanation.replace(/<[^>]*>/g, "")} />
+                                      <ExplanationText
+                                        text={q.explanation.replace(
+                                          /<[^>]*>/g,
+                                          "",
+                                        )}
+                                      />
                                     </div>
                                   )}
                                 </div>
@@ -417,8 +424,9 @@ const MockResultsScreen: React.FC<MockResultsScreenProps> = ({
               Review is Locked
             </h4>
             <p className="text-textMuted mx-auto mb-8 max-w-sm text-sm">
-              Upgrade to Schooldra Pro to access detailed explanations, AI-powered
-              insights, and a professional review of all your answers.
+              Upgrade to Schooldra Pro to access detailed explanations,
+              AI-powered insights, and a professional review of all your
+              answers.
             </p>
             <Button
               variant="primary"
