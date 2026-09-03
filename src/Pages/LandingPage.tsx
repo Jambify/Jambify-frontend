@@ -51,7 +51,7 @@ const LandingPage: React.FC = () => {
     <>
       <PageHelmet
         title="SCHOOLDRA — JAMB UTME prep with mock exams & weak-topic tracking"
-        description="Realistic JAMB mock exams, 12,000+ past questions with worked solutions, and performance tracking that finds your weak topics. Built for Nigerian UTME students."
+        description="Realistic JAMB mock exams, thousands of past questions with worked solutions, and performance tracking that finds your weak topics. Built for Nigerian UTME students."
         canonical="https://www.schooldra.com"
       />
 

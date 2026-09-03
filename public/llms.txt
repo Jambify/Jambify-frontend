@@ -2,17 +2,17 @@
 
 > AI-powered JAMB/UTME exam preparation platform for Nigerian secondary school students (ages 16-19) preparing for JAMB and UTME entrance exams.
 
-Schooldra provides practice quizzes, full-length mock exams, a database of past JAMB/UTME questions (2010-2025), performance analytics, and an AI Tutor for personalized exam feedback.
+Schooldra provides practice quizzes, full-length mock exams, available JAMB/UTME past questions, performance analytics, and an AI Tutor for personalized exam feedback.
 
 ## Core Pages
 
 - [Home](https://www.schooldra.com/): Landing page with an overview of Schooldra's features and pricing.
-- [Practice Quiz](https://www.schooldra.com/quiz): Unlimited practice questions across all JAMB subjects with instant feedback.
+- [Practice Quiz](https://www.schooldra.com/quiz): Practice questions across JAMB subjects with instant feedback.
 - [Mock Exams](https://www.schooldra.com/mock-exams): Full-length timed mock JAMB exams simulating real exam conditions.
 - [Past Questions](https://www.schooldra.com/guest/past-questions): Historical JAMB/UTME questions organized by subject and year, free to browse as a guest.
 - [Performance Dashboard](https://www.schooldra.com/performance): Personal score tracking, subject-wise breakdowns, and study streaks (requires account).
 - [About](https://www.schooldra.com/about): Background on Schooldra and why it was built.
-- [Pricing / Pro](https://www.schooldra.com/pro): Details on Schooldra Pro, which unlocks the AI Tutor, offline mode, and full mock exam review.
+- [Pricing / Pro](https://www.schooldra.com/pro): Details on Schooldra Pro, which unlocks AI explanations, downloadable question packs for offline study, performance analytics, and full mock exam review.
 
 ## Subjects Covered
 

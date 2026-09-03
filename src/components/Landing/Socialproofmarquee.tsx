@@ -1,8 +1,8 @@
 /**
  * src/components/landing/SocialProofMarquee.tsx
  * ───────────────────────────────────────────────
- * Scrolling strip of university names — trust signal pulled from
- * the second landing page variant, merged into the primary layout.
+ * Scrolling strip of university names that helps students recognize their
+ * intended destinations without making an unsupported usage claim.
  */
 
 import React from "react";
@@ -31,7 +31,7 @@ const SocialProofMarquee: React.FC = () => {
     <section className="border-borderMuted overflow-hidden border-y py-8">
       <div className="mx-auto max-w-6xl px-6">
         <p className="text-textDim mb-5 text-center text-xs font-bold tracking-widest uppercase">
-          Trusted by students preparing at
+          Built for students targeting universities such as
         </p>
         <div className="relative flex overflow-x-hidden mask-[linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
           <motion.div
@@ -41,7 +41,10 @@ const SocialProofMarquee: React.FC = () => {
             transition={{ duration: 20, ease: "linear", repeat: Infinity }}
           >
             {[...SCHOOLS, ...SCHOOLS].map((s, i) => (
-              <span key={i} className="text-textMuted shrink-0 text-sm font-medium">
+              <span
+                key={i}
+                className="text-textMuted shrink-0 text-sm font-medium"
+              >
                 {s}
               </span>
             ))}

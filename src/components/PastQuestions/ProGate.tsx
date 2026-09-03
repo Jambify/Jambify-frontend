@@ -17,7 +17,6 @@ interface FlutterwaveCallbackData {
   [key: string]: unknown;
 }
 
-
 const FALLBACK_QUESTION_COUNT = 4180;
 
 const ProGate: React.FC = () => {
@@ -51,7 +50,6 @@ const ProGate: React.FC = () => {
       processPayment();
     }
   };
-
 
   const processPayment = () => {
     const flwKey = import.meta.env.VITE_FLW_PUBLIC_KEY;
@@ -121,7 +119,9 @@ const ProGate: React.FC = () => {
       setError("Could not initiate payment.");
     }
   };
-   const [questionCount, setQuestionCount] = useState<number>(FALLBACK_QUESTION_COUNT);
+  const [questionCount, setQuestionCount] = useState<number>(
+    FALLBACK_QUESTION_COUNT,
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -145,15 +145,17 @@ const ProGate: React.FC = () => {
 
   const formattedCount = questionCount.toLocaleString();
 
-  const PRO_FEATURES = useMemo(() => [
-  "Download all subject packs for offline use",
-  `Access ${formattedCount}+ real JAMB questions (1990–2025)`,
-  "Audio explanations for every answer",
-  "Spaced repetition scheduling (SM-2 algorithm)",
-  "Priority access to new question packs",
-  "Ad-free experience",
-], []);
-
+  const PRO_FEATURES = useMemo(
+    () => [
+      "Download available subject packs for offline use",
+      `Access ${formattedCount}+ real JAMB questions (from the available question bank)`,
+      "AI Tutor explanations for practice questions",
+      "Detailed mock exam review",
+      "Performance analytics and weak-topic tracking",
+      "Browse by subject, year, topic, and difficulty",
+    ],
+    [],
+  );
 
   return (
     <div className="animate-fadeIn mx-auto max-w-md py-6">

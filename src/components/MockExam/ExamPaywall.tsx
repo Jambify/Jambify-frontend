@@ -360,8 +360,8 @@ const ExamPaywall: React.FC<ExamPaywallProps> = ({ onUpgrade, onBack }) => {
             "Detailed exam breakdown",
             "Subject-wise performance analysis",
             "Time management insights",
-            "Download past questions offline",
-            "AI Tutor — unlimited questions",
+            "Download question packs for offline study",
+            "AI Tutor explanations for practice questions",
           ].map((feat) => (
             <div
               key={feat}

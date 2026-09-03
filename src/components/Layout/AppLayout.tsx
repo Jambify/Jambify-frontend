@@ -309,8 +309,8 @@ const ProWelcomeBanner: React.FC<ProWelcomeBannerProps> = ({
         </p>
         <p className="text-textMuted mt-0.5 text-xs leading-relaxed">
           {isAdminGrant
-            ? "An admin has unlocked Pro for your account. Enjoy AI Tutor, offline mode, and full mock exam review."
-            : "Your purchase was successful. AI Tutor, offline mode, and full mock exam review are now unlocked."}
+            ? "An admin has unlocked Pro for your account. Enjoy AI explanations, offline question packs, and full mock exam review."
+            : "Your purchase was successful. AI explanations, offline question packs, and full mock exam review are now unlocked."}
         </p>
       </div>
       <button
@@ -759,7 +759,8 @@ const AppLayout: React.FC<LayoutProps> = ({
                     </span>
                   </div>
                   <p className="text-textDim text-[10px] leading-tight">
-                    Unlock AI Tutor, offline mode, and professional mock review.
+                    Unlock AI explanations, offline question packs, and
+                    professional mock review.
                   </p>
                 </Link>
               ) : (

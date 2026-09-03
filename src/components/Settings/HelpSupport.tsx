@@ -27,7 +27,7 @@ const FAQ = [
   {
     question: "Are my practice sessions saved?",
     answer:
-      "Yes! All your quiz and mock exam attempts are automatically saved to your account, and your performance stats are updated in real-time.",
+      "Yes! When you're connected, your quiz and mock exam attempts are saved to your account and your performance stats are updated. Offline study requires downloaded packs, and result submission requires an internet connection.",
   },
   {
     question: "How does the daily streak work?",

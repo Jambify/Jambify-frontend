@@ -4,12 +4,15 @@ import AppLayout from "../components/Layout/AppLayout";
 import ExamPaywall from "../components/MockExam/ExamPaywall";
 import { useNavigate } from "react-router";
 import { useUserStore } from "../Store/useUserStore";
+import { useProStatus } from "../hooks/useProStatus";
 import { Crown, CheckCircle } from "lucide-react";
 
 const ProPage: React.FC = () => {
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { isPro } = useUserStore();
+  const proStatus = useProStatus();
+  const needsRenewal = proStatus.primaryAction === "renew";
 
   return (
     <AppLayout
@@ -19,11 +22,11 @@ const ProPage: React.FC = () => {
     >
       <PageHelmet
         title="Pro | SCHOOLDRA"
-        description="Explore Schooldra Pro membership benefits including AI Tutor, full mock reviews, offline study mode, and advanced analytics."
+        description="Explore Schooldra Pro membership benefits including AI explanations, full mock reviews, offline question packs, and performance analytics."
         canonical="https://www.schooldra.com/pro"
       />
       <div className="mx-auto max-w-4xl py-6">
-        {isPro ? (
+        {isPro && !needsRenewal ? (
           <div className="bg-bgCard border-borderMuted rounded-brand-xl border p-8 text-center shadow-xl">
             <div className="bg-success/10 border-success/20 mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full border">
               <Crown className="text-success h-10 w-10" />
@@ -32,19 +35,19 @@ const ProPage: React.FC = () => {
               You're a Pro Member!
             </h1>
             <p className="text-textDim mx-auto mb-8 max-w-md leading-relaxed">
-              Thank you for supporting Schooldra. You have full access to all
-              premium features, including AI Tutor, detailed mock reviews, and
-              offline study mode.
+              Thank you for supporting Schooldra. You have access to AI
+              explanations, detailed mock reviews, offline question packs, and
+              performance analytics.
             </p>
 
             <div className="mx-auto mb-10 grid max-w-2xl gap-4 text-left sm:grid-cols-2">
               {[
-                "Unlimited AI Tutor Questions",
-                "Full Mock Exam Explanations",
-                "Offline Mode for All Subjects",
-                "Advanced Performance Analytics",
-                "Priority Support Access",
-                "Ad-Free Learning Experience",
+                "AI Tutor explanations for practice questions",
+                "Detailed mock exam review",
+                "Downloadable question packs for offline study",
+                "Performance analytics and weak-topic tracking",
+                "Full access to available past questions",
+                "Subject, year, topic, and difficulty filters",
               ].map((benefit) => (
                 <div
                   key={benefit}

@@ -85,7 +85,7 @@ const AboutPage: React.FC = () => {
       <div className="bg-bgMain text-textMain min-h-screen">
         <Navbar />
 
-        {/* ── Hero: the story is the visual anchor, no photo needed ── */}
+        {/* ── Hero: the founder story is the visual anchor ── */}
         <section className="relative overflow-hidden px-4 pt-20 pb-16 sm:pt-28 sm:pb-20">
           <div
             className="ambient-glow pointer-events-none absolute inset-0"
@@ -107,14 +107,14 @@ const AboutPage: React.FC = () => {
               The story behind Schooldra
             </motion.div>
             <h1 className="font-display text-textMain text-center text-3xl leading-[1.15] font-black tracking-tight sm:text-5xl">
-              I built this for someone I care about, prepping for the biggest
-              exam of their life.{" "}
+              JAMB preparation should feel focused, not overwhelming.{" "}
               <Hand className="text-brand inline-block h-[0.85em] w-[0.85em] origin-bottom-right align-baseline transition-transform hover:rotate-12" />
             </h1>
 
             <p className="text-textMuted mx-auto mt-6 max-w-xl text-base leading-relaxed sm:text-lg">
-              A month later, it grew into something much bigger. Here's the real
-              story — and everything it can do for you today.
+              Schooldra began with one student who needed a better way to
+              practise. It became a focused study platform for anyone who wants
+              to prepare with more direction and less noise.
             </p>
           </motion.div>
         </section>
@@ -173,7 +173,7 @@ const AboutPage: React.FC = () => {
                 What Schooldra actually does
               </h2>
               <p className="text-textDim mt-2 text-sm sm:text-base">
-                No fluff — this is the whole point of the app.
+                Built around the moments that make preparation easier.
               </p>
             </motion.div>
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
@@ -260,10 +260,9 @@ const AboutPage: React.FC = () => {
         {/* ── Contact + close ── */}
         <section className="px-4 pb-20 text-center">
           <p className="text-textMuted mx-auto max-w-lg text-sm leading-relaxed sm:text-base">
-            This started as something small, built for one person I care about.
-            If it helps you the way it helped them, that's already a win for
-            both of us — and if something feels off or missing, I'd genuinely
-            love to hear about it.
+            Schooldra is still being built with care and close attention to how
+            students actually prepare. If something feels off or missing, we'd
+            genuinely love to hear about it.
           </p>
 
           <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">

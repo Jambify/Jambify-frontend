@@ -205,7 +205,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       >
         {/* Logo */}
         <div className="border-borderMuted flex items-center justify-between border-b px-5 py-5">
-          <a href="/dashboard" aria-label="Schooldra Home" className="flex items-center gap-1">
+          <a
+            href="/dashboard"
+            aria-label="Schooldra Home"
+            className="flex items-center gap-1"
+          >
             <img
               src={schooldraLogo}
               alt="Schooldra Logo"
@@ -283,7 +287,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                   </span>
                 </div>
                 <p className="text-textDim text-[11px] leading-tight">
-                  Unlock AI Tutor, offline mode, and professional mock review.
+                  Unlock AI explanations, offline question packs, and
+                  professional mock review.
                 </p>
                 <div className="text-brand-light mt-1 flex items-center gap-1 text-[10px] font-bold">
                   Upgrade Now <ArrowRight size={10} />
