@@ -119,7 +119,7 @@ const Settings: React.FC = () => {
                 )}
               >
                 <Icon className="h-4 w-4 shrink-0 lg:h-6 lg:w-6" />
-                <span className="sm:inline lg:hidden">{tab.label}</span>
+                <span className="hidden sm:inline lg:hidden">{tab.label}</span>
               </button>
             );
           })}
