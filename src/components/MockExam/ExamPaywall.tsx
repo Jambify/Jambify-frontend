@@ -175,16 +175,16 @@ const ExamPaywall: React.FC<ExamPaywallProps> = ({ onUpgrade, onBack }) => {
       const { data: updatedPro, error: proError } = await supabase
         .from("pro_users")
         .upsert(
-        {
-          user_id: user.id,
-          email: user.email,
-          payment_reference: reference,
-          amount: 3000,
-          status: "active",
-          plan_type: "monthly",
-          expires_at: expiresAt.toISOString(),
-          updated_at: new Date().toISOString(),
-        },
+          {
+            user_id: user.id,
+            email: user.email,
+            payment_reference: reference,
+            amount: 3000,
+            status: "active",
+            plan_type: "monthly",
+            expires_at: expiresAt.toISOString(),
+            updated_at: new Date().toISOString(),
+          },
           { onConflict: "user_id" },
         )
         .select("user_id, status, expires_at, payment_reference")
