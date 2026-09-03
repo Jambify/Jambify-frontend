@@ -221,7 +221,8 @@ const ProStatusBanner: React.FC<ProStatusBannerProps> = ({
               </a>
             ) : (
               <Link
-                to={ctaHref}
+                to={cta === "renew" ? "/pro/renew" : ctaHref}
+                state={cta === "renew" ? { fromProStatus: true } : undefined}
                 className="bg-brand hover:bg-brand-light inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold text-white shadow-[0_10px_24px_rgba(124,60,255,0.22)] transition-all"
               >
                 <Sparkles className="h-3.5 w-3.5" />
@@ -260,7 +261,7 @@ const ProWelcomeBanner: React.FC<ProWelcomeBannerProps> = ({
     status.status === "active" || status.status === "expiring_soon";
   const welcomeKey =
     userId && status.proRowId
-      ? `${WELCOME_DISMISS_PREFIX}${userId}_${status.proRowId}`
+      ? `${WELCOME_DISMISS_PREFIX}${userId}_${status.proRowId}_${status.paymentReference || "active"}`
       : null;
 
   const [seen, setSeen] = React.useState<boolean>(true);

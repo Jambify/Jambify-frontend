@@ -68,6 +68,7 @@ const MentorChat = lazy(() => import("./Pages/MentorChat"));
 const PastQuestions = lazy(() => import("./Pages/PastQuestions"));
 const ReviewScreen = lazy(() => import("./Pages/MockExam/ReviewExam"));
 const ProPage = lazy(() => import("./Pages/Pro"));
+const RenewPro = lazy(() => import("./Pages/RenewPro"));
 const GuestQuiz = lazy(() => import("./Pages/GuestUser/GuestQuiz"));
 const GuestMock = lazy(() => import("./Pages/GuestUser/GuestExam"));
 const GuestPastQuestions = lazy(
@@ -105,12 +106,11 @@ if (typeof window !== "undefined") {
 const App: React.FC = () => {
   return (
     <AuthErrorBoundary>
-
       <FrozenAccountGuard>
         <ProRevokedModal />
         <ScrollToTop />
         <StudyTimeTracker />
-         
+
         <ChunkErrorBoundary>
           <Routes>
             {/* ── EAGER routes — no Suspense, render instantly ──────── */}
@@ -418,6 +418,22 @@ const App: React.FC = () => {
                     }
                   >
                     <ProPage />
+                  </Suspense>
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/pro/renew"
+              element={
+                <RouteGuard>
+                  <Suspense
+                    fallback={
+                      <AppLayout currentPage="pro">
+                        <div className="bg-bgMain min-h-[60vh]" />
+                      </AppLayout>
+                    }
+                  >
+                    <RenewPro />
                   </Suspense>
                 </RouteGuard>
               }

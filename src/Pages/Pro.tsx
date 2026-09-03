@@ -4,15 +4,12 @@ import AppLayout from "../components/Layout/AppLayout";
 import ExamPaywall from "../components/MockExam/ExamPaywall";
 import { useNavigate } from "react-router";
 import { useUserStore } from "../Store/useUserStore";
-import { useProStatus } from "../hooks/useProStatus";
 import { Crown, CheckCircle } from "lucide-react";
 
 const ProPage: React.FC = () => {
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { isPro } = useUserStore();
-  const proStatus = useProStatus();
-  const needsRenewal = proStatus.primaryAction === "renew";
 
   return (
     <AppLayout
@@ -26,7 +23,7 @@ const ProPage: React.FC = () => {
         canonical="https://www.schooldra.com/pro"
       />
       <div className="mx-auto max-w-4xl py-6">
-        {isPro && !needsRenewal ? (
+        {isPro ? (
           <div className="bg-bgCard border-borderMuted rounded-brand-xl border p-8 text-center shadow-xl">
             <div className="bg-success/10 border-success/20 mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full border">
               <Crown className="text-success h-10 w-10" />
