@@ -576,4 +576,3 @@ export const useGroupStore = create<GroupState>()((set, get) => ({
 }));
 
 // Export retry helper so GroupChat can call it when network is restored
-export { failedMessages };

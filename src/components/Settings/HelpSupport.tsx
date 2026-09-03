@@ -37,7 +37,7 @@ const FAQ = [
   {
     question: "Can I practice offline?",
     answer:
-      "Yes! Pro users can download offline practice packs. Go to the Offline Packs page to download questions for your subjects.",
+      "Yes! Pro users can download offline practice packs. Go to Settings → Offline packs to download or remove questions for your subjects.",
   },
 ];
 

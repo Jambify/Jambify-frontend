@@ -3,7 +3,7 @@ import React, { type ReactNode } from "react";
 import { motion } from "framer-motion";
 import { ShieldCheck } from "lucide-react";
 import ThemeToggle from "../ui/ThemeToggle";
-import schooldralogo from "../../assets/schooldraLogo.webp"; 
+import schooldralogo from "../../assets/schooldraLogo.webp";
 import { Zap, Trophy, TrendingUp } from "lucide-react";
 type AuthVariant = "signin" | "signup" | "otp";
 
@@ -34,7 +34,7 @@ const PANEL_CONTENT: Record<
   },
 };
 
-export const FEATURES = [
+const FEATURES = [
   {
     icon: Zap,
     label: "Quick quizzes",
@@ -50,7 +50,7 @@ export const FEATURES = [
     label: "Track progress",
     desc: "Daily goals and performance insights",
   },
-]
+];
 
 const AuthLayout: React.FC<AuthLayoutProps> = ({
   children,
@@ -63,7 +63,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
   return (
     <div className="bg-bgMain text-textMain relative flex min-h-screen overflow-hidden">
       {/* ── LEFT BRAND PANEL ── */}
-      <div className="border-borderMuted bg-bgSurface relative hidden shrink-0 flex-col overflow-hidden border-r lg:flex lg:w-105 xxl:w-110">
+      <div className="border-borderMuted bg-bgSurface xxl:w-110 relative hidden shrink-0 flex-col overflow-hidden border-r lg:flex lg:w-105">
         {/* Grid texture */}
         <div
           className="pointer-events-none absolute inset-0 opacity-[0.035]"
@@ -79,25 +79,25 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
         <div className="relative z-10 flex h-full flex-col p-10 xl:p-12">
           {/* Logo */}
           <div className="flex items-center gap-3">
-               <motion.div
-            // className="bg-brand shadow-brand/40 group relative mb-6 flex h-20 w-20 items-center justify-center overflow-hidden rounded-4xl shadow-2xl"
-            animate={{
-              y: [0, -8, 0],
-              rotate: [0, 2, -2, 0],
-            }}
-            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-          >
-            <div className="absolute inset-0 bg-linear-to-tr from-white/25 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
-            <img
-              src={schooldraLogo}
-              alt="Schooldra"
-              className="flex h-25 w-25 items-center justify-center"
-            />
-          </motion.div>
-           <span className="text-brand-light  font-black tracking-wider text-2xl">
+            <motion.div
+              // className="bg-brand shadow-brand/40 group relative mb-6 flex h-20 w-20 items-center justify-center overflow-hidden rounded-4xl shadow-2xl"
+              animate={{
+                y: [0, -8, 0],
+                rotate: [0, 2, -2, 0],
+              }}
+              transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <div className="absolute inset-0 bg-linear-to-tr from-white/25 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+              <img
+                src={schooldraLogo}
+                alt="Schooldra"
+                className="flex h-25 w-25 items-center justify-center"
+              />
+            </motion.div>
+            <span className="text-brand-light text-2xl font-black tracking-wider">
               SCHOOLDRA
             </span>
-            </div>
+          </div>
 
           {/* Core copy */}
           <motion.div
@@ -131,24 +131,23 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
 
             {/* Features */}
             <div className="mt-6 flex flex-col gap-2.5">
-  {FEATURES.map(({ icon: Icon, label, desc }) => (
-    <div
-      key={label}
-      className="bg-bgCard border-borderMuted flex items-center gap-3 rounded-xl border p-3"
-    >
-      <div className="bg-brand/10 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg">
-        <Icon className="text-brand h-4 w-4" />
-      </div>
-      <div>
-        <p className="text-textMain text-xs font-semibold">
-          {label}
-        </p>
-        <p className="text-textDim text-[11px]">{desc}</p>
-      </div>
-    </div>
-  ))}
-</div>
-
+              {FEATURES.map(({ icon: Icon, label, desc }) => (
+                <div
+                  key={label}
+                  className="bg-bgCard border-borderMuted flex items-center gap-3 rounded-xl border p-3"
+                >
+                  <div className="bg-brand/10 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg">
+                    <Icon className="text-brand h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="text-textMain text-xs font-semibold">
+                      {label}
+                    </p>
+                    <p className="text-textDim text-[11px]">{desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </motion.div>
 
           {/* Bottom badge */}
@@ -185,7 +184,11 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
           >
             {/* Mobile logo */}
             <div className="mb-2 flex justify-center lg:hidden">
-             <img src={schooldraLogo} alt="Schooldra Logo" className="h-50 w-50" />
+              <img
+                src={schooldraLogo}
+                alt="Schooldra Logo"
+                className="h-50 w-50"
+              />
             </div>
 
             <div className="bg-brand/10 border-brand/20 text-brand mb-4 inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[10px] font-black tracking-[2px] uppercase">

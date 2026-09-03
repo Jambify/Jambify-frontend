@@ -62,7 +62,7 @@ import { motion } from "framer-motion";
 import ValidatedInput from "../../components/ui/ValidatedInput";
 import { truncateInput } from "../../lib/validation";
 
-import { useOfflineStore } from "../../Store/useOfflineStore";
+import { SUBJECT_TO_PACK, useOfflineStore } from "../../Store/useOfflineStore";
 
 const MOCK_DURATION = 7200; // 2 hours in seconds
 
@@ -163,6 +163,7 @@ const MockExam: React.FC = () => {
     userSubjects[3] || "",
   ]);
   const [showSlowNetworkWarning, setShowSlowNetworkWarning] = useState(false);
+  const [submissionBlocked, setSubmissionBlocked] = useState(false);
   const [jumpTo, setJumpTo] = useState("");
   const [activeSubject, setActiveSubject] = useState("English");
 
@@ -278,17 +279,15 @@ const MockExam: React.FC = () => {
         // Try offline first if user is offline
         if (!isOnline) {
           console.log(`📴 Offline: Checking local cache for ${subjectId}...`);
-          const packs = offlineStore.downloadedPacks.filter((p) =>
-            p.startsWith(subjectId.toLowerCase().slice(0, 3)),
-          );
-          if (packs.length > 0) {
-            const offlineQs = await offlineStore.getOfflineQuestions(packs[0]);
+          const packId = SUBJECT_TO_PACK[subjectId];
+          if (packId && offlineStore.downloadedPacks.includes(packId)) {
+            const offlineQs = await offlineStore.getOfflineQuestions(packId);
             if (offlineQs.length >= config.required) {
               fetched = offlineQs
                 .sort(() => Math.random() - 0.5)
                 .slice(0, config.required);
               console.log(
-                `✅ Loaded ${fetched.length} questions from offline pack: ${packs[0]}`,
+                `✅ Loaded ${fetched.length} questions from offline pack: ${packId}`,
               );
             }
           }
@@ -390,32 +389,9 @@ const MockExam: React.FC = () => {
     }
   };
 
-  const handleFinishExam = async () => {
-    const timeTaken = MOCK_DURATION - timeLeft;
-    console.log("🔵 [handleFinishExam] timeTaken:", timeTaken);
-
-    finishExam(timeTaken);
-    setShowConfirmSubmit(false);
-
-    // ✅ Read AFTER finishExam so lastResult is populated
+  const submitMockResults = async (timeTaken: number) => {
     const { lastResult } = useMockStore.getState();
-
-    console.log("🔵 [handleFinishExam] lastResult:", lastResult);
-    console.log("🔵 [handleFinishExam] isAuthenticated:", isAuthenticated);
-
-    if (!isAuthenticated) {
-      console.warn(
-        "⚠️ [handleFinishExam] User not authenticated — skipping save",
-      );
-      return;
-    }
-
-    if (!lastResult) {
-      console.error(
-        "❌ [handleFinishExam] lastResult is null — finishExam may not have run yet",
-      );
-      return;
-    }
+    if (!lastResult || !isAuthenticated) return;
 
     try {
       console.log("🔵 [handleFinishExam] Saving per-subject sessions...");
@@ -473,7 +449,24 @@ const MockExam: React.FC = () => {
       console.log("✅ [handleFinishExam] All done");
     } catch (err) {
       console.error("❌ [handleFinishExam] Failed:", err);
+      if (
+        err instanceof Error &&
+        err.message.startsWith("OFFLINE_SUBMIT_BLOCKED")
+      ) {
+        setSubmissionBlocked(true);
+      }
     }
+  };
+
+  const handleFinishExam = async () => {
+    const timeTaken = MOCK_DURATION - timeLeft;
+    console.log("🔵 [handleFinishExam] timeTaken:", timeTaken);
+
+    finishExam(timeTaken);
+    setShowConfirmSubmit(false);
+    setSubmissionBlocked(false);
+
+    await submitMockResults(timeTaken);
   };
 
   const updateSubject = (index: number, value: string) => {
@@ -729,6 +722,8 @@ const MockExam: React.FC = () => {
         setIsSidebarOpen={setIsSidebarOpen}
       >
         <MockResultsScreen
+          submissionBlocked={submissionBlocked}
+          onRetrySubmission={() => submitMockResults(MOCK_DURATION - timeLeft)}
           onRetry={() => {
             resetExam();
             localStorage.removeItem("schooldra-mock-exam");

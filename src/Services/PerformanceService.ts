@@ -228,7 +228,7 @@ export const getSubjectPerformance = async (): Promise<
 // FUNCTION TO UPDATE WEAK TOPIC PROGRESS
 // Only updates if new topic is weaker than existing one
 // ===========================================================
-export const updateWeakestTopic = async (
+const updateWeakestTopic = async (
   subject: string,
   topicPerformance: Record<
     string,

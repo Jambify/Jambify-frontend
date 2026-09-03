@@ -64,7 +64,7 @@ export const SUBJECT_COMBOS: SubjectCombo[] = [
   },
 ];
 
-export const SUBJECT_ICONS: Record<string, LucideIcon> = {
+const SUBJECT_ICONS: Record<string, LucideIcon> = {
   English: BookOpen,
   Mathematics: Calculator,
   Physics: Zap,
@@ -96,8 +96,8 @@ export const SUBJECT_COLORS: Record<string, string> = {
   Commerce: "var(--color-warn)",
 };
 
-export const DEFAULT_SUBJECT_ICON = BookOpen;
-export const DEFAULT_SUBJECT_COLOR = "var(--color-brand)";
+const DEFAULT_SUBJECT_ICON = BookOpen;
+const DEFAULT_SUBJECT_COLOR = "var(--color-brand)";
 
 export const getSubjectIcon = (subject: string): LucideIcon =>
   SUBJECT_ICONS[subject] ?? DEFAULT_SUBJECT_ICON;
@@ -105,5 +105,3 @@ export const getSubjectIcon = (subject: string): LucideIcon =>
 export const getSubjectColor = (subject: string): string =>
   SUBJECT_COLORS[subject] ?? DEFAULT_SUBJECT_COLOR;
 
-export const getComboById = (id: string): SubjectCombo | undefined =>
-  SUBJECT_COMBOS.find((combo) => combo.id === id);

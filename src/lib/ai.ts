@@ -197,25 +197,3 @@ export async function streamAI(
     onError(err instanceof Error ? err : new Error(String(err)));
   }
 }
-
-// ── Convenience: build a question-explanation prompt ─────────────────────────
-
-export function buildQuestionContext(q: {
-  text: string;
-  options: string[];
-  answer: number;
-  explanation?: string;
-  subject?: string;
-  topic?: string;
-  year?: number | string;
-}): string {
-  const correctOption = q.options[q.answer];
-  // More aggressive truncation for extremely long questions
-  const truncatedText =
-    q.text.length > 500 ? q.text.substring(0, 500) + "..." : q.text;
-
-  return `Analyze this JAMB ${q.subject ?? ""} question:
-"${truncatedText}"
-Answer is ${String.fromCharCode(65 + q.answer)}. ${correctOption}
-Briefly verify accuracy and explain why it's correct.`;
-}

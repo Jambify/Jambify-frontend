@@ -11,7 +11,7 @@ import type { Question } from "../Types";
 interface QuestionData {
   id?: number;
   packId: string;
-  questionData: Question; // Store the actual question data
+  questionData: Question;
   downloadedAt: Date;
 }
 
@@ -28,23 +28,38 @@ class SchoolDraOfflineDB extends Dexie {
 
 const db = new SchoolDraOfflineDB();
 
-// Map pack IDs to subjects
+// FIX: expanded from 5 to all 13 JAMB subjects. Subject strings match
+// ALL_SUBJECTS in PastQuestions.tsx and normalizeSubject's conventions
+// in questionService.ts exactly (CRS/IRS included).
 const PACK_TO_SUBJECT: Record<string, string> = {
   "eng-all": "English",
   "math-all": "Mathematics",
   "phy-all": "Physics",
   "chem-all": "Chemistry",
   "bio-all": "Biology",
+  "econ-all": "Economics",
+  "govt-all": "Government",
+  "lit-all": "Literature",
+  "geo-all": "Geography",
+  "crs-all": "CRS",
+  "comm-all": "Commerce",
+  "hist-all": "History",
+  "irs-all": "IRS",
 };
 
+export const SUBJECT_TO_PACK: Record<string, string> = Object.fromEntries(
+  Object.entries(PACK_TO_SUBJECT).map(([packId, subject]) => [subject, packId]),
+);
+
 /**
- * Helper function to fetch real questions from Supabase for a pack
+ * Helper function to fetch real questions from Supabase for a pack.
+ * Unchanged — was already generic via PACK_TO_SUBJECT, works for any
+ * subject without modification.
  */
 async function fetchQuestionsForPack(packId: string): Promise<Question[]> {
   const subject = PACK_TO_SUBJECT[packId];
   if (!subject) return [];
 
-  // Fetch all questions for that subject from 2016-2025
   const { data, error } = await supabase
     .from("questions")
     .select("*")
@@ -57,7 +72,6 @@ async function fetchQuestionsForPack(packId: string): Promise<Question[]> {
     return [];
   }
 
-  // Transform DB rows to our Question type
   const questions = (data || []).map((row) => {
     let options: string[] = [];
     if (Array.isArray(row.options)) {
@@ -65,7 +79,7 @@ async function fetchQuestionsForPack(packId: string): Promise<Question[]> {
     } else if (typeof row.options === "string") {
       try {
         options = JSON.parse(row.options);
-      } catch{
+      } catch {
         options = [row.option_a, row.option_b, row.option_c, row.option_d].filter(Boolean);
       }
     }
@@ -94,30 +108,39 @@ async function fetchQuestionsForPack(packId: string): Promise<Question[]> {
   return questions;
 }
 
-/**
- * useOfflineStore
- * -------------------
- * Tracks which question packs have been downloaded
- * for offline use using IndexedDB via Dexie.js
- */
-
 interface OfflineState {
-  downloadedPacks: string[]; // pack IDs cached for offline
-  downloadingId: string | null; // pack currently being downloaded
-  totalCachedBytes: number; // rough size tracking
+  downloadedPacks: string[];
+  downloadingId: string | null;
+  totalCachedBytes: number;
   downloadPack: (id: string) => Promise<void>;
   removePack: (id: string) => Promise<void>;
   isPackAvailable: (id: string) => boolean;
   getOfflineQuestions: (packId: string) => Promise<Question[]>;
 }
 
-/** Pack sizes in bytes for tracking (approximate) */
+// FIX: the original 5 sizes were hand-set estimates. Rather than inventing
+// 8 more numbers with the same false precision, these are PLACEHOLDERS —
+// each set to the average of the original 5 (~1MB) as a rough stand-in.
+// Before shipping, replace every value below with a real measurement:
+// download each pack once, check the actual bulkAdd payload size (or
+// query avg row size * COUNT(*) per subject from Supabase directly).
+// totalCachedBytes will be wrong for these subjects until then — it's
+// used for display/tracking only, not for any storage-limit enforcement,
+// so it's not unsafe to ship with placeholders, just inaccurate.
 const PACK_SIZES: Record<string, number> = {
   "eng-all": 1258291,
   "math-all": 1048576,
   "phy-all": 943718,
   "chem-all": 943718,
   "bio-all": 838861,
+  "econ-all": 1000000, // TODO: placeholder — replace with real measurement
+  "govt-all": 1000000, // TODO: placeholder — replace with real measurement
+  "lit-all": 1000000, // TODO: placeholder — replace with real measurement
+  "geo-all": 1000000, // TODO: placeholder — replace with real measurement
+  "crs-all": 1000000, // TODO: placeholder — replace with real measurement
+  "comm-all": 1000000, // TODO: placeholder — replace with real measurement
+  "hist-all": 1000000, // TODO: placeholder — replace with real measurement
+  "irs-all": 1000000, // TODO: placeholder — replace with real measurement
 };
 
 export const useOfflineStore = create<OfflineState>()(
@@ -132,15 +155,11 @@ export const useOfflineStore = create<OfflineState>()(
         set({ downloadingId: id });
 
         try {
-          // Fetch real questions from Supabase for this pack
           const questions = await fetchQuestionsForPack(id);
 
-          // Store questions in IndexedDB
           await db.transaction("rw", db.questions, async () => {
-            // Clear existing questions for this pack
             await db.questions.where("packId").equals(id).delete();
 
-            // Add new questions
             const questionData = questions.map((q) => ({
               packId: id,
               questionData: q,
@@ -163,7 +182,6 @@ export const useOfflineStore = create<OfflineState>()(
 
       removePack: async (id) => {
         try {
-          // Remove from IndexedDB
           await db.questions.where("packId").equals(id).delete();
 
           set((s) => ({

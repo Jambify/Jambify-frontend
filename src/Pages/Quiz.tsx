@@ -35,7 +35,7 @@ import { useOfflineStore } from "../Store/useOfflineStore";
 import type { Question } from "../Types";
 
 /** Subject filter options shown on the quiz start screen with icons and colors */
-export const QUIZ_SUBJECTS = [
+const QUIZ_SUBJECTS = [
   "English",
   "Mathematics",
   "Physics",

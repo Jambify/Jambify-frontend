@@ -30,7 +30,7 @@ const MONTH_MAP: Record<string, number> = {
  * Parse a date string like "Apr 27" or "April 27" into a Date object.
  * Uses the supplied year. Returns null if parsing fails.
  */
-export function parseExamDate(
+function parseExamDate(
   examDateStr: string,
   examYear: string,
 ): Date | null {

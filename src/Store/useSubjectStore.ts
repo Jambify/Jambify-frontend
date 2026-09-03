@@ -188,7 +188,7 @@ export const ALL_SUBJECTS_MASTER: MasterSubjectEntry[] = [
 ];
 
 // Maps short subject ID to full name (for database enum)
-export const SHORT_ID_TO_FULL_NAME: Record<string, string> = {
+const SHORT_ID_TO_FULL_NAME: Record<string, string> = {
   eng: "English",
   math: "Mathematics",
   phy: "Physics",
@@ -203,7 +203,7 @@ export const SHORT_ID_TO_FULL_NAME: Record<string, string> = {
 };
 
 // Maps full subject name (from database enum) back to short ID
-export const FULL_NAME_TO_SHORT_ID: Record<string, string> = {
+const FULL_NAME_TO_SHORT_ID: Record<string, string> = {
   English: "eng",
   Mathematics: "math",
   Physics: "phy",

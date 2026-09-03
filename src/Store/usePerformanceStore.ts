@@ -309,6 +309,12 @@ export const usePerformanceStore = create<PerformanceState>()(
       totalQuestions?: number,
       topicPerformance?: TopicPerformance,
     ) => {
+      if (typeof navigator !== "undefined" && !navigator.onLine) {
+        throw new Error(
+          "OFFLINE_SUBMIT_BLOCKED: You're offline. Connect to the internet to submit your results.",
+        );
+      }
+
       console.log("📝 [addQuizResult] called with:", {
         mode,
         subject,

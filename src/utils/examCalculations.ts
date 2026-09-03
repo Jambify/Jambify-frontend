@@ -26,7 +26,7 @@ export interface ExamResult {
   topicPerformance: Record<string, TopicPerformance>;
 }
 
-export const getPerformanceIndicator = (
+const getPerformanceIndicator = (
   percentage: number,
 ): SubjectScore["performance"] => {
   if (percentage >= 75) return "Excellent";
@@ -105,9 +105,3 @@ export const calculateExamResults = (
   };
 };
 
-export const formatTime = (seconds: number): string => {
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  const s = seconds % 60;
-  return `${h > 0 ? `${h}:` : ""}${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
-};

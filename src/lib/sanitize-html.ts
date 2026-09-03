@@ -13,7 +13,7 @@ if (typeof window !== "undefined") {
 const KATEX_BLOCK_RE = /\$\$([\s\S]+?)\$\$/g;
 const KATEX_INLINE_RE = /\$([^\n$]+?)\$/g;
 
-export function sanitizeHtml(html: string): string {
+function sanitizeHtml(html: string): string {
   if (!purifyInstance) return html; // Fallback for SSR
   return purifyInstance.sanitize(html, {
     // Allow KaTeX's span tags plus math styling classes alongside our custom

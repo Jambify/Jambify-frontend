@@ -23,9 +23,3 @@ export function validateName(value: string) {
     return /^[\p{L}0-9 .'-]+$/u.test(v);
 }
 
-// Basic university validation: allow most printable characters but keep length limits
-export function validateUniversity(value: string) {
-    if (!value) return false;
-    const v = value.trim();
-    return v.length > 1 && v.length <= MAX_UNI_LENGTH;
-}

@@ -45,17 +45,3 @@ export const getLocalQuestions = (
   return shuffled.slice(0, count);
 };
 
-/** Returns total question count across all subjects (useful for stats) */
-export const getDatabaseStats = () => {
-  return Object.entries(LOCAL_DATABASE).map(([subject, questions]) => ({
-    subject,
-    total: questions.length,
-    years: [...new Set(questions.map((q) => q.year))].sort(),
-  }));
-};
-export const getTotalQuestionCount = () => {
-  return Object.values(LOCAL_DATABASE).reduce(
-    (sum, questions) => sum + questions.length,
-    0,
-  );
-};

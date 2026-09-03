@@ -7,18 +7,21 @@ import ProfileForm from "../components/Settings/ProfileForm";
 import ExamSettings from "../components/Settings/ExamSettings";
 import DangerZone from "../components/Settings/DangerZone";
 import HelpSupport from "../components/Settings/HelpSupport";
+import OfflinePackCard from "../components/PastQuestions/OfflinePackCard";
+import { OFFLINE_PACKS } from "../Data/offlinePacks";
 import { cn } from "../lib/utils/utils";
 import {
   User,
   Target,
   Settings as SettingsIcon,
   HelpCircle,
+  Download,
   Wrench,
   
 } from "lucide-react";
 import type{ LucideIcon,} from "lucide-react"
 
-type Tab = "profile" | "exam" | "account" | "help";
+type Tab = "profile" | "exam" | "offline" | "account" | "help";
 
 interface SettingsLocationState {
   activeTab?: Tab;
@@ -27,13 +30,14 @@ interface SettingsLocationState {
 const TABS: { id: Tab; label: string; icon: LucideIcon }[] = [
   { id: "profile", label: "Profile", icon: User },
   { id: "exam", label: "Exam settings", icon: Target },
+  { id: "offline", label: "Offline packs", icon: Download },
   { id: "account", label: "Account", icon: SettingsIcon },
   { id: "help", label: "Help & Support", icon: HelpCircle },
 ];
 
 const Settings: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const { name, isAdmin, isModerator } = useUserStore();
+  const { name, isAdmin, isModerator, isPro } = useUserStore();
   const location = useLocation();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<Tab>(
@@ -126,6 +130,30 @@ const Settings: React.FC = () => {
         <div className="animate-fadeIn">
           {activeTab === "profile" && <ProfileForm />}
           {activeTab === "exam" && <ExamSettings />}
+          {activeTab === "offline" && (
+            <section className="space-y-4">
+              <div>
+                <h3 className="font-display text-lg font-bold">Offline packs</h3>
+                <p className="text-textMuted mt-1 text-sm">
+                  Download question packs now so you can practise without an internet connection.
+                </p>
+              </div>
+              {isPro ? (
+                <div className="space-y-3">
+                  {OFFLINE_PACKS.map((pack) => (
+                    <OfflinePackCard key={pack.id} pack={pack} />
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-bgCard border-borderMuted rounded-brand-xl border p-5 text-sm">
+                  <p className="font-semibold">Offline packs are a Pro feature.</p>
+                  <p className="text-textMuted mt-1">
+                    Upgrade to download and manage question packs on this device.
+                  </p>
+                </div>
+              )}
+            </section>
+          )}
           {activeTab === "account" && <DangerZone />}
           {activeTab === "help" && <HelpSupport />}
         </div>

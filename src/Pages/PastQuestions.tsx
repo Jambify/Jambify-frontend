@@ -29,6 +29,8 @@ import {
   fetchTopicsBySubject,
 } from "../Services/questionService";
 import ProGate from "../components/PastQuestions/ProGate";
+import OfflinePackCard from "../components/PastQuestions/OfflinePackCard";
+import { OFFLINE_PACKS } from "../Data/offlinePacks";
 
 export interface Filters {
   subject: string;
@@ -212,7 +214,8 @@ const PastQuestions = () => {
         if (thisRequestId !== requestIdRef.current) return; // stale response
         console.error("Error loading questions:", e);
         setLoadingError(
-          (e as Error)?.message || "Failed to load questions. Please try again.",
+          (e as Error)?.message ||
+            "Failed to load questions. Please try again.",
         );
       } finally {
         if (thisRequestId === requestIdRef.current) {
@@ -458,6 +461,14 @@ const PastQuestions = () => {
           </div>
         </div>
 
+        {(() => {
+          const matchingPack = OFFLINE_PACKS.find(
+            (p) => p.subject === filters.subject,
+          );
+          if (!matchingPack) return null; // all 13 subjects are covered now, this is just a safety fallback
+          return <OfflinePackCard pack={matchingPack} />;
+        })()}
+
         {/* Loading State — scoped to data sections only */}
         {isLoading && questions.length === 0 && (
           <>
@@ -495,7 +506,10 @@ const PastQuestions = () => {
               <div className="bg-bgSurface skeleton-shimmer h-10 w-28 rounded-xl" />
               <div className="flex items-center gap-2">
                 {[1, 2, 3, 4, 5].map((p) => (
-                  <div key={p} className="bg-bgSurface skeleton-shimmer h-10 w-10 rounded-xl" />
+                  <div
+                    key={p}
+                    className="bg-bgSurface skeleton-shimmer h-10 w-10 rounded-xl"
+                  />
                 ))}
               </div>
               <div className="bg-bgSurface skeleton-shimmer h-10 w-28 rounded-xl" />

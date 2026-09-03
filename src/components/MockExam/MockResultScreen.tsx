@@ -22,11 +22,15 @@ import { ExplanationText } from "../shared/ExplanationText";
 interface MockResultsScreenProps {
   onRetry: () => void;
   onHome: () => void;
+  submissionBlocked: boolean;
+  onRetrySubmission: () => void | Promise<void>;
 }
 
 const MockResultsScreen: React.FC<MockResultsScreenProps> = ({
   onRetry,
   onHome,
+  submissionBlocked,
+  onRetrySubmission,
 }) => {
   const navigate = useNavigate();
   const { lastResult, questions, answers } = useMockStore();
@@ -94,6 +98,23 @@ const MockResultsScreen: React.FC<MockResultsScreenProps> = ({
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6">
+      {submissionBlocked && (
+        <div className="bg-warning/10 border-warning/30 text-textMain mb-6 rounded-xl border p-4 text-sm">
+          <p className="font-semibold">You're offline</p>
+          <p className="text-textDim mt-1">
+            Your results are saved on this device but haven't been submitted
+            yet. Connect to the internet and retry.
+          </p>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={onRetrySubmission}
+            className="mt-3"
+          >
+            Retry submission
+          </Button>
+        </div>
+      )}
       {/* Score Overview - Premium Card */}
       <div className="relative mb-10 overflow-hidden rounded-brand-2xl border border-borderMuted bg-bgCard p-10 shadow-2xl shadow-brand/15">
         <div className="pointer-events-none absolute -top-24 -right-24 h-64 w-64 rounded-full bg-brand/10 blur-3xl" />

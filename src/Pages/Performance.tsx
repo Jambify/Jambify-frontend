@@ -27,7 +27,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 
-export const getSubjectIcon = (subject: string) => {
+const getSubjectIcon = (subject: string) => {
   const normalizedSubject =
     subject === "Literature in English" ? "Literature" : subject;
   const Icon = getMetaSubjectIcon(normalizedSubject);

@@ -3,14 +3,14 @@ export const TRANSITION_MS = 200;
 
 export type Theme = "dark" | "light";
 
-export function getSystemTheme(): Theme {
+function getSystemTheme(): Theme {
   if (typeof window === "undefined") return "dark";
   return window.matchMedia("(prefers-color-scheme: light)").matches
     ? "light"
     : "dark";
 }
 
-export function getSavedTheme(): Theme | null {
+function getSavedTheme(): Theme | null {
   try {
     const v = localStorage.getItem(STORAGE_KEY);
     if (v === "light" || v === "dark") return v;
@@ -20,7 +20,7 @@ export function getSavedTheme(): Theme | null {
   return null;
 }
 
-export function persistTheme(theme: Theme) {
+function persistTheme(theme: Theme) {
   try {
     localStorage.setItem(STORAGE_KEY, theme);
   } catch {

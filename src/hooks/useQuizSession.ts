@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuizStore } from "../Store/useQuizStore";
 import { useUserStore } from "../Store/useUserStore";
 import { useSubjectStore, getSubjectFromName } from "../Store/useSubjectStore";
@@ -21,9 +22,11 @@ export function useQuizSession() {
   const { id: userId, isAuthenticated } = useUserStore();
   const { updateSubject: updateSubj } = useSubjectStore();
   const { updateTopic, addQuizResult } = usePerformanceStore();
+  const [submissionBlocked, setSubmissionBlocked] = useState(false);
 
   const commitSession = async () => {
     if (questions.length === 0) return;
+    setSubmissionBlocked(false);
 
     /* ── 1. Check if we completed a specific topic ───── */
     const { selectedTopic } = useQuizStore.getState();
@@ -71,6 +74,12 @@ export function useQuizSession() {
         );
       } catch (err) {
         console.error("Failed to submit quiz result:", err);
+        if (
+          err instanceof Error &&
+          err.message.startsWith("OFFLINE_SUBMIT_BLOCKED")
+        ) {
+          setSubmissionBlocked(true);
+        }
       }
     }
 
@@ -118,5 +127,5 @@ export function useQuizSession() {
     });
   };
 
-  return { commitSession };
+  return { commitSession, submissionBlocked };
 }

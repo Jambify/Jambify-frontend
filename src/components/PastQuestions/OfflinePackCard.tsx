@@ -1,6 +1,22 @@
 import React from "react";
 import { useOfflineStore } from "../../Store/useOfflineStore";
 import { cn } from "../../lib/utils/utils";
+import {
+  BookOpen,
+  Calculator,
+  Zap,
+  FlaskConical,
+  Dna,
+  TrendingUp,
+  Landmark,
+  BookMarked,
+  Globe,
+  Church,
+  Briefcase,
+  ScrollText,
+  Moon,
+  type LucideIcon,
+} from "lucide-react";
 
 export interface OfflinePack {
   id: string;
@@ -10,12 +26,20 @@ export interface OfflinePack {
   size: string;
 }
 
-const SUBJ_ICONS: Record<string, string> = {
-  English: "📖",
-  Mathematics: "🔢",
-  Physics: "⚡",
-  Chemistry: "⚗️",
-  Biology: "🧬",
+const SUBJ_ICONS: Record<string, LucideIcon> = {
+  English: BookOpen,
+  Mathematics: Calculator,
+  Physics: Zap,
+  Chemistry: FlaskConical,
+  Biology: Dna,
+  Economics: TrendingUp,
+  Government: Landmark,
+  Literature: BookMarked,
+  Geography: Globe,
+  CRS: Church,
+  Commerce: Briefcase,
+  History: ScrollText,
+  IRS: Moon,
 };
 
 const SUBJ_COLORS: Record<string, string> = {
@@ -24,6 +48,14 @@ const SUBJ_COLORS: Record<string, string> = {
   Physics: "#FFB020",
   Chemistry: "#FF4D6D",
   Biology: "#00C896",
+  Economics: "#7B5FFF",
+  Government: "#FFB020",
+  Literature: "#7B5FFF",
+  Geography: "#00C896",
+  CRS: "#7B5FFF",
+  Commerce: "#FFB020",
+  History: "#FF4D6D",
+  IRS: "#00C896",
 };
 
 const OfflinePackCard: React.FC<{ pack: OfflinePack }> = ({ pack }) => {
@@ -32,6 +64,14 @@ const OfflinePackCard: React.FC<{ pack: OfflinePack }> = ({ pack }) => {
   const isDownloaded = downloadedPacks.includes(pack.id);
   const isDownloading = downloadingId === pack.id;
   const color = SUBJ_COLORS[pack.subject] ?? "#7B5FFF";
+  const Icon = SUBJ_ICONS[pack.subject] ?? BookOpen;
+
+  // FIX: count/size are placeholder ("0" / "— (TODO)") until real per-subject
+  // numbers are measured — see the TODOs in Data/offlinePacks.ts. Rather than
+  // show a fake "0 questions" or a raw "TODO" string to users, hide that line
+  // entirely until real values are filled in. Once offlinePacks.ts has real
+  // numbers for every pack, this condition naturally starts showing it.
+  const hasRealMeta = pack.count > 0 && !pack.size.includes("TODO");
 
   return (
     <div
@@ -42,20 +82,19 @@ const OfflinePackCard: React.FC<{ pack: OfflinePack }> = ({ pack }) => {
           : "border-borderMuted hover:border-white/10",
       )}
     >
-      {/* <Subject icon */}
       <div
-        className="rounded-brand flex h-11 w-11 shrink-0 items-center justify-center text-xl"
+        className="rounded-brand flex h-11 w-11 shrink-0 items-center justify-center"
         style={{ background: color + "18" }}
       >
-        {SUBJ_ICONS[pack.subject] ?? "📚"}
+        <Icon size={20} style={{ color }} />
       </div>
-
-      {/* <Info */}
       <div className="min-w-0 flex-1">
         <p className="text-sm font-medium">{pack.subject}</p>
-        <p className="text-textDim mt-0.5 text-[11px]">
-          {pack.count} questions · {pack.years} · {pack.size}
-        </p>
+        {hasRealMeta && (
+          <p className="text-textDim mt-0.5 text-[11px]">
+            {pack.count} questions · {pack.years} · {pack.size}
+          </p>
+        )}
         {isDownloaded && (
           <p className="text-success mt-1 flex items-center gap-1 text-[11px]">
             ✓ Downloaded — available offline
@@ -70,30 +109,13 @@ const OfflinePackCard: React.FC<{ pack: OfflinePack }> = ({ pack }) => {
           </div>
         )}
       </div>
-
-      {/* <Action button */}
       <div className="shrink-0">
         {isDownloading ? (
-          <button
-            disabled
-            className="rounded-brand bg-bgSurface border-borderMuted text-textDim cursor-not-allowed border px-3 py-1.5 text-xs"
-          >
-            Downloading…
-          </button>
+          <button disabled>Downloading…</button>
         ) : isDownloaded ? (
-          <button
-            onClick={() => removePack(pack.id)}
-            className="rounded-brand bg-danger/10 border-danger/20 text-danger hover:bg-danger/20 border px-3 py-1.5 text-xs transition-all"
-          >
-            Remove
-          </button>
+          <button onClick={() => removePack(pack.id)}>Remove</button>
         ) : (
-          <button
-            onClick={() => downloadPack(pack.id)}
-            className="rounded-brand bg-brand/10 border-brand/20 text-brand-light hover:bg-brand/20 flex items-center gap-1.5 border px-3 py-1.5 text-xs transition-all"
-          >
-            ↓ Download
-          </button>
+          <button onClick={() => downloadPack(pack.id)}>↓ Download</button>
         )}
       </div>
     </div>

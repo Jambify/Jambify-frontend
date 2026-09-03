@@ -140,7 +140,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({
   onPerformance,
 }) => {
   const { questions, answers, selectedTopic } = useQuizStore();
-  const { commitSession } = useQuizSession();
+  const { commitSession, submissionBlocked } = useQuizSession();
 
   // ✅ Fire once on mount — commit results to all stores
   const committed = useRef(false);
@@ -201,6 +201,23 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({
 
   return (
     <div className="animate-fadeIn mx-auto max-w-xl">
+      {submissionBlocked && (
+        <div className="bg-warning/10 border-warning/30 text-textMain mb-5 rounded-xl border p-4 text-sm">
+          <p className="font-semibold">You're offline</p>
+          <p className="text-textDim mt-1">
+            Your results are saved on this device but haven't been submitted
+            yet. Connect to the internet and retry.
+          </p>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => commitSession()}
+            className="mt-3"
+          >
+            Retry submission
+          </Button>
+        </div>
+      )}
       {/* <Score hero */}
       <div className="bg-bgCard border-borderMuted rounded-brand-xl relative mb-5 overflow-hidden border p-8 text-center">
         <div
