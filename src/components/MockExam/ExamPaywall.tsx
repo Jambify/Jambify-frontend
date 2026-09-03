@@ -111,9 +111,7 @@ const ExamPaywall: React.FC<ExamPaywallProps> = ({ onUpgrade, onBack }) => {
         callback: async (data: FlutterwaveCallbackData) => {
           console.log("Payment callback data:", data);
           if (data.status === "successful" || data.status === "completed") {
-            // Grant Pro immediately in frontend for better UX, then verify
-            await upgradeToPro();
-            handlePaymentSuccess(data.tx_ref);
+            await handlePaymentSuccess(data.tx_ref);
           } else {
             setVerifyError("Payment was not successful. Please try again.");
           }
@@ -156,8 +154,27 @@ const ExamPaywall: React.FC<ExamPaywallProps> = ({ onUpgrade, onBack }) => {
       } = await supabase.auth.getUser();
       if (!user) throw new Error("Please sign in to complete your upgrade.");
 
-      // Record or update the transaction in our new pro_users table
-      const { error: proError } = await supabase.from("pro_users").upsert(
+      const { data: currentPro, error: currentProError } = await supabase
+        .from("pro_users")
+        .select("expires_at")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (currentProError) throw currentProError;
+
+      const now = new Date();
+      const currentExpiry = currentPro?.expires_at
+        ? new Date(currentPro.expires_at)
+        : now;
+      const renewalBase =
+        currentExpiry.getTime() > now.getTime() ? currentExpiry : now;
+      const expiresAt = new Date(
+        renewalBase.getTime() + 30 * 24 * 60 * 60 * 1000,
+      );
+
+      const { data: updatedPro, error: proError } = await supabase
+        .from("pro_users")
+        .upsert(
         {
           user_id: user.id,
           email: user.email,
@@ -165,20 +182,25 @@ const ExamPaywall: React.FC<ExamPaywallProps> = ({ onUpgrade, onBack }) => {
           amount: 3000,
           status: "active",
           plan_type: "monthly",
-          expires_at: new Date(
-            Date.now() + 30 * 24 * 60 * 60 * 1000,
-          ).toISOString(),
+          expires_at: expiresAt.toISOString(),
           updated_at: new Date().toISOString(),
         },
-        { onConflict: "user_id" },
-      );
+          { onConflict: "user_id" },
+        )
+        .select("user_id, status, expires_at, payment_reference")
+        .single();
 
       if (proError) {
         console.error("Error recording payment:", proError);
-        // If it's a unique constraint error, they might already be pro
-        if (!proError.message.includes("unique")) {
-          throw new Error("Failed to record payment. Please contact support.");
-        }
+        throw new Error(
+          [proError.message, proError.details, proError.hint]
+            .filter(Boolean)
+            .join(" ") || "Failed to record payment. Please contact support.",
+        );
+      }
+
+      if (!updatedPro) {
+        throw new Error("Payment was not recorded. Please contact support.");
       }
 
       // Update the user's profile to is_pro = true
@@ -199,8 +221,8 @@ const ExamPaywall: React.FC<ExamPaywallProps> = ({ onUpgrade, onBack }) => {
         );
       }
 
-      // Update local store
-      upgradeToPro();
+      // Update local store only after the database confirms the payment.
+      await upgradeToPro();
 
       // Success!
       setStep("verify");

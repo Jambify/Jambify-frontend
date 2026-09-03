@@ -83,7 +83,21 @@ const ProGate: React.FC = () => {
                 data: { user },
               } = await supabase.auth.getUser();
               if (user) {
-                await supabase.from("pro_users").upsert(
+                const { data: currentPro, error: currentProError } = await supabase
+                  .from("pro_users")
+                  .select("expires_at")
+                  .eq("user_id", user.id)
+                  .maybeSingle();
+                if (currentProError) throw currentProError;
+
+                const now = new Date();
+                const currentExpiry = currentPro?.expires_at
+                  ? new Date(currentPro.expires_at)
+                  : now;
+                const renewalBase =
+                  currentExpiry.getTime() > now.getTime() ? currentExpiry : now;
+
+                const { error: paymentError } = await supabase.from("pro_users").upsert(
                   {
                     user_id: user.id,
                     email: user.email,
@@ -92,12 +106,13 @@ const ProGate: React.FC = () => {
                     status: "active",
                     plan_type: "monthly",
                     expires_at: new Date(
-                      Date.now() + 30 * 24 * 60 * 60 * 1000,
+                      renewalBase.getTime() + 30 * 24 * 60 * 60 * 1000,
                     ).toISOString(),
                     updated_at: new Date().toISOString(),
                   },
                   { onConflict: "user_id" },
                 );
+                if (paymentError) throw paymentError;
               }
             } catch (err) {
               console.error("Error recording payment:", err);

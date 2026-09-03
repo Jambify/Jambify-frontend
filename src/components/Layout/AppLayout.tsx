@@ -33,6 +33,7 @@ import {
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "../../lib/utils/utils";
 import ThemeToggle from "../ui/ThemeToggle";
+import type { ProStatusInfo } from "../../hooks/useProStatus";
 
 interface LayoutProps {
   children: ReactNode;
@@ -96,11 +97,6 @@ const NavItem = ({ label, active, badge, icon, path }: any) => {
 const PULL_TRIGGER = 90;
 const ICON_VISIBLE_AT = 40;
 
-/**
- * Walk up from `el` looking for the nearest scrollable ancestor (an element
- * with overflow-y: auto/scroll whose content is taller than its box).
- * Returns null if the only scrollable container is `<body>` / window.
- */
 const findScrollableParent = (el: HTMLElement | null): HTMLElement | null => {
   if (!el || el === document.body || el === document.documentElement)
     return null;
@@ -124,28 +120,21 @@ const innerScrollAtTop = (touchTarget: EventTarget | null): boolean => {
 type PullPhase = "hidden" | "visible" | "refreshing";
 interface PullState {
   phase: PullPhase;
-  /** Smooth visible pull (0..120). Only set when pulling is confirmed. */
   distance: number;
 }
 
 const INITIAL_PULL: PullState = { phase: "hidden", distance: 0 };
 
 /**
- * Banner driven by `useProStatus` output. It replaces the old one-size-fits-all
- * "Pro Access Revoked" modal with context-aware copy + a CTA that matches the
- * actual status (renew vs. contact support vs. retry payment).
+ * Banner driven by `useProStatus` output. Dismissal is DB-backed (per
+ * pro_users row), not localStorage — so dismissing on one device is
+ * respected on every device the user signs into.
  */
 interface ProStatusBannerProps {
-  status: ReturnType<typeof useProStatus>;
-  dismissed: boolean;
-  onDismiss: () => void;
+  status: ProStatusInfo;
 }
-const ProStatusBanner: React.FC<ProStatusBannerProps> = ({
-  status,
-  dismissed,
-  onDismiss,
-}) => {
-  if (!status.showAlert || dismissed) return null;
+const ProStatusBanner: React.FC<ProStatusBannerProps> = ({ status }) => {
+  if (!status.showAlert || status.statusBannerDismissed) return null;
 
   const toneClasses = (() => {
     switch (status.status) {
@@ -214,9 +203,8 @@ const ProStatusBanner: React.FC<ProStatusBannerProps> = ({
           <div className="mt-3">
             {ctaHref.startsWith("mailto:") ? (
               <a
-                href={ctaHref}
-                className="text-textMain inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold underline decoration-2 underline-offset-4 hover:opacity-80"
-              >
+               href={ctaHref}
+                className="text-textMain inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold underline decoration-2 underline-offset-4 hover:opacity-80">
                 <Mail className="h-3.5 w-3.5" /> Contact support
               </a>
             ) : (
@@ -236,7 +224,7 @@ const ProStatusBanner: React.FC<ProStatusBannerProps> = ({
 
       <button
         type="button"
-        onClick={onDismiss}
+        onClick={() => status.dismissStatusBanner()}
         aria-label="Dismiss Pro status alert"
         className="text-textDim hover:text-textMain mt-0.5 -mr-1 shrink-0 rounded-lg p-1.5 transition-colors"
       >
@@ -246,47 +234,16 @@ const ProStatusBanner: React.FC<ProStatusBannerProps> = ({
   );
 };
 
-const WELCOME_DISMISS_PREFIX = "schooldra_pro_welcome_seen_";
-
 interface ProWelcomeBannerProps {
-  status: ReturnType<typeof useProStatus>;
-  userId: string | null;
+  status: ProStatusInfo;
 }
 
-const ProWelcomeBanner: React.FC<ProWelcomeBannerProps> = ({
-  status,
-  userId,
-}) => {
+const ProWelcomeBanner: React.FC<ProWelcomeBannerProps> = ({ status }) => {
   const isActive =
     status.status === "active" || status.status === "expiring_soon";
-  const welcomeKey =
-    userId && status.proRowId
-      ? `${WELCOME_DISMISS_PREFIX}${userId}_${status.proRowId}_${status.paymentReference || "active"}`
-      : null;
 
-  const [seen, setSeen] = React.useState<boolean>(true);
+  if (!isActive || status.welcomeBannerDismissed || !status.proRowId) return null;
 
-  React.useEffect(() => {
-    if (!welcomeKey) return;
-    try {
-      setSeen(localStorage.getItem(welcomeKey) === "true");
-    } catch {
-      setSeen(false);
-    }
-  }, [welcomeKey]);
-
-  const dismiss = () => {
-    if (welcomeKey) {
-      try {
-        localStorage.setItem(welcomeKey, "true");
-      } catch {}
-    }
-    setSeen(true);
-  };
-
-  if (!isActive || seen || !welcomeKey) return null;
-
-  // Check if this is an admin grant by looking at plan_type or payment_reference pattern
   const isAdminGrant =
     status.planType === "admin_grant" ||
     (status.planType && status.planType.toLowerCase() === "admin_grant") ||
@@ -316,7 +273,7 @@ const ProWelcomeBanner: React.FC<ProWelcomeBannerProps> = ({
       </div>
       <button
         type="button"
-        onClick={dismiss}
+        onClick={() => status.dismissWelcomeBanner()}
         aria-label="Dismiss welcome message"
         className="text-textDim hover:text-textMain mt-0.5 -mr-1 shrink-0 rounded-lg p-1.5 transition-colors"
       >
@@ -326,8 +283,6 @@ const ProWelcomeBanner: React.FC<ProWelcomeBannerProps> = ({
   );
 };
 
-// Lucide icon aliased for ProStatusBanner since AlertTriangle is imported via
-// destructuring alongside the other icons below.
 const AlertTriangle = ({ className }: { className?: string }) => {
   const Icon = React.useMemo(
     () =>
@@ -357,8 +312,6 @@ const AlertTriangle = ({ className }: { className?: string }) => {
   return <Icon className={className} />;
 };
 
-const DISMISS_KEY_PREFIX = "schooldra_pro_alert_dismissed_";
-
 const AppLayout: React.FC<LayoutProps> = ({
   children,
   currentPage,
@@ -368,7 +321,6 @@ const AppLayout: React.FC<LayoutProps> = ({
   className,
   onRefresh,
 }) => {
-  const userId = useUserStore((state) => state.id);
   const name = useUserStore((state) => state.name);
   const targetScore = useUserStore((state) => state.targetScore);
   const streak = useUserStore((state) => state.streak);
@@ -378,31 +330,16 @@ const AppLayout: React.FC<LayoutProps> = ({
   const proStatus = useProStatus();
 
   const [pullState, setPullState] = useState<PullState>(INITIAL_PULL);
-
-  const [proBannerDismissed, setProBannerDismissed] = useState<boolean>(true);
   const isDrawerOpenRef = useRef(false);
 
-  // ── Pull-to-refresh gesture tracking ────────────────────────────────
-  // Raw gesture progress is tracked in refs so we don't trigger a React
-  // re-render on every tiny touch-move (which would be ~60/sec and cause
-  // flicker). Only when the gesture crosses a confirmed visible-state
-  // threshold do we write to state.
   const gestureRef = useRef({
     active: false,
     startY: 0,
     startX: 0,
-    // Raw delta (before damping). We keep this so we can damp differently
-    // for "visible" vs "trigger" thresholds without losing precision.
     rawDelta: 0,
-    // Confidence counter: how many consecutive move events is the user
-    // still pulling beyond the visibility threshold? We require at least
-    // 2 consecutive frames (≈32ms) at > ICON_VISIBLE_AT before showing
-    // the icon. This kills micro-bounce flashes from normal scroll-to-top
-    // momentum or iOS rubber-banding.
     sustainedFrames: 0,
   });
 
-  // Helper: clamp a number into [min, max].
   const clamp = (v: number, min: number, max: number) =>
     Math.max(min, Math.min(max, v));
 
@@ -410,37 +347,8 @@ const AppLayout: React.FC<LayoutProps> = ({
   const initials = getInitials(displayName);
   const pageTitle = formatPageTitle(currentPage);
 
-  const dismissKey =
-    userId && proStatus.proRowId
-      ? `${DISMISS_KEY_PREFIX}${userId}_${proStatus.proRowId}`
-      : null;
-
-  // Re-check localStorage only when the specific pro_users row changes
-  // (proRowId changing = a new pro event, so we re-arm the banner).
-  // Changing status alone (active→expiring) on the SAME row must NOT
-  // flip proBannerDismissed back to false — the user already dismissed it.
-  React.useEffect(() => {
-    if (!dismissKey) return;
-    try {
-      setProBannerDismissed(localStorage.getItem(dismissKey) === "true");
-    } catch {
-      setProBannerDismissed(false);
-    }
-  }, [proStatus.proRowId, dismissKey]);
-
-  const handleProBannerDismiss = () => {
-    if (dismissKey) {
-      localStorage.setItem(dismissKey, "true");
-    }
-    setProBannerDismissed(true);
-  };
-
-  // ── Touch handlers (pull-to-refresh) ────────────────────────────────
-
   const handleTouchStart = (e: React.TouchEvent) => {
     const g = gestureRef.current;
-    // Never start a pull while a drawer/modal overlay is open, or during
-    // an active refresh cycle.
     if (isDrawerOpenRef.current || pullState.phase === "refreshing") {
       g.active = false;
       return;
@@ -467,8 +375,6 @@ const AppLayout: React.FC<LayoutProps> = ({
     const dy = y - g.startY;
     const dx = Math.abs(x - g.startX);
 
-    // 1. If the user has moved more horizontally than vertically, this
-    //    gesture is a side-swipe, not a pull-down. Kill it permanently.
     if (dx > dy && dx > 8) {
       g.active = false;
       if (pullState.phase === "visible") {
@@ -477,9 +383,6 @@ const AppLayout: React.FC<LayoutProps> = ({
       return;
     }
 
-    // 2. Re-verify scroll position on every move: the user might have
-    //    started at the very top but an inner container moved via
-    //    momentum, or they were rubber-banding.
     const stillAtTop = window.scrollY <= 0 && innerScrollAtTop(e.target);
     if (!stillAtTop || dy <= 0) {
       g.rawDelta = 0;
@@ -490,13 +393,9 @@ const AppLayout: React.FC<LayoutProps> = ({
       return;
     }
 
-    // 3. Damp the pull (feels springy, not 1:1 with finger).
     const damped = dy * 0.45;
     g.rawDelta = damped;
 
-    // 4. Visibility gating: require sustained pull above ICON_VISIBLE_AT
-    //    for at least 2 consecutive move events before showing anything.
-    //    This is the critical fix for single-frame micro-bounce flashes.
     if (damped >= ICON_VISIBLE_AT) {
       g.sustainedFrames += 1;
     } else {
@@ -532,13 +431,10 @@ const AppLayout: React.FC<LayoutProps> = ({
           window.location.reload();
         }
       } finally {
-        // Small cooldown so animation settles before removing the spinner.
         await new Promise((resolve) => setTimeout(resolve, 220));
         setPullState(INITIAL_PULL);
       }
     } else {
-      // Pull released too early — fade out cleanly. A brief transition
-      // ensures no instant snap, even if the underlying state flips fast.
       setPullState(INITIAL_PULL);
     }
 
@@ -546,7 +442,6 @@ const AppLayout: React.FC<LayoutProps> = ({
     g.sustainedFrames = 0;
   };
 
-  // Pull progress (0..1) for spinner rotation during visible phase.
   const pullProgress =
     pullState.phase === "visible"
       ? clamp(pullState.distance / PULL_TRIGGER, 0, 1)
@@ -554,8 +449,6 @@ const AppLayout: React.FC<LayoutProps> = ({
         ? 1
         : 0;
 
-  // Poll for drawer/modal presence — writes to ref ONLY, never setState.
-  // Pure ref mutation, no React re-renders — cannot cause flicker.
   React.useEffect(() => {
     const checkDrawerOpen = () => {
       const drawer = document.querySelector('[style*="z-50"]');
@@ -572,13 +465,6 @@ const AppLayout: React.FC<LayoutProps> = ({
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      {/* ── Pull-to-refresh spinner ─────────────────────────────────
-           Completely rebuilt: visibility is gated by a phase state machine
-           (hidden → visible → refreshing → hidden) not by raw pixel
-           distance on every frame. Icon only appears after a sustained
-           2-frame pull past ICON_VISIBLE_AT (40px damped ≈ 89px raw),
-           so micro-bounces from normal scroll-to-top can never trigger
-           even a single-frame flash. */}
       <motion.div
         aria-hidden="true"
         className="pointer-events-none fixed inset-x-0 top-16 z-90 flex justify-center"
@@ -619,12 +505,8 @@ const AppLayout: React.FC<LayoutProps> = ({
 
       <div className="lg:pt-5 lg:pl-64">
         <AnnouncementBanner />
-        <ProWelcomeBanner status={proStatus} userId={userId} />
-        <ProStatusBanner
-          status={proStatus}
-          dismissed={proBannerDismissed}
-          onDismiss={handleProBannerDismiss}
-        />
+        <ProWelcomeBanner status={proStatus} />
+        <ProStatusBanner status={proStatus} />
       </div>
 
       {/* Network Status Toast */}
@@ -661,7 +543,6 @@ const AppLayout: React.FC<LayoutProps> = ({
         )}
       </AnimatePresence>
 
-      {/* MOBILE SIDEBAR (Drawer) */}
       {!hideSidebar && (
         <Sidebar
           isOpen={isSidebarOpen}
@@ -669,7 +550,6 @@ const AppLayout: React.FC<LayoutProps> = ({
         />
       )}
 
-      {/* DESKTOP SIDEBAR */}
       {!hideSidebar && (
         <aside
           className="bg-bgSurface border-borderMuted fixed top-0 bottom-0 left-0 z-100 hidden w-60 flex-col border-r lg:flex"
@@ -746,7 +626,6 @@ const AppLayout: React.FC<LayoutProps> = ({
               />
             </section>
 
-            {/* Pro Upgrade / Status Card */}
             <section className="px-2 pt-2">
               {!isPro ? (
                 <Link
@@ -812,7 +691,6 @@ const AppLayout: React.FC<LayoutProps> = ({
         </aside>
       )}
 
-      {/* MAIN CONTENT AREA */}
       <main className={cn("flex-1 pb-28 lg:pb-0", !hideSidebar && "lg:ml-60")}>
         {!hideSidebar && (
           <header
@@ -838,7 +716,6 @@ const AppLayout: React.FC<LayoutProps> = ({
                 Hi, {displayName.split(" ")[0]}!
               </span>
 
-              {/* Streak */}
               <div className="flex items-center gap-1 rounded-full border border-orange-500/20 bg-orange-500/10 px-2 py-1 text-[10px] font-medium text-orange-400 sm:gap-1.5 sm:px-3 sm:text-xs">
                 <Flame size={13} className="shrink-0" />
                 <span>{streak}</span>
@@ -847,7 +724,6 @@ const AppLayout: React.FC<LayoutProps> = ({
                 </span>
               </div>
 
-              {/* Countdown */}
               <div className="bg-brand-dim text-brand-light border-brand/20 flex items-center gap-1 rounded-full border px-2 py-1 text-[10px] font-medium sm:gap-1.5 sm:px-3 sm:text-xs">
                 <Hourglass size={13} className="shrink-0" />
                 <span>{daysLeft}</span>
@@ -874,7 +750,6 @@ const AppLayout: React.FC<LayoutProps> = ({
         </div>
       </main>
 
-      {/* MOBILE BOTTOM NAVIGATION */}
       {!hideSidebar && (
         <div className="bg-bgSurface/98 border-borderMuted/30 safe-area-bottom shadow-nav fixed right-0 bottom-0 left-0 z-100 border-t lg:hidden">
           <nav
@@ -910,7 +785,7 @@ const AppLayout: React.FC<LayoutProps> = ({
                     : "text-textDim/70",
                 )}
               >
-                Home
+                Dashboard
               </span>
             </Link>
 
@@ -947,7 +822,6 @@ const AppLayout: React.FC<LayoutProps> = ({
               </span>
             </Link>
 
-            {/* Prominent Center Action */}
             <div className="relative flex h-full flex-1 justify-center">
               <Link
                 to="/quiz"
@@ -958,7 +832,7 @@ const AppLayout: React.FC<LayoutProps> = ({
                   <FileText size={26} className="-rotate-45 text-white" />
                 </div>
                 <span className="text-brand-light text-[10px] font-black tracking-tighter uppercase">
-                  Practice
+                  Quiz
                 </span>
               </Link>
             </div>
@@ -992,7 +866,7 @@ const AppLayout: React.FC<LayoutProps> = ({
                     : "text-textDim/70",
                 )}
               >
-                Stats
+                Performance
               </span>
             </Link>
 
@@ -1025,7 +899,7 @@ const AppLayout: React.FC<LayoutProps> = ({
                     : "text-textDim/70",
                 )}
               >
-                Profile
+                Settings
               </span>
             </Link>
           </nav>

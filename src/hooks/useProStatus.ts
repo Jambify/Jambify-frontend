@@ -18,21 +18,24 @@ export type ProStatusAction =
   | "try_again"
   | null;
 
-interface ProStatusInfo {
+interface ProStatusData {
   isActive: boolean;
   status: ProStatusState;
   message: string;
   shortMessage: string;
   showAlert: boolean;
   expiresAt: Date | null;
-  /** Which CTA to render next to the banner message */
   primaryAction: ProStatusAction;
-  /** pro_users row id — used to scope localStorage dismissal per event */
   proRowId: string | null;
-  /** plan_type from pro_users row — used to distinguish admin-grant vs purchased */
   planType: string | null;
-  /** payment_reference from pro_users row — used to detect admin-grant pattern */
   paymentReference: string | null;
+  statusBannerDismissed: boolean;
+  welcomeBannerDismissed: boolean;
+}
+
+export interface ProStatusInfo extends ProStatusData {
+  dismissStatusBanner: () => Promise<void>;
+  dismissWelcomeBanner: () => Promise<void>;
 }
 
 interface ProRow {
@@ -43,6 +46,8 @@ interface ProRow {
   expires_at: string | Date | null;
   updated_at: string | Date | null;
   created_at: string | Date | null;
+  status_banner_dismissed_at: string | Date | null;
+  welcome_banner_dismissed_at: string | Date | null;
 }
 
 const toDate = (v: string | Date | null): Date | null => {
@@ -67,44 +72,73 @@ const fmt = (d: Date | null): string => {
 
 const MS_PER_DAY = 86_400_000;
 
+const EMPTY_STATE: ProStatusData = {
+  isActive: false,
+  status: "none",
+  message: "",
+  shortMessage: "",
+  showAlert: false,
+  expiresAt: null,
+  primaryAction: null,
+  proRowId: null,
+  planType: null,
+  paymentReference: null,
+  statusBannerDismissed: false,
+  welcomeBannerDismissed: false,
+};
+
+// FIX: the owner account (admin_users.is_owner = true) is protected at the
+// DB level by prevent_owner_pro_tamper — any UPDATE to its pro_users row
+// (including this hook's own stale-row sync below) is rejected by that
+// trigger. But without this bypass, the client-side expiry check ran
+// anyway, computed treatedAsExpired from the row's expires_at regardless
+// of whether the DB write succeeded, and showed the owner an "expired"
+// banner it can never actually renew through the normal /pro/renew flow
+// (that's blocked too, by design). Owner status is permanent and doesn't
+// participate in the pro_users expiry lifecycle at all.
+const OWNER_ACTIVE_STATE = (rowId: string | null): ProStatusData => ({
+  isActive: true,
+  status: "active",
+  message: "Pro access is permanently active for this account.",
+  shortMessage: "Pro Active (Owner)",
+  showAlert: false,
+  expiresAt: null,
+  primaryAction: null,
+  proRowId: rowId,
+  planType: "owner",
+  paymentReference: null,
+  statusBannerDismissed: true,
+  welcomeBannerDismissed: true,
+});
+
 export const useProStatus = (): ProStatusInfo => {
   const userId = useUserStore((s) => s.id);
+  const isOwner = useUserStore((s) => s.isOwner);
   const downgradeToPro = useUserStore((s) => s.downgradeToPro);
   const storeIsPro = useUserStore((s) => s.isPro);
 
-  const [info, setInfo] = useState<ProStatusInfo>({
+  const [info, setInfo] = useState<ProStatusData>({
+    ...EMPTY_STATE,
     isActive: storeIsPro,
-    status: "none",
-    message: "",
-    shortMessage: "",
-    showAlert: false,
-    expiresAt: null,
-    primaryAction: null,
-    proRowId: null,
-    planType: null,
-    paymentReference: null,
   });
 
-  // Guards the stale-row DB sync so it only fires once per mount, not
-  // repeatedly if a store update causes re-renders mid-effect.
   const hasSyncedRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
     if (!userId) {
       hasSyncedRef.current = false;
-      setInfo({
-        isActive: false,
-        status: "none",
-        message: "",
-        shortMessage: "",
-        showAlert: false,
-        expiresAt: null,
-        primaryAction: null,
-        proRowId: null,
-        planType: null,
-        paymentReference: null,
-      });
+      setInfo(EMPTY_STATE);
+      return;
+    }
+
+    // FIX: owner bypass — skip the pro_users fetch, all expiry branching,
+    // and the stale-row sync write entirely. Nothing here should ever
+    // attempt to modify the owner's pro_users row; the DB trigger would
+    // reject it, and the account shouldn't be subject to expiry at all.
+    if (isOwner) {
+      hasSyncedRef.current = false;
+      setInfo(OWNER_ACTIVE_STATE(info.proRowId));
       return;
     }
 
@@ -112,7 +146,7 @@ export const useProStatus = (): ProStatusInfo => {
       const { data: proRow } = await supabase
         .from("pro_users")
         .select(
-          "id, status, plan_type, payment_reference, expires_at, updated_at, created_at",
+          "id, status, plan_type, payment_reference, expires_at, updated_at, created_at, status_banner_dismissed_at, welcome_banner_dismissed_at",
         )
         .eq("user_id", userId)
         .order("created_at", { ascending: false })
@@ -123,18 +157,7 @@ export const useProStatus = (): ProStatusInfo => {
 
       if (!proRow) {
         hasSyncedRef.current = false;
-        setInfo({
-          isActive: false,
-          status: "none",
-          message: "",
-          shortMessage: "",
-          showAlert: false,
-          expiresAt: null,
-          primaryAction: null,
-          proRowId: null,
-          planType: null,
-          paymentReference: null,
-        });
+        setInfo(EMPTY_STATE);
         return;
       }
 
@@ -153,10 +176,9 @@ export const useProStatus = (): ProStatusInfo => {
         planType === "lifetime" ||
         planType === "quarterly" ||
         planType === "annual";
+      const statusBannerDismissed = !!row.status_banner_dismissed_at;
+      const welcomeBannerDismissed = !!row.welcome_banner_dismissed_at;
 
-      // ───────────────────────────────────────────────────────
-      // 1 & 2 — status === "active"
-      // ───────────────────────────────────────────────────────
       if (row.status === "active") {
         if (expiresAt && expiresAt.getTime() > now.getTime()) {
           const msLeft = expiresAt.getTime() - now.getTime();
@@ -180,18 +202,17 @@ export const useProStatus = (): ProStatusInfo => {
             proRowId: rowId,
             planType: row.plan_type,
             paymentReference: row.payment_reference,
+            statusBannerDismissed,
+            welcomeBannerDismissed,
           });
           return;
         }
 
-        // 2 — stale row: status is "active" but expires_at is in the past.
-        //     Background-sync the database state, store-correct is_pro,
-        //     then fall through to expired-handling below for messaging.
         try {
           await supabase
             .from("pro_users")
             .update({ status: "expired" })
-            .eq("user_id", userId);
+            .eq("id", rowId);
           await supabase
             .from("profiles")
             .update({ is_pro: false })
@@ -203,9 +224,6 @@ export const useProStatus = (): ProStatusInfo => {
         if (cancelled) return;
       }
 
-      // ───────────────────────────────────────────────────────
-      // 3 — status === "expired" (or stale row we just synced)
-      // ───────────────────────────────────────────────────────
       const treatedAsExpired =
         row.status === "expired" ||
         (row.status === "active" && !!expiresAt && expiresAt.getTime() <= now.getTime());
@@ -213,7 +231,6 @@ export const useProStatus = (): ProStatusInfo => {
       if (treatedAsExpired && expiresAt && updatedAt) {
         const hoursDiff = Math.abs(updatedAt.getTime() - expiresAt.getTime()) / 3_600_000;
 
-        // Natural expiry (updated_at close in time to expires_at)
         if (hoursDiff <= 24) {
           if (isAdminGrant) {
             setInfo({
@@ -229,6 +246,8 @@ export const useProStatus = (): ProStatusInfo => {
               proRowId: rowId,
               planType: row.plan_type,
               paymentReference: row.payment_reference,
+              statusBannerDismissed,
+              welcomeBannerDismissed,
             });
           } else {
             setInfo({
@@ -244,12 +263,13 @@ export const useProStatus = (): ProStatusInfo => {
               proRowId: rowId,
               planType: row.plan_type,
               paymentReference: row.payment_reference,
+              statusBannerDismissed,
+              welcomeBannerDismissed,
             });
           }
           return;
         }
 
-        // Early revoke (updated_at significantly before expires_at)
         setInfo({
           isActive: false,
           status: "revoked_early",
@@ -263,11 +283,12 @@ export const useProStatus = (): ProStatusInfo => {
           proRowId: rowId,
           planType: row.plan_type,
           paymentReference: row.payment_reference,
+          statusBannerDismissed,
+          welcomeBannerDismissed,
         });
         return;
       }
 
-      // Safe fallback for expired rows missing a timestamp
       if (treatedAsExpired) {
         setInfo({
           isActive: false,
@@ -282,13 +303,12 @@ export const useProStatus = (): ProStatusInfo => {
           proRowId: rowId,
           planType: row.plan_type,
           paymentReference: row.payment_reference,
+          statusBannerDismissed,
+          welcomeBannerDismissed,
         });
         return;
       }
 
-      // ───────────────────────────────────────────────────────
-      // 4 — status === "inactive"
-      // ───────────────────────────────────────────────────────
       if (row.status === "inactive") {
         const looksLikeFailedPayment =
           !isAdminGrant && paidPlan && !storeIsPro;
@@ -306,6 +326,8 @@ export const useProStatus = (): ProStatusInfo => {
             proRowId: rowId,
             planType: row.plan_type,
             paymentReference: row.payment_reference,
+            statusBannerDismissed,
+            welcomeBannerDismissed,
           });
         } else {
           setInfo({
@@ -320,12 +342,13 @@ export const useProStatus = (): ProStatusInfo => {
             proRowId: rowId,
             planType: row.plan_type,
             paymentReference: row.payment_reference,
+            statusBannerDismissed,
+            welcomeBannerDismissed,
           });
         }
         return;
       }
 
-      // Unknown status — fall back silently so we never spam the user
       setInfo({
         isActive: storeIsPro,
         status: "none",
@@ -337,6 +360,8 @@ export const useProStatus = (): ProStatusInfo => {
         proRowId: rowId,
         planType: row.plan_type,
         paymentReference: row.payment_reference,
+        statusBannerDismissed,
+        welcomeBannerDismissed,
       });
     };
 
@@ -345,7 +370,44 @@ export const useProStatus = (): ProStatusInfo => {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userId]);
+  }, [userId, isOwner]);
 
-  return info;
+  // FIX: dismiss writes remain no-ops for the owner (proRowId is null in
+  // OWNER_ACTIVE_STATE, and dismissed flags are already hardcoded true),
+  // so these functions simply won't fire a Supabase write for that case.
+  const dismissStatusBanner = async () => {
+    const rowId = info.proRowId;
+    if (!rowId || isOwner) return;
+    setInfo((prev) => ({ ...prev, statusBannerDismissed: true }));
+    try {
+      const { error } = await supabase
+        .from("pro_users")
+        .update({ status_banner_dismissed_at: new Date().toISOString() })
+        .eq("id", rowId);
+      if (error) {
+        console.error("[useProStatus] Failed to persist status banner dismissal:", error);
+      }
+    } catch (err) {
+      console.error("[useProStatus] Failed to persist status banner dismissal:", err);
+    }
+  };
+
+  const dismissWelcomeBanner = async () => {
+    const rowId = info.proRowId;
+    if (!rowId || isOwner) return;
+    setInfo((prev) => ({ ...prev, welcomeBannerDismissed: true }));
+    try {
+      const { error } = await supabase
+        .from("pro_users")
+        .update({ welcome_banner_dismissed_at: new Date().toISOString() })
+        .eq("id", rowId);
+      if (error) {
+        console.error("[useProStatus] Failed to persist welcome banner dismissal:", error);
+      }
+    } catch (err) {
+      console.error("[useProStatus] Failed to persist welcome banner dismissal:", err);
+    }
+  };
+
+  return { ...info, dismissStatusBanner, dismissWelcomeBanner };
 };

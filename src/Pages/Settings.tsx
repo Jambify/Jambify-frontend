@@ -104,7 +104,7 @@ const Settings: React.FC = () => {
         </div>
 
         {/* Tab switcher */}
-        <div className="bg-bgSurface rounded-brand-lg border-borderMuted mb-5 flex gap-1 border p-1">
+        <div className="bg-bgSurface rounded-brand-lg border-borderMuted mb-5 flex gap-1 border p-1 lg:gap-2">
           {TABS.map((tab) => {
             const Icon = tab.icon;
             return (
@@ -112,14 +112,14 @@ const Settings: React.FC = () => {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
-                  "rounded-brand flex flex-1 items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium transition-all",
+                  "rounded-brand flex flex-1 items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium transition-all lg:gap-0 lg:px-4 lg:py-3",
                   activeTab === tab.id
                     ? "bg-bgCard text-textMain border-borderMuted border shadow-sm"
                     : "text-textMuted hover:text-textMain touch-target no-double-tap active:scale-95",
                 )}
               >
-                <Icon className="h-4 w-4 shrink-0" />
-                <span className="hidden sm:inline">{tab.label}</span>
+                <Icon className="h-4 w-4 shrink-0 lg:h-6 lg:w-6" />
+                <span className="sm:inline lg:hidden">{tab.label}</span>
               </button>
             );
           })}
